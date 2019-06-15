@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
  * https://minecraft-ids.grahamedgecombe.com/
  * v1: https://pastebin.com/Fe65HZnN
  * v2: 6/15/2019
+ * GitHub: https://github.com/CryptoMorin/XMaterial/blob/master/XMaterial.java
  */
 
 /**
@@ -1182,66 +1183,6 @@ public enum XMaterial {
         if (name == null || name.trim().isEmpty())
             throw new NullPointerException("Material name cannot be null or empty");
         name = format(name);
-
-        // ******************** THE TEXT BELOW IS NOT MEANT TO BE UNDERSTANDABLE ********************
-        // ONLY READ IT IF YOU ARE INTERESTED ABOUT DUPLICATED NAMES.
-        // If isNewVersion is true we're sure that contains() is true since the enum names are always using the latest material names.
-        // Remove contains()?
-        // If the server version is 1.12 or below, check to see if the name that we're looking for is even duplicated in 1.13?
-        // If not just use the 1.13 name. No need to look for it in the legacy list. It's the same thing.
-        // The names that didn't change will not be in the legacy list.
-        // If !isNewVersion and isDuplicated, we have to look for the legacy names even if the data is -1 (unknown) or 0 (isDamageable).
-
-        // If we wanted a simple CRAFTING_TABLE which is now WORKBENCH in 1.13 there'd be no problem.
-        // Since they're both the same item, and using their names from 1.8 for 1.13 name or 1.13 for 1.8
-        // name, they both return the same result. A single XMaterial.
-        // Since -> WORKBENCH: contains(true) isNewVersion(true) !isDuplicated(true)
-        // And -> CRAFTING_TABLE: contains(false) isNewVersion(true/false) !isDuplicated(true) -> requestOldmMaterial yields WORKBENCH
-
-
-        // But what if those two names are related to two XMaterials?
-        // Unfortunately, there's only one way to do this.
-        // You can only check for 1.13 materials in 1.13
-        // and check for 1.13 materials in 1.8 to convert to 1.8
-        // Yeah, sounds confusing.
-
-        // We're checking melon (block). It's duplicated. Then we're going to check old materials.
-        // Don't forget this ---> matchXMaterial(MELON) <---
-        // So in both versions the name is duplcated. !isDuplicated == false
-        // Means: Whether you're in 1.8 or 1.13 requestOldMaterial will always be called.
-        // If you wanted the actual name used in 1.13 you couldn't.
-        // Then put isNewVersion? Yes
-        // But still false: contains(true) && isNewVersion(true) && isDuplicated(false)
-
-        // We're in 1.8:
-        // So we don't want MELON in 1.13 we want MELON that is in 1.12 which means MELON_SLICE right?
-        // We tried to look for MELON (MELON_SLICE) and not MELON_BLOCK (MELON).
-        // Then -> if isNewVersion(false) and !isNameDuplicated(false) -> Hold up! Look for old names.
-        // ---
-        // But what if we tried to check a 1.13 material and not 1.8?
-        // In other words, what if we were actually looking for MELON_BLOCK and not MELON in 1.8.
-        // Then -> if isNewVersion(false) and !isNameDuplicated(false) -> Hold up! Look for old names.
-        // There's the problem, in both situations it'll still look for the old names.
-        // Which means it'll give us MELON_SLICE (MELON in 1.12) again but we want MELON (MELON_BLOCK in 1.12)
-
-        // We're in 1.8:
-        // Same as 1.8
-        // Then -> if isNewVersion(true) and !isDuplicated(false) -> Hold up! Look for old names.
-        // ---
-        // But what if we tried to check a 1.13 material and not 1.8?
-        // In other words, what if we were actually looking for MELON_BLOCK and not MELON in 1.8.
-        // Then -> if isNewVersion(false) and !isNameDuplicated(false) -> Hold up! Look for old names.
-        // There's the problem, in both situations it'll still look for the old names.
-        // Which means it'll give us MELON_SLICE (MELON in 1.12) again but we want MELON (MELON_BLOCK in 1.12)
-
-        // We have a solution for both of the situations. However... isNewVersion isn't always true
-        // So we need !isNameDuplicated(false) to return true somehow here.
-        // But we can't make another if statement as isNewVersion is always needed same as isDuplicated.
-        // Using 4 different statements while using 2 statements? Quantum Computing...?
-
-        // To break this "What if we wanted this in this" loop, 1.13 names are our priority.
-        // So even in 1.8, you have to use "1.13 XMaterial" to get "1.8 Material"
-        // **************************************************************************************************************
 
         if ((contains(name) && data <= 0) && (isNewVersion() || !isDuplicated(name)))
             return valueOf(name);
