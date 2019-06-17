@@ -42,12 +42,12 @@ import java.util.regex.Pattern;
  * https://www.spigotmc.org/threads/1-8-to-1-13-itemstack-material-version-support.329630/
  * https://minecraft-ids.grahamedgecombe.com/
  * v1: https://pastebin.com/Fe65HZnN
- * v2: 6/15/2019
+ * v2: 7/15/2019
  * GitHub: https://github.com/CryptoMorin/XMaterial/blob/master/XMaterial.java
  */
 
 /**
- * XMaterial v2.0 - Data Values/Pre-flattening
+ * XMaterial v2.1 - Data Values/Pre-flattening
  * Supports 1.8-1.14
  * 1.13 and above as priority.
  */
@@ -1195,6 +1195,19 @@ public enum XMaterial {
     }
 
     /**
+     * Gets the XMaterial based on the Material's ID and data.
+     * You should avoid using this for performance reasons.
+     *
+     * @param id   the ID (Magic value) of the material.
+     * @param data the data of the material.
+     * @return some XMaterial, or null.
+     */
+    public static XMaterial matchXMaterial(int id, byte data) {
+        // Looping to Material.values() will take longer.
+        return Arrays.stream(XMaterial.values()).filter(mat -> mat.getId() == id && mat.data == data).findFirst().orElse(null);
+    }
+
+    /**
      * This method is temporary. Do not use this.
      * Manually parses the duplicated materials to find the exact material based on the server version.
      *
@@ -1346,6 +1359,18 @@ public enum XMaterial {
     public static boolean isDuplicated(String name) {
         String formatted = format(name);
         return DUPLICATED.entrySet().stream().anyMatch(x -> x.getKey().name().equals(formatted));
+    }
+
+    /**
+     * Gets the ID (Magic value) of the material.
+     * If an {@link IllegalArgumentException} was thrown from this method,
+     * you should definitely report it.
+     *
+     * @return the ID of the material. -1 if it's a new block.
+     */
+    @SuppressWarnings("deprecation")
+    public int getId() {
+        return isNew() ? -1 : this.parseMaterial().getId();
     }
 
     public boolean isDuplicated() {
@@ -1577,7 +1602,7 @@ public enum XMaterial {
          */
         VERSION_1_8,
         /**
-         * Combat Update (Pitiful Update)
+         * Combat Update (Pitiful Update?)
          */
         VERSION_1_9,
         /**
