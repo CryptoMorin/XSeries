@@ -1,4 +1,5 @@
-/* The MIT License (MIT)
+/*
+ The MIT License (MIT)
  *
  * Original work Copyright (c) 2018 Hex_27
  * v2.0 Copyright 2019 Crypto Morin
@@ -20,7 +21,7 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- */
+*/
 package name;
 
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -52,6 +54,7 @@ import java.util.regex.Pattern;
  * 1.13 and above as priority.
  */
 public enum XMaterial {
+
     ACACIA_BOAT(0, "BOAT_ACACIA"),
     ACACIA_BUTTON(0, "WOOD_BUTTON"),
     ACACIA_DOOR(0, "ACACIA_DOOR_ITEM"),
@@ -1050,11 +1053,13 @@ public enum XMaterial {
         put(XMaterial.MAP, XMaterial.FILLED_MAP);
         put(XMaterial.NETHER_BRICK, XMaterial.NETHER_BRICKS);
     }};
-    private static final HashMap<String, XMaterial> cachedSearch = new HashMap<>();
+    private static final HashMap<String, XMaterial> CACHED_SEARCH = new HashMap<>();
     private static MinecraftVersion version;
     private static Boolean isNewVersion;
     private final byte data;
     private final String[] legacy;
+    
+    public static final XMaterial[] VALUES = XMaterial.values();
 
     XMaterial(int data, String... legacy) {
         this.data = (byte) data;
@@ -1099,15 +1104,17 @@ public enum XMaterial {
      * @see #matchXMaterial(String, byte)
      */
     private static XMaterial requestOldXMaterial(String name, byte data) {
-        if (cachedSearch.containsKey(name + "," + data))
-            return cachedSearch.get(name + "," + data);
+        XMaterial cached = CACHED_SEARCH.get(name + "," + data);
 
-        Optional<XMaterial> search = data == -1 ? Arrays.stream(XMaterial.values()).filter(mat -> mat.matchAnyLegacy(name)).findFirst()
-                : Arrays.stream(XMaterial.values()).filter(mat -> mat.matchAnyLegacy(name) && mat.data == data).findFirst();
+        if (cached != null) {
+            return cached;
+        }
+        Optional<XMaterial> search = data == -1 ? Arrays.stream(XMaterial.VALUES).filter(mat -> mat.matchAnyLegacy(name)).findFirst()
+                : Arrays.stream(XMaterial.VALUES).filter(mat -> mat.matchAnyLegacy(name) && mat.data == data).findFirst();
 
         if (search.isPresent()) {
             XMaterial found = search.get();
-            cachedSearch.put(found.legacy[0] + "," + found.getData(), found);
+            CACHED_SEARCH.put(found.legacy[0] + "," + found.getData(), found);
             return found;
         }
         return null;
@@ -1121,7 +1128,7 @@ public enum XMaterial {
      */
     public static boolean contains(String name) {
         String formatted = format(name);
-        return Arrays.stream(XMaterial.values()).anyMatch(mat -> mat.name().equals(formatted));
+        return Arrays.stream(XMaterial.VALUES).anyMatch(mat -> mat.name().equals(formatted));
     }
 
     /**
@@ -1132,7 +1139,7 @@ public enum XMaterial {
      */
     public static boolean containsLegacy(String name) {
         String formatted = format(name);
-        return Arrays.stream(Arrays.stream(XMaterial.values()).map(m -> m.legacy).toArray(String[]::new)).anyMatch(mat
+        return Arrays.stream(Arrays.stream(XMaterial.VALUES).map(m -> m.legacy).toArray(String[]::new)).anyMatch(mat
                 -> parseLegacyVersionMaterialName(mat).equals(formatted));
     }
 
@@ -1204,7 +1211,7 @@ public enum XMaterial {
      */
     public static XMaterial matchXMaterial(int id, byte data) {
         // Looping to Material.values() will take longer.
-        return Arrays.stream(XMaterial.values()).filter(mat -> mat.getId() == id && mat.data == data).findFirst().orElse(null);
+        return Arrays.stream(XMaterial.VALUES).filter(mat -> mat.getId() == id && mat.data == data).findFirst().orElse(null);
     }
 
     /**
@@ -1216,7 +1223,7 @@ public enum XMaterial {
      */
     private static XMaterial requestDuplicatedXMaterial(String name, byte data) {
         XMaterial mat = requestOldXMaterial(name, data);
-        return mat.name().endsWith("S") ? valueOf(name) : mat;
+        return mat == null ? null : mat.name().endsWith("S") ? valueOf(name) : mat;
     }
 
     /**
@@ -1227,11 +1234,11 @@ public enum XMaterial {
      * @see #getXMaterialIfDuplicated(String)
      */
     public static XMaterial getNewXMaterialIfDuplicated(String name) {
-        String foramatted = format(name);
-        Optional<Map.Entry<XMaterial, XMaterial>> mat = DUPLICATED.entrySet().stream().filter(m
-                -> m.getKey().name().equals(foramatted)).findFirst();
-
-        return mat.map(Map.Entry::getValue).orElse(null);
+        return DUPLICATED.entrySet().stream()
+                .filter(m -> m.getKey().name().equals(format(name)))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
     }
 
     /**
@@ -1242,13 +1249,13 @@ public enum XMaterial {
      * @see #matchXMaterial(String, byte)
      */
     public static XMaterial getXMaterialIfDuplicated(String name) {
-        String foramatted = format(name);
+        String formatted = format(name);
         Optional<Map.Entry<XMaterial, XMaterial>> mat = DUPLICATED.entrySet().stream().filter(m
-                -> m.getKey().name().equals(foramatted) || m.getValue().name().equals(foramatted)).findFirst();
+                -> m.getKey().name().equals(formatted) || m.getValue().name().equals(formatted)).findFirst();
 
         if (mat.isPresent()) {
             Map.Entry<XMaterial, XMaterial> found = mat.get();
-            return foramatted.equals(found.getKey().name()) ? found.getValue() : found.getKey();
+            return formatted.equals(found.getKey().name()) ? found.getValue() : found.getKey();
         }
         return null;
     }
@@ -1325,7 +1332,7 @@ public enum XMaterial {
         // getBukkitVersion()
         if (version.contains("SNAPSHOT") || version.contains("-R")) version = version.substring(0, version.indexOf("-"));
         // getVersion
-        if (version.contains("git")) version = version.substring(version.indexOf("MC:") + 4, version.length()).replace(")", "");
+        if (version.contains("git")) version = version.substring(version.indexOf("MC:") + 4).replace(")", "");
         if (version.split(Pattern.quote(".")).length > 2) version = version.substring(0, version.lastIndexOf("."));
         return version;
     }
@@ -1343,7 +1350,7 @@ public enum XMaterial {
         version = version.replace(".", "_");
         if (!version.startsWith("VERSION_")) version = "VERSION_" + version;
         String check = version;
-        return Arrays.stream(MinecraftVersion.values()).anyMatch(v -> v.name().equals(check)) ? MinecraftVersion.valueOf(version) : MinecraftVersion.UNKNOWN;
+        return Arrays.stream(MinecraftVersion.VALUES).anyMatch(v -> v.name().equals(check)) ? MinecraftVersion.valueOf(version) : MinecraftVersion.UNKNOWN;
     }
 
     /**
@@ -1385,7 +1392,7 @@ public enum XMaterial {
      */
     public boolean matchAnyLegacy(String name) {
         String formatted = format(name);
-        return Arrays.stream(this.legacy).anyMatch(x -> x.equals(formatted));
+        return Arrays.asList(this.legacy).contains(formatted);
     }
 
     /**
@@ -1523,13 +1530,9 @@ public enum XMaterial {
      */
     @SuppressWarnings("deprecation")
     public boolean isSimilar(ItemStack item) {
-        if (item == null || item.getType() == null)
-            throw new NullPointerException("ItemStack and its Material cannot be null");
-
-        if (isNewVersion() || this.isDamageable())
-            return item.getType() == this.parseMaterial();
-
-        return item.getType() == this.parseMaterial() && item.getDurability() == this.data;
+        Objects.requireNonNull(item, "itemStack");
+        Objects.requireNonNull(item.getType(), "material");
+        return (isNewVersion() || this.isDamageable()) ? item.getType() == this.parseMaterial() : item.getType() == this.parseMaterial() && item.getDurability() == this.data;
     }
 
     /**
@@ -1617,6 +1620,8 @@ public enum XMaterial {
          * 1.7 or below.
          * Using {@link #getVersionIfNew()} it means 1.12 or below.
          */
-        UNKNOWN
+        UNKNOWN;
+        
+        public static final MinecraftVersion[] VALUES = MinecraftVersion.values();
     }
 }
