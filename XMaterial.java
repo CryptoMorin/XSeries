@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * The MIT License (MIT)
-=======
- The MIT License (MIT)
->>>>>>> origin/master
  *
  * Original work Copyright (c) 2018 Hex_27
  * v2.0 Copyright (c) 2019 Crypto Morin
@@ -25,12 +21,8 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-<<<<<<< HEAD
  */
 
-=======
-*/
->>>>>>> origin/master
 package name;
 
 import org.apache.commons.lang.Validate;
@@ -38,15 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-<<<<<<< HEAD
 import java.util.*;
-=======
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
->>>>>>> origin/master
 import java.util.regex.Pattern;
 
 /*
@@ -69,7 +53,6 @@ import java.util.regex.Pattern;
  * 1.13 and above as priority.
  */
 public enum XMaterial {
-
     ACACIA_BOAT(0, "BOAT_ACACIA"),
     ACACIA_BUTTON(0, "WOOD_BUTTON"),
     ACACIA_DOOR(0, "ACACIA_DOOR_ITEM"),
@@ -1068,17 +1051,12 @@ public enum XMaterial {
         put(XMaterial.MAP, XMaterial.FILLED_MAP);
         put(XMaterial.NETHER_BRICK, XMaterial.NETHER_BRICKS);
     }};
-<<<<<<< HEAD
     public static final XMaterial[] VALUES = XMaterial.values();
-=======
->>>>>>> origin/master
     private static final HashMap<String, XMaterial> CACHED_SEARCH = new HashMap<>();
     private static MinecraftVersion version;
     private static Boolean isNewVersion;
     private final byte data;
     private final String[] legacy;
-    
-    public static final XMaterial[] VALUES = XMaterial.values();
 
     XMaterial(int data, String... legacy) {
         this.data = (byte) data;
@@ -1118,13 +1096,7 @@ public enum XMaterial {
     private static XMaterial requestOldXMaterial(String name, byte data) {
         XMaterial cached = CACHED_SEARCH.get(name + "," + data);
 
-<<<<<<< HEAD
         if (cached != null) return cached;
-=======
-        if (cached != null) {
-            return cached;
-        }
->>>>>>> origin/master
         Optional<XMaterial> search = data == -1 ? Arrays.stream(XMaterial.VALUES).filter(mat -> mat.matchAnyLegacy(name)).findFirst()
                 : Arrays.stream(XMaterial.VALUES).filter(mat -> mat.matchAnyLegacy(name) && mat.data == data).findFirst();
 
@@ -1225,11 +1197,7 @@ public enum XMaterial {
      * @return some XMaterial, or null.
      */
     public static XMaterial matchXMaterial(int id, byte data) {
-<<<<<<< HEAD
         // Looping through Material.values() will take longer.
-=======
-        // Looping to Material.values() will take longer.
->>>>>>> origin/master
         return Arrays.stream(XMaterial.VALUES).filter(mat -> mat.getId() == id && mat.data == data).findFirst().orElse(null);
     }
 
@@ -1350,11 +1318,7 @@ public enum XMaterial {
     public static String getExactMajorVersion(String version) {
         // getBukkitVersion()
         if (version.contains("SNAPSHOT") || version.contains("-R")) version = version.substring(0, version.indexOf("-"));
-<<<<<<< HEAD
         // getVersion()
-=======
-        // getVersion
->>>>>>> origin/master
         if (version.contains("git")) version = version.substring(version.indexOf("MC:") + 4).replace(")", "");
         if (version.split(Pattern.quote(".")).length > 2) version = version.substring(0, version.lastIndexOf("."));
         return version;
@@ -1553,13 +1517,8 @@ public enum XMaterial {
      */
     @SuppressWarnings("deprecation")
     public boolean isSimilar(ItemStack item) {
-<<<<<<< HEAD
         Objects.requireNonNull(item, "ItemStack cannot be null");
         Objects.requireNonNull(item.getType(), "ItemStack's material cannot be null");
-=======
-        Objects.requireNonNull(item, "itemStack");
-        Objects.requireNonNull(item.getType(), "material");
->>>>>>> origin/master
         return (isNewVersion() || this.isDamageable()) ? item.getType() == this.parseMaterial() : item.getType() == this.parseMaterial() && item.getDurability() == this.data;
     }
 
@@ -1649,11 +1608,7 @@ public enum XMaterial {
          * Using {@link #getVersionIfNew()} it means 1.12 or below.
          */
         UNKNOWN;
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> origin/master
         public static final MinecraftVersion[] VALUES = MinecraftVersion.values();
     }
 }
