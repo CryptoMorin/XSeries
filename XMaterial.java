@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
  */
 
 /**
- * <b>XMaterial v2.3</b> - Data Values/Pre-flattening<br>
+ * <b>XMaterial v2.3.1</b> - Data Values/Pre-flattening<br>
  * Supports 1.8-1.14<br>
  * 1.13 and above as priority.
  */
@@ -963,7 +963,7 @@ public enum XMaterial {
     TUBE_CORAL_FAN(0, "1.13"),
     TUBE_CORAL_WALL_FAN(0),
     TURTLE_EGG(0, "1.13", "EGG"),
-    TURTLE_HELMET(0, "1.13"),
+    TURTLE_HELMET(0, "1.13", "IRON_HELMENT"),
     TURTLE_SPAWN_EGG(0, "1.13", "MONSTER_EGG"),
     VEX_SPAWN_EGG(35, "MONSTER_EGG"),
     VILLAGER_SPAWN_EGG(120, "MONSTER_EGG"),
@@ -1149,13 +1149,18 @@ public enum XMaterial {
     }
 
     /**
+     * Can also be used like: <b>MATERIAL:DATA</b>
+     * E.g. <b>RED_WOOL:14</b> or <b>WOOL:14</b>
+     *
      * @see #matchXMaterial(String, byte)
      */
     @Nullable
     public static XMaterial matchXMaterial(@Nonnull String name) {
         // -1 Determines whether the item's data is unknown and only the name is given.
         // Checking if the item is damageable won't do anything as the data is not going to be checked in requestOldMaterial anyway.
-        return matchXMaterial(name, (byte) -1);
+        return name.contains(":") ? matchXMaterial(name.substring(0, name.indexOf(":")),
+                Byte.parseByte(StringUtils.replace(name.substring(name.indexOf(":") + 1), " ", "")))
+                : matchXMaterial(name, (byte) -1);
     }
 
     /**
@@ -1277,8 +1282,8 @@ public enum XMaterial {
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return StringUtils.replace(StringUtils.replace(name.toUpperCase(), "MINECRAFT:", ""), "-", "_")
-                .replaceAll("\\s+", "_").replaceAll("\\W", "");
+        return StringUtils.replace(StringUtils.replace(name.toUpperCase(), "MINECRAFT:", ""), "-", "_").trim()
+                .replaceAll("\\s+", "_").replaceAll("\\d+", "").replaceAll("\\W+", "");
     }
 
     /**
@@ -1621,7 +1626,7 @@ public enum XMaterial {
      * @return true if it was newly added.
      */
     public boolean isNew() {
-        return this.legacy[0].contains(".");
+        return this.legacy.length != 0 && this.legacy[0].contains(".");
     }
 
     /**
