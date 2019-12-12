@@ -26,8 +26,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -1093,7 +1095,7 @@ public enum XMaterial {
      *
      * @since 3.0.0
      */
-    private static final ImmutableMap<XMaterial, XMaterial> DUPLICATED = ImmutableMap.<XMaterial, XMaterial>builder()
+    private static final ImmutableMap<XMaterial, XMaterial> DUPLICATED = Maps.immutableEnumMap(ImmutableMap.<XMaterial, XMaterial>builder()
             .put(MELON, MELON_SLICE)
             .put(CARROT, CARROTS)
             .put(POTATO, POTATOES)
@@ -1103,7 +1105,8 @@ public enum XMaterial {
             .put(RED_MUSHROOM, RED_MUSHROOM_BLOCK)
             .put(MAP, FILLED_MAP)
             .put(NETHER_BRICK, NETHER_BRICKS)
-            .build();
+            .build()
+    );
     /**
      * A set of all the legacy names without duplicates.
      * <p>
@@ -1113,7 +1116,7 @@ public enum XMaterial {
      * @see #containsLegacy(String)
      * @since 2.2.0
      */
-    private static final ImmutableSet<String> LEGACY_VALUES = VALUES.stream().map(m -> m.legacy)
+    private static final ImmutableSet<String> LEGACY_VALUES = VALUES.stream().map(XMaterial::getLegacy)
             .flatMap(Arrays::stream)
             .filter(m -> m.charAt(1) == '.')
             .collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
@@ -1595,16 +1598,7 @@ public enum XMaterial {
     @Nonnull
     private static String toWord(@Nonnull String name) {
         Validate.notEmpty(name, "Cannot translate a null or empty material name to a word");
-        StringBuilder translated = new StringBuilder();
-        String[] separator = StringUtils.split(name, '_');
-
-        if (separator.length == 0) translated.append(name.charAt(0)).append(name.substring(1).toLowerCase());
-        else {
-            for (String separated : separator) translated.append(separated.charAt(0)).append(separated.substring(1).toLowerCase()).append(' ');
-            translated.setLength(translated.length() - 1);
-        }
-
-        return translated.toString();
+        return WordUtils.capitalizeFully(name.replace("_", " "));
     }
 
     /**
@@ -2025,7 +2019,7 @@ public enum XMaterial {
 
         Material material = Material.getMaterial(this.name());
         if (material == null) {
-            for (int i = this.legacy.length - 1; i != (version != MinecraftVersion.UNKNOWN ? 0 : -1); i--) {
+            for (int i = this.legacy.length - 1; i != -1; i--) {
                 String legacy = this.legacy[i];
                 if (StringUtils.contains(legacy, '/')) continue;
 
@@ -2102,6 +2096,6 @@ public enum XMaterial {
          *
          * @since 3.0.0
          */
-        V1_15;
+        V1_15
     }
 }
