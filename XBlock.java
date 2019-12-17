@@ -19,7 +19,6 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import com.google.common.collect.ImmutableSet;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.TreeSpecies;
@@ -32,6 +31,7 @@ import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.material.*;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /*
@@ -50,7 +50,7 @@ import java.util.List;
  * JavaDocs will be added soon.
  *
  * @author Crypto Morin
- * @version 0.0.1
+ * @version 0.1.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -59,12 +59,12 @@ import java.util.List;
  */
 @SuppressWarnings("deprecation")
 public final class XBlock {
-    public static final ImmutableSet<XMaterial> CROPS = ImmutableSet.of(
+    public static final EnumSet<XMaterial> CROPS = EnumSet.of(
             XMaterial.CARROT, XMaterial.POTATO, XMaterial.NETHER_WART, XMaterial.WHEAT_SEEDS, XMaterial.PUMPKIN_SEEDS,
             XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.SUGAR_CANE, XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
             XMaterial.KELP, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM
     );
-    public static final ImmutableSet<XMaterial> DANGEROUS = ImmutableSet.of(
+    public static final EnumSet<XMaterial> DANGEROUS = EnumSet.of(
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE
     );
     public static final int CAKE_SLICES = 6;
@@ -81,6 +81,7 @@ public final class XBlock {
     }
 
     public static void setLit(Block block, boolean lit) {
+
         if (ISFLAT) {
             if (!(block.getBlockData() instanceof Lightable)) return;
             Lightable lightable = (Lightable) block.getBlockData();
@@ -89,9 +90,9 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.endsWith("FURNACE")) block.setType(Material.valueOf("BURNING_FURNACE"));
-        else if (name.startsWith("REDSTONE_LAMP")) block.setType(Material.valueOf("REDSTONE_LAMP_ON"));
-        else block.setType(Material.valueOf("REDSTONE_TORCH_ON"));
+        if (name.endsWith("FURNACE")) block.setType(Material.getMaterial("BURNING_FURNACE"));
+        else if (name.startsWith("REDSTONE_LAMP")) block.setType(Material.getMaterial("REDSTONE_LAMP_ON"));
+        else block.setType(Material.getMaterial("REDSTONE_TORCH_ON"));
     }
 
     public static boolean isCrops(Material material) {
@@ -122,7 +123,7 @@ public final class XBlock {
     }
 
     public static boolean isCake(Material material) {
-        return ISFLAT ? material == Material.CAKE : material == Material.matchMaterial("CAKE_BLOCK");
+        return ISFLAT ? material == Material.CAKE : material == Material.getMaterial("CAKE_BLOCK");
     }
 
     public static boolean isCake(Block block) {
@@ -253,7 +254,7 @@ public final class XBlock {
         if (ISFLAT) return true;
 
         TreeSpecies type = species == XMaterial.SPRUCE_LOG ? TreeSpecies.REDWOOD :
-                TreeSpecies.valueOf(species.name().substring(0, species.name().indexOf("_")));
+                TreeSpecies.valueOf(species.name().substring(0, species.name().indexOf('_')));
         BlockState state = block.getState();
         MaterialData data = state.getData();
         ((Wood) data).setSpecies(type);
@@ -294,7 +295,7 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(Material.valueOf("REDSTONE_COMPARATOR_ON"));
+        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(Material.getMaterial("REDSTONE_COMPARATOR_ON"));
     }
 
     public static boolean isOpen(Block block) {
@@ -327,9 +328,10 @@ public final class XBlock {
     }
 
     public static boolean isMaterial(Block block, String... materials) {
+        Material type = block.getType();
         for (String material : materials) {
-            Material mat = Material.matchMaterial(material);
-            if (mat != null && block.getType() == mat) return true;
+            Material mat = Material.getMaterial(material);
+            if (mat != null && type == mat) return true;
         }
         return false;
     }

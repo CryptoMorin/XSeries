@@ -23,7 +23,6 @@
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -60,7 +59,7 @@ import java.util.stream.Collectors;
  * 1.13 and above as priority.
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see Material
  * @see ItemStack
  */
@@ -1063,13 +1062,12 @@ public enum XMaterial {
 
 
     /**
-     * An immutable cached list of {@link XMaterial#values()} to avoid allocating memory for
+     * An immutable cached set of {@link XMaterial#values()} to avoid allocating memory for
      * calling the method every time.
      *
      * @since 2.0.0
      */
-    public static final ImmutableList<XMaterial> VALUES = Arrays.stream(values())
-            .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
+    public static final EnumSet<XMaterial> VALUES = EnumSet.allOf(XMaterial.class);
     /**
      * A set of material names that can be damaged.
      * <p>
@@ -1095,6 +1093,7 @@ public enum XMaterial {
      *
      * @since 3.0.0
      */
+    @SuppressWarnings("UnstableApiUsage")
     private static final ImmutableMap<XMaterial, XMaterial> DUPLICATED = Maps.immutableEnumMap(ImmutableMap.<XMaterial, XMaterial>builder()
             .put(MELON, MELON_SLICE)
             .put(CARROT, CARROTS)
@@ -1597,8 +1596,7 @@ public enum XMaterial {
      */
     @Nonnull
     private static String toWord(@Nonnull String name) {
-        Validate.notEmpty(name, "Cannot translate a null or empty material name to a word");
-        return WordUtils.capitalizeFully(name.replace("_", " "));
+        return WordUtils.capitalize(name.replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
 
     /**

@@ -39,7 +39,6 @@ import java.util.Objects;
  * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/Titles.java
  * * XSeries: https://www.spigotmc.org/threads/378136/
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
- *
  */
 
 /**
@@ -50,7 +49,6 @@ import java.util.Objects;
  * <p>
  * Titles are text messages that appear in the
  * middle of the players screen: https://minecraft.gamepedia.com/Commands/title
- * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
  * @version 1.0.0

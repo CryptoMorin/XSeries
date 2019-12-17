@@ -23,10 +23,9 @@ import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -42,7 +41,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /* References
  *
@@ -66,7 +64,7 @@ import java.util.stream.Collectors;
  * <b>Pitch:</b> 0.5-2.0 - 1.0f (normal) - How fast the sound is play.
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  * @see Sound
  * @see Instrument
  * @see Note.Tone
@@ -894,8 +892,7 @@ public enum XSound {
      *
      * @since 2.0.0
      */
-    public static final ImmutableList<XSound> VALUES = Arrays.stream(values())
-            .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
+    public static final EnumSet<XSound> VALUES = EnumSet.allOf(XSound.class);
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * Caches the parsed {@link Sound} objects instead of string. Because it has to go through catching exceptions again
@@ -1183,8 +1180,9 @@ public enum XSound {
      */
     public static CompletableFuture<Void> stopMusic(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing musics from null player");
+
         // We don't need to cache because it's rarely used.
-        ImmutableSet<XSound> musics = ImmutableSet.of(MUSIC_CREATIVE, MUSIC_CREDITS,
+        EnumSet<XSound> musics = EnumSet.of(MUSIC_CREATIVE, MUSIC_CREDITS,
                 MUSIC_DISC_11, MUSIC_DISC_13, MUSIC_DISC_BLOCKS, MUSIC_DISC_CAT, MUSIC_DISC_CHIRP,
                 MUSIC_DISC_FAR, MUSIC_DISC_MALL, MUSIC_DISC_MELLOHI, MUSIC_DISC_STAL,
                 MUSIC_DISC_STRAD, MUSIC_DISC_WAIT, MUSIC_DISC_WARD,
@@ -1205,16 +1203,7 @@ public enum XSound {
      */
     @Override
     public String toString() {
-        StringBuilder translated = new StringBuilder();
-        String[] separator = StringUtils.split(this.name(), '_');
-
-        if (separator.length == 0) translated.append(this.name().charAt(0)).append(this.name().substring(1).toLowerCase());
-        else {
-            for (String separated : separator) translated.append(separated.charAt(0)).append(separated.substring(1).toLowerCase()).append(' ');
-            translated.setLength(translated.length() - 1);
-        }
-
-        return translated.toString();
+        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
 
     /**

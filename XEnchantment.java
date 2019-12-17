@@ -20,9 +20,9 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -32,12 +32,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /* References
  *
@@ -46,6 +45,7 @@ import java.util.stream.Collectors;
  * EssentialsX Enchantment: https://github.com/Bukkit/Bukkit/blob/master/src/main/java/org/bukkit/enchantments/Enchantment.java
  * Enchantment: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
+ * ZEnchantment: https://github.com/CryptoMorin/XSeries/blob/master/ZEnchantment.java
  */
 
 /**
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * Enchantment levels do not start from 0, they start from 1
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.0.1
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -103,8 +103,8 @@ public enum XEnchantment {
      *
      * @since 1.0.0
      */
-    public static final ImmutableList<XEnchantment> VALUES = Arrays.stream(values())
-            .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
+    public static final EnumSet<XEnchantment> VALUES = EnumSet.allOf(XEnchantment.class);
+
     /**
      * Java Edition 1.13/Flattening Update
      * https://minecraft.gamepedia.com/Java_Edition_1.13/Flattening
@@ -322,15 +322,6 @@ public enum XEnchantment {
      */
     @Override
     public String toString() {
-        StringBuilder translated = new StringBuilder();
-        String[] separator = StringUtils.split(this.name(), '_');
-
-        if (separator.length == 0) translated.append(this.name().charAt(0)).append(this.name().substring(1).toLowerCase());
-        else {
-            for (String separated : separator) translated.append(separated.charAt(0)).append(separated.substring(1).toLowerCase()).append(' ');
-            translated.setLength(translated.length() - 1);
-        }
-
-        return translated.toString();
+        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
 }

@@ -20,9 +20,9 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -38,7 +38,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /*
  * References
@@ -58,7 +57,7 @@ import java.util.stream.Collectors;
  * Amplifier: The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.0.1
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -103,8 +102,7 @@ public enum XPotion {
      *
      * @since 1.0.0
      */
-    public static final ImmutableList<XPotion> VALUES = Arrays.stream(values())
-            .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
+    public static final EnumSet<XPotion> VALUES = EnumSet.allOf(XPotion.class);
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private final String[] aliases;
 
@@ -253,9 +251,9 @@ public enum XPotion {
         Objects.requireNonNull(entity, "Cannot throw potion from null entity");
         @SuppressWarnings("deprecation")
         ItemStack potion = Material.getMaterial("SPLASH_POTION") == null ?
-                new ItemStack(Material.POTION, 1, (short) 16398) : // 16384
+                new ItemStack(Material.POTION, 1, (short) 16398) : // or 16384?
                 new ItemStack(Material.SPLASH_POTION);
-        // TODO check why the fuck Lingering potion isnt supported.
+        // TODO check why the fuck Lingering potion isn't supported.
 
         PotionMeta meta = (PotionMeta) potion.getItemMeta();
         meta.setColor(color);
@@ -287,7 +285,7 @@ public enum XPotion {
     @Nonnull
     public static ItemStack buildItemWithEffects(@Nonnull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(type, "Cannot build an effected item with null type");
-        Validate.isTrue(isPotion(type), "Cannot build item with " + type.name() + " potion type");
+        Validate.isTrue(canHaveEffects(type), "Cannot build item with " + type.name() + " potion type");
 
         ItemStack item = new ItemStack(type);
         PotionMeta meta = (PotionMeta) item.getItemMeta();
@@ -309,10 +307,9 @@ public enum XPotion {
      * @return true if the material is a potion, otherwise false.
      * @since 1.0.0
      */
-    public static boolean isPotion(@Nullable Material material) {
+    public static boolean canHaveEffects(@Nullable Material material) {
         if (material == null) return false;
-        return material == Material.POTION || material == Material.SPLASH_POTION ||
-                material == Material.LINGERING_POTION || material == Material.TIPPED_ARROW;
+        return material.name().endsWith("POTION") || material.name().startsWith("TI"); // TIPPED_ARROW
     }
 
     /**
@@ -400,15 +397,6 @@ public enum XPotion {
      */
     @Override
     public String toString() {
-        StringBuilder translated = new StringBuilder();
-        String[] separator = StringUtils.split(this.name(), '_');
-
-        if (separator.length == 0) translated.append(this.name().charAt(0)).append(this.name().substring(1).toLowerCase());
-        else {
-            for (String separated : separator) translated.append(separated.charAt(0)).append(separated.substring(1).toLowerCase()).append(' ');
-            translated.setLength(translated.length() - 1);
-        }
-
-        return translated.toString();
+        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
 }

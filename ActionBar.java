@@ -19,8 +19,6 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.skills.utils;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,8 +38,7 @@ import java.util.concurrent.Callable;
  *
  * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/ActionBar.java
  * * XSeries: https://www.spigotmc.org/threads/378136/
- * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
- *
+ * PacketPlayOutChat: https://wiki.vg/Protocol#Chat_Message_.28clientbound.29
  */
 
 /**
@@ -68,7 +65,7 @@ public class ActionBar {
      * @see #sendActionBarWhile(Player, String, Callable)
      * @see #sendActionBarWhile(Player, Callable, Callable)
      */
-    private static final JavaPlugin PLUGIN = Skills.get();
+    private static final JavaPlugin PLUGIN = ;
     /**
      * ChatComponentText JSON message builder.
      */
