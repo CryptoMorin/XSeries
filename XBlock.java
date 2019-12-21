@@ -25,10 +25,9 @@ import org.bukkit.TreeSpecies;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.Lightable;
-import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.*;
+import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
 import java.util.EnumSet;
@@ -50,7 +49,7 @@ import java.util.List;
  * JavaDocs will be added soon.
  *
  * @author Crypto Morin
- * @version 0.1.0
+ * @version 0.2.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -164,25 +163,63 @@ public final class XBlock {
 
     public static boolean setColor(Block block, DyeColor color) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Colorable)) return false;
-            Colorable colorable = (Colorable) block.getBlockData();
-            colorable.setColor(color);
+            String type = block.getType().name();
+            if (type.endsWith("WOOL")) block.setType(Material.getMaterial(color.name() + "_WOOL"));
+            else if (type.endsWith("BED")) block.setType(Material.getMaterial(color.name() + "_BED"));
+            else if (type.endsWith("STAINED_GLASS")) block.setType(Material.getMaterial(color.name() + "_STAINED_GLASS"));
+            else if (type.endsWith("STAINED_GLASS_PANE")) block.setType(Material.getMaterial(color.name() + "_STAINED_GLASS_PANE"));
+            else if (type.endsWith("TERRACOTTA")) block.setType(Material.getMaterial(color.name() + "_TERRACOTTA"));
+            else if (type.endsWith("GLAZED_TERRACOTTA")) block.setType(Material.getMaterial(color.name() + "_GLAZED_TERRACOTTA"));
+            else if (type.endsWith("BANNER")) block.setType(Material.getMaterial(color.name() + "_BANNER"));
+            else if (type.endsWith("WALL_BANNER")) block.setType(Material.getMaterial(color.name() + "_WALL_BANNER"));
+            else if (type.endsWith("CARPET")) block.setType(Material.getMaterial(color.name() + "_CARPET"));
+            else if (type.endsWith("SHULKER_BOX")) block.setType(Material.getMaterial(color.name() + "_SHULKERBOX"));
+            else if (type.endsWith("CONCRETE")) block.setType(Material.getMaterial(color.name() + "_CONCRETE"));
+            else if (type.endsWith("CONCRETE_POWDER")) block.setType(Material.getMaterial(color.name() + "_CONCRETE_POWDER"));
+            else return false;
             return true;
         }
 
         BlockState state = block.getState();
         MaterialData data = state.getData();
-        if (data instanceof Wool) {
-            Wool wool = (Wool) data;
-            wool.setColor(DyeColor.BLUE);
+
+        if (data instanceof Colorable) {
+            ((Colorable) data).setColor(color);
             state.update(true);
             return true;
         }
         return false;
     }
 
+    public static boolean setFluidLevel(Block block, int level) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Levelled)) return false;
+            Levelled levelled = (Levelled) block.getBlockData();
+            levelled.setLevel(level);
+            return true;
+        }
+
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+        data.setData((byte) level);
+        state.update(true);
+        return false;
+    }
+
+    public static int getFluidLevel(Block block) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Levelled)) return -1;
+            Levelled levelled = (Levelled) block.getBlockData();
+            return levelled.getLevel();
+        }
+
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+        return data.getData();
+    }
+
     public static boolean isOneOf(Block block, List<String> blocks) {
-        return XMaterial.matchXMaterial(block.getType()).isOneOf(blocks);
+        return XMaterial.isOneOf(block.getType(), blocks);
     }
 
     public static void setCakeSlices(Block block, int amount) {
@@ -269,6 +306,7 @@ public final class XBlock {
      * @param material the material to set the block's type to.
      */
     public static void setType(Block block, XMaterial material) {
+        throw new UnsupportedOperationException("Not implemented yet");
         // TODO...
     }
 

@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * 1.13 and above as priority.
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.1.1
  * @see Material
  * @see ItemStack
  */
@@ -1008,6 +1008,13 @@ public enum XMaterial {
     VOID_AIR("AIR"),
     WALL_TORCH("TORCH"),
     WANDERING_TRADER_SPAWN_EGG("1.14", "VILLAGER_SPAWN_EGG"),
+    /**
+     * This is used for blocks only.
+     * In 1.13- WATER will turn into STATIONARY_WATER after it finished spreading.
+     * After 1.13+ this uses
+     * https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/Levelled.html water flowing system.
+     * Use XBlock for this instead.
+     */
     WATER("STATIONARY_WATER"),
     WATER_BUCKET,
     WET_SPONGE(1, "SPONGE"),
@@ -1659,6 +1666,72 @@ public enum XMaterial {
     }
 
     /**
+     * Checks if the list of given material names matches the given base material.
+     * Mostly used for configs.
+     * <p>
+     * Supports {@link String#contains} {@code CONTAINS:NAME} and Regular Expression {@code REGEX:PATTERN} formats.
+     * <p>
+     * <b>Example:</b>
+     * <blockquote><pre>
+     *     XMaterial material = {@link #matchXMaterial(ItemStack)};
+     *     if (material.isOneOf(plugin.getConfig().getStringList("disabled-items")) return;
+     * </pre></blockquote>
+     * <br>
+     * <b>{@code CONTAINS} Examples:</b>
+     * <pre>
+     *     "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true
+     *     "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true
+     * </pre>
+     * <p>
+     * <b>{@code REGEX} Examples</b>
+     * <pre>
+     *     "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG
+     *     "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR
+     * </pre>
+     * <p>
+     * The reason that there are tags for {@code CONTAINS} and {@code REGEX}
+     * is for the performance.
+     * Please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag.
+     * It'll have a huge impact on performance.
+     * Please avoid using {@code (capturing groups)} there's no use for them in this case.
+     * If you want to use groups, use {@code (?: non-capturing groups)}. It's faster.
+     * <p>
+     * You can make a cache for pre-compiled RegEx patterns from your config.
+     * It's better, but not much faster since these patterns are not that complex.
+     * <p>
+     * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
+     *
+     * @param material  the base material to match other materials with.
+     * @param materials the material names to check base material on.
+     * @return true if one of the given material names is similar to the base material.
+     * @since 3.1.1
+     */
+    public static boolean isOneOf(@Nonnull Material material, @Nullable List<String> materials) {
+        if (materials == null || materials.isEmpty()) return false;
+        Objects.requireNonNull(material, "Cannot match materials with a null material");
+        String name = material.name();
+
+        for (String comp : materials) {
+            comp = comp.toUpperCase();
+            if (comp.startsWith("CONTAINS:")) {
+                comp = format(comp.substring(9));
+                if (name.contains(comp)) return true;
+                continue;
+            }
+            if (comp.startsWith("REGEX:")) {
+                comp = comp.substring(6);
+                if (name.matches(comp)) return true;
+                continue;
+            }
+
+            // Direct Object Equals
+            Optional<XMaterial> mat = matchXMaterial(comp);
+            if (mat.isPresent() && mat.get().parseMaterial() == material) return true;
+        }
+        return false;
+    }
+
+    /**
      * Gets the version which this material was added in.
      * If the material was added before {@link MinecraftVersion#V1_13} then
      * it'll return {@link MinecraftVersion#UNKNOWN}
@@ -1698,65 +1771,16 @@ public enum XMaterial {
     /**
      * Checks if the list of given material names matches the given base material.
      * Mostly used for configs.
-     * <p>
-     * Supports {@link String#contains} {@code CONTAINS:NAME} and Regular Expression {@code REGEX:PATTERN} formats.
-     * <p>
-     * <b>Example:</b>
-     * <blockquote><pre>
-     *     XMaterial material = {@link #matchXMaterial(ItemStack)};
-     *     if (material.isOneOf(plugin.getConfig().getStringList("disabled-items")) return;
-     * </pre></blockquote>
-     * <br>
-     * <b>{@code CONTAINS} Examples:</b>
-     * <pre>
-     *     "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true
-     *     "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true
-     * </pre>
-     * <p>
-     * <b>{@code REGEX} Examples</b>
-     * <pre>
-     *     "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG
-     *     "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR
-     * </pre>
-     * <p>
-     * The reason that there are tags for {@code CONTAINS} and {@code REGEX}
-     * is for the performance.
-     * Please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag.
-     * It'll have a huge impact on performance.
-     * Please avoid using {@code (capturing groups)} there's no use for them in this case.
-     * If you want to use groups, use {@code (?: non-capturing groups)}. It's faster.
-     * <p>
-     * You can make a cache for pre-compiled RegEx patterns from your config.
-     * It's better, but not much faster since these patterns are not that complex.
-     * <p>
-     * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
      *
      * @param materials the material names to check base material on.
      * @return true if one of the given material names is similar to the base material.
+     * @see #isOneOf(Material, List)
      * @since 3.0.0
      */
     public boolean isOneOf(@Nullable List<String> materials) {
-        if (materials == null || materials.isEmpty()) return false;
-        Material baseMat = this.parseMaterial();
-        if (baseMat == null) return false;
-
-        for (String comp : materials) {
-            comp = comp.toUpperCase();
-            if (comp.startsWith("CONTAINS:")) {
-                comp = format(comp.substring(9));
-                if (this.name().contains(comp)) return true;
-                continue;
-            } else if (comp.startsWith("REGEX:")) {
-                comp = comp.substring(6);
-                if (this.name().matches(comp)) return true;
-                continue;
-            }
-
-            // Normal handling - Equals
-            Optional<XMaterial> mat = matchXMaterial(comp);
-            if (mat.isPresent() && mat.get().parseMaterial() == baseMat) return true;
-        }
-        return false;
+        Material material = this.parseMaterial();
+        if (material == null) return false;
+        return isOneOf(material, materials);
     }
 
     /**
