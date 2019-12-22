@@ -49,7 +49,7 @@ import java.util.List;
  * JavaDocs will be added soon.
  *
  * @author Crypto Morin
- * @version 0.2.0
+ * @version 0.3.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -181,14 +181,11 @@ public final class XBlock {
         }
 
         BlockState state = block.getState();
-        MaterialData data = state.getData();
+        state.setRawData(color.getWoolData());
+        state.update(true);
 
-        if (data instanceof Colorable) {
-            ((Colorable) data).setColor(color);
-            state.update(true);
-            return true;
-        }
-        return false;
+        // Can return true by mistake
+        return true;
     }
 
     public static boolean setFluidLevel(Block block, int level) {
@@ -216,6 +213,15 @@ public final class XBlock {
         BlockState state = block.getState();
         MaterialData data = state.getData();
         return data.getData();
+    }
+
+    public static boolean isWaterStationary(Block block) {
+        return ISFLAT ? getFluidLevel(block) < 7 : block.getType().name().equals("STATIONARY_WATER");
+    }
+
+    public static boolean isWater(Block block) {
+        String name = block.getType().name();
+        return name.equals("WATER") || name.equals("STATIONARY_WATER");
     }
 
     public static boolean isOneOf(Block block, List<String> blocks) {
