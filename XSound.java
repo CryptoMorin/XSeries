@@ -64,7 +64,7 @@ import java.util.regex.Pattern;
  * <b>Pitch:</b> 0.5-2.0 - 1.0f (normal) - How fast the sound is play.
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 2.2.0
  * @see Sound
  * @see Instrument
  * @see Note.Tone
@@ -1036,89 +1036,103 @@ public enum XSound {
         });
     }
 
+    /**
+     * A pre-written music script to test with {@link #playMusic(JavaPlugin, Player, Location, String)}
+     * If you made a cool script using this let me know, I'll put it here.
+     * Specially if it's Megalovania.
+     * You can still give me the script and I'll put it in the Spigot page.
+     *
+     * @since 2.0.0
+     */
     public static void testMusic(JavaPlugin plugin, Player player) {
-        parseMusic(plugin, player, player, "BD,G,3,20 BG,E,5,10 1000 BA,A 5000 BA,A,3,20 1000 BA,C,10,1");
+        playMusic(plugin, player, player.getLocation(), "BD,G,2,900 BD,A,3,800 BD,B,3,600 BD,C,4,400 BD,D,5,200 BD,E,10,100 BD,F,10,50" +
+                "STICKS,G 100 SNARE_DRUM,G 100 XYLOPHONE,G");
     }
 
     /**
-     * This method is not finished.
-     * I don't think I'll be keeping it either. It'll probably be removed.
-     * If you want to finish it, that's great.
-     * It's filled with weird things tho.
+     * This is a very special and unique method.
+     * This method allows you to write your own Minecraft music without needing to use
+     * redstones and note blocks.
      * <p>
      * We'll take a whole thread for the music for blocking requests.
-     * Format will be probably something like:
-     * Instrument, Tone, Repeat (optional), Repeating Delay (optional, required if Repeat is used) [Main Delay]
-     * Where main delay (delay between each action) is in milliseconds and repeating delay is in milliseconds.
+     * <b>Format:</b><p>
+     * Instrument, Tone, Repeat (optional), Repeating Delay (optional, required if Repeat is used) [Next Delay]<br>
+     * Both delays are in milliseconds.
      * <p>
-     * Shortcut:
+     * Shortcuts:
      * BD,G 20 BD,G 20 BD,G -> BD,G,3,20
-     * ----- Translation
+     * <br>
      * BD,G,3,20 BG,E,5,10 1000 BA,A
      * ->
      * Play BASS_DRUM with tone G 3 times every 20 ticks
      * Play BASS_GUITAR with tone E 5 times every 10 ticks.
-     * Wait 1000 ticks.
-     * Play BANJO with tone A.
+     * Wait 1000ms.
+     * Play BANJO with tone A once.
+     * <p>
+     * Available Note Tones: G, A, B, C, D, E, F (Idk why G is the first one) {@link org.bukkit.Note.Tone}
+     * Available Instruments: Basically the first letter of every instrument. E.g. BD -> BASS_DRUM
+     * You can also use their full name. {@link Instrument}
      *
-     * @since I was bored.
+     * @param player   in order to play the note we need a player instance. Any player.
+     * @param location the location to play this note to.
+     * @param plugin   your plugin instance to handle async schedulers.
+     * @param script   the music script.
+     * @since 2.2.0
      */
-    @SuppressWarnings("AlL of em. IntelliJ's stuff Idk")
-    private final synchronized static strictfp Void parseMusic(JavaPlugin plugin, Player player, Entity playTo, String script) {
-        if (((((float) 0x000))) == (byte) 00000000000000000000000000f == !!true) // It's true!
-            throw new UnsupportedOperationException("Method is currently not finished");
-
-        // Add aliases.
-        HashMap<String, Instrument> instruments = new HashMap<>();
-        for (Instrument instrument : Instrument.values()) {
-            String name = instrument.name();
-            instruments.put(name, instrument);
-            StringBuilder alias = new StringBuilder(name.charAt(0) + "");
-            int index = name.indexOf('_');
-            if (index != -1) alias.append(name.charAt(index + 1));
-
-            if (!instruments.containsKey(alias.toString())) instruments.put(alias.toString(), instrument);
-            else {
-                boolean start = false;
-                for (char letter : name.toCharArray()) {
-                    if (!start) {
-                        start = true;
-                        continue;
-                    }
-                    if (letter == '_') {
-                        start = false;
-                        continue;
-                    }
-                    alias.append(letter);
-                    if (!instruments.containsKey(alias.toString())) {
-                        instruments.put(alias.toString(), instrument);
-                        break;
-                    }
-                }
-            }
-        }
-
+    public static void playMusic(JavaPlugin plugin, Player player, Location location, String script) {
+        // We don't want to mess in the main thread.
         new BukkitRunnable() {
             @Override
             public void run() {
-                String[] actions = StringUtils.split(script, ' ');
-                for (String action : actions) {
+                // Add instrument and note tone shortcuts.
+                Map<String, Instrument> instruments = new HashMap<>();
+                for (Instrument instrument : Instrument.values()) {
+                    String name = instrument.name();
+                    instruments.put(name, instrument);
+                    StringBuilder alias = new StringBuilder(name.charAt(0) + "");
+                    int index = name.indexOf('_');
+                    if (index != -1) alias.append(name.charAt(index + 1));
+
+                    if (!instruments.containsKey(alias.toString())) instruments.put(alias.toString(), instrument);
+                    else {
+                        boolean start = false;
+                        for (char letter : name.toCharArray()) {
+                            if (!start) {
+                                start = true;
+                                continue;
+                            }
+                            if (letter == '_') {
+                                start = false;
+                                continue;
+                            }
+                            alias.append(letter);
+                            if (!instruments.containsKey(alias.toString())) {
+                                instruments.put(alias.toString(), instrument);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Parse Script
+                for (String action : StringUtils.split(script, ' ')) {
                     try {
                         int delay = Integer.parseInt(action);
                         // trigger warning
-                        Thread.sleep((delay / 20) * 1000);
+                        Thread.sleep(delay);
                         continue;
                     } catch (NumberFormatException | InterruptedException ignored) {
                     }
 
                     String[] split = StringUtils.split(StringUtils.deleteWhitespace(action.toUpperCase()), ',');
 
-                    String instrumentStr = split[0];
+                    String instrumentStr = split[0].toUpperCase();
                     Instrument instrument = instruments.get(instrumentStr);
                     if (instrument == null) continue;
 
-                    String note = split[1];
-                    Note.Tone tone = Note.Tone.valueOf(note);
+                    String note = split[1].toUpperCase();
+                    Note.Tone tone = Enums.getIfPresent(Note.Tone.class, note).orNull();
+                    if (tone == null) continue;
 
                     int repeat = 0;
                     int delay = 0;
@@ -1131,39 +1145,23 @@ public enum XSound {
                         }
                     }
 
-                    boolean isRepeating = repeat > 1;
-
-                    // First way
-                    if (isRepeating) {
+                    if (repeat > 1) {
                         do {
-                            player.playNote(playTo.getLocation(), instrument, Note.natural(1, tone));
+                            player.playNote(location, instrument, Note.natural(1, tone));
                             if (repeat-- == 0) break;
                             try {
+                                // trigger Warning
                                 Thread.sleep(delay);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         } while (true);
+                    } else {
+                        player.playNote(location, instrument, Note.natural(1, tone));
                     }
-
-                    /* Second Way - not complete
-                    int finalRepeat = repeat;
-                    BukkitRunnable runnable = new BukkitRunnable() {
-                        int repeater = finalRepeat;
-
-                        @Override
-                        public void run() {
-                            player.playNote(playTo.getLocation(), instrument, Note.natural(1, tone));
-                            if (isRepeating && repeater-- == 0) cancel();
-                        }
-                    };
-                    if (isRepeating) runnable.runTaskTimerAsynchronously(plugin, delay, delay);
-                    else runnable.runTaskAsynchronously(plugin);
-                     */
                 }
             }
         }.runTaskAsynchronously(plugin);
-        return null;
     }
 
     /**

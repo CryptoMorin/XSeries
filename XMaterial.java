@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * 1.13 and above as priority.
  *
  * @author Crypto Morin
- * @version 3.1.1
+ * @version 3.1.2
  * @see Material
  * @see ItemStack
  */
@@ -1088,7 +1088,7 @@ public enum XMaterial {
             "SWORD", "AXE", "PICKAXE", "SHOVEL", "HOE",
             "ELYTRA", "TRIDENT", "HORSE_ARMOR", "BARDING",
             "SHEARS", "FLINT_AND_STEEL", "BOW", "FISHING_ROD",
-            "CARROT_ON_A_STICK", "CARROT_STICK"
+            "CARROT_ON_A_STICK", "CARROT_STICK", "SPADE"
     );
     /**
      * <b>XMaterial Paradox (Duplication Check)</b>
@@ -1258,13 +1258,12 @@ public enum XMaterial {
 
         for (XMaterial materials : VALUES) {
             if ((data == -1 || data == materials.data) && materials.anyMatchLegacy(name)) {
-                material = materials;
-                break;
+                NAME_CACHE.put(holder, materials);
+                return materials;
             }
         }
 
-        if (material != null) NAME_CACHE.put(holder, material);
-        return material;
+        return null;
     }
 
     /**
@@ -1493,7 +1492,7 @@ public enum XMaterial {
     private static XMaterial requestDuplicatedXMaterial(@Nonnull String name, byte data) {
         XMaterial mat = requestOldXMaterial(name, data);
         // If ends with "S" -> Plural Form Material
-        return mat.name().charAt(mat.name().length() - 1) == 'S' ? valueOf(name) : mat;
+        return mat.name().charAt(mat.name().length() - 1) == 'S' ? Enums.getIfPresent(XMaterial.class, name).orNull() : mat;
     }
 
     /**
@@ -1785,26 +1784,25 @@ public enum XMaterial {
 
     /**
      * Checks if the given string matches any of this material's legacy material names.
+     * All the values passed to this method will not be null or empty and are formatted correctly.
      *
      * @param name the name to check
      * @return true if it's one of the legacy names.
      * @see #containsLegacy(String)
      * @since 2.0.0
      */
-    public boolean anyMatchLegacy(@Nonnull String name) {
-        Validate.notEmpty(name, "Cannot check for legacy name for null or empty material name");
+    private boolean anyMatchLegacy(@Nonnull String name) {
         // If it's a new material, everything after this is a suggestion.
         // At least until now except one or two materials.
         if (this.isNew()) return false;
 
-        name = format(name);
         for (String legacy : this.legacy)
             if (parseLegacyMaterialName(legacy).equals(name)) return true;
         return false;
     }
 
     /**
-     * Friendly readable string for this material
+     * User-friendly readable name for this material
      * In most cases you should be using {@link #name()} instead.
      *
      * @return string of this object.
