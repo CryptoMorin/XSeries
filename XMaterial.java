@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * 1.13 and above as priority.
  *
  * @author Crypto Morin
- * @version 3.1.2
+ * @version 3.1.3
  * @see Material
  * @see ItemStack
  */
@@ -1088,7 +1088,7 @@ public enum XMaterial {
             "SWORD", "AXE", "PICKAXE", "SHOVEL", "HOE",
             "ELYTRA", "TRIDENT", "HORSE_ARMOR", "BARDING",
             "SHEARS", "FLINT_AND_STEEL", "BOW", "FISHING_ROD",
-            "CARROT_ON_A_STICK", "CARROT_STICK", "SPADE"
+            "CARROT_ON_A_STICK", "CARROT_STICK", "SPADE", "SHIELD"
     );
     /**
      * <b>XMaterial Paradox (Duplication Check)</b>

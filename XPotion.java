@@ -50,14 +50,14 @@ import java.util.regex.Pattern;
  */
 
 /**
- * Up to 1.14 potion type support for multiple aliases.
+ * Up to 1.15 potion type support for multiple aliases.
  * Uses EssentialsX potion list for aliases.
  * <p>
  * Duration: The duration of the effect in ticks. Values 0 or lower are treated as 1. Optional, and defaults to 1 tick.
  * Amplifier: The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 1.1.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -74,13 +74,13 @@ public enum XPotion {
     FIRE_RESISTANCE("FIRE_RESIST", "RESIST_FIRE", "FIRE_RESISTANCE"),
     GLOWING("GLOW", "SHINE", "SHINY"),
     HARM("INJURE", "DAMAGE", "HARMING", "INFLICT"),
-    HEAL("HEALTHY", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "INSTANT_HEALTH"),
-    HEALTH_BOOST("BOOST_HEALTH", "BOOST"),
+    HEAL("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "INSTANT_HEALTH"),
+    HEALTH_BOOST("BOOST_HEALTH", "BOOST", "HP"),
     HERO_OF_THE_VILLAGE("HERO", "VILLAGE_HERO"),
     HUNGER("STARVE", "HUNGRY"),
     INCREASE_DAMAGE("STRENGTH", "BULL", "STRONG", "ATTACK"),
-    INVISIBILITY("INVISIBLE", "VANISH", "INVIS", "DISAPPEAR"),
-    JUMP("LEAP"),
+    INVISIBILITY("INVISIBLE", "VANISH", "INVIS", "DISAPPEAR", "HIDE"),
+    JUMP("LEAP", "JUMP_BOOST"),
     LEVITATION("LEVITATE"),
     LUCK("LUCKY"),
     NIGHT_VISION("VISION", "VISION_NIGHT"),
@@ -320,7 +320,6 @@ public enum XPotion {
      * @since 1.0.0
      */
     private boolean anyMatchAliases(@Nullable String potionEffect) {
-        if (Strings.isNullOrEmpty(potionEffect)) return false;
         for (String alias : aliases)
             if (potionEffect.equals(alias) || potionEffect.equals(StringUtils.remove(alias, '_'))) return true;
         return false;
