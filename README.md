@@ -20,8 +20,9 @@ Most of the updates and news will be announced there.
 
 When compiling your plugin you should be using the latest version that your plugin is going to support.\
 Which means, at least you have to use 1.13 (for cross-version support utilities only)
+You can clone the project using `git clone https://github.com/CryptoMorin/XSeries.git`
 If you're using maven and have issues with nullability annotations, you can import the following dependency to your project:
-```
+```xml
 <dependency>
 <groupId>com.google.code.findbugs</groupId>
 <artifactId>jsr305</artifactId>
@@ -30,6 +31,9 @@ If you're using maven and have issues with nullability annotations, you can impo
 ```
 Or you can completely remove if it from the file by using a quick Ctrl+R replace. These annotations are purely used for
 documentation purposes.
+
+All the methods are explained in the JavaDoc. Please read the JavaDoc before using a method.
+It's quite common to miss the whole purpose of cross-version support by using the wrong methods.
 
 ### Contributing
 
