@@ -20,9 +20,13 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import com.google.common.base.Enums;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
+import org.bukkit.FireworkEffect;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.banner.Pattern;
@@ -58,7 +62,7 @@ import java.util.UUID;
  * </pre>
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.1.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -66,19 +70,6 @@ import java.util.UUID;
  * @see ItemStack
  */
 public class XItemStack {
-    private static final boolean UNBREAKABLE;
-    /**
-     * Attributes API was added in 1.9
-     * We're not going to add Reflection for this as it's a waste of time and resources
-     * and they should already update to 1.12
-     */
-    private static final boolean ATTRIBUTES = XMaterial.isVersionOrHigher(XMaterial.MinecraftVersion.V1_9);
-
-    static {
-        String majorVersion = XMaterial.getMajorVersion(Bukkit.getVersion());
-        UNBREAKABLE = majorVersion.startsWith("1.1") && Integer.parseInt(majorVersion.substring(3, 4)) != 0;
-    }
-
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -102,7 +93,7 @@ public class XItemStack {
         if (meta.hasAttributeModifiers()) config.set("attributes", meta.getAttributeModifiers());
         if (meta.hasLore()) config.set("lore", meta.getLore());
         if (meta.getEnchants().size() != 0) config.set("enchants", meta.getEnchants());
-        if (ATTRIBUTES && meta.hasAttributeModifiers()) config.set("attributes", meta.getAttributeModifiers());
+        if (XMaterial.supports(9) && meta.hasAttributeModifiers()) config.set("attributes", meta.getAttributeModifiers());
 
         if (meta instanceof SkullMeta) {
             config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId());
@@ -142,7 +133,7 @@ public class XItemStack {
                 fwc.set("fade-colors", colors);
             }
             //} else if (meta instanceof MapMeta) {
-        } else if (XMaterial.isVersionOrHigher(XMaterial.MinecraftVersion.V1_14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -182,6 +173,7 @@ public class XItemStack {
         Optional<XMaterial> matOpt = XMaterial.matchXMaterial(material);
         if (!matOpt.isPresent()) return null;
 
+        // Build
         ItemStack item = matOpt.get().parseItem();
         if (item == null) return null;
         ItemMeta meta = item.getItemMeta();
@@ -227,11 +219,7 @@ public class XItemStack {
             LeatherArmorMeta leather = (LeatherArmorMeta) meta;
             String colorStr = config.getString("color");
             if (colorStr != null) {
-                String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(colorStr), ',');
-                if (rgb.length > 2) {
-                    Color color = Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
-                    leather.setColor(color);
-                }
+                leather.setColor(parseColor(colorStr));
             }
         } else if (meta instanceof PotionMeta) {
             PotionMeta potion = (PotionMeta) meta;
@@ -252,17 +240,13 @@ public class XItemStack {
 
                 List<Color> colors = new ArrayList<>();
                 for (String colorStr : fw.getStringList("colors")) {
-                    String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(colorStr), ',');
-                    Color color = Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
-                    colors.add(color);
+                    colors.add(parseColor(colorStr));
                 }
                 builder.withColor(colors);
 
                 colors.clear();
                 for (String colorStr : fw.getStringList("fade-colors")) {
-                    String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(colorStr), ',');
-                    Color color = Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
-                    colors.add(color);
+                    colors.add(parseColor(colorStr));
                 }
                 builder.withFade(colors);
 
@@ -271,7 +255,7 @@ public class XItemStack {
             //} else if (meta instanceof MapMeta) {
             // TODO This is a little bit too complicated.
             //MapMeta map = (MapMeta) meta;
-        } else if (XMaterial.isVersionOrHigher(XMaterial.MinecraftVersion.V1_14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -304,11 +288,11 @@ public class XItemStack {
             meta.setDisplayName(translated);
         }
 
-        // Unbreakable - 1.11
-        if (UNBREAKABLE) meta.setUnbreakable(config.getBoolean("unbreakable"));
+        // Unbreakable
+        if (XMaterial.supports(11)) meta.setUnbreakable(config.getBoolean("unbreakable"));
 
-        // Custom Model Data - 1.14
-        if (XMaterial.isVersionOrHigher(XMaterial.MinecraftVersion.V1_14)) {
+        // Custom Model Data
+        if (XMaterial.supports(14)) {
             int modelData = config.getInt("model-data");
             if (modelData != 0) meta.setCustomModelData(modelData);
         }
@@ -363,8 +347,8 @@ public class XItemStack {
             meta.addItemFlags(itemFlag);
         }
 
-        // Atrributes - 1.9
-        if (ATTRIBUTES) {
+        // Atrributes
+        if (XMaterial.supports(9)) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
@@ -383,5 +367,11 @@ public class XItemStack {
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    public static Color parseColor(String str) {
+        if (Strings.isNullOrEmpty(str)) return Color.BLACK;
+        String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');
+        return Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
     }
 }

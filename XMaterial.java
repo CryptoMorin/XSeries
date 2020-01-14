@@ -20,7 +20,6 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -30,6 +29,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  * 1.13 and above as priority.
  *
  * @author Crypto Morin
- * @version 3.2.0
+ * @version 3.3.0
  * @see Material
  * @see ItemStack
  */
@@ -1158,19 +1158,18 @@ public enum XMaterial {
      */
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\W+");
     /**
-     * The current version of the server in the a form of a major {@link MinecraftVersion} version.
+     * The current version of the server in the a form of a major version.
      *
      * @since 1.0.0
      */
-    private static final MinecraftVersion VERSION = valueOfVersion(Bukkit.getVersion());
+    private static final int VERSION = NumberUtils.toInt(getMajorVersion(Bukkit.getVersion()).substring(2));
     /**
-     * Cached result if the server version is after the flattening ({@link MinecraftVersion#V1_13}) update.
+     * Cached result if the server version is after the v1.13 flattening update.
      * Please don't mistake this with flat-chested people. It happened.
      *
      * @since 3.0.0
      */
-    private static final boolean ISFLAT = isVersionOrHigher(MinecraftVersion.V1_13);
-
+    private static final boolean ISFLAT = supports(13);
     /**
      * The data value of this material https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
      *
@@ -1198,16 +1197,16 @@ public enum XMaterial {
     }
 
     /**
-     * Checks if the version is {@link MinecraftVersion#V1_13} (Aquatic Update) or higher.
+     * Checks if the version is 1.13 Aquatic Update or higher.
      * An invocation of this method yields the cached result from the expression:
      * <p>
      * <blockquote>
-     * {@link #isVersionOrHigher(MinecraftVersion V1_13)}
+     * {@link #supports(int 13)}}
      * </blockquote>
      *
      * @return true if 1.13 or higher.
      * @see #getVersion()
-     * @see #isVersionOrHigher(MinecraftVersion)
+     * @see #supports(int)
      * @since 1.0.0
      */
     public static boolean isNewVersion() {
@@ -1223,24 +1222,23 @@ public enum XMaterial {
      * An invocation of this method yields exactly the same result as the expression:
      * <p>
      * <blockquote>
-     * {@link #getVersion()} == {@link MinecraftVersion#V1_8}
+     * {@link #getVersion()} == 1.8
      * </blockquote>
      *
      * @since 2.0.0
      */
     public static boolean isOneEight() {
-        return VERSION == MinecraftVersion.V1_8;
+        return !supports(9);
     }
 
     /**
      * The current version of the server.
      *
-     * @return the current server version or {@link MinecraftVersion#UNKNOWN} if unknown or below 1.8.
+     * @return the current server version or 0.0 if unknown.
      * @see #isNewVersion()
      * @since 2.0.0
      */
-    @Nonnull
-    public static MinecraftVersion getVersion() {
+    public static double getVersion() {
         return VERSION;
     }
 
@@ -1564,13 +1562,12 @@ public enum XMaterial {
     /**
      * Checks if the specified version is the same version or higher than the current server version.
      *
-     * @param version the version to be checked.
+     * @param version the major version to be checked. "1." is ignored -> 1.12 = 12 | 1.9 = 9
      * @return true of the version is equal or higher than the current version.
      * @since 2.0.0
      */
-    public static boolean isVersionOrHigher(@Nonnull MinecraftVersion version) {
-        Objects.requireNonNull(version, "Cannot compare to a null version");
-        return VERSION.ordinal() >= version.ordinal();
+    public static boolean supports(int version) {
+        return VERSION >= version;
     }
 
     /**
@@ -1610,7 +1607,7 @@ public enum XMaterial {
      * Gets the exact major version (..., 1.9, 1.10, ..., 1.14)
      *
      * @param version Supports {@link Bukkit#getVersion()}, {@link Bukkit#getBukkitVersion()} and normal formats such as "1.14"
-     * @return the exact major version, or {@link MinecraftVersion#UNKNOWN} if unknown or unsupported.
+     * @return the exact major version.
      * @since 2.0.0
      */
     @Nonnull
@@ -1628,25 +1625,6 @@ public enum XMaterial {
         int lastDot = version.lastIndexOf('.');
         if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
         return version;
-    }
-
-    /**
-     * Parses the string arugment to a version.
-     * Supports {@link Bukkit#getVersion()}, {@link Bukkit#getBukkitVersion()} and normal formats such as "1.14"
-     *
-     * @param version the server version.
-     * @return the Minecraft version represented by the string.
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static MinecraftVersion valueOfVersion(@Nonnull String version) {
-        Validate.notEmpty(version, "Cannot get minecraft version for null or empty version");
-
-        version = getMajorVersion(version);
-        if (version.equals("1.10") || version.equals("1.11") || version.equals("1.12")) return MinecraftVersion.V1_9;
-
-        version = 'V' + version.replace('.', '_');
-        return Enums.getIfPresent(MinecraftVersion.class, version).or(MinecraftVersion.UNKNOWN);
     }
 
     /**
@@ -1733,19 +1711,17 @@ public enum XMaterial {
 
     /**
      * Gets the version which this material was added in.
-     * If the material was added before {@link MinecraftVersion#V1_13} then
-     * it'll return {@link MinecraftVersion#UNKNOWN}
+     * If the material doesn't have a version it'll return 0;
      *
      * @return the Minecraft version which tihs material was added in.
      * @since 3.0.0
      */
-    @Nonnull
-    public MinecraftVersion getMaterialVersion() {
-        if (this.legacy.length == 0) return MinecraftVersion.UNKNOWN;
+    public int getMaterialVersion() {
+        if (this.legacy.length == 0) return 0;
         String version = this.legacy[0];
-        if (version.charAt(1) != '.') return MinecraftVersion.UNKNOWN;
+        if (version.charAt(1) != '.') return 0;
 
-        return MinecraftVersion.valueOf('V' + version.replace('.', '_'));
+        return Integer.parseInt(version.substring(2));
     }
 
     /**
@@ -1883,7 +1859,7 @@ public enum XMaterial {
     /**
      * Get a list of materials names that was previously used by older versions.
      * If the material was added in a new version {@link #isNewVersion()},
-     * then the first element will indicate which version the material was added in {@link MinecraftVersion}.
+     * then the first element will indicate which version the material was added in.
      *
      * @return a list of legacy material names and the first element as the version the material was added in if new.
      * @since 1.0.0
@@ -2035,8 +2011,8 @@ public enum XMaterial {
      * @since 2.0.0
      */
     public boolean isSupported() {
-        MinecraftVersion version = this.getMaterialVersion();
-        if (version != MinecraftVersion.UNKNOWN) return isVersionOrHigher(version);
+        int version = this.getMaterialVersion();
+        if (version != 0) return supports(version);
 
         Material material = Material.getMaterial(this.name());
         if (material == null) {
@@ -2052,7 +2028,7 @@ public enum XMaterial {
     }
 
     /**
-     * Checks if the material is newly added after the 1.13 Aquatic Update ({@link MinecraftVersion#V1_13}).
+     * Checks if the material is newly added after the 1.13 Aquatic Update
      *
      * @return true if the material was newly added, otherwise false.
      * @see #getMaterialVersion()
@@ -2060,63 +2036,5 @@ public enum XMaterial {
      */
     public boolean isNew() {
         return this.legacy.length != 0 && this.legacy[0].charAt(1) == '.';
-    }
-
-    /**
-     * Only major Minecraft versions related to most changes.
-     * The enum's order should not be changed.
-     *
-     * @since 2.0.0
-     */
-    public enum MinecraftVersion {
-        /**
-         * 1.7 or below.
-         * Using {@link #getMaterialVersion()} it means 1.12 or below.
-         * https://minecraft.gamepedia.com/Java_Edition_1.7
-         *
-         * @since 2.0.0
-         */
-        UNKNOWN,
-
-        /**
-         * Bountiful Update
-         * https://minecraft.gamepedia.com/Java_Edition_1.18
-         *
-         * @since 2.0.0
-         */
-        V1_8,
-
-        /**
-         * Combat Update (Pitiful Update? 90% of the reason why that this class is a thing)
-         * https://minecraft.gamepedia.com/Java_Edition_1.9
-         *
-         * @since 2.0.0
-         */
-        V1_9,
-
-        /**
-         * Aquatic Update
-         * Includes 1.10, 1.11 and 1.12
-         * https://minecraft.gamepedia.com/Java_Edition_1.13
-         *
-         * @since 2.0.0
-         */
-        V1_13,
-
-        /**
-         * Village Pillage Update
-         * https://minecraft.gamepedia.com/Java_Edition_1.14
-         *
-         * @since 2.0.0
-         */
-        V1_14,
-
-        /**
-         * Buzzy Bees Update
-         * https://minecraft.gamepedia.com/Java_Edition_1.15
-         *
-         * @since 3.0.0
-         */
-        V1_15
     }
 }
