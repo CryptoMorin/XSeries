@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.*;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
@@ -44,12 +45,12 @@ import java.util.List;
  */
 
 /**
- * <b>XBlock BETA</b> - MaterialData/BlockData Support<br>
+ * <b>XBlock</b> - MaterialData/BlockData Support<br>
  * Supports 1.8+ - Requires XMaterial
  * JavaDocs will be added soon.
  *
  * @author Crypto Morin
- * @version 0.3.0
+ * @version 0.4.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -79,8 +80,11 @@ public final class XBlock {
         return isMaterial(block, "REDSTONE_LAMP_ON", "REDSTONE_TORCH_ON", "BURNING_FURNACE");
     }
 
-    public static void setLit(Block block, boolean lit) {
+    public static boolean isContainer(Block block) {
+        return block.getState() instanceof InventoryHolder;
+    }
 
+    public static void setLit(Block block, boolean lit) {
         if (ISFLAT) {
             if (!(block.getBlockData() instanceof Lightable)) return;
             Lightable lightable = (Lightable) block.getBlockData();
@@ -122,11 +126,19 @@ public final class XBlock {
     }
 
     public static boolean isCake(Material material) {
-        return ISFLAT ? material == Material.CAKE : material == Material.getMaterial("CAKE_BLOCK");
+        return ISFLAT ? material == Material.CAKE : material.name().equals("CAKE_BLOCK");
     }
 
-    public static boolean isCake(Block block) {
-        return isCake(block.getType());
+    public static boolean isWheat(Material material) {
+        return ISFLAT ? material == Material.WHEAT : material.name().equals("CROPS");
+    }
+
+    public static boolean isSugarCane(Material material) {
+        return ISFLAT ? material == Material.SUGAR_CANE : material.name().equals("SUGAR_CANE_BLOCK");
+    }
+
+    public static boolean isBeetroot(Material material) {
+        return ISFLAT ? material == Material.SUGAR_CANE : material.name().equals("BEETROOT_BLOCK");
     }
 
     public static BlockFace getDirection(Block block) {
@@ -183,9 +195,7 @@ public final class XBlock {
         BlockState state = block.getState();
         state.setRawData(color.getWoolData());
         state.update(true);
-
-        // Can return true by mistake
-        return true;
+        return false;
     }
 
     public static boolean setFluidLevel(Block block, int level) {
@@ -229,7 +239,7 @@ public final class XBlock {
     }
 
     public static void setCakeSlices(Block block, int amount) {
-        if (!isCake(block)) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
+        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData bd = block.getBlockData();
             if (bd instanceof org.bukkit.block.data.type.Cake) {
@@ -263,7 +273,7 @@ public final class XBlock {
     }
 
     public static int addCakeSlices(Block block, int slices) {
-        if (!isCake(block)) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
+        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData bd = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
@@ -371,12 +381,10 @@ public final class XBlock {
         state.update();
     }
 
-    public static boolean isMaterial(Block block, String... materials) {
-        Material type = block.getType();
-        for (String material : materials) {
-            Material mat = Material.getMaterial(material);
-            if (mat != null && type == mat) return true;
-        }
+    private static boolean isMaterial(Block block, String... materials) {
+        String type = block.getType().name();
+        for (String material : materials)
+            if (type.equals(material)) return true;
         return false;
     }
 }

@@ -58,9 +58,13 @@ import java.util.stream.Collectors;
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
  * Supports 1.8-1.15<br>
  * 1.13 and above as priority.
+ * <p>
+ * This class is mainly designed to support ItemStacks.
+ * If you want to use it on blocks you'll have to
+ * use <a href="https://github.com/CryptoMorin/XSeries/blob/master/XBlock.java">XBlock</a>
  *
  * @author Crypto Morin
- * @version 3.3.0
+ * @version 3.3.1
  * @see Material
  * @see ItemStack
  */
@@ -84,6 +88,7 @@ public enum XMaterial {
     ACTIVATOR_RAIL,
     /**
      * https://minecraft.gamepedia.com/Air
+     * {@link Material#isAir()}
      *
      * @see #VOID_AIR
      * @see #CAVE_AIR
@@ -111,6 +116,10 @@ public enum XMaterial {
     BEDROCK,
     BEEF("RAW_BEEF"),
     BEEHIVE("1.15"),
+    /**
+     * Beetroot is a known material in pre-1.13
+     * Use XBlock when comparing block types.
+     */
     BEETROOT("BEETROOT_BLOCK"),
     BEETROOTS("BEETROOT"),
     BEETROOT_SEEDS,
@@ -671,8 +680,14 @@ public enum XMaterial {
     NETHER_PORTAL("PORTAL"),
     NETHER_QUARTZ_ORE("QUARTZ_ORE"),
     NETHER_STAR,
-    NETHER_WART("NETHER_STALK"),
-    NETHER_WART_BLOCK("NETHER_WARTS"),
+    /**
+     * Just like mentioned in https://minecraft.gamepedia.com/Nether_Wart
+     * Nether wart is also known as nether stalk in the code.
+     * Bukkit used NETHER_WARTS and NETHER_STALK materials and they
+     * both point to the same material?
+     */
+    NETHER_WART("NETHER_STALK", "NETHER_WARTS"),
+    NETHER_WART_BLOCK,
     NOTE_BLOCK,
     OAK_BOAT("BOAT"),
     OAK_BUTTON("WOOD_BUTTON"),
@@ -969,6 +984,10 @@ public enum XMaterial {
      */
     STRUCTURE_VOID("1.10", "BARRIER"),
     SUGAR,
+    /**
+     * Sugar Cane is a known material in pre-1.13
+     * Use XBlock when comparing block types.
+     */
     SUGAR_CANE("SUGAR_CANE_BLOCK"),
     SUNFLOWER("DOUBLE_PLANT"),
     SUSPICIOUS_STEW("1.14", "MUSHROOM_STEW"),
@@ -1019,6 +1038,10 @@ public enum XMaterial {
     WATER("STATIONARY_WATER"),
     WATER_BUCKET,
     WET_SPONGE(1, "SPONGE"),
+    /**
+     * Wheat is a known material in pre-1.13
+     * Use XBlock when comparing block types.
+     */
     WHEAT("CROPS"),
     WHEAT_SEEDS("SEEDS"),
     WHITE_BANNER(15, "BANNER", "STANDING_BANNER"),
