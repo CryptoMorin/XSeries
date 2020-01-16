@@ -19,6 +19,7 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.TreeSpecies;
@@ -39,7 +40,7 @@ import java.util.List;
  *
  * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XBlock.java
  * * XSeries: https://www.spigotmc.org/threads/378136/
- * BlockState: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
+ * BlockState (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
  * BlockData (New): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
  */
@@ -47,10 +48,9 @@ import java.util.List;
 /**
  * <b>XBlock</b> - MaterialData/BlockData Support<br>
  * Supports 1.8+ - Requires XMaterial
- * JavaDocs will be added soon.
  *
  * @author Crypto Morin
- * @version 0.4.0
+ * @version 1.0.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -80,10 +80,21 @@ public final class XBlock {
         return isMaterial(block, "REDSTONE_LAMP_ON", "REDSTONE_TORCH_ON", "BURNING_FURNACE");
     }
 
+    /**
+     * Checks if the block is a container.
+     * Containers are chests, hoppers, enderchests and everything that
+     * has an inventory.
+     *
+     * @param block the block to check.
+     * @return true if the block is a container, otherwise false.
+     */
     public static boolean isContainer(Block block) {
         return block.getState() instanceof InventoryHolder;
     }
 
+    /**
+     * Can be furnaces or redstone lamps.
+     */
     public static void setLit(Block block, boolean lit) {
         if (ISFLAT) {
             if (!(block.getBlockData() instanceof Lightable)) return;
@@ -98,10 +109,16 @@ public final class XBlock {
         else block.setType(Material.getMaterial("REDSTONE_TORCH_ON"));
     }
 
+    /**
+     * Any material that can be planted.
+     */
     public static boolean isCrops(Material material) {
         return CROPS.contains(XMaterial.matchXMaterial(material));
     }
 
+    /**
+     * Any material that can damage the player.
+     */
     public static boolean isDangerous(Block block) {
         return DANGEROUS.contains(XMaterial.matchXMaterial(block.getType()));
     }
@@ -141,6 +158,18 @@ public final class XBlock {
         return ISFLAT ? material == Material.SUGAR_CANE : material.name().equals("BEETROOT_BLOCK");
     }
 
+    public static boolean isNetherWart(Material material) {
+        return ISFLAT ? material == Material.NETHER_WART : material.name().equals("NETHER_WARTS");
+    }
+
+    public static boolean isCarrot(Material material) {
+        return ISFLAT ? material.name().equals("CARROTS") : material == Material.CARROT;
+    }
+
+    public static boolean isPotato(Material material) {
+        return ISFLAT ? material.name().equals("POTATOES") : material == Material.POTATO;
+    }
+
     public static BlockFace getDirection(Block block) {
         if (ISFLAT) {
             if (!(block.getBlockData() instanceof Directional)) return BlockFace.SELF;
@@ -168,11 +197,44 @@ public final class XBlock {
         MaterialData data = state.getData();
         if (data instanceof org.bukkit.material.Directional) {
             ((org.bukkit.material.Directional) data).setFacingDirection(facing);
+            state.update(true);
             return true;
         }
         return false;
     }
 
+    public static int getAge(Block block) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Ageable)) return 0;
+            Ageable ageable = (Ageable) block.getBlockData();
+            return ageable.getAge();
+        }
+
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+        return data.getData();
+    }
+
+    public static void setAge(Block block, int age) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Ageable)) return;
+            Ageable ageable = (Ageable) block.getBlockData();
+            ageable.setAge(age);
+        }
+
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+        data.setData((byte) age);
+        state.update(true);
+    }
+
+    /**
+     * Sets the type of any block that can be colored.
+     *
+     * @param block the block to color.
+     * @param color the color to use.
+     * @return true if the block can be colored, otherwise false.
+     */
     public static boolean setColor(Block block, DyeColor color) {
         if (ISFLAT) {
             String type = block.getType().name();
@@ -198,6 +260,9 @@ public final class XBlock {
         return false;
     }
 
+    /**
+     * Can be used on cauldron.
+     */
     public static boolean setFluidLevel(Block block, int level) {
         if (ISFLAT) {
             if (!(block.getBlockData() instanceof Levelled)) return false;
@@ -229,8 +294,8 @@ public final class XBlock {
         return ISFLAT ? getFluidLevel(block) < 7 : block.getType().name().equals("STATIONARY_WATER");
     }
 
-    public static boolean isWater(Block block) {
-        String name = block.getType().name();
+    public static boolean isWater(Material material) {
+        String name = material.name();
         return name.equals("WATER") || name.equals("STATIONARY_WATER");
     }
 
@@ -308,6 +373,7 @@ public final class XBlock {
 
         TreeSpecies type = species == XMaterial.SPRUCE_LOG ? TreeSpecies.REDWOOD :
                 TreeSpecies.valueOf(species.name().substring(0, species.name().indexOf('_')));
+
         BlockState state = block.getState();
         MaterialData data = state.getData();
         ((Wood) data).setSpecies(type);
@@ -317,13 +383,48 @@ public final class XBlock {
 
     /**
      * <b>Universal Method</b>
+     * <p>
+     * Check if the block type matches the specified XMaterial
      *
-     * @param block    the block to set its type.
-     * @param material the material to set the block's type to.
+     * @param block    the block to check.
+     * @param material the XMaterial similar to this block type.
+     * @return true if the block type is similar to the material.
      */
-    public static void setType(Block block, XMaterial material) {
-        throw new UnsupportedOperationException("Not implemented yet");
-        // TODO...
+    public static boolean isType(Block block, XMaterial material) {
+        Material mat = block.getType();
+
+        switch (material) {
+            case CAKE:
+                return isCake(mat);
+            case NETHER_WART:
+                return isNetherWart(mat);
+            case CARROT:
+            case CARROTS:
+                return isCarrot(mat);
+            case POTATO:
+            case POTATOES:
+                return isPotato(mat);
+            case WHEAT:
+            case WHEAT_SEEDS:
+                return isWheat(mat);
+            case BEETROOT:
+            case BEETROOT_SEEDS:
+            case BEETROOTS:
+                return isBeetroot(mat);
+            case SUGAR_CANE:
+                return isSugarCane(mat);
+            case WATER:
+                return isWater(mat);
+            case AIR:
+                return isAir(mat);
+        }
+
+        return false;
+    }
+
+    public static boolean isAir(Material material) {
+        // Only air material names end with "IR"
+        return material.name().endsWith("IR");
     }
 
     public static boolean isPowered(Block block) {
@@ -354,31 +455,49 @@ public final class XBlock {
 
     public static boolean isOpen(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Openable)) return false;
-            Openable openable = (Openable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Openable)) return false;
+            org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) block.getBlockData();
             return openable.isOpen();
         }
 
         BlockState state = block.getState();
-        if (!(state instanceof org.bukkit.block.data.Openable)) return false;
-        org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) state.getData();
+        if (!(state instanceof Openable)) return false;
+        Openable openable = (Openable) state.getData();
         return openable.isOpen();
     }
 
     public static void setOpened(Block block, boolean opened) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Openable)) return;
-            Openable openable = (Openable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Openable)) return;
+            org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) block.getBlockData();
             openable.setOpen(opened);
             return;
         }
 
         BlockState state = block.getState();
-        if (!(state instanceof org.bukkit.block.data.Openable)) return;
-        org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) state.getData();
+        if (!(state instanceof Openable)) return;
+        Openable openable = (Openable) state.getData();
         openable.setOpen(opened);
         state.setData((MaterialData) openable);
         state.update();
+    }
+
+    public static BlockFace getRotation(Block block) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Rotatable)) return null;
+            Rotatable rotatable = (Rotatable) block.getBlockData();
+            return rotatable.getRotation();
+        }
+
+        return null;
+    }
+
+    public static void setRotation(Block block, BlockFace facing) {
+        if (ISFLAT) {
+            if (!(block.getBlockData() instanceof Rotatable)) return;
+            Rotatable rotatable = (Rotatable) block.getBlockData();
+            rotatable.setRotation(facing);
+        }
     }
 
     private static boolean isMaterial(Block block, String... materials) {
