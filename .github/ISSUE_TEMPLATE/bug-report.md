@@ -2,7 +2,7 @@
 name: Bug Report
 about: Create a report to help the project improve
 title: "[Utility Name] - Issue"
-labels: ''
+labels: 'bug'
 assignees: CryptoMorin
 
 ---
