@@ -1,4 +1,7 @@
 # XSeries
+[![Bukkit Version](https://img.shields.io/badge/bukkit-1.15-dark_green.svg)](https://shields.io/)
+[![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
+[![Build](https://img.shields.io/badge/build-passing-dark_green.svg)](https://shields.io/)
 
 XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers.
 But it also includes numerous extra methods to help developers design their plugins easier.
