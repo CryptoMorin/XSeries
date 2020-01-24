@@ -61,14 +61,6 @@ import java.util.concurrent.Callable;
  */
 public class ActionBar {
     /**
-     * A static instance of your plugin for scheduled timer handlers.
-     *
-     * @see #sendActionBar(Player, String, long)
-     * @see #sendActionBarWhile(Player, String, Callable)
-     * @see #sendActionBarWhile(Player, Callable, Callable)
-     */
-    private static JavaPlugin PLUGIN;
-    /**
      * ChatComponentText JSON message builder.
      */
     private static final MethodHandle CHAT_COMPONENT_TEXT;
@@ -187,7 +179,7 @@ public class ActionBar {
                 sendActionBar(player, message);
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(Bukkit.getPluginManager().getPlugins()[0], 0L, 40L);
     }
 
     /**
@@ -217,7 +209,7 @@ public class ActionBar {
                 }
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(Bukkit.getPluginManager().getPlugins()[0], 0L, 40L);
     }
 
     /**
@@ -242,6 +234,6 @@ public class ActionBar {
                 if (repeater - 40L < -20L) cancel();
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(Bukkit.getPluginManager().getPlugins()[0], 0L, 40L);
     }
 }
