@@ -21,6 +21,8 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package org.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

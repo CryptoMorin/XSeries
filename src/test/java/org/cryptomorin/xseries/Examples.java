@@ -1,18 +1,20 @@
-package org.fastfoodplus.utils;
+package org.cryptomorin.xseries;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.TestOnly;
 
 import java.io.*;
+import java.util.Optional;
 
 @TestOnly
 @SuppressWarnings("deprecation")
-public class Examples {
+public class Examples implements Listener {
     private static void print(String str) {
         Bukkit.getConsoleSender().sendMessage(str);
     }
@@ -36,8 +38,12 @@ public class Examples {
         print("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
         print(XMaterial.MAP.parseMaterial().name() + "  map");
         print(XMaterial.FILLED_MAP.parseMaterial().name() + "  filled map");
-        print(XMaterial.matchXMaterial("MAP").name() + "  map parse");
-        print(XMaterial.matchXMaterial("FILLED_MAP").name() + "  filled map parse");
+        XMaterial.matchXMaterial("MAP").ifPresent(xMaterial ->
+            print(xMaterial.name() + "  map parse")
+        );
+        XMaterial.matchXMaterial("FILLED_MAP").ifPresent(xMaterial ->
+            print(xMaterial.name() + "  filled map parse")
+        );
         print("-------------------------------------------");
         print(XMaterial.BLACK_GLAZED_TERRACOTTA.parseMaterial(false) + "   non-suggested");
         print(XMaterial.BLACK_GLAZED_TERRACOTTA.parseMaterial(true).name() + "   suggested");
@@ -57,11 +63,19 @@ public class Examples {
                     else {
                         int index = line.indexOf(':');
                         String material = line.substring(index + 1);
-                        XMaterial mat = XMaterial.matchXMaterial(material);
-                        if (mat == null || mat.name().contains(mat.parseMaterial().name()) || mat.parseMaterial().name().contains(mat.name())) {
+                        Optional<XMaterial> optionalXMaterial = XMaterial.matchXMaterial(material);
+
+                        if (!optionalXMaterial.isPresent()) {
+                            continue;
+                        }
+
+                        XMaterial mat = optionalXMaterial.get();
+
+                        if (mat.name().contains(mat.parseMaterial().name()) || mat.parseMaterial().name().contains(mat.name())) {
                             sb.append(line).append(System.lineSeparator());
                             continue;
                         }
+
                         sb.append(line, 0, index).append(": ").append(mat.parseMaterial().name());
                         if (!XMaterial.isNewVersion() && mat.getData() != 0) {
                             sb.append(System.lineSeparator());

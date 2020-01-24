@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,11 +19,13 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+package org.cryptomorin.xseries;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.skills.main.Skills;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -65,7 +67,7 @@ public class ActionBar {
      * @see #sendActionBarWhile(Player, String, Callable)
      * @see #sendActionBarWhile(Player, Callable, Callable)
      */
-    private static final JavaPlugin PLUGIN = ;
+    private static JavaPlugin PLUGIN;
     /**
      * ChatComponentText JSON message builder.
      */
