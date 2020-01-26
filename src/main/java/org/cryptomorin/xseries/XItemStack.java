@@ -42,8 +42,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
-import org.cryptomorin.xseries.SkullUtils;
-import org.cryptomorin.xseries.XEnchantment;
 
 import java.util.ArrayList;
 import java.util.List;
