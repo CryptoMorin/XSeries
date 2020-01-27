@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Create a report to help the project improve
-title: "[Bug] - [Little explanation for your issue.]"
+title: "[Bug] - [Little explanation for your issue]"
 labels: 'bug'
 assignees: CryptoMorin
 ---
