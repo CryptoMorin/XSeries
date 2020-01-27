@@ -1,10 +1,9 @@
 ---
-name: Feature Requets
+name: Feature Request
 about: Create a report to request a feature
-title: "[Utility/New Utility Name] - Feature"
+title: "[Feature] - [Little explanation for your feature request]"
 labels: 'enhancement'
 assignees: CryptoMorin
-
 ---
 
 **Description**
