@@ -19,6 +19,7 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -35,19 +36,11 @@ import org.bukkit.material.*;
 import java.util.EnumSet;
 import java.util.List;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XBlock.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
+/**
+ * <b>XBlock</b> - MaterialData/BlockData Support<br>
  * BlockState (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
  * BlockData (New): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
- */
-
-/**
- * <b>XBlock</b> - MaterialData/BlockData Support<br>
- * Supports 1.8+ - Requires XMaterial
  *
  * @author Crypto Morin
  * @version 1.0.0

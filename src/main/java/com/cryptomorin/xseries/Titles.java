@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -33,14 +35,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/Titles.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
- */
-
 /**
  * A reflection API for titles in Minecraft.
  * Fully optimized - Supports 1.8.8+ and above.
@@ -49,9 +43,10 @@ import java.util.Objects;
  * <p>
  * Titles are text messages that appear in the
  * middle of the players screen: https://minecraft.gamepedia.com/Commands/title
+ * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.0.1
  * @see ReflectionUtils
  */
 public class Titles {
@@ -100,14 +95,13 @@ public class Titles {
             }
         }
 
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
         try {
-            chatComp = MethodHandles.lookup().findConstructor(chatComponentText,
-                    MethodType.methodType(void.class, String.class));
+            chatComp = lookup.findConstructor(chatComponentText, MethodType.methodType(void.class, String.class));
 
-            packetCtor = MethodHandles.lookup().findConstructor(packet,
+            packetCtor = lookup.findConstructor(packet,
                     MethodType.methodType(void.class, titleTypes,
-                            ReflectionUtils.getNMSClass("IChatBaseComponent"),
-                            int.class, int.class, int.class));
+                            ReflectionUtils.getNMSClass("IChatBaseComponent"), int.class, int.class, int.class));
         } catch (NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -177,10 +171,10 @@ public class Titles {
      *
      * <p>
      * <b>Example:</b>
-     * <pre><quoteblock>
+     * <blockquote><pre>
      *     ConfigurationSection titleSection = plugin.getConfig().getConfigurationSection("restart-title");
      *     Titles.sendTitle(player, titleSection);
-     * </quoteblock></pre>
+     * </pre></blockquote>
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
@@ -207,7 +201,7 @@ public class Titles {
      * @param player the player to clear the title from.
      * @since 1.0.0
      */
-    public static void clearTitle(Player player) {
+    public static void clearTitle(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
         Object clearPacket = null;
 
@@ -222,11 +216,11 @@ public class Titles {
 
     /**
      * Changes the tablist header and footer message for a player.
+     * This is not fully completed as it's not used alot.
      *
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
-     * @apiNote This is not fully completed as it's not used alot.
      * @since 1.0.0
      */
     public static void sendTabList(Player player, String header, String footer) {

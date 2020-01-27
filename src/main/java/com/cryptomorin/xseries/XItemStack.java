@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
@@ -45,14 +47,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XItemStack.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
- */
-
 /**
  * <b>XItemStack</b> - YAML Item Serializer<br>
  * Using ConfigurationSection Example:
@@ -60,6 +54,7 @@ import java.util.UUID;
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
  *     ItemStack item = XItemStack.deserialize(player, section);
  * </pre>
+ * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
  * @version 1.1.0

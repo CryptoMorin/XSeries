@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,11 +19,12 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.skills.main.Skills;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,14 +33,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/ActionBar.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * PacketPlayOutChat: https://wiki.vg/Protocol#Chat_Message_.28clientbound.29
- */
 
 /**
  * A reflection API for action bars in Minecraft.
@@ -52,20 +45,18 @@ import java.util.concurrent.Callable;
  * Note that this is different than the text appeared when switching between items.
  * Those messages show the item's name and are different from action bars.
  * The only natural way of displaying action bars is when mounting.
+ * <p>
+ * Action bars cannot fade or stay like titles.
+ * For static Action bars you'll need to send the packet every
+ * 2 seconds (40 ticks) for it to stay on the screen without fading.
+ * <p>
+ * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
  * @version 1.0.0
  * @see ReflectionUtils
  */
 public class ActionBar {
-    /**
-     * A static instance of your plugin for scheduled timer handlers.
-     *
-     * @see #sendActionBar(Player, String, long)
-     * @see #sendActionBarWhile(Player, String, Callable)
-     * @see #sendActionBarWhile(Player, Callable, Callable)
-     */
-    private static final JavaPlugin PLUGIN = ;
     /**
      * ChatComponentText JSON message builder.
      */
@@ -130,7 +121,7 @@ public class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
-     * @see #sendActionBar(Player, String, long)
+     * @see #sendActionBar(JavaPlugin, Player, String, long)
      * @since 1.0.0
      */
     public static void sendActionBar(@Nonnull Player player, @Nullable String message) {
@@ -167,10 +158,10 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will not be updated.
      * @param callable the condition for the action bar to continue.
-     * @see #sendActionBar(Player, String, long)
+     * @see #sendActionBar(JavaPlugin, Player, String, long)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@Nonnull Player player, @Nullable String message, @Nonnull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nullable String message, @Nonnull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -185,7 +176,7 @@ public class ActionBar {
                 sendActionBar(player, message);
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 
     /**
@@ -197,10 +188,10 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will be updated.
      * @param callable the condition for the action bar to continue.
-     * @see #sendActionBarWhile(Player, String, Callable)
+     * @see #sendActionBarWhile(JavaPlugin, Player, String, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@Nonnull Player player, @Nullable Callable<String> message, @Nonnull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nullable Callable<String> message, @Nonnull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -215,7 +206,7 @@ public class ActionBar {
                 }
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 
     /**
@@ -224,10 +215,10 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send.
      * @param duration the duration to keep the action bar in ticks.
-     * @see #sendActionBarWhile(Player, String, Callable)
+     * @see #sendActionBarWhile(JavaPlugin, Player, String, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBar(@Nonnull Player player, @Nullable String message, long duration) {
+    public static void sendActionBar(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nullable String message, long duration) {
         if (duration < 1) return;
 
         new BukkitRunnable() {
@@ -239,7 +230,6 @@ public class ActionBar {
                 repeater -= 40L;
                 if (repeater - 40L < -20L) cancel();
             }
-            // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(PLUGIN, 0L, 40L);
+        }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 }

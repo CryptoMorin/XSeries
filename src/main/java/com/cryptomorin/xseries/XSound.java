@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -42,16 +44,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-/* References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XSound.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * 1.8: http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html
- * Latest: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
- * Basics: https://bukkit.org/threads/151517/
- * playSound command: https://minecraft.gamepedia.com/Commands/playsound
- */
-
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
  * Supports 1.8-1.15<br>
@@ -62,9 +54,14 @@ import java.util.regex.Pattern;
  * <p>
  * <b>Volume:</b> 0.0-∞ - 1.0f (normal) - Using higher values increase the distance from which the sound can be heard.<br>
  * <b>Pitch:</b> 0.5-2.0 - 1.0f (normal) - How fast the sound is play.
+ * <p>
+ * 1.8: http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html
+ * Latest: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+ * Basics: https://bukkit.org/threads/151517/
+ * playSound command: https://minecraft.gamepedia.com/Commands/playsound
  *
  * @author Crypto Morin
- * @version 2.2.1
+ * @version 2.2.0
  * @see Sound
  */
 public enum XSound {

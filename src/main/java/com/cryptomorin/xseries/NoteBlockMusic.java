@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,10 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -28,6 +31,8 @@ import org.bukkit.Location;
 import org.bukkit.Note;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,16 +44,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
-/* References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/NoteBlockMusic.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * Note Blocks: https://minecraft.gamepedia.com/Note_Block
- */
-
 /**
  * <b>NoteBlockMusic</b> - Write music scripts for Minecraft.<br>
- * Supports 1.8-1.15
+ * You can write small text scripts for Minecraft <a href="https://minecraft.gamepedia.com/Note_Block">note blocks</a>
+ * without needing to use any redstone or building to make your music.
  * This class is independent of XSound.
  *
  * @author Crypto Morin
@@ -114,7 +113,7 @@ public class NoteBlockMusic {
      *
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> testMusic(Player player) {
+    public static CompletableFuture<Void> testMusic(@Nonnull Player player) {
         return playMusic(player, player.getLocation(), // Starting piece of Megalovania (not perfectly toned, it's screwed up)
                 "PIANO,D,2,100 PIANO,B#1 200 PIANO,F 250 PIANO,E 250 PIANO,B 200 PIANO,A 100 PIANO,B 100 PIANO,E");
     }
@@ -126,7 +125,7 @@ public class NoteBlockMusic {
      * @see #playMusic(Player, Location, String)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> fromFile(Player player, Location location, Path path) {
+    public static CompletableFuture<Void> fromFile(@Nonnull Player player, @Nonnull Location location, @Nonnull Path path) {
         return CompletableFuture.runAsync(() -> {
             try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 String line;
@@ -156,15 +155,17 @@ public class NoteBlockMusic {
      * <p>
      * <b>Example</b><p>
      * Shortcuts:
-     * BD,G 20 BD,G 20 BD,G -> BD,G,3,20
-     * <br>
+     * {@code BD,G 20 BD,G 20 BD,G -> BD,G,3,20}
+     * <pre>
      * (BD,G,3,20 BG,E,5,10),1000,2 1000 BA,A
-     * ->
+     *
+     * Translated:
      * Play BASS_DRUM with tone G 3 times every 20 ticks.<br>
      * Play BASS_GUITAR with tone E 5 times every 10 ticks.<br>
      * Play those ^ again two times with 1 second delay between repeats.<br>
      * Wait 1000ms.<br>
      * Play BANJO with tone A once.
+     * </pre>
      * <p>
      * <b>Note Tones</b><p>
      * Available Note Tones: G, A, B, C, D, E, F (Idk why G is the first one) {@link org.bukkit.Note.Tone}<br>
@@ -173,7 +174,7 @@ public class NoteBlockMusic {
      * C1, C#1, B_1, D_2
      * <p>
      * <b>Instruments</b><p>
-     * Available Instruments: Basically the first letter of every instrument. E.g. BD -> BASS_DRUM<br>
+     * Available Instruments: Basically the first letter of every instrument. E.g. {@code BD -> BASS_DRUM}<br>
      * You can also use their full name. {@link Instrument}
      * <p>
      * <b>CompletableFuture</b><p>
@@ -187,10 +188,13 @@ public class NoteBlockMusic {
      * @see #fromFile(Player, Location, Path)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> playMusic(Player player, Location location, String script) {
+    public static CompletableFuture<Void> playMusic(@Nonnull Player player, @Nonnull Location location, @Nullable String script) {
         // We don't want to mess around in the main thread.
         // Sounds are thread-safe.
-        return CompletableFuture.runAsync(() -> parseSegment(player, location, script, 1, 0));
+        return CompletableFuture.runAsync(() -> {
+            if (Strings.isNullOrEmpty(script)) return;
+            parseSegment(player, location, script, 1, 0);
+        });
     }
 
     /**
@@ -198,7 +202,7 @@ public class NoteBlockMusic {
      *
      * @since 1.0.0
      */
-    private static void parseSegment(Player player, Location location, String script,
+    private static void parseSegment(@Nonnull Player player, @Nonnull Location location, @Nonnull String script,
                                      int segmentRepeat, int segmentDelay) {
         ArrayList<String> repeater = new ArrayList<>();
         String[] splitScript = SPLITTER.split(script);

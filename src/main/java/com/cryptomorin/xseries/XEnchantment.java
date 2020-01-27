@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -38,21 +40,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-/* References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XEnchantment.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * EssentialsX Enchantment: https://github.com/Bukkit/Bukkit/blob/master/src/main/java/org/bukkit/enchantments/Enchantment.java
- * Enchantment: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
- * Enchanting: https://minecraft.gamepedia.com/Enchanting
- * ZEnchantment: https://github.com/CryptoMorin/XSeries/blob/master/ZEnchantment.java
- */
-
 /**
  * Up to 1.15 enchantment support with multiple aliases.
  * Uses EssentialsX enchantment list for aliases.
- * <p>
  * Enchantment levels do not start from 0, they start from 1
+ * <p>
+ * EssentialsX Enchantment: https://github.com/Bukkit/Bukkit/blob/master/src/main/java/org/bukkit/enchantments/Enchantment.java
+ * Enchantment: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
+ * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
  * @version 1.0.1

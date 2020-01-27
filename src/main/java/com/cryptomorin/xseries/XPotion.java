@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Crypto Morin
+ * Copyright (c) 2020 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -39,22 +41,16 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XPotion.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * EssentialsX Potions: https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/com/earth2me/essentials/Potions.java
- * Status Effect: https://minecraft.gamepedia.com/Status_effect
- * Potions: https://minecraft.gamepedia.com/Potion
- */
-
 /**
  * Up to 1.15 potion type support for multiple aliases.
  * Uses EssentialsX potion list for aliases.
  * <p>
  * Duration: The duration of the effect in ticks. Values 0 or lower are treated as 1. Optional, and defaults to 1 tick.
  * Amplifier: The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
+ * <p>
+ * EssentialsX Potions: https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/com/earth2me/essentials/Potions.java
+ * Status Effect: https://minecraft.gamepedia.com/Status_effect
+ * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
  * @version 1.1.0

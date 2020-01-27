@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
@@ -35,22 +37,16 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
-
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XBiome.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * Biomes: https://minecraft.gamepedia.com/Biome
- * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
- */
 
 /**
  * <b>XBiome</b> - Cross-version support for biome names.<br>
+ * Biomes: https://minecraft.gamepedia.com/Biome
+ * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.0.1
  * @see Biome
  */
 public enum XBiome {
@@ -269,7 +265,8 @@ public enum XBiome {
      * @param chunk the chunk to change the biome.
      * @since 1.0.0
      */
-    public void setBiome(Chunk chunk) {
+    @Nonnull
+    public CompletableFuture<Void> setBiome(@Nonnull Chunk chunk) {
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
             if (!chunk.load(true)) throw new IllegalArgumentException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
@@ -278,12 +275,15 @@ public enum XBiome {
         Biome biome = this.parseBiome();
         if (biome == null) throw new IllegalArgumentException("Unsupported Biome: " + this.name());
 
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                Block block = chunk.getBlock(x, 0, z);
-                if (block.getBiome() != biome) block.setBiome(biome);
+        // Apparently setBiome is thread-safe.
+        return CompletableFuture.runAsync(() -> {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    Block block = chunk.getBlock(x, 0, z);
+                    if (block.getBiome() != biome) block.setBiome(biome);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -295,7 +295,8 @@ public enum XBiome {
      * @param end   the end position.
      * @since 1.0.0
      */
-    public void setBiome(Location start, Location end) {
+    @Nonnull
+    public CompletableFuture<Void> setBiome(@Nonnull Location start, @Nonnull Location end) {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
         if (!start.getWorld().getName().equals(end.getWorld().getName()))
@@ -304,11 +305,14 @@ public enum XBiome {
         Biome biome = this.parseBiome();
         if (biome == null) throw new IllegalArgumentException("Unsupported Biome: " + this.name());
 
-        for (int x = start.getBlockX(); x < end.getBlockX(); x++) {
-            for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
-                Block block = new Location(start.getWorld(), x, 0, z).getBlock();
-                if (block.getBiome() != biome) block.setBiome(biome);
+        // Apparently setBiome is thread-safe.
+        return CompletableFuture.runAsync(() -> {
+            for (int x = start.getBlockX(); x < end.getBlockX(); x++) {
+                for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
+                    Block block = new Location(start.getWorld(), x, 0, z).getBlock();
+                    if (block.getBiome() != biome) block.setBiome(biome);
+                }
             }
-        }
+        });
     }
 }

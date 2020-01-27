@@ -1,4 +1,7 @@
 # XSeries
+[![Bukkit Version](https://img.shields.io/badge/bukkit-1.15-dark_green.svg)](https://shields.io/)
+[![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
+[![Build](https://img.shields.io/badge/build-passing-dark_green.svg)](https://shields.io/)
 
 XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers.
 But it also includes numerous extra methods to help developers design their plugins easier.
@@ -21,19 +24,21 @@ Most of the updates and news will be announced there.
 When compiling your plugin you should be using the latest version that your plugin is going to support.\
 Which means, at least you have to use 1.13 (for cross-version support utilities only)
 You can clone the project using `git clone https://github.com/CryptoMorin/XSeries.git`
-If you're using maven and have issues with nullability annotations, you can import the following dependency to your project:
-```xml
-<dependency>
-<groupId>com.google.code.findbugs</groupId>
-<artifactId>jsr305</artifactId>
-<version>3.0.2</version>
-</dependency>
-```
-Or you can completely remove if it from the file by using a quick Ctrl+R replace. These annotations are purely used for
-documentation purposes.
 
 All the methods are explained in the JavaDoc. Please read the JavaDoc before using a method.
 It's quite common to miss the whole purpose of cross-version support by using the wrong methods.
+
+#### Maven
+```xml
+<dependency>
+    <groupId>com.github.cryptomorin</groupId>
+    <artifactId>XSeries</artifactId>
+    <version>5.1.0</version>
+</dependency>
+```
+
+Note that you have to import the original Bukkit/Spigot JAR directly to the plugin as SkullUtils uses `com.mojang.authlib`
+This project has no maven repository and cannot have one legally.
 
 ### Contributing
 

@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -31,6 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,18 +44,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/SkullUtils.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * Skull Meta: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html
- * Mojang API: https://wiki.vg/Mojang_API
- */
-
 /**
  * <b>SkullUtils</b> - Apply skull texture from different sources.<br>
- * Supports 1.8+
+ * Skull Meta: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html
+ * Mojang API: https://wiki.vg/Mojang_API
  *
  * @author Crypto Morin
  * @version 1.0.0
@@ -66,7 +61,8 @@ public class SkullUtils {
     private static final Pattern USERNAME = Pattern.compile("[A-z0-9]+");
 
     @SuppressWarnings("deprecation")
-    public static ItemStack getSkull(UUID id) {
+    @Nonnull
+    public static ItemStack getSkull(@Nonnull UUID id) {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
@@ -78,7 +74,8 @@ public class SkullUtils {
     }
 
     @SuppressWarnings("deprecation")
-    public static SkullMeta applySkin(ItemMeta head, String player) {
+    @Nonnull
+    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String player) {
         boolean isId = isUUID(getFullUUID(player));
         SkullMeta meta = (SkullMeta) head;
 
@@ -93,7 +90,8 @@ public class SkullUtils {
         return getTexturesFromUrlValue(meta, player);
     }
 
-    public static SkullMeta getSkullByValue(SkullMeta head, String value) {
+    @Nonnull
+    public static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
         Validate.notEmpty(value, "Skull value cannot be null or empty");
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
 
@@ -109,15 +107,18 @@ public class SkullUtils {
         return head;
     }
 
-    public static SkullMeta getValueFromTextures(SkullMeta head, String url) {
+    @Nonnull
+    public static SkullMeta getValueFromTextures(@Nonnull SkullMeta head, @Nonnull String url) {
         return getSkullByValue(head, encodeBase64(VALUE_PROPERTY + url + "\"}}}"));
     }
 
-    public static SkullMeta getTexturesFromUrlValue(SkullMeta head, String urlValue) {
+    @Nonnull
+    public static SkullMeta getTexturesFromUrlValue(@Nonnull SkullMeta head, @Nonnull String urlValue) {
         return getValueFromTextures(head, TEXTURES + urlValue);
     }
 
-    private static String encodeBase64(String str) {
+    @Nonnull
+    private static String encodeBase64(@Nonnull String str) {
         return Base64.getEncoder().encodeToString(str.getBytes());
     }
 
@@ -125,7 +126,8 @@ public class SkullUtils {
         return BASE64.matcher(base64).matches();
     }
 
-    public static String getSkinValue(ItemStack skull) {
+    @Nonnull
+    public static String getSkinValue(@Nonnull ItemStack skull) {
         Objects.requireNonNull(skull, "Skull ItemStack cannot be null");
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
         GameProfile profile = null;
@@ -170,9 +172,9 @@ public class SkullUtils {
     }
 
     /**
-     * https://api.mojang.com/users/profiles/minecraft/<Username> -> ID
-     * https://api.mojang.com/user/profiles/<ID without dashes ->/names
-     * https://sessionserver.mojang.com/session/minecraft/profile/<ID> ->
+     * https://api.mojang.com/users/profiles/minecraft/Username gives the ID
+     * https://api.mojang.com/user/profiles/ID without dashes/names gives the names used for the unique ID.
+     * https://sessionserver.mojang.com/session/minecraft/profile/ID example data:
      * <p>
      * {
      * "id": "Without dashes -",
@@ -185,7 +187,8 @@ public class SkullUtils {
      * ]
      * }
      */
-    public static String getSkinValue(String name, boolean isId) {
+    @Nonnull
+    public static String getSkinValue(@Nonnull String name, boolean isId) {
         Validate.notEmpty(name, "Player name/UUID cannot be null or empty");
 
         try {

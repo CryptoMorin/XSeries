@@ -20,6 +20,7 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
@@ -40,19 +41,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XMaterial.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * Pre-flattening: https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
- * Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
- * Materials (1.12): https://helpch.at/docs/1.12.2/index.html?org/bukkit/Material.html
- * Material IDs: https://minecraft-ids.grahamedgecombe.com/
- * Material Source Code: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
- * XMaterial v1: https://www.spigotmc.org/threads/329630/
- */
-
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
  * Supports 1.8-1.15<br>
@@ -61,6 +49,13 @@ import java.util.regex.Pattern;
  * This class is mainly designed to support ItemStacks.
  * If you want to use it on blocks you'll have to
  * use <a href="https://github.com/CryptoMorin/XSeries/blob/master/XBlock.java">XBlock</a>
+ * <p>
+ * Pre-flattening: https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
+ * Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+ * Materials (1.12): https://helpch.at/docs/1.12.2/index.html?org/bukkit/Material.html
+ * Material IDs: https://minecraft-ids.grahamedgecombe.com/
+ * Material Source Code: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
+ * XMaterial v1: https://www.spigotmc.org/threads/329630/
  *
  * @author Crypto Morin
  * @version 4.0.0
@@ -1230,7 +1225,7 @@ public enum XMaterial {
      * An invocation of this method yields the cached result from the expression:
      * <p>
      * <blockquote>
-     * {@link #supports(int 13)}}
+     * {@link #supports(int) 13}}
      * </blockquote>
      *
      * @return true if 1.13 or higher.
@@ -1332,8 +1327,8 @@ public enum XMaterial {
      * <p>
      * <b>Examples</b>
      * <pre>
-     *     INK_SACK:1 -> RED_DYE
-     *     WOOL, 14  -> RED_WOOL
+     *     {@code INK_SACK:1 -> RED_DYE}
+     *     {@code WOOL, 14  -> RED_WOOL}
      * </pre>
      *
      * @see #matchDefinedXMaterial(String, byte)
@@ -1358,8 +1353,8 @@ public enum XMaterial {
      * <p>
      * <b>Examples</b>
      * <p><pre>
-     *     INK_SACK:1 -> RED_DYE
-     *     WOOL, 14  -> RED_WOOL
+     *     {@code INK_SACK:1 -> RED_DYE}
+     *     {@code WOOL, 14  -> RED_WOOL}
      * </pre>
      *
      * @param name the material string that consists of the material name, data and separator character.
@@ -1562,7 +1557,7 @@ public enum XMaterial {
     /**
      * Checks if the specified version is the same version or higher than the current server version.
      *
-     * @param version the major version to be checked. "1." is ignored -> 1.12 = 12 | 1.9 = 9
+     * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
      * @return true of the version is equal or higher than the current version.
      * @since 2.0.0
      */
@@ -1661,14 +1656,14 @@ public enum XMaterial {
      * <br>
      * <b>{@code CONTAINS} Examples:</b>
      * <pre>
-     *     "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true
-     *     "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true
+     *     {@code "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true}
+     *     {@code "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true}
      * </pre>
      * <p>
      * <b>{@code REGEX} Examples</b>
      * <pre>
-     *     "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG
-     *     "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR
+     *     {@code "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG}
+     *     {@code "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR}
      * </pre>
      * <p>
      * The reason that there are tags for {@code CONTAINS} and {@code REGEX}
@@ -1888,7 +1883,7 @@ public enum XMaterial {
      * Parses an item from this XMaterial.
      * Uses data values on older versions.
      *
-     * @param suggest if true {@link #parseMaterial(boolean true)} will be used.
+     * @param suggest if true {@link #parseMaterial(boolean)} true will be used.
      * @return an ItemStack with the same material (and data value if in older versions.)
      * @see #setType(ItemStack)
      * @since 2.0.0

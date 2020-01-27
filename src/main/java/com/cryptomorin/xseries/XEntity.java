@@ -19,6 +19,8 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package com.cryptomorin.xseries;
+
 import com.google.common.base.Enums;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -31,14 +33,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Locale;
 import java.util.Optional;
 
-/*
- * References
- *
- * * * GitHub: https://github.com/CryptoMorin/XSeries/blob/master/XEntity.java
- * * XSeries: https://www.spigotmc.org/threads/378136/
- * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
- */
-
 /**
  * <b>XEntity</b> - YAML Entity Serializer<br>
  * Supports 1.9+
@@ -47,6 +41,7 @@ import java.util.Optional;
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("champions.king");
  *     Entity entity = XEntity.spawn(loc, section);
  * </pre>
+ * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
  * @version 1.0.0
