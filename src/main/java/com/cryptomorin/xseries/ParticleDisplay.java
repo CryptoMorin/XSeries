@@ -37,17 +37,19 @@ import java.util.Objects;
  * By default the particle xyz offsets and speed aren't 0, but
  * everything will be 0 by default in this class.
  * Particles are spawned to a location. So all the nearby players can see it.
+ * <p>
+ * The fields of this class are publicly accessible for ease of use.
+ * All the fields can be null but they can cause trouble when
+ * spawning them.
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class ParticleDisplay {
     public Particle particle;
     public Location location;
     public int count;
-    public double offsetx;
-    public double offsety;
-    public double offsetz;
+    public double offsetx, offsety, offsetz;
     public double extra;
     public Vector rotation;
     public Object data;
@@ -249,6 +251,28 @@ public class ParticleDisplay {
     public void spawn(@Nonnull Vector vector) {
         Objects.requireNonNull(vector, "Cannot add xyz of null vector to ParticleDisplay");
         spawn(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    /**
+     * Set the xyz offset of the particle settings.
+     *
+     * @since 1.1.0
+     */
+    public void offset(double x, double y, double z) {
+        offsetx = x;
+        offsety = y;
+        offsetz = z;
+    }
+
+    /**
+     * When a particle is set to be directional it'll only
+     * spawn one particle and the xyz offset values are used for
+     * the direction of the particle.
+     *
+     * @since 1.1.0
+     */
+    public void directional() {
+        count = 0;
     }
 
     /**

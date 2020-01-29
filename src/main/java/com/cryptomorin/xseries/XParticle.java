@@ -58,14 +58,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * While this class provides many methods with options to spawn unique shapes,
  * it's recommended to make your own shapes by copying the code from these methods.
  * Note that some of the values for some methods are extremely sensitive and can change
- * the shape significantly by adding small numbers such as 0.5
+ * the shape significantly by adding small numbers such as 0.5<br>
+ * Most of the method parameters have a recommended value set to start with.
+ * Note that these values are there to show how the intended normal shape
+ * looks like before you start changing the values.
  * <p>
  * It's recommended to use low particle counts.
  * In most cases, decreasing the rate is better than increasing the particle count.
  * Most of the methods provide an option called "rate" that you can get more particles
- * by decreasing the distance between each point the particle spawns.
+ * by decreasing the distance between each point the particle spawns.<br>
  * Most of the {@link ParticleDisplay} used in this class are intended to
- * have 0 offset xyz and speed.
+ * have 1 particle count and 0 xyz offset and speed.
  * <p>
  * Particles are rendered as front-facing 2D sprites, meaning they always face the player.
  * Minecraft clients will automatically clear previous particles if you reach the limit.
@@ -91,7 +94,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 2.0.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -121,8 +124,23 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static final double PII = 2 * Math.PI;
-
+    /**
+     * RGB list of all the 7 rainbow colors in order.
+     *
+     * @since 2.0.0
+     */
+    public static final List<int[]> RAINBOW = new ArrayList<>();
     private static final boolean ISFLAT = Bukkit.getVersion().contains("1.13");
+
+    static {
+        RAINBOW.add(new int[]{128, 0, 128}); // Violet
+        RAINBOW.add(new int[]{75, 0, 130}); // Indigo
+        RAINBOW.add(new int[]{0, 0, 255}); // Blue
+        RAINBOW.add(new int[]{0, 255, 0}); // Green
+        RAINBOW.add(new int[]{255, 255, 0}); // Yellow
+        RAINBOW.add(new int[]{255, 140, 0}); // Orange
+        RAINBOW.add(new int[]{255, 0, 0}); // Red
+    }
 
     /**
      * An optimized and stable way of getting particles for cross-version support.
@@ -158,7 +176,6 @@ public final class XParticle {
     public static double random(double min, double max) {
         return ThreadLocalRandom.current().nextDouble(min, max);
     }
-
 
     /**
      * A thread safe way to get a random double between 0 and the specified maximum value.
@@ -300,6 +317,62 @@ public final class XParticle {
     }
 
     /**
+     * Spawn an ellipse.
+     *
+     * @param radius      the radius of the ellipse.
+     * @param otherRadius the curve of the ellipse.
+     * @param rate        the rate of ellipse points.
+     * @see #circle(double, double, ParticleDisplay)
+     * @since 2.0.0
+     */
+    public static void ellipse(double radius, double otherRadius, double rate, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        // The only difference between circles and ellipses are that
+        // ellipses use a different radius for one of their axis.
+        for (double theta = 0; theta <= PII; theta += rateDiv) {
+            double x = radius * Math.cos(theta);
+            double y = otherRadius * Math.sin(theta);
+            display.spawn(x, y, 0);
+        }
+    }
+
+    /**
+     * Spawns a rainbow.
+     *
+     * @param radius  the radius of the smallest circle.
+     * @param rate    the rate of the rainbow points.
+     * @param curve   the curve the the rainbow circles.
+     * @param layers  the layers of each rainbow color.
+     * @param compact the distance between each circles.
+     * @since 2.0.0
+     */
+    public static void rainbow(double radius, double rate, double curve, double layers, double compact, ParticleDisplay display) {
+        double secondRadius = radius * curve;
+
+        // Rainbows have 7 colors.
+        // Refer to RAINBOW constant for the color order.
+        for (int i = 0; i < 7; i++) {
+            // Get the rainbow color in order.
+            int[] rgb = RAINBOW.get(i);
+            display = ParticleDisplay.paintDust(display.location, rgb[0], rgb[1], rgb[2], 1F);
+
+            // Display the same color multiple times.
+            for (int layer = 0; layer < layers; layer++) {
+                double rateDiv = Math.PI / (rate * (i + 2));
+
+                // We're going to create our rainbow layer from half circles.
+                for (double theta = 0; theta <= Math.PI; theta += rateDiv) {
+                    double x = radius * Math.cos(theta);
+                    double y = secondRadius * Math.sin(theta);
+                    display.spawn(x, y, 0);
+                }
+
+                radius += compact;
+            }
+        }
+    }
+
+    /**
      * Spawns a crescent.
      *
      * @param radius the radius of crescent's big circle.
@@ -322,6 +395,88 @@ public final class XParticle {
             double smallerRadius = radius / 1.3;
             display.spawn(smallerRadius * x + 0.8, 0, smallerRadius * z);
         }
+    }
+
+    /**
+     * Something similar to <a href="https://en.wikipedia.org/wiki/Wave_function">Quantum Wave function</a>
+     *
+     * @param extend      the particle width extension. Recommended value is 3
+     * @param heightRange the height range of randomized waves. Recommended value is 1
+     * @param size        the size of the terrain. Normal size is 3
+     * @param rate        the rate of waves points. Recommended value is around 30
+     * @since 2.0.0
+     */
+    public static void waveFunction(double extend, double heightRange, double size, double rate, ParticleDisplay display) {
+        double height = heightRange / 2;
+        boolean increase = true;
+        double increaseRandomizer = random(heightRange / 2, heightRange);
+        double rateDiv = Math.PI / rate;
+        // Each wave is like a circle curving up and down.
+        size *= PII;
+
+        // We're going to create randomized circles.
+        for (double x = 0; x <= size; x += rateDiv) {
+            double xx = extend * x;
+            double y1 = Math.sin(x);
+
+            // Maximum value of sin is 1, when our sin is 1 it means
+            // one full circle has been created, so we'll regenerate our random height.
+            if (y1 == 1) {
+                increase = !increase;
+                if (increase) increaseRandomizer = random(heightRange / 2, heightRange);
+                else increaseRandomizer = random(-heightRange, -heightRange / 2);
+            }
+            height += increaseRandomizer;
+
+            // We'll generate horizontal cos/sin circles and move forward.
+            for (double z = 0; z <= size; z += rateDiv) {
+                double y2 = Math.cos(z);
+                double yy = height * y1 * y2;
+                double zz = extend * z;
+
+                display.spawn(xx, yy, zz);
+            }
+        }
+    }
+
+    /**
+     * Spawns a galaxy-like vortex.
+     * Note that the speed of the particle is important.
+     * Speed 0 will spawn static lines.
+     *
+     * @param plugin the timer handler.
+     * @param points the points of the vortex.
+     * @param rate   the speed of the vortex.
+     * @return the task handling the animation.
+     * @since 2.0.0
+     */
+    public static BukkitTask vortex(JavaPlugin plugin, int points, double rate, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        display.directional();
+
+        return new BukkitRunnable() {
+            double theta = 0;
+
+            @Override
+            public void run() {
+                theta += rateDiv;
+
+                for (int i = 0; i < points; i++) {
+                    // Calculate our starting point in a circle radius.
+                    double multiplier = (PII * ((double) i / points));
+                    double x = Math.cos(theta + multiplier);
+                    double z = Math.sin(theta + multiplier);
+
+                    // Calculate our direction of the spreading particles.
+                    double angle = Math.atan2(z, x);
+                    double xDirection = Math.cos(angle);
+                    double zDirection = Math.sin(angle);
+
+                    display.offset(xDirection, 0, zDirection);
+                    display.spawn(x, 0, z);
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
 
     /**

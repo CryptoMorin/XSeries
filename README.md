@@ -23,25 +23,34 @@ Most of the updates and news will be announced there.
 
 When compiling your plugin you should be using the latest version that your plugin is going to support.\
 Which means, at least you have to use 1.13 (for cross-version support utilities only)
-You can clone the project using `git clone https://github.com/CryptoMorin/XSeries.git`
+You can clone the project using: `git clone https://github.com/CryptoMorin/XSeries.git`
 
 All the methods are explained in the JavaDoc. Please read the JavaDoc before using a method.
 It's quite common to miss the whole purpose of cross-version support by using the wrong methods.
+
+You can use the classes individually or use the maven dependency.
+Most of the utilities are intended to be independent. However some
+utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/XParticle.java) are intended to use
+another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleDisplay.java))
+
 
 #### Maven
 ```xml
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
 </dependency>
 ```
 
-Note that you have to import the original Bukkit/Spigot JAR directly to the plugin as SkullUtils uses `com.mojang.authlib`
-This project has no maven repository and cannot have one legally.
+You shouldn't worry if the reflection or other classes are going to use your memory with the heavy useless static cache. As long as you don't use them anywhere in your code, they'll not do anything.
+
+**Note:** You need to include the **extracted JAR** in your artifact for this to work.
+You can include the utility directly in your plugin code this way.
 
 ### Contributing
 
 There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me.
 But please make sure you know what you're doing and tested the project on different versions.
-Any new ideas are welcome as long as it's useful not just for you but for everyone else.
+Any new ideas are welcome as long as it's useful not just for you but for everyone else.\
+Please refer to [contributing section](CONTRIBUTING.md) for more info.
