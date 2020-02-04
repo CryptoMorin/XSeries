@@ -27,6 +27,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
@@ -43,9 +44,10 @@ import java.util.Objects;
  * spawning them.
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 2.0.0
  */
 public class ParticleDisplay {
+    private static boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
     public Particle particle;
     public Location location;
     public int count;
@@ -180,6 +182,23 @@ public class ParticleDisplay {
     }
 
     /**
+     * Adjusts the rotation settings to face the entitys direction.
+     * Only some of the shapes support this method.
+     *
+     * @param entity the entity to face.
+     * @return the same particle display.
+     * @see #rotate(Vector)
+     * @since 3.0.0
+     */
+    @Nonnull
+    public ParticleDisplay faceEntity(@Nonnull Entity entity) {
+        Objects.requireNonNull(entity, "Cannot face null entity");
+        Location loc = entity.getLocation();
+        this.rotation = new Vector(Math.toRadians(loc.getPitch() + 90), Math.toRadians(-loc.getYaw()), 0);
+        return this;
+    }
+
+    /**
      * Clones the location of this particle display and adds xyz.
      *
      * @param x the x to add to the location.
@@ -224,7 +243,7 @@ public class ParticleDisplay {
     @Override
     public ParticleDisplay clone() {
         ParticleDisplay display = new ParticleDisplay(particle, (location == null ? null : location.clone()), count, offsetx, offsety, offsetz, extra);
-        display.rotation = rotation;
+        if (rotation != null) display.rotation = rotation.clone();
         display.data = data;
         return display;
     }
@@ -233,12 +252,27 @@ public class ParticleDisplay {
      * Rotates the particle position based on this vector.
      *
      * @param vector the vector to rotate from. The xyz values of this vectors must be radians.
+     * @see #rotate(double, double, double)
      * @since 1.0.0
      */
-    public void rotate(@Nonnull Vector vector) {
+    public ParticleDisplay rotate(@Nonnull Vector vector) {
         Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
         if (rotation == null) rotation = vector;
         else rotation.add(vector);
+        return this;
+    }
+
+    /**
+     * Rotates the particle position based on the xyz radians.
+     * Rotations are only supported for some shapes in {@link XParticle}.
+     * Rotating some of them can result in weird shapes.
+     *
+     * @see #rotate(Vector)
+     * @since 3.0.0
+     */
+    public ParticleDisplay rotate(double x, double y, double z) {
+        rotate(new Vector(x, y, z));
+        return this;
     }
 
     /**
@@ -258,10 +292,11 @@ public class ParticleDisplay {
      *
      * @since 1.1.0
      */
-    public void offset(double x, double y, double z) {
+    public ParticleDisplay offset(double x, double y, double z) {
         offsetx = x;
         offsety = y;
         offsetz = z;
+        return this;
     }
 
     /**
@@ -271,8 +306,9 @@ public class ParticleDisplay {
      *
      * @since 1.1.0
      */
-    public void directional() {
+    public ParticleDisplay directional() {
         count = 0;
+        return this;
     }
 
     /**
@@ -280,7 +316,7 @@ public class ParticleDisplay {
      *
      * @since 1.0.0
      */
-    public void spawn(double x, double y, double z) {
+    public Location spawn(double x, double y, double z) {
         Location loc;
         if (rotation != null) {
             Vector rotate = new Vector(x, y, z);
@@ -289,11 +325,23 @@ public class ParticleDisplay {
             if (rotation.getZ() != 0) XParticle.rotateAroundZ(rotate, rotation.getZ());
             loc = location.clone().add(rotate);
         } else loc = location.clone().add(x, y, z);
+        spawn(loc);
+        return loc;
+    }
 
+    /**
+     * Displays the particle in the specified location.
+     * This method does not support rotations if used directly.
+     *
+     * @param loc the location to display the particle at.
+     * @see #spawn(double, double, double)
+     * @since 3.0.0
+     */
+    public void spawn(Location loc) {
         if (data != null) {
             if (data instanceof float[]) {
                 float[] datas = (float[]) data;
-                if (XMaterial.isNewVersion()) {
+                if (ISFLAT) {
                     Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
                     loc.getWorld().spawnParticle(Particle.REDSTONE, loc, count, offsetx, offsety, offsetz, extra, dust);
                 } else {
