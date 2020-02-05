@@ -27,3 +27,5 @@ pom.xml
 .idea/
 target/
 repo/
+out/
+META-INF/
