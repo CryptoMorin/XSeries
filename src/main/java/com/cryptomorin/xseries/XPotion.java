@@ -235,6 +235,7 @@ public enum XPotion {
 
     /**
      * Throws a splash potion from the target entity.
+     * This method is only compatible for 1.9+
      *
      * @param entity  the entity to throw the potion from.
      * @param color   the color of the potion's bottle.
@@ -263,6 +264,7 @@ public enum XPotion {
 
     /**
      * Builds an item with the given type, color and effects.
+     * This method is only compatible for 1.9+
      * <p>
      * The item type must be one of the following:
      * <pre>

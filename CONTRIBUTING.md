@@ -1,10 +1,13 @@
 I'm really thankful for all the bug fixes and performance improvements.\
-Even if you changed a single line that has a good impact on the performance, it's welcomed.
+Even if you changed a single line that has a good impact on the performance, it's welcomed. 
 
 Some changes may need a discussion about quality and usage.
 Make sure to explain your changes clearly when creating a pull request.
 Most of the pull requests are merged directly into the master branch.
 
+You have to import the original Bukkit JAR directly to the plugin as SkullUtils uses `com.mojang.authlib`
+This project has no original maven repository and cannot have one legally.
+It's also used for JavaX nullability annotations.
 
 ### Rules
 * Make sure you know what you're doing and tested the utility on different versions.
@@ -14,4 +17,9 @@ Most of the pull requests are merged directly into the master branch.
 * Using Guava's lib and Apache Commons is a plus, but make sure that what you're using is supported in
 older versions of Bukkit.
 * Add JavaDocs with proper formatting. It's also preferred to explain how the complex parts of the method work
-inside the method.
+inside the method. Use simple English when possible.
+* All the functions used in the utilities should be compatible with Bukkit, Spigot and Paper.
+* Change the class version properly. If you're not sure how versioning works don't change it.
+* Each utility should be independent except the ones that are intended to be dependent.
+Functions such as ISFLAT boolean check should not depend on XMaterial's isNewVersion() Except XBlock which is intended
+since XBlock already uses XMaterial for materials. Same for XParticle and ParticleDisplay.

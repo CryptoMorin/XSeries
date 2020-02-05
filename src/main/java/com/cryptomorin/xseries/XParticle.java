@@ -58,14 +58,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * While this class provides many methods with options to spawn unique shapes,
  * it's recommended to make your own shapes by copying the code from these methods.
  * Note that some of the values for some methods are extremely sensitive and can change
- * the shape significantly by adding small numbers such as 0.5
+ * the shape significantly by adding small numbers such as 0.5<br>
+ * Most of the method parameters have a recommended value set to start with.
+ * Note that these values are there to show how the intended normal shape
+ * looks like before you start changing the values.
  * <p>
  * It's recommended to use low particle counts.
  * In most cases, decreasing the rate is better than increasing the particle count.
  * Most of the methods provide an option called "rate" that you can get more particles
- * by decreasing the distance between each point the particle spawns.
+ * by decreasing the distance between each point the particle spawns.<br>
  * Most of the {@link ParticleDisplay} used in this class are intended to
- * have 0 offset xyz and speed.
+ * have 1 particle count and 0 xyz offset and speed.
  * <p>
  * Particles are rendered as front-facing 2D sprites, meaning they always face the player.
  * Minecraft clients will automatically clear previous particles if you reach the limit.
@@ -91,7 +94,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 3.0.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -121,8 +124,23 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static final double PII = 2 * Math.PI;
-
+    /**
+     * RGB list of all the 7 rainbow colors in order.
+     *
+     * @since 2.0.0
+     */
+    public static final List<int[]> RAINBOW = new ArrayList<>();
     private static final boolean ISFLAT = Bukkit.getVersion().contains("1.13");
+
+    static {
+        RAINBOW.add(new int[]{128, 0, 128}); // Violet
+        RAINBOW.add(new int[]{75, 0, 130}); // Indigo
+        RAINBOW.add(new int[]{0, 0, 255}); // Blue
+        RAINBOW.add(new int[]{0, 255, 0}); // Green
+        RAINBOW.add(new int[]{255, 255, 0}); // Yellow
+        RAINBOW.add(new int[]{255, 140, 0}); // Orange
+        RAINBOW.add(new int[]{255, 0, 0}); // Red
+    }
 
     /**
      * An optimized and stable way of getting particles for cross-version support.
@@ -158,7 +176,6 @@ public final class XParticle {
     public static double random(double min, double max) {
         return ThreadLocalRandom.current().nextDouble(min, max);
     }
-
 
     /**
      * A thread safe way to get a random double between 0 and the specified maximum value.
@@ -230,14 +247,14 @@ public final class XParticle {
      * @param radiusRate the radius rate change of circles.
      * @param rate       the rate of the biggest cirlce points.
      * @param rateChange the rate change of circle points.
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void blackSun(double radius, double radiusRate, double rate, double rateChange, ParticleDisplay display) {
         double j = 0;
         for (double i = 10; i > 0; i -= radiusRate) {
             j += rateChange;
-            circle(radius + i, rate - j, display);
+            circle(radius + i, rate - j, false, display);
         }
     }
 
@@ -247,10 +264,11 @@ public final class XParticle {
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     * @see #sphere(double, double, ParticleDisplay)
+     * @param spread spread the circle particles.
+     * @see #sphere(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void circle(double radius, double rate, ParticleDisplay display) {
+    public static void circle(double radius, double rate, boolean spread, ParticleDisplay display) {
         // 180 degrees = PI
         // We need a full circle, 360 so we need two pies!
         // https://www.spigotmc.org/threads/176792/
@@ -264,38 +282,244 @@ public final class XParticle {
             // But you'll get weird results if you use si+n or cos for both or using tan or cot.
             double x = radius * Math.cos(theta);
             double z = radius * Math.sin(theta);
+
+            if (spread) {
+                // We're going to get the angle in these two coordinates.
+                // Then we can spread each particle in the right angle.
+                double phi = Math.atan2(z, x);
+                double directionX = Math.cos(phi);
+                double directionZ = Math.sin(phi);
+
+                display.offset(directionX, display.offsety, directionZ);
+            }
+
             display.spawn(x, 0, z);
+        }
+    }
+
+    /**
+     * Spawns connected 3D ellipses.
+     *
+     * @param plugin     the timer handler.
+     * @param maxRadius  the maximum radius for the ellipses.
+     * @param rate       the rate of the 3D ellipses circle points.
+     * @param radiusRate the rate of the circle radius change.
+     * @param extend     the extension for each ellipse.
+     * @return the animation handler.
+     * @see #magicCircles(JavaPlugin, double, double, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static BukkitTask circularBeam(JavaPlugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
+        return new BukkitRunnable() {
+            double rateDiv = Math.PI / rate;
+            double radiusDiv = Math.PI / radiusRate;
+            double dynamicRadius = 0;
+            Vector dir = display.location.getDirection().normalize().multiply(extend);
+
+            @Override
+            public void run() {
+                // If we wanted to use actual numbers as the radius then the curve for
+                // each loop wouldn't be smooth.
+                double radius = maxRadius * Math.sin(dynamicRadius);
+                // Spawn normal circles.
+                for (double theta = 0; theta < PII; theta += rateDiv) {
+                    double x = radius * Math.sin(theta);
+                    double z = radius * Math.cos(theta);
+                    display.spawn(x, 0, z);
+                }
+
+                dynamicRadius += radiusDiv;
+                if (dynamicRadius > Math.PI) dynamicRadius = 0;
+                // Next circle center location.
+                display.location.add(dir);
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * Spawns circles increasing their radius.
+     *
+     * @param plugin     the timer handler.
+     * @param radius     the radius for the first circle.
+     * @param rate       the rate of circle points.
+     * @param radiusRate the circle radius change rate.
+     * @param distance   the distance between each circle.
+     * @return the animation handler.
+     * @see #circularBeam(JavaPlugin, double, double, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static BukkitTask magicCircles(JavaPlugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
+        return new BukkitRunnable() {
+            double radiusDiv = Math.PI / radiusRate;
+            double dynamicRadius = radius;
+            Vector dir = display.location.getDirection().normalize().multiply(distance);
+
+            @Override
+            public void run() {
+                double rateDiv = Math.PI / (rate * dynamicRadius);
+                for (double theta = 0; theta < PII; theta += rateDiv) {
+                    double x = dynamicRadius * Math.sin(theta);
+                    double z = dynamicRadius * Math.cos(theta);
+                    display.spawn(x, 0, z);
+                }
+
+                dynamicRadius += radiusDiv;
+                display.location.add(dir);
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * Spawn a 3D infinity sign.
+     *
+     * @param radius the radius of the infinity circles.
+     * @param rate   the rate of the sign points.
+     * @since 3.0.0
+     */
+    public static void infinity(double radius, double rate, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        for (double i = 0; i < PII; i += rateDiv) {
+            double x = Math.sin(i);
+            double smooth = Math.pow(x, 2) + 1;
+            double curve = radius * Math.cos(i);
+
+            double z = curve / smooth;
+            double y = (curve * x) / smooth;
+
+            circle(1, rate, false, display.cloneWithLocation(x, y, z));
         }
     }
 
     /**
      * Spawn a cone.
      *
-     * @param height the height of the cone.
-     * @param radius the radius of cone's circle.
-     * @param rate   the rate of the cone's points.
+     * @param height     the height of the cone.
+     * @param radius     the radius of the cone circle.
+     * @param rate       the rate of the cone circles.
+     * @param circleRate the rate of the cone circle points.
      * @since 1.0.0
      */
-    public static void cone(double height, double radius, double rate, ParticleDisplay display) {
-        Location center = display.cloneLocation(0, height, 0);
+    public static void cone(double height, double radius, double rate, double circleRate, ParticleDisplay display) {
+        // Our biggest radius / amount of loop times = the amount to subtract from the biggest radius so it wouldn't be negative.
+        double radiusDiv = radius / (height / rate);
+        // We're going spawn circles with different radiuses and rates to make a cone.
+        for (double i = 0; i < height; i += rate) {
+            radius -= radiusDiv;
+            // The remainder of radiusDiv division might be not 0
+            // This will happen to the last loop only.
+            if (radius < 0) radius = 0;
+            circle(radius, circleRate - i, false, display.cloneWithLocation(0, i, 0));
+        }
+    }
+
+    /**
+     * Spawn an ellipse.
+     *
+     * @param radius      the radius of the ellipse.
+     * @param otherRadius the curve of the ellipse.
+     * @param rate        the rate of ellipse points.
+     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @since 2.0.0
+     */
+    public static void ellipse(double radius, double otherRadius, double rate, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        // The only difference between circles and ellipses are that
+        // ellipses use a different radius for one of their axis.
+        for (double theta = 0; theta <= PII; theta += rateDiv) {
+            double x = radius * Math.cos(theta);
+            double y = otherRadius * Math.sin(theta);
+            display.spawn(x, y, 0);
+        }
+    }
+
+    /**
+     * Spawn a blackhole.
+     *
+     * @param plugin the timer handler.
+     * @param points the points of the blackhole pulls.
+     * @param radius the radius of the blackhole circle.
+     * @param rate   the rate of the blackhole circle points.
+     * @param mode   blackhole mode. There are 5 modes.
+     * @since 3.0.0
+     */
+    public static void blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, ParticleDisplay display) {
+        display.directional();
+        display.extra = 0.1;
         double rateDiv = Math.PI / rate;
 
-        // We want to connect our circle points so we use 180
-        for (double theta = 0; theta <= Math.PI; theta += rateDiv) {
-            // Our circle at the bottom.
-            double x = radius * Math.cos(theta);
-            double z = radius * Math.sin(theta);
-            display.spawn(x, 0, z);
-            display.spawn(-x, 0, -z);
+        new BukkitRunnable() {
+            double theta = 0;
 
-            // Connect the circle points from opposite sides to each other.
-            Location point1 = display.cloneLocation(x, 0, z);
-            Location point2 = display.cloneLocation(-x, 0, -z);
-            line(point1, point2, 0.1, display);
+            @Override
+            public void run() {
+                for (int i = 0; i < points; i++) {
+                    double multiplier = PII * ((double) i / points);
+                    double x = radius * Math.cos(theta + multiplier);
+                    double z = radius * Math.sin(theta + multiplier);
 
-            // Connect the circle points to the single original location point.
-            line(center, point1, 0.1, display);
-            line(center, point2, 0.1, display);
+                    double phi = Math.atan2(z, x);
+                    double xDirection = -Math.cos(phi);
+                    double zDirection = -Math.sin(phi);
+
+                    display.offset(xDirection, 0, zDirection);
+                    display.spawn(x, 0, z);
+
+                    // The modes are done by random math methods that are
+                    // just randomly tested to give a different shape.
+                    if (mode > 1) {
+                        x = radius * Math.cos(-theta + multiplier);
+                        z = radius * Math.sin(-theta + multiplier);
+
+                        if (mode == 2) phi = Math.atan2(z, x);
+                        else if (mode == 3) phi = Math.atan2(x, z);
+                        else if (mode == 4) Math.atan2(Math.log(x), Math.log(z));
+
+                        xDirection = -Math.cos(phi);
+                        zDirection = -Math.sin(phi);
+
+                        display.offset(xDirection, 0, zDirection);
+                        display.spawn(x, 0, z);
+                    }
+                }
+
+                theta += rateDiv;
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * Spawns a rainbow.
+     *
+     * @param radius  the radius of the smallest circle.
+     * @param rate    the rate of the rainbow points.
+     * @param curve   the curve the the rainbow circles.
+     * @param layers  the layers of each rainbow color.
+     * @param compact the distance between each circles.
+     * @since 2.0.0
+     */
+    public static void rainbow(double radius, double rate, double curve, double layers, double compact, ParticleDisplay display) {
+        double secondRadius = radius * curve;
+
+        // Rainbows have 7 colors.
+        // Refer to RAINBOW constant for the color order.
+        for (int i = 0; i < 7; i++) {
+            // Get the rainbow color in order.
+            int[] rgb = RAINBOW.get(i);
+            display = ParticleDisplay.paintDust(display.location, rgb[0], rgb[1], rgb[2], 1F);
+
+            // Display the same color multiple times.
+            for (int layer = 0; layer < layers; layer++) {
+                double rateDiv = Math.PI / (rate * (i + 2));
+
+                // We're going to create our rainbow layer from half circles.
+                for (double theta = 0; theta <= Math.PI; theta += rateDiv) {
+                    double x = radius * Math.cos(theta);
+                    double y = secondRadius * Math.sin(theta);
+                    display.spawn(x, y, 0);
+                }
+
+                radius += compact;
+            }
         }
     }
 
@@ -304,7 +528,7 @@ public final class XParticle {
      *
      * @param radius the radius of crescent's big circle.
      * @param rate   the rate of the crescent's circle points.
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void crescent(double radius, double rate, ParticleDisplay display) {
@@ -325,7 +549,91 @@ public final class XParticle {
     }
 
     /**
-     * Spawn a cylinder.
+     * Something similar to <a href="https://en.wikipedia.org/wiki/Wave_function">Quantum Wave function</a>
+     *
+     * @param extend      the particle width extension. Recommended value is 3
+     * @param heightRange the height range of randomized waves. Recommended value is 1
+     * @param size        the size of the terrain. Normal size is 3
+     * @param rate        the rate of waves points. Recommended value is around 30
+     * @since 2.0.0
+     */
+    public static void waveFunction(double extend, double heightRange, double size, double rate, ParticleDisplay display) {
+        double height = heightRange / 2;
+        boolean increase = true;
+        double increaseRandomizer = random(heightRange / 2, heightRange);
+        double rateDiv = Math.PI / rate;
+        // Each wave is like a circle curving up and down.
+        size *= PII;
+
+        // We're going to create randomized circles.
+        for (double x = 0; x <= size; x += rateDiv) {
+            double xx = extend * x;
+            double y1 = Math.sin(x);
+
+            // Maximum value of sin is 1, when our sin is 1 it means
+            // one full circle has been created, so we'll regenerate our random height.
+            if (y1 == 1) {
+                increase = !increase;
+                if (increase) increaseRandomizer = random(heightRange / 2, heightRange);
+                else increaseRandomizer = random(-heightRange, -heightRange / 2);
+            }
+            height += increaseRandomizer;
+
+            // We'll generate horizontal cos/sin circles and move forward.
+            for (double z = 0; z <= size; z += rateDiv) {
+                double y2 = Math.cos(z);
+                double yy = height * y1 * y2;
+                double zz = extend * z;
+
+                display.spawn(xx, yy, zz);
+            }
+        }
+    }
+
+    /**
+     * Spawns a galaxy-like vortex.
+     * Note that the speed of the particle is important.
+     * Speed 0 will spawn static lines.
+     *
+     * @param plugin the timer handler.
+     * @param points the points of the vortex.
+     * @param rate   the speed of the vortex.
+     * @return the task handling the animation.
+     * @since 2.0.0
+     */
+    public static BukkitTask vortex(JavaPlugin plugin, int points, double rate, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        display.directional();
+
+        return new BukkitRunnable() {
+            double theta = 0;
+
+            @Override
+            public void run() {
+                theta += rateDiv;
+
+                for (int i = 0; i < points; i++) {
+                    // Calculate our starting point in a circle radius.
+                    double multiplier = (PII * ((double) i / points));
+                    double x = Math.cos(theta + multiplier);
+                    double z = Math.sin(theta + multiplier);
+
+                    // Calculate our direction of the spreading particles.
+                    double angle = Math.atan2(z, x);
+                    double xDirection = Math.cos(angle);
+                    double zDirection = Math.sin(angle);
+
+                    display.offset(xDirection, 0, zDirection);
+                    display.spawn(x, 0, z);
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * Not really a cylinder. It looks more like a cage.
+     * For an actual cylidner just use {@link #circle(double, double, boolean, ParticleDisplay)}
+     * and use one the xyz axis to build multiple circles.
      *
      * @param height the height of the cylinder.
      * @param radius the radius of the cylinder circles.
@@ -544,10 +852,10 @@ public final class XParticle {
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void sphere(double radius, double rate, ParticleDisplay display) {
+    public static void sphere(double radius, double rate, boolean spread, ParticleDisplay display) {
         // Cache
         double rateDiv = Math.PI / rate;
 
@@ -555,13 +863,26 @@ public final class XParticle {
         // next to each other.
         for (double phi = 0; phi <= Math.PI; phi += rateDiv) {
             // Cache
-            double y = radius * Math.cos(phi);
-            double sinPhi = radius * Math.sin(phi);
+            double y1 = radius * Math.cos(phi);
+            double y2 = radius * Math.sin(phi);
 
             for (double theta = 0; theta <= PII; theta += rateDiv) {
-                double x = Math.cos(theta) * sinPhi;
-                double z = Math.sin(theta) * sinPhi;
-                display.spawn(x, y, z);
+                double x = Math.cos(theta) * y2;
+                double z = Math.sin(theta) * y2;
+
+                if (spread) {
+                    // We're going to do the same thing from spreading circle.
+                    // Since this is a 3D shape we'll need to get the y value as well.
+                    // I'm not sure if this is the right way to do it.
+                    double omega = Math.atan2(z, x);
+                    double directionX = Math.cos(omega);
+                    double directionY = Math.sin(Math.atan2(y2, y1));
+                    double directionZ = Math.sin(omega);
+
+                    display.offset(directionX, directionY, directionZ);
+                }
+
+                display.spawn(x, y1, z);
             }
         }
     }
@@ -575,7 +896,7 @@ public final class XParticle {
      * @param chance            the chance to grow a spike randomly.
      * @param minRandomDistance he minimum distance of spikes from sphere.
      * @param maxRandomDistance the maximum distance of spikes from sphere.
-     * @see #sphere(double, double, ParticleDisplay)
+     * @see #sphere(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void spikeSphere(double radius, double rate, int chance, double minRandomDistance, double maxRandomDistance, ParticleDisplay display) {
@@ -602,29 +923,6 @@ public final class XParticle {
     }
 
     /**
-     * Spawn a helix string.
-     *
-     * @param radius the radius of helix circle.
-     * @param rate   the rate of helix points/particles.
-     * @param height the height of the helix.
-     * @see #circle(double, double, ParticleDisplay)
-     * @see #doubleHelix(double, double, double, int, ParticleDisplay)
-     * @since 1.0.0
-     */
-    public static void helix(double radius, double rate, double extension, int height, ParticleDisplay display) {
-        // If we look at a helix string from above, we'll see a circle tunnel.
-        // To make this tunnel we're going to generate circles while moving
-        // upwards to get a curvy tunnel.
-        // Since we're generating this string infinitely we don't need
-        // to use radians or degrees.
-        for (double y = 0; y <= height; y += rate) {
-            double x = radius * Math.cos(extension * y);
-            double z = radius * Math.sin(extension * y);
-            display.spawn(x, y, z);
-        }
-    }
-
-    /**
      * Spawns a donut-shaped ring.
      * When the tube radius is greater than the main radius, the hole radius in the middle of the circle
      * will increase as the circles come closer to the mid-point.
@@ -633,7 +931,7 @@ public final class XParticle {
      * @param radius     the radius of the ring.
      * @param tubeRadius the radius of the circles used to form the ring (tunnel circles)
      * @param tubeRate   the rate of circle points.
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void ring(double rate, double tubeRate, double radius, double tubeRadius, ParticleDisplay display) {
@@ -750,25 +1048,126 @@ public final class XParticle {
     }
 
     /**
-     * Spawn two helix strings like DNA without the nucleotides.
+     * Spawns animated helix shapes.
      *
-     * @param radius the radius of helix circle.
-     * @param rate   the rate of helix strings points.
-     * @param height the height of the helix strings.
-     * @see #dna(double, double, double, int, int, ParticleDisplay, ParticleDisplay)
-     * @see #helix(double, double, double, int, ParticleDisplay)
-     * @since 1.0.0
+     * @param plugin    the timer handler.
+     * @param strings   the amount of helix strings. The rotation angle will split equally for each.
+     * @param radius    the radius of the helix.
+     * @param rate      the rate of helix points.
+     * @param extension the helix circle extension.
+     * @param height    the height of the helix.
+     * @param speed     the speed of the rate builder in each animation tick.
+     * @param fadeUp    helix radius will decrease to zero as it gets closer to the top.
+     * @param fadeDown  helix radius will increase to the original radius as it gets closer to the center.
+     * @return the animation task.
+     * @see #dnaReplication(JavaPlugin, double, double, int, double, int, int, ParticleDisplay)
+     * @since 3.0.0
      */
-    public static void doubleHelix(double radius, double rate, double extension, int height, ParticleDisplay display) {
-        for (double y = 0; y <= height; y += rate) {
-            double x = radius * Math.sin(extension * y);
-            double z = radius * Math.cos(extension * y);
+    public static BukkitTask helix(JavaPlugin plugin, int strings, double radius, double rate, double extension, int height, int speed,
+                                   boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
+        return new BukkitRunnable() {
+            // If we look at a helix string from above, we'll see a circle tunnel.
+            // To make this tunnel we're going to generate circles while moving
+            // upwards to get a curvy tunnel.
+            // Since we're generating this string infinitely we don't need
+            // to use radians or degrees.
+            double dist = PII / strings;
+            double radiusDiv = radius / (height / rate);
+            double radiusDiv2 = fadeUp && fadeDown ? radiusDiv * 2 : radiusDiv;
+            double dynamicRadius = fadeDown ? 0 : radius;
+            boolean center = !fadeDown;
+            double y = 0;
 
-            display.spawn(x, y, z);
-            // The second string in the opposite direction with the same height.
-            display.spawn(-x, y, -z);
+            @Override
+            public void run() {
+                int repeat = speed;
+                while (repeat > 0) {
+                    repeat--;
+                    y += rate;
+
+                    double x = dynamicRadius * Math.cos(extension * y);
+                    double z = dynamicRadius * Math.sin(extension * y);
+
+                    if (!center) {
+                        dynamicRadius += radiusDiv2;
+                        if (dynamicRadius >= radius) center = true;
+                    } else if (fadeUp) dynamicRadius -= radiusDiv2;
+
+                    // Now we're going to copy our points and rotate them.
+                    int tempString = strings;
+                    for (double angle = 0; tempString > 0; angle += dist) {
+                        display.rotate(0, angle, 0);
+                        display.spawn(x, y, z);
+                        display.rotate(0, -angle, 0);
+                        tempString--;
+                    }
+
+                    if (y > height) cancel();
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * Spawns a broken line that creates more and extended branches
+     * as it gets closer to the end length.
+     * This method doesn't support rotations. Use the direction instead.
+     *
+     * @param start      the starting point of the new branch. For the first call it's the same location as the displays location.
+     * @param direction  the direction of the lightning. A simple direction would be {@code entity.getLocation().getDirection().normalize()}
+     *                   For a simple end point direction would be {@code endLocation.toVector().subtract(start.toVector()).normalize()}
+     * @param entries    the number of entries for the main lightning branch. Recommended is 20
+     * @param branches   the maximum number of branches each entry can have. Recommended is 200
+     * @param radius     the radius of the lightning branches. Recommended is 0.5
+     * @param offset     the offset of the lightning branches. Recommended is 2
+     * @param offsetRate the offset change rate of the lightning branches. Recommended is 1
+     * @param length     the length of the lightning branch. Recommended is 1.5
+     * @param lengthRate the length change rate of the lightning branch. Recommended is 1
+     * @param branch     the chance of creating a new branch. Recommended is 0.1
+     * @param branchRate the chance change of creating a new branch. Recommended is 1
+     * @since 3.0.0
+     */
+    public static void lightning(Location start, Vector direction, int entries, int branches, double radius,
+                                 double offset, double offsetRate,
+                                 double length, double lengthRate,
+                                 double branch, double branchRate, ParticleDisplay display) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (entries <= 0) return;
+        boolean inRange = true;
+
+        // Check if we can create new branches or the current branch
+        // length is already in range.
+        while (random.nextDouble() < branch || inRange) {
+            // Break our straight line randomly.
+            Vector randomizer = new Vector(
+                    random.nextDouble(-radius, radius), random.nextDouble(-radius, radius), random.nextDouble(-radius, radius))
+                    .normalize().multiply((random.nextDouble(-radius, radius)) * offset);
+            Vector endVector = start.clone().toVector().add(direction.clone().multiply(length)).add(randomizer);
+            Location end = endVector.toLocation(start.getWorld());
+
+            // Check if the broken line length is in our max length range.
+            if (end.distance(start) <= length) {
+                inRange = true;
+                continue;
+            } else inRange = false;
+
+            // Create particle points in our broken straight line.
+            int rate = (int) (start.distance(end) / 0.1); // distance * (distance / 10)
+            Vector rateDir = endVector.clone().subtract(start.toVector()).normalize().multiply(0.1);
+            for (int i = 0; i < rate; i++) {
+                Location loc = start.clone().add(rateDir.clone().multiply(i));
+                display.spawn(loc);
+            }
+
+            // Create new entries if possible.
+            lightning(end.clone(), direction, entries - 1, branches - 1, radius, offset * offsetRate, offsetRate,
+                    length * lengthRate, lengthRate,
+                    branch * branchRate, branchRate, display);
+            // Check if the maximum number of branches has already been used for this entry.
+            if (branches <= 0) break;
         }
     }
+
 
     /**
      * Spawn a DNA double helix string with nucleotides.
@@ -779,7 +1178,8 @@ public final class XParticle {
      * @param hydrogenBondDist    the distance between each hydrogen bond (read inside method). This distance is also affected by rate.
      * @param display             display for strings.
      * @param hydrogenBondDisplay display for hydrogen bonds.
-     * @see #doubleHelix(double, double, double, int, ParticleDisplay)
+     * @see #helix(JavaPlugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
+     * @see #dnaReplication(JavaPlugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 1.0.0
      */
     public static void dna(double radius, double rate, double extension, int height, int hydrogenBondDist, ParticleDisplay display, ParticleDisplay hydrogenBondDisplay) {
@@ -810,6 +1210,77 @@ public final class XParticle {
                 line(nucleotide1, nucleotide2, rate * 2, hydrogenBondDisplay);
             }
         }
+    }
+
+    /**
+     * Spawn an animated DNA replication with colored bonds.
+     *
+     * @param plugin           the timer handler.
+     * @param radius           the radius of DNA helix circle.
+     * @param rate             the rate of DNA points.
+     * @param speed            the number of points to build in a single tick. Recommended is 5.
+     * @param extension        the extension of the DNA helix sin/cos waves.
+     * @param height           the height of the DNA strings.
+     * @param hydrogenBondDist the distance between two DNA string helix points in a single string for each hydrogen bond to be formed.
+     * @return the timer handling the animation.
+     * @see #dna(double, double, double, int, int, ParticleDisplay, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static BukkitTask dnaReplication(JavaPlugin plugin, double radius, double rate, int speed, double extension,
+                                            int height, int hydrogenBondDist, ParticleDisplay display) {
+        // We'll use the common nucleotide colors.
+        ParticleDisplay adenine = ParticleDisplay.paintDust(null, 0, 0, 255, 1); // Blue
+        ParticleDisplay thymine = ParticleDisplay.paintDust(null, 0, 255, 255, 1); // Yellow
+        ParticleDisplay guanine = ParticleDisplay.paintDust(null, 0, 255, 0, 1); // Green
+        ParticleDisplay cytosine = ParticleDisplay.paintDust(null, 255, 0, 0, 1); // Red
+
+        return new BukkitRunnable() {
+            double y = 0;
+            int nucleotideDist = 0;
+
+            @Override
+            public void run() {
+                int repeat = speed;
+                while (repeat != 0) {
+                    y += rate;
+                    nucleotideDist++;
+                    repeat--;
+
+                    double x = radius * Math.cos(extension * y);
+                    double z = radius * Math.sin(extension * y);
+                    Location nucleotide1 = display.location.clone().add(x, y, z);
+                    //display.spawn(x, y, z);
+                    circle(0.1, 10, false, display.cloneWithLocation(x, y, z));
+                    Location nucleotide2 = display.location.clone().subtract(x, -y, z);
+                    circle(0.1, 10, false, display.cloneWithLocation(-x, y, -z));
+                    //display.spawn(-x, y, -z);
+
+                    // We're going to find the midpoint of the two nucleotides so we can
+                    // form our hydrogen bond.
+                    // We'll convert locations to vectors since the midpoint method is only
+                    // available for Vectors. Yes, we can still calculate the midpoint from locations too.
+                    // Xm = (x1 + x2) / 2, Ym = (y1 + y2) / 2, Zm = (z1 + z2) / 2
+                    Location midPointBond = nucleotide1.toVector().midpoint(nucleotide2.toVector()).toLocation(nucleotide1.getWorld());
+
+                    if (nucleotideDist >= hydrogenBondDist) {
+                        nucleotideDist = 0;
+
+                        // Adenine - Thymine
+                        if (randInt(0, 1) == 1) {
+                            line(nucleotide1, midPointBond, rate - 0.1, adenine);
+                            line(nucleotide2, midPointBond, rate - 0.1, thymine);
+                        }
+                        // Guanine - Cytosine
+                        else {
+                            line(nucleotide1, midPointBond, rate - 0.1, cytosine);
+                            line(nucleotide2, midPointBond, rate - 0.1, guanine);
+                        }
+                    }
+
+                    if (y >= height) cancel();
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
 
     /**
@@ -875,6 +1346,67 @@ public final class XParticle {
     }
 
     /**
+     * Spawns a rectangle.
+     *
+     * @param start the starting point of the rectangle which is equals to the display location.
+     * @param end   the ending point of the rectangle.
+     * @param rate  the rate of the rectangle points.
+     * @see #cube(Location, Location, double, ParticleDisplay)
+     * @see #cage(Location, Location, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static void rectangle(Location start, Location end, double rate, ParticleDisplay display) {
+        display.location = start;
+        double maxX = Math.max(start.getX(), end.getX());
+        double minX = Math.min(start.getX(), end.getX());
+
+        double maxY = Math.max(start.getY(), end.getY());
+        double minY = Math.min(start.getY(), end.getY());
+
+        // A simple 2D Shape
+        for (double x = minX; x <= maxX; x += rate) {
+            for (double y = minY; y <= maxY; y += rate) {
+                display.spawn(x - minX, y - minY, 0);
+            }
+        }
+    }
+
+    /**
+     * Spawns a cage.
+     *
+     * @param start   the starting point of the cage.
+     * @param end     the ending point of the cage.
+     * @param rate    the rate of cage two rectangles and the bar lines.
+     * @param barRate the chance of bars for the cage.
+     * @see #rectangle(Location, Location, double, ParticleDisplay)
+     * @see #cylinder(double, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static void cage(Location start, Location end, double rate, double barRate, ParticleDisplay display) {
+        double maxX = Math.max(start.getX(), end.getX());
+        double minX = Math.min(start.getX(), end.getX());
+
+        double maxZ = Math.max(start.getZ(), end.getZ());
+        double minZ = Math.min(start.getZ(), end.getZ());
+
+        double barChance = 0;
+        for (double x = minX; x <= maxX; x += rate) {
+            for (double z = minZ; z <= maxZ; z += rate) {
+                Location barStart = display.spawn(x - minX, 0, z - minZ);
+                Location barEnd = display.spawn(x - minX, 3, z - minZ);
+
+                if ((x == minX || x + rate > maxX) || (z == minZ || z + rate > maxZ)) {
+                    barChance++;
+                    if (barChance >= barRate) {
+                        barChance = 0;
+                        line(barStart, barEnd, rate, display);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Spawn a cube with all the space filled with particles inside.
      * To spawn a cube with a width, height and depth you can simply add to the original location.
      * <p>
@@ -903,8 +1435,11 @@ public final class XParticle {
         double maxZ = Math.max(start.getZ(), end.getZ());
         double minZ = Math.min(start.getZ(), end.getZ());
 
+        // A simple 3D Shape.
         // This is really easy. You just have to loop
         // thro the z of each y and y of each x.
+        // Although spawning 1D (line) and 2D (rectangle) shapes are possible
+        // with this method alone, having them as separated methods is more efficient.
         for (double x = minX; x <= maxX; x += rate) {
             for (double y = minY; y <= maxY; y += rate) {
                 for (double z = minZ; z <= maxZ; z += rate) {
@@ -915,7 +1450,7 @@ public final class XParticle {
     }
 
     /**
-     * spawn a cube with the inner space empty.
+     * Spawns a cube with the inner space empty.
      *
      * @param start the starting point of the cube.
      * @param end   the ending point of the cube.
@@ -935,6 +1470,7 @@ public final class XParticle {
         double maxZ = Math.max(start.getZ(), end.getZ());
         double minZ = Math.min(start.getZ(), end.getZ());
 
+        // A simple 3D Shape.
         for (double x = minX; x <= maxX; x += rate) {
             for (double y = minY; y <= maxY; y += rate) {
                 for (double z = minZ; z <= maxZ; z += rate) {
@@ -970,6 +1506,7 @@ public final class XParticle {
         double maxZ = Math.max(start.getZ(), end.getZ());
         double minZ = Math.min(start.getZ(), end.getZ());
 
+        // A simple 3D Shape.
         for (double x = minX; x <= maxX; x += rate) {
             for (double y = minY; y <= maxY; y += rate) {
                 for (double z = minZ; z <= maxZ; z += rate) {
@@ -1061,19 +1598,87 @@ public final class XParticle {
     }
 
     /**
-     * Displays a connected 2D polygon.
+     * Spawn 3D spiked circles.
+     * Note that the animation is intended to be used with prototype mode enabled.
+     * Animations without prototype doesn't really look good. You might want to increase the speed.
+     *
+     * @param plugin      the timer handler.
+     * @param points      the number of circle sides with spikes.
+     * @param spikes      the number of spikes on each side.
+     * @param rate        the rate of star points.
+     * @param spikeLength the length of each spike.
+     * @param coreRadius  the radius of the center circle.
+     * @param neuron      the neuron level. Neuron level is affected by the prototype mode.
+     *                    Normal value is 1 if prototype mode is disabled. If the value goes higher than 1 it'll form a neuron-like body cell shape.
+     *                    The value is used in small ranges for when prototype mode is enabled. Usually between 0.01 and 0.1
+     * @param prototype   if the spikes of the star should use helix instead of a random generator.
+     * @param speed       the speed of animation. Smoothest/slowest is 1
+     * @see #spikeSphere(double, double, int, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static void star(JavaPlugin plugin, int points, int spikes, double rate, double spikeLength, double coreRadius,
+                            double neuron, boolean prototype, int speed, ParticleDisplay display) {
+        double pointsRate = PII / points;
+        double rateDiv = Math.PI / rate;
+        ThreadLocalRandom random = prototype ? null : ThreadLocalRandom.current();
+
+        for (int i = 0; i < spikes * 2; i++) {
+            double spikeAngle = i * Math.PI / spikes;
+
+            new BukkitRunnable() {
+                double vein = 0;
+                double theta = 0;
+
+                @Override
+                public void run() {
+                    int repeat = speed;
+                    while (repeat != 0) {
+                        repeat--;
+                        theta += rateDiv;
+
+                        // We're going to spawn little circles to create our spikes.
+                        // Spawning them with a random radius.
+                        double height = (prototype ? vein : random.nextDouble(0, neuron)) * spikeLength;
+                        if (prototype) vein += neuron;
+                        Vector vector = new Vector(Math.cos(theta), 0, Math.sin(theta));
+
+                        // We don't want to fill the inside circle.
+                        vector.multiply((spikeLength - height) * coreRadius / spikeLength);
+                        vector.setY(coreRadius + height);
+
+                        // Rotate the vector for the next spike.
+                        rotateAroundX(vector, spikeAngle);
+                        for (int j = 0; j < points; j++) {
+                            // Rotate the spikes to copy them with equal angles.
+                            rotateAroundY(vector, pointsRate);
+                            display.spawn(vector);
+                        }
+
+                        if (theta >= PII) cancel();
+                    }
+                }
+            }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        }
+    }
+
+    /**
+     * Spawns a connected 2D polygon.
      * Tutorial: https://www.spigotmc.org/threads/158678/
      *
-     * @param points the polygon points.
+     * @param points     the number of polygon points.
+     * @param connection the connection level of two points.
+     * @param size       the size of the shape.
+     * @param rate       the rate of connection points.
+     * @param extend     extends the shape, connecting unrelated points together.
      * @since 1.0.0
      */
     public static void polygon(int points, int connection, double size, double rate, double extend, ParticleDisplay display) {
         for (int point = 0; point < points; point++) {
             // Generate our points in a circle shaped area.
-            double angle = Math.toRadians(360.0D / points * point);
+            double angle = Math.toRadians(360D / points * point);
             // Our next point to connect to the previous one.
             // So if you don't want them to connect you can just skip the rest.
-            double nextAngle = Math.toRadians(360.0D / points * (point + connection));
+            double nextAngle = Math.toRadians(360D / points * (point + connection));
 
             // Size is basically the circle's radius.
             // Get our X and Z position based on the angle of the point.
@@ -1151,12 +1756,12 @@ public final class XParticle {
      * https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Pentagram_within_circle.svg/800px-Pentagram_within_circle.svg.png
      *
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void neopaganPentagram(double size, double rate, double extend, ParticleDisplay star, ParticleDisplay circle) {
         polygon(5, 2, size, rate, extend, star);
-        circle(size + 0.5, rate * 1000, circle);
+        circle(size + 0.5, rate * 1000, false, circle);
     }
 
     /**
@@ -1172,11 +1777,11 @@ public final class XParticle {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
             orbit.rotation = new Vector(0, 0, angle);
-            circle(radius, rate, orbit);
+            circle(radius, rate, false, orbit);
             orbits--;
         }
 
-        sphere(radius / 3, rate / 2, nucleus);
+        sphere(radius / 3, rate / 2, false, nucleus);
     }
 
     /**
@@ -1186,13 +1791,13 @@ public final class XParticle {
      *
      * @param size the shape of the explosion circle. Recommended value is 6
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
-     * @see #circle(double, double, ParticleDisplay)
+     * @see #circle(double, double, boolean, ParticleDisplay)
      * @since 1.0.0
      */
     public static void meguminExplosion(JavaPlugin plugin, double size, ParticleDisplay display) {
         polygon(10, 4, size, 0.02, 0.3, display);
         polygon(10, 3, size / (size - 1), 0.5, 0, display);
-        circle(size, 40, display);
+        circle(size, 40, true, display);
         spread(plugin, 30, 2, display.location, display.location.clone().add(0, 10, 0), 5, 5, 5, display);
     }
 
@@ -1232,64 +1837,6 @@ public final class XParticle {
             }
 
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
-    }
-
-    /**
-     * Spawns a helix in an ascending form which the radius gets smaller until the particles stop.
-     *
-     * @param radius the radius of the helix.
-     * @param rate   the helix location precision. Recommended value is 0.05
-     * @since 1.0.0
-     */
-    public static void ascendingHelix(double radius, double rate, ParticleDisplay display) {
-        for (double y = 5; y >= 0; y -= rate) {
-            radius = y / 3;
-            double y2 = 5 - y;
-            double x = radius * Math.cos(3 * y);
-            double z = radius * Math.sin(3 * y);
-
-            display.spawn(x, y2, z);
-            display.spawn(-x, y2, -z);
-        }
-    }
-
-    /**
-     * Spawns particles repeatedly on four sides of player.
-     *
-     * @param plugin   the scheduler handler.
-     * @param location the dynamic location.
-     * @since 1.0.0
-     */
-    public static void fourSided(JavaPlugin plugin, Callable<Location> location, int repeat, long period, ParticleDisplay display) {
-        if (repeat < 1) return;
-        Location original = null;
-        try {
-            original = location.call();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Location origin = original;
-
-        new BukkitRunnable() {
-            int times = repeat;
-            int t = 0;
-            double pi = Math.PI;
-
-            public void run() {
-                t += pi / 16;
-                for (double phi = 0; phi <= 2 * pi; phi += pi / 2) {
-                    double radius = 0.3 * (4 * pi - t);
-                    double x = radius * Math.cos(t + phi);
-                    double y = 0.2 * t;
-                    double z = radius * Math.sin(t + phi);
-
-                    Location loc = origin.clone().add(x, y, z);
-                    loc.getWorld().spawnParticle(display.particle, loc, display.count, display.offsetx, display.offsety, display.offsetz, display.extra);
-                }
-
-                if (times-- == 0) cancel();
-            }
-        }.runTaskTimerAsynchronously(plugin, 0, period);
     }
 
     /**

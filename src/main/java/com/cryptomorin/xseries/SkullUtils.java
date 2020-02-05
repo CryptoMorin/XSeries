@@ -176,16 +176,18 @@ public class SkullUtils {
      * https://api.mojang.com/user/profiles/ID without dashes/names gives the names used for the unique ID.
      * https://sessionserver.mojang.com/session/minecraft/profile/ID example data:
      * <p>
+     * <pre>
      * {
-     * "id": "Without dashes -",
-     * "name": "",
-     * "properties": [
-     * {
-     * "name": "textures",
-     * "value": ""
+     *      "id": "Without dashes -",
+     *      "name": "",
+     *      "properties": [
+     *      {
+     *          "name": "textures",
+     *          "value": ""
+     *      }
+     *      ]
      * }
-     * ]
-     * }
+     * </pre>
      */
     @Nonnull
     public static String getSkinValue(@Nonnull String name, boolean isId) {
