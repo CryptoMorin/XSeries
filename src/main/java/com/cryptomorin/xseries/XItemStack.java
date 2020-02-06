@@ -70,6 +70,7 @@ public class XItemStack {
      *
      * @param item   the ItemStack to serialize.
      * @param config the config section to write this item to.
+     * @since 1.0.0
      */
     public static void serialize(ItemStack item, ConfigurationSection config) {
         ItemMeta meta = item.getItemMeta();
@@ -157,6 +158,7 @@ public class XItemStack {
      *
      * @param config the config section to deserialize the ItemStack object from.
      * @return a deserialized ItemStack.
+     * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
     public static ItemStack deserialize(ConfigurationSection config) {
@@ -362,6 +364,14 @@ public class XItemStack {
         return item;
     }
 
+    /**
+     * Parses RGB color codes from a string.
+     * This only works for 1.13 and above.
+     *
+     * @param str the RGB string.
+     * @return a color based on the RGB.
+     * @since 1.1.0
+     */
     public static Color parseColor(String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');

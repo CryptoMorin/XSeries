@@ -45,6 +45,7 @@ import java.util.Objects;
  *
  * @author Crypto Morin
  * @version 2.1.0
+ * @see XParticle
  */
 public class ParticleDisplay {
     private static boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;

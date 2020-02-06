@@ -39,7 +39,7 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleD
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>5.2.0</version>
+    <version>5.3.1</version>
 </dependency>
 ```
 
@@ -53,4 +53,4 @@ You can include the utility directly in your plugin code this way.
 There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me.
 But please make sure you know what you're doing and tested the project on different versions.
 Any new ideas are welcome as long as it's useful not just for you but for everyone else.\
-Please refer to [contributing section](CONTRIBUTING.md) for more info.
+Please refer to [contributing guidelines](CONTRIBUTING.md) for more info.
