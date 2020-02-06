@@ -34,7 +34,6 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -156,12 +155,11 @@ public class XItemStack {
     /**
      * Deserialize an ItemStack from the config.
      *
-     * @param player used for placeholders. You must implement your own.
      * @param config the config section to deserialize the ItemStack object from.
      * @return a deserialized ItemStack.
      */
     @SuppressWarnings("deprecation")
-    public static ItemStack deserialize(Player player, ConfigurationSection config) {
+    public static ItemStack deserialize(ConfigurationSection config) {
         // Material
         String material = config.getString("material");
         if (material == null) return null;
@@ -254,7 +252,7 @@ public class XItemStack {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
-                    ItemStack projectile = deserialize(player, config.getConfigurationSection("projectiles." + projectiles));
+                    ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
                     crossbow.addChargedProjectile(projectile);
                 }
             } else if (meta instanceof TropicalFishBucketMeta) {
