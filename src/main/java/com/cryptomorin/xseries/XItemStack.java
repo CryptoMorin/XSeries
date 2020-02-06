@@ -51,12 +51,12 @@ import java.util.UUID;
  * Using ConfigurationSection Example:
  * <pre>
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
- *     ItemStack item = XItemStack.deserialize(player, section);
+ *     ItemStack item = XItemStack.deserialize(section);
  * </pre>
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils

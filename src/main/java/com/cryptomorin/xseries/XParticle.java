@@ -94,7 +94,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -130,7 +130,6 @@ public final class XParticle {
      * @since 2.0.0
      */
     public static final List<int[]> RAINBOW = new ArrayList<>();
-    private static final boolean ISFLAT = Bukkit.getVersion().contains("1.13");
 
     static {
         RAINBOW.add(new int[]{128, 0, 128}); // Violet
@@ -171,21 +170,11 @@ public final class XParticle {
      * @param min the minimum number.
      * @param max the maximum number.
      * @return a random number.
+     * @see #randInt(int, int)
      * @since 1.0.0
      */
     public static double random(double min, double max) {
         return ThreadLocalRandom.current().nextDouble(min, max);
-    }
-
-    /**
-     * A thread safe way to get a random double between 0 and the specified maximum value.
-     *
-     * @param max the maximum number.
-     * @return a random number.
-     * @since 1.0.0
-     */
-    public static double random(double max) {
-        return random(0, max);
     }
 
     /**
@@ -194,6 +183,7 @@ public final class XParticle {
      * @param min the minimum number.
      * @param max the maximum number.
      * @return a random number.
+     * @see #random(double, double)
      * @since 1.0.0
      */
     public static int randInt(int min, int max) {
@@ -227,48 +217,34 @@ public final class XParticle {
     }
 
     /**
-     * A cross-version method to spawn colored REDSTONEs.
-     *
-     * @param loc the location to spawn the particle.
-     * @since 1.0.0
-     */
-    public static void spawnColored(Location loc, int count, int r, int g, int b, float size) {
-        if (ISFLAT) {
-            loc.getWorld().spawnParticle(Particle.REDSTONE, loc, count, 0, 0, 0, new Particle.DustOptions(Color.fromRGB(r, g, b), size));
-        } else {
-            loc.getWorld().spawnParticle(Particle.REDSTONE, loc, count, r, g, b, size);
-        }
-    }
-
-    /**
      * Creates a blacksun-like increasing circles.
      *
      * @param radius     the radius of the biggest circle.
      * @param radiusRate the radius rate change of circles.
      * @param rate       the rate of the biggest cirlce points.
      * @param rateChange the rate change of circle points.
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void blackSun(double radius, double radiusRate, double rate, double rateChange, ParticleDisplay display) {
         double j = 0;
         for (double i = 10; i > 0; i -= radiusRate) {
             j += rateChange;
-            circle(radius + i, rate - j, false, display);
+            circle(radius + i, rate - j, display);
         }
     }
 
     /**
      * Spawn a circle.
      * Tutorial: https://www.spigotmc.org/threads/111238/
+     * Uses its own unique directional pattern.
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     * @param spread spread the circle particles.
-     * @see #sphere(double, double, boolean, ParticleDisplay)
+     * @see #sphere(double, double, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void circle(double radius, double rate, boolean spread, ParticleDisplay display) {
+    public static void circle(double radius, double rate, ParticleDisplay display) {
         // 180 degrees = PI
         // We need a full circle, 360 so we need two pies!
         // https://www.spigotmc.org/threads/176792/
@@ -283,7 +259,7 @@ public final class XParticle {
             double x = radius * Math.cos(theta);
             double z = radius * Math.sin(theta);
 
-            if (spread) {
+            if (display.isDirectional()) {
                 // We're going to get the angle in these two coordinates.
                 // Then we can spread each particle in the right angle.
                 double phi = Math.atan2(z, x);
@@ -363,6 +339,8 @@ public final class XParticle {
                     display.spawn(x, 0, z);
                 }
 
+                // We're going to use normal numbers since the circle radius will be always changing
+                // in one axis.
                 dynamicRadius += radiusDiv;
                 display.location.add(dir);
             }
@@ -386,7 +364,8 @@ public final class XParticle {
             double z = curve / smooth;
             double y = (curve * x) / smooth;
 
-            circle(1, rate, false, display.cloneWithLocation(x, y, z));
+            // If you remove x the infinity symbol will be 2D
+            circle(1, rate, display.cloneWithLocation(x, y, z));
         }
     }
 
@@ -408,7 +387,7 @@ public final class XParticle {
             // The remainder of radiusDiv division might be not 0
             // This will happen to the last loop only.
             if (radius < 0) radius = 0;
-            circle(radius, circleRate - i, false, display.cloneWithLocation(0, i, 0));
+            circle(radius, circleRate - i, display.cloneWithLocation(0, i, 0));
         }
     }
 
@@ -418,11 +397,12 @@ public final class XParticle {
      * @param radius      the radius of the ellipse.
      * @param otherRadius the curve of the ellipse.
      * @param rate        the rate of ellipse points.
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 2.0.0
      */
     public static void ellipse(double radius, double otherRadius, double rate, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
+
         // The only difference between circles and ellipses are that
         // ellipses use a different radius for one of their axis.
         for (double theta = 0; theta <= PII; theta += rateDiv) {
@@ -453,10 +433,12 @@ public final class XParticle {
             @Override
             public void run() {
                 for (int i = 0; i < points; i++) {
-                    double multiplier = PII * ((double) i / points);
-                    double x = radius * Math.cos(theta + multiplier);
-                    double z = radius * Math.sin(theta + multiplier);
+                    // Spawn a circle.
+                    double angle = PII * ((double) i / points);
+                    double x = radius * Math.cos(theta + angle);
+                    double z = radius * Math.sin(theta + angle);
 
+                    // Set the angle of the circle point as its degree.
                     double phi = Math.atan2(z, x);
                     double xDirection = -Math.cos(phi);
                     double zDirection = -Math.sin(phi);
@@ -467,9 +449,10 @@ public final class XParticle {
                     // The modes are done by random math methods that are
                     // just randomly tested to give a different shape.
                     if (mode > 1) {
-                        x = radius * Math.cos(-theta + multiplier);
-                        z = radius * Math.sin(-theta + multiplier);
+                        x = radius * Math.cos(-theta + angle);
+                        z = radius * Math.sin(-theta + angle);
 
+                        // Eye shaped blackhole
                         if (mode == 2) phi = Math.atan2(z, x);
                         else if (mode == 3) phi = Math.atan2(x, z);
                         else if (mode == 4) Math.atan2(Math.log(x), Math.log(z));
@@ -528,7 +511,7 @@ public final class XParticle {
      *
      * @param radius the radius of crescent's big circle.
      * @param rate   the rate of the crescent's circle points.
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void crescent(double radius, double rate, ParticleDisplay display) {
@@ -618,7 +601,7 @@ public final class XParticle {
                     double x = Math.cos(theta + multiplier);
                     double z = Math.sin(theta + multiplier);
 
-                    // Calculate our direction of the spreading particles.
+                    // Calculate our direction of the spreading particles based on their angle.
                     double angle = Math.atan2(z, x);
                     double xDirection = Math.cos(angle);
                     double zDirection = Math.sin(angle);
@@ -632,7 +615,7 @@ public final class XParticle {
 
     /**
      * Not really a cylinder. It looks more like a cage.
-     * For an actual cylidner just use {@link #circle(double, double, boolean, ParticleDisplay)}
+     * For an actual cylidner just use {@link #circle(double, double, ParticleDisplay)}
      * and use one the xyz axis to build multiple circles.
      *
      * @param height the height of the cylinder.
@@ -694,6 +677,7 @@ public final class XParticle {
             @Override
             public void run() {
                 rotation += rate;
+                // Generate random radians.
                 double x = Math.toRadians(90 + rotation);
                 double y = Math.toRadians(60 + rotation);
                 double z = Math.toRadians(30 + rotation);
@@ -849,13 +833,14 @@ public final class XParticle {
     /**
      * Spawn a sphere.
      * Tutorial: https://www.spigotmc.org/threads/146338/
+     * Also uses its own unique directional pattern.
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void sphere(double radius, double rate, boolean spread, ParticleDisplay display) {
+    public static void sphere(double radius, double rate, ParticleDisplay display) {
         // Cache
         double rateDiv = Math.PI / rate;
 
@@ -870,7 +855,7 @@ public final class XParticle {
                 double x = Math.cos(theta) * y2;
                 double z = Math.sin(theta) * y2;
 
-                if (spread) {
+                if (display.isDirectional()) {
                     // We're going to do the same thing from spreading circle.
                     // Since this is a 3D shape we'll need to get the y value as well.
                     // I'm not sure if this is the right way to do it.
@@ -896,12 +881,13 @@ public final class XParticle {
      * @param chance            the chance to grow a spike randomly.
      * @param minRandomDistance he minimum distance of spikes from sphere.
      * @param maxRandomDistance the maximum distance of spikes from sphere.
-     * @see #sphere(double, double, boolean, ParticleDisplay)
+     * @see #sphere(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void spikeSphere(double radius, double rate, int chance, double minRandomDistance, double maxRandomDistance, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
 
+        // Generate normal circle points.
         for (double phi = 0; phi <= Math.PI; phi += rateDiv) {
             double y = radius * Math.cos(phi);
             double sinPhi = radius * Math.sin(phi);
@@ -931,14 +917,14 @@ public final class XParticle {
      * @param radius     the radius of the ring.
      * @param tubeRadius the radius of the circles used to form the ring (tunnel circles)
      * @param tubeRate   the rate of circle points.
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void ring(double rate, double tubeRate, double radius, double tubeRadius, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
         double tubeDiv = Math.PI / tubeRadius;
 
-        // We're only going to use circles to build our ring.
+        // Use circles to build the ring.
         for (double theta = 0; theta <= PII; theta += rateDiv) {
             double cos = Math.cos(theta);
             double sin = Math.sin(theta);
@@ -1085,6 +1071,7 @@ public final class XParticle {
                     repeat--;
                     y += rate;
 
+                    // 2D cirlce points.
                     double x = dynamicRadius * Math.cos(extension * y);
                     double z = dynamicRadius * Math.sin(extension * y);
 
@@ -1250,9 +1237,9 @@ public final class XParticle {
                     double z = radius * Math.sin(extension * y);
                     Location nucleotide1 = display.location.clone().add(x, y, z);
                     //display.spawn(x, y, z);
-                    circle(0.1, 10, false, display.cloneWithLocation(x, y, z));
+                    circle(0.1, 10, display.cloneWithLocation(x, y, z));
                     Location nucleotide2 = display.location.clone().subtract(x, -y, z);
-                    circle(0.1, 10, false, display.cloneWithLocation(-x, y, -z));
+                    circle(0.1, 10, display.cloneWithLocation(-x, y, -z));
                     //display.spawn(-x, y, -z);
 
                     // We're going to find the midpoint of the two nucleotides so we can
@@ -1301,8 +1288,8 @@ public final class XParticle {
      * A simple method to spawn animated clouds effect.
      *
      * @param plugin the timer handler.
-     * @param cloud  recommended particle is CLOUD and the offset xyz should be higher than 2
-     * @param rain   recommended particle is WATER_DROP and the offset xyz should be the same as cloud.
+     * @param cloud  recommended particle is {@link Particle#CLOUD} or {@link Particle#SMOKE_LARGE} and the offset xyz should be higher than 2
+     * @param rain   recommended particle is {@link Particle#WATER_DROP} or {@link Particle#FALLING_LAVA} and the offset xyz should be the same as cloud.
      * @return the timer task handling the animation.
      * @since 1.0.0
      */
@@ -1310,8 +1297,8 @@ public final class XParticle {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                cloud.spawn(0, 0, 0);
-                rain.spawn(0, 0, 0);
+                cloud.spawn();
+                rain.spawn();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
@@ -1389,6 +1376,7 @@ public final class XParticle {
         double maxZ = Math.max(start.getZ(), end.getZ());
         double minZ = Math.min(start.getZ(), end.getZ());
 
+        // Same thing as a rectangle.
         double barChance = 0;
         for (double x = minX; x <= maxX; x += rate) {
             for (double z = minZ; z <= maxZ; z += rate) {
@@ -1583,6 +1571,7 @@ public final class XParticle {
             }
             previousPoints = points;
 
+            // Same thing as a structured cube.
             for (double x = minX; x <= maxX; x += rate) {
                 for (double y = minY; y <= maxY; y += rate) {
                     for (double z = minZ; z <= maxZ; z += rate) {
@@ -1756,12 +1745,12 @@ public final class XParticle {
      * https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Pentagram_within_circle.svg/800px-Pentagram_within_circle.svg.png
      *
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void neopaganPentagram(double size, double rate, double extend, ParticleDisplay star, ParticleDisplay circle) {
         polygon(5, 2, size, rate, extend, star);
-        circle(size + 0.5, rate * 1000, false, circle);
+        circle(size + 0.5, rate * 1000, circle);
     }
 
     /**
@@ -1777,11 +1766,11 @@ public final class XParticle {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
             orbit.rotation = new Vector(0, 0, angle);
-            circle(radius, rate, false, orbit);
+            circle(radius, rate, orbit);
             orbits--;
         }
 
-        sphere(radius / 3, rate / 2, false, nucleus);
+        sphere(radius / 3, rate / 2, nucleus);
     }
 
     /**
@@ -1791,13 +1780,13 @@ public final class XParticle {
      *
      * @param size the shape of the explosion circle. Recommended value is 6
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
-     * @see #circle(double, double, boolean, ParticleDisplay)
+     * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void meguminExplosion(JavaPlugin plugin, double size, ParticleDisplay display) {
         polygon(10, 4, size, 0.02, 0.3, display);
         polygon(10, 3, size / (size - 1), 0.5, 0, display);
-        circle(size, 40, true, display);
+        circle(size, 40, display);
         spread(plugin, 30, 2, display.location, display.location.clone().add(0, 10, 0), 5, 5, 5, display);
     }
 

@@ -44,7 +44,7 @@ import java.util.Objects;
  * spawning them.
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  */
 public class ParticleDisplay {
     private static boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
@@ -303,12 +303,36 @@ public class ParticleDisplay {
      * When a particle is set to be directional it'll only
      * spawn one particle and the xyz offset values are used for
      * the direction of the particle.
+     * <p>
+     * Colored particles in 1.12 and below don't support this.
      *
+     * @see #isDirectional()
      * @since 1.1.0
      */
     public ParticleDisplay directional() {
         count = 0;
         return this;
+    }
+
+    /**
+     * Check if this particle setting is a directional particle.
+     *
+     * @return true if the particle is directional, otherwise false.
+     * @see #directional()
+     * @since 2.1.0
+     */
+    public boolean isDirectional() {
+        return count == 0;
+    }
+
+    /**
+     * Spawns the particle at the current location.
+     *
+     * @see #spawn(Location)
+     * @since 2.0.1
+     */
+    public void spawn() {
+        spawn(this.location);
     }
 
     /**
@@ -343,9 +367,9 @@ public class ParticleDisplay {
                 float[] datas = (float[]) data;
                 if (ISFLAT) {
                     Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
-                    loc.getWorld().spawnParticle(Particle.REDSTONE, loc, count, offsetx, offsety, offsetz, extra, dust);
+                    loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
                 } else {
-                    loc.getWorld().spawnParticle(Particle.REDSTONE, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
+                    loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
                 }
             }
         } else {
