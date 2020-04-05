@@ -88,7 +88,7 @@ public enum XMaterial {
      * @see #CAVE_AIR
      */
     AIR,
-    ALLIUM(2, "RED_ ROSE"),
+    ALLIUM(2, "RED_ROSE"),
     ANDESITE(5, "STONE"),
     ANDESITE_SLAB,
     ANDESITE_STAIRS,
