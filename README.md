@@ -40,7 +40,7 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleD
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>${version}</version>
+    <version>version</version>
 </dependency>
 ```
 
