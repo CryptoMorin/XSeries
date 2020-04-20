@@ -2,6 +2,7 @@
 [![Bukkit Version](https://img.shields.io/badge/bukkit-1.15-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
 [![Build](https://img.shields.io/badge/build-passing-dark_green.svg)](https://shields.io/)
+![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
 XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers.
 But it also includes numerous extra methods to help developers design their plugins easier.
@@ -39,7 +40,7 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleD
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>5.3.1</version>
+    <version>version</version>
 </dependency>
 ```
 
