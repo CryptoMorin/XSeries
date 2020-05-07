@@ -22,7 +22,6 @@ $RECYCLE.BIN/
 # Operating System Files
 # =========================
 
-pom.xml
 *.iml
 .idea/
 target/
