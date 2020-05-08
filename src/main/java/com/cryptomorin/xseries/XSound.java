@@ -28,10 +28,7 @@ import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Instrument;
-import org.bukkit.Location;
-import org.bukkit.Note;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -1055,8 +1052,7 @@ public enum XSound {
 
         return CompletableFuture.runAsync(() -> {
             for (XSound music : musics) {
-                Sound sound = music.parseSound();
-                if (sound != null) player.stopSound(sound);
+                music.stopSound(player);
             }
         });
     }
@@ -1202,6 +1198,7 @@ public enum XSound {
 
     /**
      * Stops playing the specified sound from the player.
+     * Works only for Bukkit v1.10 and higher.
      *
      * @param player the player to stop playing the sound to.
      * @see #stopMusic(Player)
@@ -1209,6 +1206,9 @@ public enum XSound {
      */
     public void stopSound(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
+
+        int version = Integer.parseInt(Bukkit.getBukkitVersion().split("-", -1)[0].split("\\.")[1]);
+        if(version < 10) return; //Player#stopSound is not available for v1.9 and lower
 
         Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);
