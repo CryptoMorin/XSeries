@@ -906,6 +906,13 @@ public enum XSound {
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private final String[] legacy;
 
+    /**
+     * Cached server version.
+     *
+     * @since 2.2.0
+     */
+    private final static byte version = Byte.parseByte(Bukkit.getBukkitVersion().split("-", -1)[0].split("\\.")[1]);
+
     XSound(String... legacy) {
         this.legacy = legacy;
     }
@@ -1207,7 +1214,6 @@ public enum XSound {
     public void stopSound(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
 
-        int version = Integer.parseInt(Bukkit.getBukkitVersion().split("-", -1)[0].split("\\.")[1]);
         if(version < 10) return; //Player#stopSound is not available for v1.9 and lower
 
         Sound sound = this.parseSound();
