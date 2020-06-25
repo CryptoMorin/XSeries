@@ -22,7 +22,7 @@ $RECYCLE.BIN/
 # Operating System Files
 # =========================
 
-pom.xml
+ChangeLog.txt
 *.iml
 .idea/
 target/

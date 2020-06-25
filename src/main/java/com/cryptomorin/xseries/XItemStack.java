@@ -31,9 +31,13 @@ import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -41,10 +45,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * <b>XItemStack</b> - YAML Item Serializer<br>
@@ -56,7 +57,7 @@ import java.util.UUID;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 1.1.1
+ * @version 2.0.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -64,6 +65,8 @@ import java.util.UUID;
  * @see ItemStack
  */
 public class XItemStack {
+    private static final java.util.regex.Pattern SPACE = java.util.regex.Pattern.compile("  +");
+
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -72,23 +75,55 @@ public class XItemStack {
      * @param config the config section to write this item to.
      * @since 1.0.0
      */
+    @SuppressWarnings("deprecation")
     public static void serialize(ItemStack item, ConfigurationSection config) {
         ItemMeta meta = item.getItemMeta();
 
-        if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
-        if (item.getAmount() > 1) config.set("amount", item.getAmount());
-        if (meta instanceof Damageable) {
-            Damageable damageable = (Damageable) meta;
-            if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
+        if (meta.hasDisplayName()) config.set("name", ChatColor.stripColor(meta.getDisplayName()));
+        if (meta.hasLore()) {
+            List<String> lines = new ArrayList<>();
+            for (String lore : meta.getLore()) lines.add(ChatColor.stripColor(lore));
+            config.set("lore", lines);
         }
-        config.set("material", item.getType());
+        if (item.getAmount() > 1) config.set("amount", item.getAmount());
+        if (XMaterial.isNewVersion()) {
+            if (meta instanceof Damageable) {
+                Damageable damageable = (Damageable) meta;
+                if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
+            }
+        } else if (XMaterial.isDamageable(item.getType().name())) {
+            config.set("damage", item.getDurability());
+        }
+        config.set("material", item.getType().name());
         if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
         if (meta.isUnbreakable()) config.set("unbreakable", true);
-        if (meta.getItemFlags().size() != 0) config.set("flags", meta.getItemFlags());
-        if (meta.hasAttributeModifiers()) config.set("attributes", meta.getAttributeModifiers());
-        if (meta.hasLore()) config.set("lore", meta.getLore());
-        if (meta.getEnchants().size() != 0) config.set("enchants", meta.getEnchants());
-        if (XMaterial.supports(9) && meta.hasAttributeModifiers()) config.set("attributes", meta.getAttributeModifiers());
+
+        // Enchantments
+        for (Map.Entry<Enchantment, Integer> enchant : meta.getEnchants().entrySet()) {
+            String entry = "enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
+            config.set(entry, enchant.getValue());
+        }
+
+        // Flags
+        if (meta.getItemFlags().size() != 0) {
+            List<String> flags = new ArrayList<>();
+            for (ItemFlag flag : meta.getItemFlags()) flags.add(flag.name());
+            config.set("flags", flags);
+        }
+
+        // Attributes - https://minecraft.gamepedia.com/Attribute
+        if (XMaterial.supports(9) && meta.hasAttributeModifiers()) {
+            for (Map.Entry<Attribute, AttributeModifier> attribute : meta.getAttributeModifiers().entries()) {
+                String path = "attributes." + attribute.getKey().name() + '.';
+                AttributeModifier modifier = attribute.getValue();
+
+                config.set(path + "id", modifier.getUniqueId().toString());
+                config.set(path + "name", modifier.getName());
+                config.set(path + "amount", modifier.getAmount());
+                config.set(path + "operation", modifier.getOperation().name());
+                config.set(path + "slot", modifier.getSlot().name());
+            }
+        }
 
         if (meta instanceof SkullMeta) {
             config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId());
@@ -107,7 +142,7 @@ public class XItemStack {
             PotionMeta potion = (PotionMeta) meta;
             List<String> effects = new ArrayList<>();
             for (PotionEffect effect : potion.getCustomEffects())
-                effects.add(effect.getType().getName() + " " + effect.getDuration() + " " + effect.getAmplifier());
+                effects.add(effect.getType().getName() + ' ' + effect.getDuration() + ' ' + effect.getAmplifier());
 
             config.set("effects", effects);
         } else if (meta instanceof FireworkMeta) {
@@ -145,7 +180,7 @@ public class XItemStack {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
                 List<String> effects = new ArrayList<>();
                 for (PotionEffect effect : stew.getCustomEffects()) {
-                    effects.add(effect.getType().getName() + " " + effect.getDuration() + " " + effect.getAmplifier());
+                    effects.add(effect.getType().getName() + ' ' + effect.getDuration() + ' ' + effect.getAmplifier());
                 }
 
                 config.set("effects", effects);
@@ -185,7 +220,7 @@ public class XItemStack {
             }
         } else {
             int damage = config.getInt("damage");
-            if (damage > 1) item.setDurability((short) damage);
+            if (damage > 0) item.setDurability((short) damage);
         }
 
         // Special Items
@@ -196,7 +231,7 @@ public class XItemStack {
             BannerMeta banner = (BannerMeta) meta;
 
             for (String pattern : config.getStringList("patterns")) {
-                String[] split = pattern.split("  +");
+                String[] split = SPACE.split(pattern);
                 if (split.length == 0) continue;
                 DyeColor color = Enums.getIfPresent(DyeColor.class, split[0]).or(DyeColor.WHITE);
                 PatternType type;
@@ -222,6 +257,13 @@ public class XItemStack {
                 PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
                 potion.addCustomEffect(effect, true);
             }
+        } else if (meta instanceof BlockStateMeta) {
+            BlockStateMeta bsm = (BlockStateMeta) meta;
+            BlockState state = bsm.getBlockState();
+            CreatureSpawner spawner = (CreatureSpawner) state;
+
+            spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner")).orNull());
+            bsm.setBlockState(spawner);
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
             FireworkEffect.Builder builder = FireworkEffect.builder();
@@ -266,7 +308,10 @@ public class XItemStack {
                 tropical.setBodyColor(color);
                 tropical.setPatternColor(patternColor);
                 tropical.setPattern(pattern);
-            } else if (meta instanceof SuspiciousStewMeta) {
+            }
+            // Apparently Suspicious Stew was never added in 1.14
+        } else if (XMaterial.supports(15)) {
+            if (meta instanceof SuspiciousStewMeta) {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
                 for (String effects : config.getStringList("effects")) {
                     PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
@@ -275,7 +320,7 @@ public class XItemStack {
             }
         }
 
-        // Displayname
+        // Display Name
         String name = config.getString("name");
         if (name != null) {
             if (name.isEmpty()) name = " ";
@@ -295,7 +340,7 @@ public class XItemStack {
         // Lore
         List<String> lores = config.getStringList("lore");
         if (!lores.isEmpty()) {
-            ArrayList<String> translatedLore = new ArrayList<>();
+            List<String> translatedLore = new ArrayList<>();
             String lastColors = "";
 
             for (String lore : lores) {
@@ -317,16 +362,33 @@ public class XItemStack {
             }
 
             meta.setLore(translatedLore);
+        } else {
+            String lore = config.getString("lore");
+            if (!Strings.isNullOrEmpty(lore)) {
+                List<String> translatedLore = new ArrayList<>();
+                String lastColors = "";
+
+                for (String singleLore : StringUtils.splitPreserveAllTokens(lore, '\n')) {
+                    if (singleLore.isEmpty()) {
+                        translatedLore.add(" ");
+                        continue;
+                    }
+                    singleLore = lastColors + ChatColor.translateAlternateColorCodes('&', singleLore);
+                    translatedLore.add(singleLore);
+
+                    lastColors = ChatColor.getLastColors(singleLore);
+                }
+
+                meta.setLore(translatedLore);
+            }
         }
 
         // Enchantments
-        List<String> enchants = config.getStringList("enchants");
-        for (String ench : enchants) {
-            String[] parseEnchant = StringUtils.split(StringUtils.deleteWhitespace(ench), ',');
-            Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(parseEnchant[0]);
-            if (enchant.isPresent()) {
-                int lvl = parseEnchant.length > 1 ? Integer.parseInt(parseEnchant[1]) : 1;
-                meta.addEnchant(enchant.get().parseEnchantment(), lvl, false);
+        ConfigurationSection enchants = config.getConfigurationSection("enchants");
+        if (enchants != null) {
+            for (String ench : enchants.getKeys(false)) {
+                Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
+                enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.parseEnchantment(), enchants.getInt(ench), true));
             }
         }
 
@@ -342,14 +404,17 @@ public class XItemStack {
             meta.addItemFlags(itemFlag);
         }
 
-        // Atrributes
+        // Atrributes - https://minecraft.gamepedia.com/Attribute
         if (XMaterial.supports(9)) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
+                    String attribId = attributes.getString("id");
+                    UUID id = attribId != null ? UUID.fromString(attribId) : UUID.randomUUID();
+
                     AttributeModifier modifier = new AttributeModifier(
-                            UUID.randomUUID(),
-                            attributes.getString("generic"),
+                            id,
+                            attributes.getString("name"),
                             attributes.getInt("amount"),
                             Enums.getIfPresent(AttributeModifier.Operation.class, attributes.getString("operation"))
                                     .or(AttributeModifier.Operation.ADD_NUMBER),

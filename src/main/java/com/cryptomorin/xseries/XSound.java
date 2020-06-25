@@ -28,10 +28,7 @@ import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Instrument;
-import org.bukkit.Location;
-import org.bukkit.Note;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -46,7 +43,6 @@ import java.util.regex.Pattern;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
- * Supports 1.8-1.15<br>
  * 1.13 and above as priority.
  * <p>
  * Sounds are thread-safe. But this doesn't mean you should
@@ -58,10 +54,10 @@ import java.util.regex.Pattern;
  * 1.8: http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html
  * Latest: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
  * Basics: https://bukkit.org/threads/151517/
- * playSound command: https://minecraft.gamepedia.com/Commands/playsound
+ * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 2.2.0
+ * @version 3.0.0
  * @see Sound
  */
 public enum XSound {
@@ -303,9 +299,176 @@ public enum XSound {
     ENTITY_BLAZE_HURT("BLAZE_HIT"),
     ENTITY_BLAZE_SHOOT,
     ENTITY_BOAT_PADDLE_LAND,
+    AMBIENT_BASALT_DELTAS_ADDITIONS,
+    AMBIENT_BASALT_DELTAS_LOOP,
+    AMBIENT_BASALT_DELTAS_MOOD,
+    AMBIENT_CRIMSON_FOREST_ADDITIONS,
+    AMBIENT_CRIMSON_FOREST_LOOP,
+    AMBIENT_CRIMSON_FOREST_MOOD,
+    AMBIENT_NETHER_WASTES_ADDITIONS,
+    AMBIENT_NETHER_WASTES_LOOP,
+    AMBIENT_NETHER_WASTES_MOOD,
+    AMBIENT_SOUL_SAND_VALLEY_ADDITIONS,
+    AMBIENT_SOUL_SAND_VALLEY_LOOP,
+    AMBIENT_SOUL_SAND_VALLEY_MOOD,
     ENTITY_BOAT_PADDLE_WATER,
     ENTITY_CAT_AMBIENT("CAT_MEOW"),
     ENTITY_CAT_BEG_FOR_FOOD,
+    AMBIENT_WARPED_FOREST_ADDITIONS,
+    AMBIENT_WARPED_FOREST_LOOP,
+    AMBIENT_WARPED_FOREST_MOOD,
+    BLOCK_ANCIENT_DEBRIS_BREAK,
+    BLOCK_ANCIENT_DEBRIS_FALL,
+    BLOCK_ANCIENT_DEBRIS_HIT,
+    BLOCK_ANCIENT_DEBRIS_PLACE,
+    BLOCK_ANCIENT_DEBRIS_STEP,
+    BLOCK_BASALT_BREAK,
+    BLOCK_BASALT_FALL,
+    BLOCK_BASALT_HIT,
+    BLOCK_BASALT_PLACE,
+    BLOCK_BASALT_STEP,
+    BLOCK_BONE_BLOCK_BREAK,
+    BLOCK_BONE_BLOCK_FALL,
+    BLOCK_BONE_BLOCK_HIT,
+    BLOCK_BONE_BLOCK_PLACE,
+    BLOCK_BONE_BLOCK_STEP,
+    BLOCK_CHAIN_BREAK,
+    BLOCK_CHAIN_FALL,
+    BLOCK_CHAIN_HIT,
+    BLOCK_CHAIN_PLACE,
+    BLOCK_CHAIN_STEP,
+    BLOCK_FUNGUS_BREAK,
+    BLOCK_FUNGUS_FALL,
+    BLOCK_FUNGUS_HIT,
+    BLOCK_FUNGUS_PLACE,
+    BLOCK_FUNGUS_STEP,
+    BLOCK_LODESTONE_BREAK,
+    BLOCK_LODESTONE_FALL,
+    BLOCK_LODESTONE_HIT,
+    BLOCK_LODESTONE_PLACE,
+    BLOCK_LODESTONE_STEP,
+    BLOCK_NETHERITE_BLOCK_BREAK,
+    BLOCK_NETHERITE_BLOCK_FALL,
+    BLOCK_NETHERITE_BLOCK_HIT,
+    BLOCK_NETHERITE_BLOCK_PLACE,
+    BLOCK_NETHERITE_BLOCK_STEP,
+    BLOCK_NETHERRACK_BREAK,
+    BLOCK_NETHERRACK_FALL,
+    BLOCK_NETHERRACK_HIT,
+    BLOCK_NETHERRACK_PLACE,
+    BLOCK_NETHERRACK_STEP,
+    BLOCK_NETHER_BRICKS_BREAK,
+    BLOCK_NETHER_BRICKS_FALL,
+    BLOCK_NETHER_BRICKS_HIT,
+    BLOCK_NETHER_BRICKS_PLACE,
+    BLOCK_NETHER_BRICKS_STEP,
+    BLOCK_NETHER_GOLD_ORE_BREAK,
+    BLOCK_NETHER_GOLD_ORE_FALL,
+    BLOCK_NETHER_GOLD_ORE_HIT,
+    BLOCK_NETHER_GOLD_ORE_PLACE,
+    BLOCK_NETHER_GOLD_ORE_STEP,
+    BLOCK_NETHER_ORE_BREAK,
+    BLOCK_NETHER_ORE_FALL,
+    BLOCK_NETHER_ORE_HIT,
+    BLOCK_NETHER_ORE_PLACE,
+    BLOCK_NETHER_ORE_STEP,
+    BLOCK_NETHER_SPROUTS_BREAK,
+    BLOCK_NETHER_SPROUTS_FALL,
+    BLOCK_NETHER_SPROUTS_HIT,
+    BLOCK_NETHER_SPROUTS_PLACE,
+    BLOCK_NETHER_SPROUTS_STEP,
+    BLOCK_NYLIUM_BREAK,
+    BLOCK_NYLIUM_FALL,
+    BLOCK_NYLIUM_HIT,
+    BLOCK_NYLIUM_PLACE,
+    BLOCK_NYLIUM_STEP,
+    BLOCK_RESPAWN_ANCHOR_AMBIENT,
+    BLOCK_RESPAWN_ANCHOR_CHARGE,
+    BLOCK_RESPAWN_ANCHOR_DEPLETE,
+    BLOCK_RESPAWN_ANCHOR_SET_SPAWN,
+    BLOCK_ROOTS_BREAK,
+    BLOCK_ROOTS_FALL,
+    BLOCK_ROOTS_HIT,
+    BLOCK_ROOTS_PLACE,
+    BLOCK_ROOTS_STEP,
+    BLOCK_SHROOMLIGHT_BREAK,
+    BLOCK_SHROOMLIGHT_FALL,
+    BLOCK_SHROOMLIGHT_HIT,
+    BLOCK_SHROOMLIGHT_PLACE,
+    BLOCK_SHROOMLIGHT_STEP,
+    BLOCK_SMITHING_TABLE_USE,
+    BLOCK_SOUL_SAND_BREAK,
+    BLOCK_SOUL_SAND_FALL,
+    BLOCK_SOUL_SAND_HIT,
+    BLOCK_SOUL_SAND_PLACE,
+    BLOCK_SOUL_SAND_STEP,
+    BLOCK_SOUL_SOIL_BREAK,
+    BLOCK_SOUL_SOIL_FALL,
+    BLOCK_SOUL_SOIL_HIT,
+    BLOCK_SOUL_SOIL_PLACE,
+    BLOCK_SOUL_SOIL_STEP,
+    BLOCK_STEM_BREAK,
+    BLOCK_STEM_FALL,
+    BLOCK_STEM_HIT,
+    BLOCK_STEM_PLACE,
+    BLOCK_STEM_STEP,
+    BLOCK_VINE_STEP,
+    BLOCK_WART_BLOCK_BREAK,
+    BLOCK_WART_BLOCK_FALL,
+    BLOCK_WART_BLOCK_HIT,
+    BLOCK_WART_BLOCK_PLACE,
+    BLOCK_WART_BLOCK_STEP,
+    ENTITY_DONKEY_EAT,
+    ENTITY_FOX_TELEPORT,
+    ENTITY_HOGLIN_AMBIENT,
+    ENTITY_HOGLIN_ANGRY,
+    ENTITY_HOGLIN_ATTACK,
+    ENTITY_HOGLIN_CONVERTED_TO_ZOMBIFIED,
+    ENTITY_HOGLIN_DEATH,
+    ENTITY_HOGLIN_HURT,
+    ENTITY_HOGLIN_RETREAT,
+    ENTITY_HOGLIN_STEP,
+    ENTITY_MULE_EAT,
+    ENTITY_MULE_ANGRY,
+    ENTITY_PARROT_IMITATE_HOGLIN,
+    ENTITY_PARROT_IMITATE_PIGLIN,
+    ENTITY_PARROT_IMITATE_ZOGLIN,
+    ENTITY_PIGLIN_ADMIRING_ITEM,
+    ENTITY_PIGLIN_AMBIENT,
+    ENTITY_PIGLIN_ANGRY,
+    ENTITY_PIGLIN_CELEBRATE,
+    ENTITY_PIGLIN_CONVERTED_TO_ZOMBIFIED,
+    ENTITY_PIGLIN_DEATH,
+    ENTITY_PIGLIN_HURT,
+    ENTITY_PIGLIN_JEALOUS,
+    ENTITY_PIGLIN_RETREAT,
+    ENTITY_PIGLIN_STEP,
+    ENTITY_SNOW_GOLEM_SHEAR,
+    ENTITY_STRIDER_AMBIENT,
+    ENTITY_STRIDER_DEATH,
+    ENTITY_STRIDER_EAT,
+    ENTITY_STRIDER_HAPPY,
+    ENTITY_STRIDER_HURT,
+    ENTITY_STRIDER_RETREAT,
+    ENTITY_STRIDER_SADDLE,
+    ENTITY_STRIDER_STEP,
+    ENTITY_STRIDER_STEP_LAVA,
+    ENTITY_ZOGLIN_AMBIENT,
+    ENTITY_ZOGLIN_ANGRY,
+    ENTITY_ZOGLIN_ATTACK,
+    ENTITY_ZOGLIN_DEATH,
+    ENTITY_ZOGLIN_HURT,
+    ENTITY_ZOGLIN_STEP,
+    BLOCK_WEEPING_VINES_BREAK,
+    BLOCK_WEEPING_VINES_FALL,
+    BLOCK_WEEPING_VINES_HIT,
+    BLOCK_WEEPING_VINES_PLACE,
+    BLOCK_WEEPING_VINES_STEP,
+    BLOCK_GILDED_BLACKSTONE_BREAK,
+    BLOCK_GILDED_BLACKSTONE_FALL,
+    BLOCK_GILDED_BLACKSTONE_HIT,
+    BLOCK_GILDED_BLACKSTONE_PLACE,
+    BLOCK_GILDED_BLACKSTONE_STEP,
     ENTITY_CAT_DEATH,
     ENTITY_CAT_EAT,
     ENTITY_CAT_HISS("CAT_HISS"),
@@ -568,7 +731,6 @@ public enum XSound {
     ENTITY_PARROT_IMITATE_WITHER_SKELETON,
     ENTITY_PARROT_IMITATE_WOLF,
     ENTITY_PARROT_IMITATE_ZOMBIE,
-    ENTITY_PARROT_IMITATE_ZOMBIE_PIGMAN,
     ENTITY_PARROT_IMITATE_ZOMBIE_VILLAGER,
     ENTITY_PARROT_STEP,
     ENTITY_PHANTOM_AMBIENT,
@@ -787,10 +949,14 @@ public enum XSound {
     ENTITY_ZOMBIE_HORSE_HURT("HORSE_ZOMBIE_HIT"),
     ENTITY_ZOMBIE_HURT("ZOMBIE_HURT"),
     ENTITY_ZOMBIE_INFECT("ZOMBIE_INFECT"),
-    ENTITY_ZOMBIE_PIGMAN_AMBIENT("ZOMBIE_PIG_IDLE", "ENTITY_ZOMBIE_PIG_AMBIENT"),
-    ENTITY_ZOMBIE_PIGMAN_ANGRY("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIG_ANGRY"),
-    ENTITY_ZOMBIE_PIGMAN_DEATH("ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIG_DEATH"),
-    ENTITY_ZOMBIE_PIGMAN_HURT("ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIG_HURT"),
+    ITEM_ARMOR_EQUIP_NETHERITE,
+    ITEM_LODESTONE_COMPASS_LOCK,
+    MUSIC_DISC_PIGSTEP,
+
+    ENTITY_ZOMBIFIED_PIGLIN_AMBIENT("ZOMBE_PIG_IDLE", "ENTITY_ZOMBIE_PIG_AMBIENT", "ENTITY_ZOMBIE_PIGMAN_AMBIENT"),
+    ENTITY_ZOMBIFIED_PIGLIN_ANGRY("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIGMAN_ANGRY"),
+    ENTITY_ZOMBIFIED_PIGLIN_DEATH("ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIGMAN_DEATH"),
+    ENTITY_ZOMBIFIED_PIGLIN_HURT("ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIGMAN_HURT"),
     ENTITY_ZOMBIE_STEP("ZOMBIE_WALK"),
     ENTITY_ZOMBIE_VILLAGER_AMBIENT,
     ENTITY_ZOMBIE_VILLAGER_CONVERTED("ZOMBIE_UNFECT"),
@@ -866,7 +1032,12 @@ public enum XSound {
     MUSIC_END,
     MUSIC_GAME,
     MUSIC_MENU,
-    MUSIC_NETHER,
+    MUSIC_NETHER_BASALT_DELTAS("MUSIC_NETHER"),
+    PARTICLE_SOUL_ESCAPE,
+    MUSIC_NETHER_CRIMSON_FOREST,
+    MUSIC_NETHER_NETHER_WASTES,
+    MUSIC_NETHER_SOUL_SAND_VALLEY,
+    MUSIC_NETHER_WARPED_FOREST,
     MUSIC_UNDER_WATER,
     UI_BUTTON_CLICK("CLICK"),
     UI_CARTOGRAPHY_TABLE_TAKE_RESULT,
@@ -891,7 +1062,7 @@ public enum XSound {
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * Caches the parsed {@link Sound} objects instead of string. Because it has to go through catching exceptions again
-     * since {@link Sound} class doesn't have a method like {@link org.bukkit.Material#getMaterial(String)}.
+     * since {@link Sound} class doesn't have a method like {@link Material#getMaterial(String)}.
      * So caching these would be more efficient.
      *
      * @since 2.0.0
@@ -907,6 +1078,7 @@ public enum XSound {
      * @since 1.0.0
      */
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
+    private static final Pattern DOUBLE_SPACE = Pattern.compile("  +");
     private final String[] legacy;
 
     XSound(String... legacy) {
@@ -976,17 +1148,49 @@ public enum XSound {
     }
 
     /**
+     * @see #play(Location, String)
+     * @since 1.0.0
+     */
+    @Nonnull
+    public static CompletableFuture<Record> play(@Nullable Player player, @Nullable String sound) {
+        Objects.requireNonNull(player, "Cannot play sound to null player");
+        return parse(player, player.getLocation(), sound, true);
+    }
+
+    /**
+     * @see #play(Location, String)
+     * @since 3.0.0
+     */
+    @Nonnull
+    public static CompletableFuture<Record> play(@Nonnull Location location, @Nullable String sound) {
+        return parse(null, location, sound, true);
+    }
+
+    /**
      * Just an extra feature that loads sounds from strings.
      * Useful for getting sounds from config files.
+     * Sounds are thread safe.
+     * <p>
+     * It's strongly recommended to use this method while using it inside a loop.
+     * This can help to avoid parsing the sound properties multiple times.
+     * A simple usage of using it in a loop is:
+     * <blockquote><pre>
+     *     Record record = XSound.parse(player, location, sound, false).join();
+     *     // Loop:
+     *     if (record != null) record.play();
+     * </pre></blockquote>
      * <p>
      * This will also ignore {@code none} and {@code null} strings.
      * <p>
-     * <b>Format:</b> Sound, Volume, Pitch<br>
+     * <b>Format:</b> [LOC:]Sound, [Volume], [Pitch]<br>
+     * Where {@code LOC:} will play the sound at the location if a player is specified.
+     * A sound played at a location will be heard by everyone around.
      * Comma separators are optional.
      * <p>
      * <b>Examples:</b>
      * <p>
      * <pre>
+     *     LOC:ENTITY_PLAYER_BURP, 2.5f, 0.5
      *     ENTITY_PLAYER_BURP, 0.5, 1f
      *     BURP 0.5f 1
      *     MUSIC_END, 10f
@@ -994,27 +1198,32 @@ public enum XSound {
      *     null
      * </pre>
      *
-     * @param player the player to play the sound to.
-     * @param sound  the string of the sound with volume and pitch (if needed).
-     * @since 1.0.0
+     * @param player   the only player to play the sound to if requested to do so.
+     * @param location the location to play the sound to.
+     * @param sound    the string of the sound with volume and pitch (if needed).
+     * @param play     if the sound should be played right away.
+     * @since 3.0.0
      */
-    public static CompletableFuture<Void> playSoundFromString(@Nonnull Player player, @Nullable String sound) {
-        Objects.requireNonNull(player, "Cannot play sound to null player");
-        return CompletableFuture.runAsync(() -> {
-            if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return;
+    @Nonnull
+    public static CompletableFuture<Record> parse(@Nullable Player player, @Nonnull Location location, @Nullable String sound, boolean play) {
+        Objects.requireNonNull(player, "Cannot play sound to null location");
+        if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;
 
+        return CompletableFuture.supplyAsync(() -> {
             String[] split = StringUtils.contains(sound, ',') ?
                     StringUtils.split(StringUtils.deleteWhitespace(sound), ',') :
-                    StringUtils.split(sound.replaceAll("  +", " "), ' ');
-
-            // You should replace the exception with your own message handler.
-            Validate.isTrue(split.length != 0, "Sound string must at least have a sound name: ", sound);
+                    StringUtils.split(DOUBLE_SPACE.matcher(sound).replaceAll(" "), ' ');
 
             String name = split[0];
+            boolean playForEveryone = player == null;
+            if (!playForEveryone && StringUtils.startsWithIgnoreCase(name, "loc:")) {
+                name = name.substring(4);
+                playForEveryone = true;
+            }
             Optional<XSound> typeOpt = matchXSound(name);
-            if (!typeOpt.isPresent()) return;
+            if (!typeOpt.isPresent()) return null;
             Sound type = typeOpt.get().parseSound();
-            if (type == null) return;
+            if (type == null) return null;
 
             float volume = 1.0f;
             float pitch = 1.0f;
@@ -1027,7 +1236,13 @@ public enum XSound {
             } catch (NumberFormatException ignored) {
             }
 
-            if (player.isOnline()) player.playSound(player.getLocation(), type, volume, pitch);
+            Record record = new Record(type, player, location, volume, pitch, playForEveryone);
+            if (play) record.play();
+            return record;
+        }).exceptionally((ex) -> {
+            System.err.println("Could not play sound for string: " + sound);
+            ex.printStackTrace();
+            return null;
         });
     }
 
@@ -1051,7 +1266,7 @@ public enum XSound {
                 MUSIC_DISC_11, MUSIC_DISC_13, MUSIC_DISC_BLOCKS, MUSIC_DISC_CAT, MUSIC_DISC_CHIRP,
                 MUSIC_DISC_FAR, MUSIC_DISC_MALL, MUSIC_DISC_MELLOHI, MUSIC_DISC_STAL,
                 MUSIC_DISC_STRAD, MUSIC_DISC_WAIT, MUSIC_DISC_WARD,
-                MUSIC_DRAGON, MUSIC_END, MUSIC_GAME, MUSIC_MENU, MUSIC_NETHER, MUSIC_UNDER_WATER);
+                MUSIC_DRAGON, MUSIC_END, MUSIC_GAME, MUSIC_MENU, MUSIC_NETHER_BASALT_DELTAS, MUSIC_UNDER_WATER);
 
         return CompletableFuture.runAsync(() -> {
             for (XSound music : musics) {
@@ -1148,10 +1363,10 @@ public enum XSound {
      * @param pitch  the pitch of the sound.
      * @param repeat the amount of times to repeat playing.
      * @param delay  the delay between each repeat.
-     * @see #playSound(Location, float, float)
+     * @see #play(Location, float, float)
      * @since 2.0.0
      */
-    public void playSoundRepeatedly(JavaPlugin plugin, Entity entity, float volume, float pitch, int repeat, int delay) {
+    public void playRepeatedly(JavaPlugin plugin, Entity entity, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
 
@@ -1163,7 +1378,7 @@ public enum XSound {
 
             @Override
             public void run() {
-                playSound(entity.getLocation(), volume, pitch);
+                play(entity.getLocation(), volume, pitch);
                 if (repeating-- == 0) cancel();
             }
         }.runTaskTimer(plugin, 0, delay);
@@ -1220,8 +1435,8 @@ public enum XSound {
      * @param entity the entity to play the sound to.
      * @since 1.0.0
      */
-    public void playSound(@Nonnull Entity entity) {
-        playSound(entity, 1.0f, 1.0f);
+    public void play(@Nonnull Entity entity) {
+        play(entity, 1.0f, 1.0f);
     }
 
     /**
@@ -1232,9 +1447,15 @@ public enum XSound {
      * @param pitch  the pitch of the sound, 0 is normal.
      * @since 1.0.0
      */
-    public void playSound(@Nonnull Entity entity, float volume, float pitch) {
+    public void play(@Nonnull Entity entity, float volume, float pitch) {
         Objects.requireNonNull(entity, "Cannot play sound to a null entity");
-        playSound(entity.getLocation(), volume, pitch);
+        if (entity instanceof Player) {
+            Sound sound = this.parseSound();
+            if (sound == null) return;
+            ((Player) entity).playSound(entity.getLocation(), sound, volume, pitch);
+        } else {
+            play(entity.getLocation(), volume, pitch);
+        }
     }
 
     /**
@@ -1243,8 +1464,8 @@ public enum XSound {
      * @param location the location to play the sound in.
      * @since 2.0.0
      */
-    public void playSound(@Nonnull Location location) {
-        playSound(location, 1.0f, 1.0f);
+    public void play(@Nonnull Location location) {
+        play(location, 1.0f, 1.0f);
     }
 
     /**
@@ -1255,11 +1476,53 @@ public enum XSound {
      * @param pitch    the pitch of the sound, 0 is normal.
      * @since 2.0.0
      */
-    public void playSound(@Nonnull Location location, float volume, float pitch) {
+    public void play(@Nonnull Location location, float volume, float pitch) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         Sound sound = this.parseSound();
-
-        Validate.isTrue(sound != null, "Unsupported sound type: ", this.name());
+        if (sound == null) return;
         location.getWorld().playSound(location, sound, volume, pitch);
+    }
+
+    /**
+     * A class to help caching sound properties parsed from config.
+     *
+     * @since 3.0.0
+     */
+    public static class Record {
+        public final Sound sound;
+        public final Player player;
+        public final Location location;
+        public final float volume;
+        public final float pitch;
+        public final boolean playAtLocation;
+
+        public Record(Sound sound, Player player, Location location, float volume, float pitch, boolean playAtLocation) {
+            this.sound = sound;
+            this.player = player;
+            this.location = location;
+            this.volume = volume;
+            this.pitch = pitch;
+            this.playAtLocation = playAtLocation;
+        }
+
+        /**
+         * Plays the sound with the given options and updating the players location.
+         *
+         * @since 3.0.0
+         */
+        public void play() {
+            play(player == null ? location : player.getLocation());
+        }
+
+        /**
+         * Plays the sound with the updated location.
+         *
+         * @param updatedLocation the upated location.
+         * @since 3.0.0
+         */
+        public void play(Location updatedLocation) {
+            if (playAtLocation) location.getWorld().playSound(updatedLocation, sound, volume, pitch);
+            else if (player.isOnline()) player.playSound(updatedLocation, sound, volume, pitch);
+        }
     }
 }

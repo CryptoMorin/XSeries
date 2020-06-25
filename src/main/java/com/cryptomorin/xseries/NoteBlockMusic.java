@@ -78,20 +78,20 @@ public class NoteBlockMusic {
             String name = instrument.name();
             instruments.put(name, instrument);
 
-            StringBuilder alias = new StringBuilder(name.charAt(0) + "");
+            StringBuilder alias = new StringBuilder(String.valueOf(name.charAt(0)));
             int index = name.indexOf('_');
             if (index != -1) alias.append(name.charAt(index + 1));
 
             if (!instruments.containsKey(alias.toString())) instruments.put(alias.toString(), instrument);
             else {
-                boolean start = false;
+                boolean start = true;
                 for (char letter : name.toCharArray()) {
-                    if (!start) {
-                        start = true;
+                    if (start) {
+                        start = false;
                         continue;
                     }
                     if (letter == '_') {
-                        start = false;
+                        start = true;
                         continue;
                     }
                     alias.append(letter);
@@ -214,7 +214,7 @@ public class NoteBlockMusic {
                     // Add to last Repeat Segment
                     if (!repeater.isEmpty()) {
                         String old = repeater.remove(repeater.size() - 1);
-                        repeater.add(old + " " + betweenDelay);
+                        repeater.add(old + ' ' + betweenDelay);
                     }
                     try {
                         Thread.sleep(betweenDelay);
@@ -238,7 +238,7 @@ public class NoteBlockMusic {
                     if (!repeater.isEmpty()) {
                         String old = repeater.remove(repeater.size() - 1);
                         String add = index == -1 ? action : action.substring(0, index);
-                        repeater.add(old + " " + add);
+                        repeater.add(old + ' ' + add);
                     }
 
                     // End of last Repeat Segment
@@ -268,7 +268,7 @@ public class NoteBlockMusic {
                 if (instrument == null) continue;
 
                 String note = split[1].toUpperCase();
-                Note.Tone tone = Enums.getIfPresent(Note.Tone.class, note.charAt(0) + "").orNull();
+                Note.Tone tone = Enums.getIfPresent(Note.Tone.class, String.valueOf(note.charAt(0))).orNull();
                 if (tone == null) continue;
 
                 int len = note.length();
@@ -277,8 +277,8 @@ public class NoteBlockMusic {
 
                 if (len > 1) {
                     toneType = note.charAt(1);
-                    if (Character.isDigit(toneType)) octave = NumberUtils.toInt(toneType + "");
-                    else if (len > 2) octave = NumberUtils.toInt(note.charAt(2) + "");
+                    if (Character.isDigit(toneType)) octave = NumberUtils.toInt(String.valueOf(toneType));
+                    else if (len > 2) octave = NumberUtils.toInt(String.valueOf(note.charAt(2)));
 
                     if (octave < 0 || octave > 2) octave = 0;
                 }

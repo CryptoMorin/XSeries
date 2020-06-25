@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import org.apache.commons.lang.Validate;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.TreeSpecies;
@@ -29,6 +30,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.*;
+import org.bukkit.block.data.type.EndPortalFrame;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Openable;
 import org.bukkit.material.*;
@@ -43,7 +45,7 @@ import java.util.List;
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.1.0
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -51,7 +53,7 @@ import java.util.List;
  * @see XMaterial
  */
 @SuppressWarnings("deprecation")
-public final class XBlock {
+public class XBlock {
     public static final EnumSet<XMaterial> CROPS = EnumSet.of(
             XMaterial.CARROT, XMaterial.POTATO, XMaterial.NETHER_WART, XMaterial.WHEAT_SEEDS, XMaterial.PUMPKIN_SEEDS,
             XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.SUGAR_CANE, XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
@@ -231,19 +233,13 @@ public final class XBlock {
     public static boolean setColor(Block block, DyeColor color) {
         if (ISFLAT) {
             String type = block.getType().name();
-            if (type.endsWith("WOOL")) block.setType(Material.getMaterial(color.name() + "_WOOL"));
-            else if (type.endsWith("BED")) block.setType(Material.getMaterial(color.name() + "_BED"));
-            else if (type.endsWith("STAINED_GLASS")) block.setType(Material.getMaterial(color.name() + "_STAINED_GLASS"));
-            else if (type.endsWith("STAINED_GLASS_PANE")) block.setType(Material.getMaterial(color.name() + "_STAINED_GLASS_PANE"));
-            else if (type.endsWith("TERRACOTTA")) block.setType(Material.getMaterial(color.name() + "_TERRACOTTA"));
-            else if (type.endsWith("GLAZED_TERRACOTTA")) block.setType(Material.getMaterial(color.name() + "_GLAZED_TERRACOTTA"));
-            else if (type.endsWith("BANNER")) block.setType(Material.getMaterial(color.name() + "_BANNER"));
-            else if (type.endsWith("WALL_BANNER")) block.setType(Material.getMaterial(color.name() + "_WALL_BANNER"));
-            else if (type.endsWith("CARPET")) block.setType(Material.getMaterial(color.name() + "_CARPET"));
-            else if (type.endsWith("SHULKER_BOX")) block.setType(Material.getMaterial(color.name() + "_SHULKERBOX"));
-            else if (type.endsWith("CONCRETE")) block.setType(Material.getMaterial(color.name() + "_CONCRETE"));
-            else if (type.endsWith("CONCRETE_POWDER")) block.setType(Material.getMaterial(color.name() + "_CONCRETE_POWDER"));
-            else return false;
+            int index = type.indexOf('_');
+            if (index == -1) return false;
+
+            String realType = type.substring(index);
+            Material material = Material.getMaterial(color.name() + '_' + realType);
+            if (material == null) return false;
+            block.setType(material);
             return true;
         }
 
@@ -297,7 +293,7 @@ public final class XBlock {
     }
 
     public static void setCakeSlices(Block block, int amount) {
-        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
+        Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData bd = block.getBlockData();
             if (bd instanceof org.bukkit.block.data.type.Cake) {
@@ -331,7 +327,7 @@ public final class XBlock {
     }
 
     public static int addCakeSlices(Block block, int slices) {
-        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
+        Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData bd = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
@@ -372,6 +368,37 @@ public final class XBlock {
         ((Wood) data).setSpecies(type);
         state.update(true);
         return true;
+    }
+
+    public static void setEnderPearlOnFrame(Block endPortalFrame, boolean eye) {
+        BlockState state = endPortalFrame.getState();
+        if (ISFLAT) {
+            BlockData data = state.getBlockData();
+            EndPortalFrame frame = (EndPortalFrame) data;
+            frame.setEye(eye);
+            state.setBlockData(frame);
+        } else {
+            state.setRawData((byte) (eye ? 4 : 0));
+        }
+        state.update(true);
+    }
+
+    public static XMaterial getType(Block block) {
+        if (ISFLAT) return XMaterial.matchXMaterial(block.getType());
+        String type = block.getType().name();
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+
+        if (data instanceof Wood) {
+            TreeSpecies species = ((Wood) data).getSpecies();
+            return XMaterial.matchXMaterial(species.name() + block.getType().name())
+                    .orElseThrow(() -> new IllegalArgumentException("Unsupported material from tree species " + species.name() + ": " + block.getType().name()));
+        }
+        if (data instanceof Colorable) {
+            Colorable color = (Colorable) data;
+            return XMaterial.matchXMaterial(color.getColor().name() + '_' + type).orElseThrow(() -> new IllegalArgumentException("Unsupported colored material"));
+        }
+        return XMaterial.matchXMaterial(block.getType());
     }
 
     /**

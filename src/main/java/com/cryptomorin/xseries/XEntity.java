@@ -44,7 +44,7 @@ import java.util.Optional;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 1.1.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -55,8 +55,10 @@ public class XEntity {
         if (typeStr == null) return null;
 
         EntityType type = Enums.getIfPresent(EntityType.class, typeStr.toUpperCase(Locale.ENGLISH)).or(EntityType.ZOMBIE);
-        Entity entity = location.getWorld().spawnEntity(location, type);
+        return edit(location.getWorld().spawnEntity(location, type), config);
+    }
 
+    public static Entity edit(Entity entity, ConfigurationSection config) {
         String name = config.getString("name");
         if (name != null) {
             entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
@@ -90,9 +92,9 @@ public class XEntity {
             if (config.isSet("remove-when-far-away")) living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
             if (config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
-            living.setMaximumAir(config.getInt("max-air"));
-            living.setNoDamageTicks(config.getInt("do-damage-ticks"));
-            living.setRemainingAir(config.getInt("remaining-air"));
+            if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
+            if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("do-damage-ticks"));
+            if (config.isSet("remaining-air")) living.setRemainingAir(config.getInt("remaining-air"));
             for (String effects : config.getStringList("effects")) {
                 living.addPotionEffect(XPotion.parsePotionEffectFromString(effects));
             }
@@ -279,13 +281,13 @@ public class XEntity {
             signal.setDropItem(config.getBoolean("drop-item"));
         } else if (entity instanceof ExperienceOrb) {
             ExperienceOrb orb = (ExperienceOrb) entity;
-            orb.setExperience(config.getInt("exp"));
+            if (config.isSet("exp")) orb.setExperience(config.getInt("exp"));
         } else if (entity instanceof Explosive) {
             Explosive explosive = (Explosive) entity;
-            explosive.setIsIncendiary(config.getBoolean("incendiary"));
+            if (config.isSet("incendiary")) explosive.setIsIncendiary(config.getBoolean("incendiary"));
         } else if (entity instanceof EnderCrystal) {
             EnderCrystal crystal = (EnderCrystal) entity;
-            crystal.setShowingBottom(config.getBoolean("show-bottom"));
+            if (config.isSet("show-bottom")) crystal.setShowingBottom(config.getBoolean("show-bottom"));
         }
 
         return entity;

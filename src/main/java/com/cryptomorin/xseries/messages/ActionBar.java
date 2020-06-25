@@ -19,9 +19,13 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.messages;
 
+import com.cryptomorin.xseries.ReflectionUtils;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -32,6 +36,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,67 +58,89 @@ import java.util.concurrent.Callable;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 2.0.0
  * @see ReflectionUtils
  */
 public class ActionBar {
+    private static final boolean sixteen = Material.getMaterial("LODESTONE") != null;
+    private static final boolean spigot;
     /**
      * ChatComponentText JSON message builder.
      */
-    private static final MethodHandle CHAT_COMPONENT_TEXT;
+    private static final MethodHandle chatComponentText;
     /**
      * PacketPlayOutChat
      */
-    private static final MethodHandle PACKET;
+    private static final MethodHandle packetPlayOutChat;
     /**
      * GAME_INFO enum constant.
      */
-    private static final Object CHAT_MESSAGE_TYPE;
+    private static final Object chatMessageType;
 
     static {
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("PacketPlayOutChat");
-        Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("IChatBaseComponent");
+        boolean exists = false;
+        if (Material.getMaterial("KNOWLEDGE_BOOK") != null) {
+            try {
+                Class.forName("org.spigotmc.SpigotConfig");
+                exists = true;
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        spigot = exists;
+    }
 
+    static {
         MethodHandle packet = null;
         MethodHandle chatComp = null;
         Object chatMsgType = null;
 
-        try {
-            // Game Info Message Type
-            Class<?> chatMessageTypeClass = Class.forName("net.minecraft.server." + ReflectionUtils.VERSION + ".ChatMessageType");
-            for (Object obj : chatMessageTypeClass.getEnumConstants()) {
-                if (obj.toString().equals("GAME_INFO")) {
-                    chatMsgType = obj;
-                    break;
-                }
-            }
+        if (spigot) {
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("PacketPlayOutChat");
+            Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("IChatBaseComponent");
 
-            // JSON Message Builder
-            Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
-            chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
-
-            // Packet Constructor
-            packet = lookup.findConstructor(packetPlayOutChatClass, MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass));
-        } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException ignored) {
             try {
                 // Game Info Message Type
-                chatMsgType = (byte) 2;
+                Class<?> chatMessageTypeClass = Class.forName(ReflectionUtils.NMS + "ChatMessageType");
+
+                for (Object obj : chatMessageTypeClass.getEnumConstants()) {
+                    String name = obj.toString();
+                    if (name.equals("GAME_INFO") || name.equalsIgnoreCase("ACTION_BAR")) {
+                        chatMsgType = obj;
+                        break;
+                    }
+                }
 
                 // JSON Message Builder
                 Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
                 chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
 
                 // Packet Constructor
-                packet = lookup.findConstructor(packetPlayOutChatClass, MethodType.methodType(void.class, iChatBaseComponentClass, byte.class));
-            } catch (NoSuchMethodException | IllegalAccessException ex) {
-                ex.printStackTrace();
+                MethodType type;
+                if (sixteen) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
+                else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
+
+                packet = lookup.findConstructor(packetPlayOutChatClass, type);
+            } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException i) {
+                try {
+                    // Game Info Message Type
+                    chatMsgType = (byte) 2;
+
+                    // JSON Message Builder
+                    Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
+                    chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
+
+                    // Packet Constructor
+                    packet = lookup.findConstructor(packetPlayOutChatClass, MethodType.methodType(void.class, iChatBaseComponentClass, byte.class));
+                } catch (NoSuchMethodException | IllegalAccessException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
 
-        CHAT_MESSAGE_TYPE = chatMsgType;
-        CHAT_COMPONENT_TEXT = chatComp;
-        PACKET = packet;
+        chatMessageType = chatMsgType;
+        chatComponentText = chatComp;
+        packetPlayOutChat = packet;
     }
 
     /**
@@ -126,15 +153,21 @@ public class ActionBar {
      */
     public static void sendActionBar(@Nonnull Player player, @Nullable String message) {
         Objects.requireNonNull(player, "Cannot send action bar to null player");
-        Object packet = null;
+        if (spigot) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+            return;
+        }
 
         try {
-            Object component = CHAT_COMPONENT_TEXT.invoke(message);
-            packet = PACKET.invoke(component, CHAT_MESSAGE_TYPE);
+            Object component = chatComponentText.invoke(message);
+            Object packet;
+            if (sixteen) packet = packetPlayOutChat.invoke(component, chatMessageType, player.getUniqueId());
+            else packet = packetPlayOutChat.invoke(component, chatMessageType);
+
+            ReflectionUtils.sendPacket(player, packet);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
-        ReflectionUtils.sendPacket(player, packet);
     }
 
     /**

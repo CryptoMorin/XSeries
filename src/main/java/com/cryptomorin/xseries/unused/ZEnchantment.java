@@ -19,7 +19,7 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.unused;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -36,11 +36,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Up to 1.15 enchantment support with multiple aliases.
+ * Cross-version enchantment support with multiple aliases.
  * Uses EssentialsX enchantment list for aliases.
  * This class will not be updated.
  * <p>
@@ -63,6 +64,7 @@ public final class ZEnchantment {
      * https://minecraft.gamepedia.com/Java_Edition_1.13/Flattening
      */
     private static final boolean ISFLAT;
+    private static final Pattern SPACE = Pattern.compile("  +");
 
     static {
         ImmutableMap.Builder<String, Enchantment> builder = ImmutableMap.builder();
@@ -375,7 +377,7 @@ public final class ZEnchantment {
         Objects.requireNonNull(item, "Cannot add enchantment to null ItemStack");
         Validate.notEmpty(enchantment, "Cannot add null or empty enchantment to item");
 
-        String[] split = enchantment.contains(",") ? StringUtils.deleteWhitespace(enchantment).split(",") : enchantment.replaceAll("  +", " ").split(" ");
+        String[] split = enchantment.contains(",") ? StringUtils.deleteWhitespace(enchantment).split(",") : SPACE.matcher(enchantment).replaceAll(" ").split(" ");
         Optional<Enchantment> enchant = getByName(split[0]);
         if (!enchant.isPresent()) return item;
 

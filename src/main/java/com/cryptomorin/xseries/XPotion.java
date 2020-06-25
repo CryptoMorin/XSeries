@@ -42,7 +42,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Up to 1.15 potion type support for multiple aliases.
+ * Potion type support for multiple aliases.
  * Uses EssentialsX potion list for aliases.
  * <p>
  * Duration: The duration of the effect in ticks. Values 0 or lower are treated as 1. Optional, and defaults to 1 tick.
@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -99,7 +99,11 @@ public enum XPotion {
      * @since 1.0.0
      */
     public static final EnumSet<XPotion> VALUES = EnumSet.allOf(XPotion.class);
+    public static final EnumSet<XPotion> DEBUFFS = EnumSet.of(
+            BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
+            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER);
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
+    private static final Pattern SPACE = Pattern.compile("  +");
     private final String[] aliases;
 
     XPotion(String... aliases) {
@@ -195,7 +199,7 @@ public enum XPotion {
         if (Strings.isNullOrEmpty(potion) || potion.equalsIgnoreCase("none")) return null;
         String[] split = StringUtils.contains(potion, ',') ?
                 StringUtils.split(StringUtils.deleteWhitespace(potion), ',') :
-                StringUtils.split(potion.replaceAll("  +", " "), ' ');
+                StringUtils.split(SPACE.matcher(potion).replaceAll(" "), ' ');
 
         Optional<XPotion> typeOpt = matchXPotion(split[0]);
         if (!typeOpt.isPresent()) return null;
@@ -229,7 +233,7 @@ public enum XPotion {
 
         for (String effect : effects) {
             PotionEffect potionEffect = parsePotionEffectFromString(effect);
-            if (potionEffect != null) player.addPotionEffect(potionEffect, true);
+            if (potionEffect != null) player.addPotionEffect(potionEffect);
         }
     }
 

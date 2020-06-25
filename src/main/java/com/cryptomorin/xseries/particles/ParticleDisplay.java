@@ -19,11 +19,10 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.particles;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
@@ -32,6 +31,7 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.Objects;
 
 /**
@@ -40,15 +40,23 @@ import java.util.Objects;
  * Particles are spawned to a location. So all the nearby players can see it.
  * <p>
  * The fields of this class are publicly accessible for ease of use.
- * All the fields can be null but they can cause trouble when
- * spawning them.
+ * All the fields can be null except the particle type.
+ * <p>
+ * For cross-version compatibility, instead of Bukkit's {@link org.bukkit.Color}
+ * the java awt {@link Color} class is used.
+ * <p>
+ * the data field is used to store special particle data, such as colored particles.
+ * For colored particles a float list is used since the particle size is a float.
+ * The format of float list data for a colored particle is:
+ * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 3.0.0
  * @see XParticle
  */
 public class ParticleDisplay {
-    private static boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+    private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+    @Nonnull
     public Particle particle;
     public Location location;
     public int count;
@@ -69,7 +77,7 @@ public class ParticleDisplay {
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
      */
-    public ParticleDisplay(Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz, double extra) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz, double extra) {
         this.particle = particle;
         this.location = location;
         this.count = count;
@@ -79,15 +87,15 @@ public class ParticleDisplay {
         this.extra = extra;
     }
 
-    public ParticleDisplay(Particle particle, Location location, int count, double offsetx, double offsety, double offsetz) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
         this(particle, location, count, offsetx, offsety, offsetz, 0);
     }
 
-    public ParticleDisplay(Particle particle, Location location, int count) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count) {
         this(particle, location, count, 0, 0, 0);
     }
 
-    public ParticleDisplay(Particle particle, Location location) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location) {
         this(particle, location, 0);
     }
 
@@ -96,19 +104,32 @@ public class ParticleDisplay {
      * compatible {@link org.bukkit.Particle.DustOptions} properties.
      *
      * @param location the location of the display.
-     * @param r        the red color RGB.
-     * @param g        the green color RGB.
-     * @param b        the blue color RGB.
      * @param size     the size of the dust.
      * @return a redstone colored dust.
      * @see #simple(Location, Particle)
      * @since 1.0.0
      */
     @Nonnull
-    public static ParticleDisplay paintDust(@Nullable Location location, int r, int g, int b, float size) {
+    public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
         ParticleDisplay dust = new ParticleDisplay(Particle.REDSTONE, location, 1, 0, 0, 0, 0);
         dust.data = new float[]{r, g, b, size};
         return dust;
+    }
+
+    /**
+     * Builds a simple ParticleDisplay object with cross-version
+     * compatible {@link org.bukkit.Particle.DustOptions} properties.
+     *
+     * @param location the location of the display.
+     * @param color    the color of the particle.
+     * @param size     the size of the dust.
+     * @return a redstone colored dust.
+     * @see #colored(Location, int, int, int, float)
+     * @since 3.0.0
+     */
+    @Nonnull
+    public static ParticleDisplay colored(@Nullable Location location, @Nonnull Color color, float size) {
+        return colored(location, color.getRed(), color.getGreen(), color.getBlue(), size);
     }
 
     /**
@@ -128,6 +149,26 @@ public class ParticleDisplay {
     public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
         return new ParticleDisplay(particle, location, 1, 0, 0, 0, 0);
+    }
+
+    /**
+     * A quick access method to display a simple particle.
+     * An invocation of this method yields the same result as the expression:
+     * <p>
+     * <blockquote>
+     * ParticleDisplay.simple(location, particle).spawn();
+     * </blockquote>
+     *
+     * @param location the location of the particle.
+     * @param particle the particle to show.
+     * @return a simple ParticleDisplay.
+     * @since 1.0.0
+     */
+    public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
+        Objects.requireNonNull(location, "Cannot display particle in null location");
+        ParticleDisplay display = simple(location, particle);
+        display.spawn();
+        return display;
     }
 
     /**
@@ -162,8 +203,8 @@ public class ParticleDisplay {
         }
 
         double x = 0, y = 0, z = 0;
-        String rotation = config.getString("offset");
-        if (offset != null) {
+        String rotation = config.getString("rotation");
+        if (rotation != null) {
             String[] rotations = StringUtils.split(rotation, ',');
             if (rotations.length > 0) {
                 x = NumberUtils.toDouble(rotations[0]);
@@ -176,10 +217,70 @@ public class ParticleDisplay {
             }
         }
 
+        float[] rgbs = null;
+        String color = config.getString("color");
+        if (color != null) {
+            String[] colors = StringUtils.split(rotation, ',');
+            if (colors.length >= 3) rgbs = new float[]
+                    {NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
+                            (colors.length > 3 ? NumberUtils.toFloat(colors[0]) : 1.0f)};
+        }
+
         Vector rotate = new Vector(x, y, z);
         ParticleDisplay display = new ParticleDisplay(particle, location, count, offsetx, offsety, offsetz, extra);
         display.rotation = rotate;
+        display.data = rgbs;
         return display;
+    }
+
+    /**
+     * Rotates the given xyz with the given rotation radians and
+     * adds the to the specified location.
+     *
+     * @param location the location to add the rotated axis.
+     * @param rotation the xyz rotation radians.
+     * @return a cloned rotated location.
+     * @since 3.0.0
+     */
+    @Nonnull
+    public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nonnull Vector rotation) {
+        Location loc;
+        if (rotation != null) {
+            Vector rotate = new Vector(x, y, z);
+            if (rotation.getX() != 0) XParticle.rotateAroundX(rotate, rotation.getX());
+            if (rotation.getY() != 0) XParticle.rotateAroundY(rotate, rotation.getY());
+            if (rotation.getZ() != 0) XParticle.rotateAroundZ(rotate, rotation.getZ());
+            loc = location.clone().add(rotate);
+        } else loc = location.clone().add(x, y, z);
+        return loc;
+    }
+
+    /**
+     * Changes the particle count of the particle settings.
+     *
+     * @param count the particle count.
+     * @return the same particle display.
+     * @since 3.0.0
+     */
+    @Nonnull
+    public ParticleDisplay withCount(int count) {
+        this.count = count;
+        return this;
+    }
+
+    /**
+     * Adds color properties to the particle settings.
+     *
+     * @param color the RGB color of the particle.
+     * @param size  the size of the particle.
+     * @return a colored particle.
+     * @see #colored(Location, Color, float)
+     * @since 3.0.0
+     */
+    @Nonnull
+    public ParticleDisplay withColor(@Nonnull Color color, float size) {
+        data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), size};
+        return this;
     }
 
     /**
@@ -242,6 +343,7 @@ public class ParticleDisplay {
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
+    @Nonnull
     public ParticleDisplay clone() {
         ParticleDisplay display = new ParticleDisplay(particle, (location == null ? null : location.clone()), count, offsetx, offsety, offsetz, extra);
         if (rotation != null) display.rotation = rotation.clone();
@@ -256,6 +358,7 @@ public class ParticleDisplay {
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
+    @Nonnull
     public ParticleDisplay rotate(@Nonnull Vector vector) {
         Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
         if (rotation == null) rotation = vector;
@@ -271,21 +374,10 @@ public class ParticleDisplay {
      * @see #rotate(Vector)
      * @since 3.0.0
      */
+    @Nonnull
     public ParticleDisplay rotate(double x, double y, double z) {
         rotate(new Vector(x, y, z));
         return this;
-    }
-
-    /**
-     * Adds xyz of the given vector to the cloned location before
-     * spawning particles.
-     *
-     * @param vector the vector to add.
-     * @since 1.0.0
-     */
-    public void spawn(@Nonnull Vector vector) {
-        Objects.requireNonNull(vector, "Cannot add xyz of null vector to ParticleDisplay");
-        spawn(vector.getX(), vector.getY(), vector.getZ());
     }
 
     /**
@@ -293,6 +385,7 @@ public class ParticleDisplay {
      *
      * @since 1.1.0
      */
+    @Nonnull
     public ParticleDisplay offset(double x, double y, double z) {
         offsetx = x;
         offsety = y;
@@ -310,6 +403,7 @@ public class ParticleDisplay {
      * @see #isDirectional()
      * @since 1.1.0
      */
+    @Nonnull
     public ParticleDisplay directional() {
         count = 0;
         return this;
@@ -329,11 +423,43 @@ public class ParticleDisplay {
     /**
      * Spawns the particle at the current location.
      *
-     * @see #spawn(Location)
+     * @see #spawn(boolean)
      * @since 2.0.1
      */
     public void spawn() {
-        spawn(this.location);
+        spawn(this.location, false);
+    }
+
+    /**
+     * Spawns the particle at the current location.
+     *
+     * @see #spawn(Location, boolean)
+     * @since 3.0.0
+     */
+    public void spawn(boolean rotate) {
+        spawn(this.location, rotate);
+    }
+
+    /**
+     * Spawns the particle at the given location.
+     *
+     * @see #spawn(Location, boolean)
+     * @since 1.0.0
+     */
+    public void spawn(@Nonnull Location location) {
+        spawn(location, false);
+    }
+
+    /**
+     * Adds xyz of the given vector to the cloned location before
+     * spawning particles.
+     *
+     * @param location the xyz to add.
+     * @since 1.0.0
+     */
+    public void spawn(@Nonnull Vector location) {
+        Objects.requireNonNull(location, "Cannot add xyz of null vector to ParticleDisplay");
+        spawn(location.getX(), location.getY(), location.getZ());
     }
 
     /**
@@ -341,16 +467,10 @@ public class ParticleDisplay {
      *
      * @since 1.0.0
      */
+    @Nonnull
     public Location spawn(double x, double y, double z) {
-        Location loc;
-        if (rotation != null) {
-            Vector rotate = new Vector(x, y, z);
-            if (rotation.getX() != 0) XParticle.rotateAroundX(rotate, rotation.getX());
-            if (rotation.getY() != 0) XParticle.rotateAroundY(rotate, rotation.getY());
-            if (rotation.getZ() != 0) XParticle.rotateAroundZ(rotate, rotation.getZ());
-            loc = location.clone().add(rotate);
-        } else loc = location.clone().add(x, y, z);
-        spawn(loc);
+        Location loc = rotate(location, x, y, z, rotation);
+        spawn(loc, false);
         return loc;
     }
 
@@ -360,14 +480,16 @@ public class ParticleDisplay {
      *
      * @param loc the location to display the particle at.
      * @see #spawn(double, double, double)
-     * @since 3.0.0
+     * @since 2.1.0
      */
-    public void spawn(Location loc) {
+    public void spawn(@Nonnull Location loc, boolean rotate) {
+        if (rotate) loc = rotate(location, loc.getX(), loc.getY(), loc.getZ(), rotation);
         if (data != null) {
             if (data instanceof float[]) {
                 float[] datas = (float[]) data;
                 if (ISFLAT) {
-                    Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
+                    Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
+                            .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
                     loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
                 } else {
                     loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);

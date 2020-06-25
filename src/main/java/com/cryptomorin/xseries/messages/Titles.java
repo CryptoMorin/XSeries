@@ -19,9 +19,12 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.messages;
 
+import com.cryptomorin.xseries.ReflectionUtils;
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -51,7 +54,13 @@ import java.util.Objects;
  */
 public class Titles {
     /**
-     * Used for the "stay" feature of titles.
+     * Check if the server is runnong on 1.11 or higher.
+     * Since in 1.11 you can change the timings.
+     */
+    private static final boolean SUPPORTS;
+    /**
+     * EnumTitleAction
+     * Used for the fade in, stay and fade out feature of titles.
      */
     private static final Object TIMES;
     private static final Object TITLE;
@@ -68,9 +77,14 @@ public class Titles {
     private static final MethodHandle CHAT_COMPONENT_TEXT;
 
     static {
-        Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
-        Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
-        Class<?> titleTypes = packet.getDeclaredClasses()[0];
+        String version = Bukkit.getVersion();
+        int index = version.lastIndexOf("MC:");
+        version = version.substring(index + 6, version.length() - 1);
+        int lastDot = version.lastIndexOf('.');
+        if (lastDot != -1) version = version.substring(0, lastDot);
+        SUPPORTS = Integer.parseInt(version) >= 11;
+
+
         MethodHandle packetCtor = null;
         MethodHandle chatComp = null;
 
@@ -79,31 +93,37 @@ public class Titles {
         Object subtitle = null;
         Object clear = null;
 
-        for (Object type : titleTypes.getEnumConstants()) {
-            switch (type.toString()) {
-                case "TIMES":
-                    times = type;
-                    break;
-                case "TITLE":
-                    title = type;
-                    break;
-                case "SUBTITLE":
-                    subtitle = type;
-                    break;
-                case "CLEAR":
-                    clear = type;
+        if (!SUPPORTS) {
+            Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
+            Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
+            Class<?> titleTypes = packet.getDeclaredClasses()[0];
+
+            for (Object type : titleTypes.getEnumConstants()) {
+                switch (type.toString()) {
+                    case "TIMES":
+                        times = type;
+                        break;
+                    case "TITLE":
+                        title = type;
+                        break;
+                    case "SUBTITLE":
+                        subtitle = type;
+                        break;
+                    case "CLEAR":
+                        clear = type;
+                }
             }
-        }
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        try {
-            chatComp = lookup.findConstructor(chatComponentText, MethodType.methodType(void.class, String.class));
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            try {
+                chatComp = lookup.findConstructor(chatComponentText, MethodType.methodType(void.class, String.class));
 
-            packetCtor = lookup.findConstructor(packet,
-                    MethodType.methodType(void.class, titleTypes,
-                            ReflectionUtils.getNMSClass("IChatBaseComponent"), int.class, int.class, int.class));
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            e.printStackTrace();
+                packetCtor = lookup.findConstructor(packet,
+                        MethodType.methodType(void.class, titleTypes,
+                                ReflectionUtils.getNMSClass("IChatBaseComponent"), int.class, int.class, int.class));
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
 
         TITLE = title;
@@ -132,6 +152,10 @@ public class Titles {
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
+        if (SUPPORTS) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+            return;
+        }
 
         try {
             Object timesPacket = PACKET.invoke(TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
@@ -226,9 +250,9 @@ public class Titles {
     public static void sendTabList(Player player, String header, String footer) {
         Objects.requireNonNull(player, "Cannot update tab for null player");
         header = Strings.isNullOrEmpty(header) ?
-                "" : ChatColor.translateAlternateColorCodes('&', header).replace("%player%", player.getDisplayName());
+                "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', header), "%player%", player.getDisplayName());
         footer = Strings.isNullOrEmpty(footer) ?
-                "" : ChatColor.translateAlternateColorCodes('&', footer).replace("%player%", player.getDisplayName());
+                "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', footer), "%player%", player.getDisplayName());
 
         try {
             Method chatComponentBuilderMethod = ReflectionUtils.getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class);

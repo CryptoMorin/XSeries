@@ -2,6 +2,7 @@ package com.cryptomorin.xseries;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -68,9 +69,31 @@ public class Examples {
     }
 
     /**
-     * Writes the difference between two enums.
+     * Writes the material and sound differences for updating purposes.
      *
-     * @param path   the path to write the difference to.
+     * @param path the path folder to save the files to.
+     * @since 6.0.0
+     */
+    public static void versionDifference(Path path) {
+        Path materials = path.resolve("XMaterial.txt");
+        Path sounds = path.resolve("XSound.txt");
+
+        writeDifference(materials, Material.class, XMaterial.class);
+        writeDifference(sounds, Sound.class, XSound.class);
+    }
+
+    /**
+     * Writes the difference between two enums.
+     * For other differences check:
+     * <pre>
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Sound.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/potion/PotionEffectType.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/enchantments/Enchantment.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Particle.java
+     * </pre>
+     *
+     * @param path   the file path to write the difference to.
      * @param system the original enum.
      * @param custom the custom enum that is most likely a version behind the original enum.
      * @since 1.0.0
@@ -79,28 +102,28 @@ public class Examples {
         try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
             for (Enum<S> systemConst : system.getEnumConstants()) {
-                boolean exists = false;
+                boolean exists = true;
                 for (Enum<E> customConst : custom.getEnumConstants()) {
                     if (systemConst.name().equals(customConst.name())) {
-                        exists = true;
+                        exists = false;
                         break;
                     }
                 }
-                if (!exists) {
+                if (exists) {
                     writer.write(systemConst.name());
                     writer.newLine();
                 }
             }
             writer.write("--------------------------------");
             for (Enum<E> customConst : custom.getEnumConstants()) {
-                boolean exists = false;
+                boolean exists = true;
                 for (Enum<S> systemConst : system.getEnumConstants()) {
                     if (systemConst.name().equals(customConst.name())) {
-                        exists = true;
+                        exists = false;
                         break;
                     }
                 }
-                if (!exists) if (!exists) {
+                if (exists) {
                     writer.write(customConst.name());
                     writer.newLine();
                 }

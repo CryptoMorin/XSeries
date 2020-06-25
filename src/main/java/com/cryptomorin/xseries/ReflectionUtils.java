@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * by the server.
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 1.0.2
  */
 public class ReflectionUtils {
     /**
@@ -55,8 +55,8 @@ public class ReflectionUtils {
      * In order to maintain cross-version compatibility we cannot import these classes.
      */
     public static final String VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-    public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + ".";
-    public static final String NMS = "net.minecraft.server." + VERSION + ".";
+    public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + '.';
+    public static final String NMS = "net.minecraft.server." + VERSION + '.';
 
     private static final MethodHandle PLAYER_CONNECTION;
     private static final MethodHandle GET_HANDLE;

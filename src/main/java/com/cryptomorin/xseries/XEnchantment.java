@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -28,20 +29,18 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Up to 1.15 enchantment support with multiple aliases.
+ * Enchantment support with multiple aliases.
  * Uses EssentialsX enchantment list for aliases.
  * Enchantment levels do not start from 0, they start from 1
  * <p>
@@ -50,7 +49,7 @@ import java.util.regex.Pattern;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 1.1.0
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -68,7 +67,8 @@ public enum XEnchantment {
     DURABILITY("UNBREAKING", "DURA"),
     FIRE_ASPECT(true, "FIRE", "MELEE_FIRE", "MELEE_FLAME", "FA"),
     FROST_WALKER(true, "FROST", "WALKER"),
-    IMPALING("IMPALE", "OCEAN_DAMAGE", "OCEAN_DMG"),
+    IMPALING(true, "IMPALE", "OCEAN_DAMAGE", "OCEAN_DMG"),
+    SOUL_SPEED(true, "SPEED_SOUL", "SOUL_RUNNER"),
     KNOCKBACK(true, "K_BACK", "KB"),
     LOOT_BONUS_BLOCKS("FORTUNE", "BLOCKS_LOOT_BONUS", "FORT", "LBB"),
     LOOT_BONUS_MOBS("LOOTING", "MOB_LOOT", "MOBS_LOOT_BONUS", "LBM"),
@@ -106,6 +106,7 @@ public enum XEnchantment {
      */
     private static final boolean ISFLAT;
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
+    private static final Pattern SPACE = Pattern.compile("  +");
 
     static {
         boolean flat;
@@ -136,6 +137,33 @@ public enum XEnchantment {
     XEnchantment(boolean self, String... aliases) {
         this.self = self;
         this.aliases = aliases;
+    }
+
+    /**
+     * Checks if {@link #DAMAGE_UNDEAD Smite} is effective
+     * against this type of mob.
+     *
+     * @param type the type of the mob.
+     * @return true if smite enchantment is effective against the mob, otherwise false.
+     * @since 1.1.0
+     */
+    public static boolean isSmiteEffectiveAgainst(EntityType type) {
+        return Arrays.asList(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.WITHER, EntityType.WITHER_SKELETON,
+                EntityType.SKELETON_HORSE, EntityType.STRAY, EntityType.HUSK, EntityType.PHANTOM, EntityType.DROWNED).contains(type);
+    }
+
+    /**
+     * Checks if {@link #DAMAGE_ARTHROPODS Bane of Arthropods} is effective
+     * against this type of mob.
+     *
+     * @param type the type of the mob.
+     * @return true if Bane of Arthropods enchantment is effective against the mob, otherwise false.
+     * @since 1.1.0
+     */
+    public static boolean isArthropodsEffectiveAgainst(EntityType type) {
+        if (Arrays.asList(EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.SILVERFISH, EntityType.ENDERMITE).contains(type)) return true;
+        else if (Enums.getIfPresent(EntityType.class, "BEE").isPresent()) return type == EntityType.BEE;
+        return false;
     }
 
     /**
@@ -217,7 +245,7 @@ public enum XEnchantment {
 
         String[] split = StringUtils.contains(enchantment, ',') ?
                 StringUtils.split(StringUtils.deleteWhitespace(enchantment), ',') :
-                StringUtils.split(enchantment.replaceAll("  +", " "), ' ');
+                StringUtils.split(SPACE.matcher(enchantment).replaceAll(" "), ' ');
 
         Optional<XEnchantment> enchantOpt = matchXEnchantment(split[0]);
         if (enchantOpt.isPresent()) return item;
