@@ -63,12 +63,13 @@
         </dependency>
 
         <!-- Simply add the Spigot JAR directly as a dependency. Yes, you won't need the spigot-api anymore. -->
+        <!-- The library is from http://nathaantfm.alwaysdata.net/explorer/?package=com.mojang&name=authlib-->
         <dependency>
             <groupId>com.mojang.authlib</groupId>
-            <artifactId>Profiles</artifactId>
-            <version>1.0.0</version>
+            <artifactId>authlib</artifactId>
+            <version>1.6.25</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}\repo\com\mojang\authlib\Profiles\1.0.0\Profiles-2.0.0.jar</systemPath>
+            <systemPath>${pom.basedir}/repo/authlib-for-1.16.1.jar</systemPath>
         </dependency>
 
         <dependency>
