@@ -45,33 +45,18 @@
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>repo</id>
-            <url>file://${project.basedir}/repo</url>
+            <id>nms-repo</id>
+            <url>https://repo.codemc.org/repository/nms/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <artifactId>spigot</artifactId>
             <version>1.16.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- Simply add the Spigot JAR directly as a dependency. Yes, you won't need the spigot-api anymore. -->
-        <!-- The library is from http://nathaantfm.alwaysdata.net/explorer/?package=com.mojang&name=authlib-->
-        <dependency>
-            <groupId>com.mojang.authlib</groupId>
-            <artifactId>authlib</artifactId>
-            <version>1.6.25</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}/repo/authlib-for-1.16.1.jar</systemPath>
-        </dependency>
-
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
