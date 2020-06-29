@@ -25,6 +25,7 @@ import com.google.common.base.Enums;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
@@ -44,7 +45,7 @@ import java.util.Optional;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -82,9 +83,12 @@ public class XEntity {
         if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) entity;
             double hp = config.getDouble("health", -1);
-            if (hp > -1) living.setHealth(hp);
+            if (hp > -1) {
+                living.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(hp);
+                living.setHealth(hp);
+            }
 
-            living.setAbsorptionAmount(config.getInt("absorption"));
+            if (XMaterial.isNewVersion()) living.setAbsorptionAmount(config.getInt("absorption"));
             if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
             if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
@@ -103,10 +107,10 @@ public class XEntity {
             if (equip != null) {
                 EntityEquipment equipment = living.getEquipment();
 
-                ConfigurationSection helment = equip.getConfigurationSection("helment");
-                if (helment != null) {
-                    equipment.setHelmet(XItemStack.deserialize(helment.getConfigurationSection("item")));
-                    equipment.setHelmetDropChance(helment.getInt("drop-chance"));
+                ConfigurationSection helmet = equip.getConfigurationSection("helmet");
+                if (helmet != null) {
+                    equipment.setHelmet(XItemStack.deserialize(helmet.getConfigurationSection("item")));
+                    equipment.setHelmetDropChance(helmet.getInt("drop-chance"));
                 }
 
                 ConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
@@ -163,7 +167,8 @@ public class XEntity {
             }
             if (living instanceof Spellcaster) {
                 Spellcaster caster = (Spellcaster) living;
-                caster.setSpell(Enums.getIfPresent(Spellcaster.Spell.class, config.getString("spell")).or(Spellcaster.Spell.NONE));
+                String spell = config.getString("spell");
+                if (spell != null) caster.setSpell(Enums.getIfPresent(Spellcaster.Spell.class, spell).or(Spellcaster.Spell.NONE));
             }
             if (living instanceof ChestedHorse) { // Llamas too
                 ChestedHorse chested = (ChestedHorse) living;
@@ -199,10 +204,6 @@ public class XEntity {
             } else if (living instanceof Bat) {
                 Bat bat = (Bat) living;
                 if (!config.getBoolean("awake")) bat.setAwake(false);
-            } else if (living instanceof Cat) {
-                Cat cat = (Cat) living;
-                cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
-                cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
             } else if (living instanceof Wolf) {
                 Wolf wolf = (Wolf) living;
                 wolf.setAngry(config.getBoolean("angry"));
@@ -218,11 +219,7 @@ public class XEntity {
                     Husk husk = (Husk) living;
                     husk.setConversionTime(config.getInt("conversion-time"));
                 } else if (XMaterial.supports(11)) {
-
-                    if (living instanceof Vex) {
-                        Vex vex = (Vex) living;
-                        vex.setCharging(config.getBoolean("charging"));
-                    } else if (living instanceof Llama) {
+                    if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         llama.setColor(Enums.getIfPresent(Llama.Color.class, config.getString("color")).or(Llama.Color.WHITE));
                         llama.setStrength(config.getInt("strength"));
@@ -232,8 +229,14 @@ public class XEntity {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
                         } else if (XMaterial.isNewVersion()) {
-
-                            if (living instanceof PufferFish) {
+                            if (living instanceof Vex) {
+                                Vex vex = (Vex) living;
+                                vex.setCharging(config.getBoolean("charging"));
+                            } else if (living instanceof Cat) {
+                                Cat cat = (Cat) living;
+                                cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
+                                cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
+                            } else if (living instanceof PufferFish) {
                                 PufferFish pufferFish = (PufferFish) living;
                                 pufferFish.setPuffState(config.getInt("puff-state"));
                             } else if (living instanceof TropicalFish) {
@@ -281,13 +284,13 @@ public class XEntity {
             signal.setDropItem(config.getBoolean("drop-item"));
         } else if (entity instanceof ExperienceOrb) {
             ExperienceOrb orb = (ExperienceOrb) entity;
-            if (config.isSet("exp")) orb.setExperience(config.getInt("exp"));
+            orb.setExperience(config.getInt("exp"));
         } else if (entity instanceof Explosive) {
             Explosive explosive = (Explosive) entity;
-            if (config.isSet("incendiary")) explosive.setIsIncendiary(config.getBoolean("incendiary"));
+            explosive.setIsIncendiary(config.getBoolean("incendiary"));
         } else if (entity instanceof EnderCrystal) {
             EnderCrystal crystal = (EnderCrystal) entity;
-            if (config.isSet("show-bottom")) crystal.setShowingBottom(config.getBoolean("show-bottom"));
+            crystal.setShowingBottom(config.getBoolean("show-bottom"));
         }
 
         return entity;

@@ -94,7 +94,7 @@ public class ActionBar {
         MethodHandle chatComp = null;
         Object chatMsgType = null;
 
-        if (spigot) {
+        if (!spigot) {
             MethodHandles.Lookup lookup = MethodHandles.lookup();
             Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("PacketPlayOutChat");
             Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("IChatBaseComponent");
@@ -102,6 +102,11 @@ public class ActionBar {
             try {
                 // Game Info Message Type
                 Class<?> chatMessageTypeClass = Class.forName(ReflectionUtils.NMS + "ChatMessageType");
+
+                // Packet Constructor
+                MethodType type;
+                if (sixteen) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
+                else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
 
                 for (Object obj : chatMessageTypeClass.getEnumConstants()) {
                     String name = obj.toString();
@@ -115,13 +120,8 @@ public class ActionBar {
                 Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
                 chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
 
-                // Packet Constructor
-                MethodType type;
-                if (sixteen) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
-                else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
-
                 packet = lookup.findConstructor(packetPlayOutChatClass, type);
-            } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException i) {
+            } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException ignored) {
                 try {
                     // Game Info Message Type
                     chatMsgType = (byte) 2;

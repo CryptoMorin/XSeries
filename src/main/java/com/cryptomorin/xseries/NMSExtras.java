@@ -52,10 +52,12 @@ public class NMSExtras {
             expPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
                     int.class, int.class));
             // Lightning
-            weatherPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class, nmsEntity));
+            // TODO Not sure what the method changed to in 16...
+            if (!XMaterial.supports(16)) weatherPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
+                    nmsEntity));
             worldHandle = lookup.findVirtual(ReflectionUtils.getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
                     ReflectionUtils.getNMSClass("WorldServer")));
-            lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
+            if (!XMaterial.supports(16)) lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
                     // world, x, y, z, isEffect, isSilent
                     world, double.class, double.class, double.class, boolean.class, boolean.class));
 

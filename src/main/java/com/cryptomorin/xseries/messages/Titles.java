@@ -24,8 +24,8 @@ package com.cryptomorin.xseries.messages;
 import com.cryptomorin.xseries.ReflectionUtils;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -49,7 +49,7 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 1.0.2
  * @see ReflectionUtils
  */
 public class Titles {
@@ -57,7 +57,7 @@ public class Titles {
      * Check if the server is runnong on 1.11 or higher.
      * Since in 1.11 you can change the timings.
      */
-    private static final boolean SUPPORTS;
+    private static final boolean supported = Material.getMaterial("OBSERVER") != null;
     /**
      * EnumTitleAction
      * Used for the fade in, stay and fade out feature of titles.
@@ -77,14 +77,6 @@ public class Titles {
     private static final MethodHandle CHAT_COMPONENT_TEXT;
 
     static {
-        String version = Bukkit.getVersion();
-        int index = version.lastIndexOf("MC:");
-        version = version.substring(index + 6, version.length() - 1);
-        int lastDot = version.lastIndexOf('.');
-        if (lastDot != -1) version = version.substring(0, lastDot);
-        SUPPORTS = Integer.parseInt(version) >= 11;
-
-
         MethodHandle packetCtor = null;
         MethodHandle chatComp = null;
 
@@ -93,7 +85,7 @@ public class Titles {
         Object subtitle = null;
         Object clear = null;
 
-        if (!SUPPORTS) {
+        if (!supported) {
             Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
             Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
             Class<?> titleTypes = packet.getDeclaredClasses()[0];
@@ -152,7 +144,7 @@ public class Titles {
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
-        if (SUPPORTS) {
+        if (supported) {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             return;
         }
@@ -227,6 +219,10 @@ public class Titles {
      */
     public static void clearTitle(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
+        if (supported) {
+            player.resetTitle();
+            return;
+        }
         Object clearPacket = null;
 
         try {

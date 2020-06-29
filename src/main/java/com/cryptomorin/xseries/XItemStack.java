@@ -25,10 +25,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.BlockState;
@@ -38,6 +35,7 @@ import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -57,7 +55,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.0.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -260,10 +258,11 @@ public class XItemStack {
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
             BlockState state = bsm.getBlockState();
-            CreatureSpawner spawner = (CreatureSpawner) state;
-
-            spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner")).orNull());
-            bsm.setBlockState(spawner);
+            if (state instanceof CreatureSpawner) {
+                CreatureSpawner spawner = (CreatureSpawner) state;
+                spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner")).orNull());
+                bsm.setBlockState(spawner);
+            }
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
             FireworkEffect.Builder builder = FireworkEffect.builder();
@@ -441,5 +440,21 @@ public class XItemStack {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');
         return Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
+    }
+
+    /**
+     * Adds a list of items to the player's inventory and drop the items that did not fit.
+     *
+     * @param player the player to give the items to.
+     * @param items  the items to give.
+     * @return the items that did not fit and were dropped.
+     * @since 2.0.1
+     */
+    public static Map<Integer, ItemStack> giveOrDrop(Player player, ItemStack... items) {
+        Map<Integer, ItemStack> drop = player.getInventory().addItem(items);
+        World world = player.getWorld();
+        Location location = player.getLocation();
+        drop.forEach((x, z) -> world.dropItemNaturally(location, z));
+        return drop;
     }
 }
