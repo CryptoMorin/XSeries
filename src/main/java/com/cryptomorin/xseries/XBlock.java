@@ -45,7 +45,7 @@ import java.util.List;
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -138,31 +138,35 @@ public class XBlock {
     }
 
     public static boolean isCake(Material material) {
-        return ISFLAT ? material == Material.CAKE : material.name().equals("CAKE_BLOCK");
+        return material == Material.CAKE || material.name().equals("CAKE_BLOCK");
     }
 
     public static boolean isWheat(Material material) {
-        return ISFLAT ? material == Material.WHEAT : material.name().equals("CROPS");
+        return material == Material.WHEAT || material.name().equals("CROPS");
     }
 
     public static boolean isSugarCane(Material material) {
-        return ISFLAT ? material == Material.SUGAR_CANE : material.name().equals("SUGAR_CANE_BLOCK");
+        return material == Material.SUGAR_CANE || material.name().equals("SUGAR_CANE_BLOCK");
     }
 
     public static boolean isBeetroot(Material material) {
-        return ISFLAT ? material == Material.SUGAR_CANE : material.name().equals("BEETROOT_BLOCK");
+        return material == Material.SUGAR_CANE || material.name().equals("BEETROOT_BLOCK");
     }
 
     public static boolean isNetherWart(Material material) {
-        return ISFLAT ? material == Material.NETHER_WART : material.name().equals("NETHER_WARTS");
+        return material == Material.NETHER_WART || material.name().equals("NETHER_WARTS");
     }
 
     public static boolean isCarrot(Material material) {
-        return ISFLAT ? material.name().equals("CARROTS") : material == Material.CARROT;
+        return material == Material.CARROT || material == Material.CARROTS;
+    }
+
+    public static boolean isMelon(Material material) {
+        return material == Material.MELON || material == Material.MELON_SLICE || material.name().equalsIgnoreCase("MELON_BLOCK");
     }
 
     public static boolean isPotato(Material material) {
-        return ISFLAT ? material.name().equals("POTATOES") : material == Material.POTATO;
+        return material == Material.POTATO || material == Material.POTATOES;
     }
 
     public static BlockFace getDirection(Block block) {
@@ -331,9 +335,10 @@ public class XBlock {
         if (ISFLAT) {
             BlockData bd = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
+            int bites = cake.getBites() + slices;
 
-            if (cake.getBites() + slices <= cake.getMaximumBites()) {
-                cake.setBites(cake.getBites() + slices);
+            if (bites >= 0 && bites <= cake.getMaximumBites()) {
+                cake.setBites(bites);
             } else {
                 block.breakNaturally();
                 return cake.getMaximumBites() - cake.getBites();
@@ -418,6 +423,9 @@ public class XBlock {
                 return isCake(mat);
             case NETHER_WART:
                 return isNetherWart(mat);
+            case MELON:
+            case MELON_SLICE:
+                return isMelon(mat);
             case CARROT:
             case CARROTS:
                 return isCarrot(mat);
@@ -436,6 +444,8 @@ public class XBlock {
             case WATER:
                 return isWater(mat);
             case AIR:
+                // We don't look for other airs as material variable is supposed to be parsed from a user friendly string.
+                // And I don't know why would anyone use the other air types.
                 return isAir(mat);
         }
 
@@ -443,8 +453,7 @@ public class XBlock {
     }
 
     public static boolean isAir(Material material) {
-        // Only air material names end with "IR"
-        return material.name().endsWith("IR");
+        return material.name().endsWith("AIR");
     }
 
     public static boolean isPowered(Block block) {

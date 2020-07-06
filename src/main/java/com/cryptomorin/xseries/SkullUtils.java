@@ -54,11 +54,10 @@ import java.util.regex.Pattern;
  * @see XMaterial
  */
 public class SkullUtils {
-    private static final String valueProperty = "{\"textures\":{\"SKIN\":{\"url\":\"";
-    private static final String textures = "https://textures.minecraft.net/texture/";
-    private static final String session = "https://sessionserver.mojang.com/session/minecraft/profile/";
-    private static final Pattern base64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
-    private static final Pattern username = Pattern.compile("[A-z0-9]+");
+    private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
+    private static final String TEXTURES = "https://textures.minecraft.net/texture/";
+    private static final String SESSION = "https://sessionserver.mojang.com/session/minecraft/profile/";
+    private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
 
     @SuppressWarnings("deprecation")
     @Nonnull
@@ -109,12 +108,12 @@ public class SkullUtils {
 
     @Nonnull
     public static SkullMeta getValueFromTextures(@Nonnull SkullMeta head, @Nonnull String url) {
-        return getSkullByValue(head, encodeBase64(valueProperty + url + "\"}}}"));
+        return getSkullByValue(head, encodeBase64(VALUE_PROPERTY + url + "\"}}}"));
     }
 
     @Nonnull
     public static SkullMeta getTexturesFromUrlValue(@Nonnull SkullMeta head, @Nonnull String urlValue) {
-        return getValueFromTextures(head, textures + urlValue);
+        return getValueFromTextures(head, TEXTURES + urlValue);
     }
 
     @Nonnull
@@ -123,7 +122,7 @@ public class SkullUtils {
     }
 
     private static boolean isBase64(String base64) {
-        return SkullUtils.base64.matcher(base64).matches();
+        return BASE64.matcher(base64).matches();
     }
 
     @Nonnull
@@ -151,7 +150,6 @@ public class SkullUtils {
     @Nullable
     private static String getFullUUID(@Nullable String id) {
         if (Strings.isNullOrEmpty(id)) return id;
-        if (id.length() == 36) return id;
         if (id.length() != 32) return id;
 
         return id.substring(0, 8) +
@@ -168,7 +166,11 @@ public class SkullUtils {
 
     private static boolean isUsername(@Nullable String name) {
         if (Strings.isNullOrEmpty(name)) return false;
-        return name.length() >= 3 && name.length() <= 16 && username.matcher(name).matches();
+        if (name.length() < 3 || name.length() > 16) return false;
+        for (char ch : name.toCharArray()) {
+            if (ch != '_' && !Character.isLetterOrDigit(ch)) return false;
+        }
+        return true;
     }
 
     /**
@@ -205,7 +207,7 @@ public class SkullUtils {
                 uuid = jObject.get("id").getAsString();
             } else uuid = StringUtils.remove(name, '-');
 
-            URL properties = new URL(session + uuid); // + "?unsigned=false"
+            URL properties = new URL(SESSION + uuid); // + "?unsigned=false"
             InputStreamReader readProperties = new InputStreamReader(properties.openStream());
             JsonObject jObjectP = parser.parse(readProperties).getAsJsonObject();
 
