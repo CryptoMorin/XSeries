@@ -265,28 +265,32 @@ public class XItemStack {
             }
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
-            FireworkEffect.Builder builder = FireworkEffect.builder();
-            for (String fws : config.getConfigurationSection("fireworks").getKeys(false)) {
-                ConfigurationSection fw = config.getConfigurationSection("firework." + fws);
+            firework.setPower(config.getInt("power"));
 
-                firework.setPower(fw.getInt("power"));
-                builder.flicker(fw.getBoolean("flicker"));
-                builder.trail(fw.getBoolean("trail"));
-                builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type")).or(FireworkEffect.Type.STAR));
+            ConfigurationSection fireworkSection = config.getConfigurationSection("firework");
+            if (fireworkSection != null) {
+                FireworkEffect.Builder builder = FireworkEffect.builder();
+                for (String fws : fireworkSection.getKeys(false)){
+                    ConfigurationSection fw = config.getConfigurationSection("firework." + fws);
 
-                List<Color> colors = new ArrayList<>();
-                for (String colorStr : fw.getStringList("colors")) {
-                    colors.add(parseColor(colorStr));
+                    builder.flicker(fw.getBoolean("flicker"));
+                    builder.trail(fw.getBoolean("trail"));
+                    builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type")).or(FireworkEffect.Type.STAR));
+
+                    List<Color> colors = new ArrayList<>();
+                    for (String colorStr : fw.getStringList("colors")) {
+                        colors.add(parseColor(colorStr));
+                    }
+                    builder.withColor(colors);
+
+                    colors.clear();
+                    for (String colorStr : fw.getStringList("fade-colors")) {
+                        colors.add(parseColor(colorStr));
+                    }
+                    builder.withFade(colors);
+
+                    firework.addEffect(builder.build());
                 }
-                builder.withColor(colors);
-
-                colors.clear();
-                for (String colorStr : fw.getStringList("fade-colors")) {
-                    colors.add(parseColor(colorStr));
-                }
-                builder.withFade(colors);
-
-                firework.addEffect(builder.build());
             }
             //} else if (meta instanceof MapMeta) {
             // TODO This is a little bit too complicated.
