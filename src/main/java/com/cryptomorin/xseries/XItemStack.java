@@ -41,7 +41,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 
 import java.util.*;
 
@@ -143,6 +145,9 @@ public class XItemStack {
                 effects.add(effect.getType().getName() + ' ' + effect.getDuration() + ' ' + effect.getAmplifier());
 
             config.set("effects", effects);
+
+            PotionData potionData = potion.getBasePotionData();
+            config.set("base-effect", potionData.getType().name() + ' ' + potionData.isExtended() + ' ' + potionData.isUpgraded());
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
             config.set("power", firework.getPower());
@@ -255,6 +260,15 @@ public class XItemStack {
                 PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
                 potion.addCustomEffect(effect, true);
             }
+
+            String baseEffect = config.getString("base-effect");
+            String[] split = baseEffect.split(" ");
+            PotionType type = Enums.getIfPresent(PotionType.class, split[0]).or(PotionType.UNCRAFTABLE);
+            boolean extended = Boolean.parseBoolean(split[1]);
+            boolean upgraded = Boolean.parseBoolean(split[2]);
+
+            PotionData potionData = new PotionData(type, extended, upgraded);
+            potion.setBasePotionData(potionData);
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
             BlockState state = bsm.getBlockState();
