@@ -45,7 +45,7 @@ import java.util.List;
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
  *
  * @author Crypto Morin
- * @version 1.1.1
+ * @version 1.1.2
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -150,7 +150,7 @@ public class XBlock {
     }
 
     public static boolean isBeetroot(Material material) {
-        return material == Material.SUGAR_CANE || material.name().equals("BEETROOT_BLOCK");
+        return material == Material.BEETROOT || material == Material.BEETROOTS || material.name().equals("BEETROOT_BLOCK");
     }
 
     public static boolean isNetherWart(Material material) {

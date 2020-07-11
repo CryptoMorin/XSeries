@@ -57,7 +57,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 2.0.1
+ * @version 3.0.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -65,8 +65,6 @@ import java.util.*;
  * @see ItemStack
  */
 public class XItemStack {
-    private static final java.util.regex.Pattern SPACE = java.util.regex.Pattern.compile("  +");
-
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -129,11 +127,11 @@ public class XItemStack {
             config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId());
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
-            List<String> patterns = new ArrayList<>();
+            ConfigurationSection patterns = config.createSection("patterns");
+
             for (Pattern pattern : banner.getPatterns()) {
-                patterns.add(pattern.getColor() + " " + pattern.getPattern().getIdentifier());
+                patterns.set(pattern.getPattern().name(), pattern.getColor().name());
             }
-            config.set("patterns", patterns);
         } else if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leather = (LeatherArmorMeta) meta;
             Color color = leather.getColor();
@@ -142,12 +140,11 @@ public class XItemStack {
             PotionMeta potion = (PotionMeta) meta;
             List<String> effects = new ArrayList<>();
             for (PotionEffect effect : potion.getCustomEffects())
-                effects.add(effect.getType().getName() + ' ' + effect.getDuration() + ' ' + effect.getAmplifier());
+                effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
 
             config.set("effects", effects);
-
             PotionData potionData = potion.getBasePotionData();
-            config.set("base-effect", potionData.getType().name() + ' ' + potionData.isExtended() + ' ' + potionData.isUpgraded());
+            config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
             config.set("power", firework.getPower());
@@ -183,7 +180,7 @@ public class XItemStack {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
                 List<String> effects = new ArrayList<>();
                 for (PotionEffect effect : stew.getCustomEffects()) {
-                    effects.add(effect.getType().getName() + ' ' + effect.getDuration() + ' ' + effect.getAmplifier());
+                    effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
                 }
 
                 config.set("effects", effects);
@@ -232,21 +229,16 @@ public class XItemStack {
             if (skull != null) SkullUtils.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
+            ConfigurationSection patterns = config.getConfigurationSection("patterns");
 
-            for (String pattern : config.getStringList("patterns")) {
-                String[] split = SPACE.split(pattern);
-                if (split.length == 0) continue;
-                DyeColor color = Enums.getIfPresent(DyeColor.class, split[0]).or(DyeColor.WHITE);
-                PatternType type;
+            if (patterns != null) {
+                for (String pattern : patterns.getKeys(false)) {
+                    PatternType type = PatternType.getByIdentifier(pattern);
+                    if (type == null) type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                    DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
 
-                if (split.length > 1) {
-                    type = PatternType.getByIdentifier(split[1]);
-                    if (type == null) type = Enums.getIfPresent(PatternType.class, split[1]).or(PatternType.BASE);
-                } else {
-                    type = PatternType.BASE;
+                    banner.addPattern(new Pattern(color, type));
                 }
-
-                banner.addPattern(new Pattern(color, type));
             }
         } else if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leather = (LeatherArmorMeta) meta;
@@ -262,10 +254,10 @@ public class XItemStack {
             }
 
             String baseEffect = config.getString("base-effect");
-            String[] split = baseEffect.split(" ");
-            PotionType type = Enums.getIfPresent(PotionType.class, split[0]).or(PotionType.UNCRAFTABLE);
-            boolean extended = Boolean.parseBoolean(split[1]);
-            boolean upgraded = Boolean.parseBoolean(split[2]);
+            String[] split = StringUtils.split(baseEffect, ',');
+            PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.UNCRAFTABLE);
+            boolean extended = Boolean.parseBoolean(split[1].trim());
+            boolean upgraded = Boolean.parseBoolean(split[2].trim());
 
             PotionData potionData = new PotionData(type, extended, upgraded);
             potion.setBasePotionData(potionData);
@@ -274,7 +266,7 @@ public class XItemStack {
             BlockState state = bsm.getBlockState();
             if (state instanceof CreatureSpawner) {
                 CreatureSpawner spawner = (CreatureSpawner) state;
-                spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner")).orNull());
+                spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
                 bsm.setBlockState(spawner);
             }
         } else if (meta instanceof FireworkMeta) {
@@ -284,12 +276,12 @@ public class XItemStack {
             ConfigurationSection fireworkSection = config.getConfigurationSection("firework");
             if (fireworkSection != null) {
                 FireworkEffect.Builder builder = FireworkEffect.builder();
-                for (String fws : fireworkSection.getKeys(false)){
+                for (String fws : fireworkSection.getKeys(false)) {
                     ConfigurationSection fw = config.getConfigurationSection("firework." + fws);
 
                     builder.flicker(fw.getBoolean("flicker"));
                     builder.trail(fw.getBoolean("trail"));
-                    builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type")).or(FireworkEffect.Type.STAR));
+                    builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
 
                     List<Color> colors = new ArrayList<>();
                     for (String colorStr : fw.getStringList("colors")) {
@@ -339,8 +331,7 @@ public class XItemStack {
 
         // Display Name
         String name = config.getString("name");
-        if (name != null) {
-            if (name.isEmpty()) name = " ";
+        if (!Strings.isNullOrEmpty(name)) {
             String translated = ChatColor.translateAlternateColorCodes('&', name);
             meta.setDisplayName(translated);
         }
@@ -412,13 +403,14 @@ public class XItemStack {
         // Flags
         List<String> flags = config.getStringList("flags");
         for (String flag : flags) {
-            if (flag.equalsIgnoreCase("all")) {
+            flag = flag.toUpperCase(Locale.ENGLISH);
+            if (flag.equals("ALL")) {
                 meta.addItemFlags(ItemFlag.values());
                 break;
             }
 
-            ItemFlag itemFlag = ItemFlag.valueOf(flag.toUpperCase());
-            meta.addItemFlags(itemFlag);
+            ItemFlag itemFlag = Enums.getIfPresent(ItemFlag.class, flag).orNull();
+            if (itemFlag != null) meta.addItemFlags(itemFlag);
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
@@ -426,6 +418,9 @@ public class XItemStack {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
+                    Attribute attributeInst = Enums.getIfPresent(Attribute.class, attribute.toUpperCase(Locale.ENGLISH)).orNull();
+                    if (attributeInst == null) continue;
+
                     String attribId = attributes.getString("id");
                     UUID id = attribId != null ? UUID.fromString(attribId) : UUID.randomUUID();
 
@@ -437,7 +432,7 @@ public class XItemStack {
                                     .or(AttributeModifier.Operation.ADD_NUMBER),
                             Enums.getIfPresent(EquipmentSlot.class, attributes.getString("slot")).or(EquipmentSlot.HAND));
 
-                    meta.addAttributeModifier(Attribute.valueOf(attribute), modifier);
+                    meta.addAttributeModifier(attributeInst, modifier);
                 }
             }
         }
@@ -457,6 +452,7 @@ public class XItemStack {
     public static Color parseColor(String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');
+        if (rgb.length < 3) return Color.WHITE;
         return Color.fromRGB(NumberUtils.toInt(rgb[0], 0), NumberUtils.toInt(rgb[1], 0), NumberUtils.toInt(rgb[1], 0));
     }
 
