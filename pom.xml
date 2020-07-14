@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>6.1.0</version>
+    <version>6.2.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -95,6 +95,8 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
+                    <additionalOptions>-Xdoclint:none</additionalOptions>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
                     <source>8</source>
                     <!-- Apparently this is needed because it's a bug with maven JavaDoc plugin not being able to find the exe by itself. -->
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>

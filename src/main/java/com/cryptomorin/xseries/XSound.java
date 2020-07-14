@@ -25,6 +25,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
@@ -57,17 +58,37 @@ import java.util.regex.Pattern;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see Sound
  */
 public enum XSound {
+    AMBIENT_BASALT_DELTAS_ADDITIONS,
+    AMBIENT_BASALT_DELTAS_LOOP,
+    AMBIENT_BASALT_DELTAS_MOOD,
     AMBIENT_CAVE("AMBIENCE_CAVE"),
+    AMBIENT_CRIMSON_FOREST_ADDITIONS,
+    AMBIENT_CRIMSON_FOREST_LOOP,
+    AMBIENT_CRIMSON_FOREST_MOOD,
+    AMBIENT_NETHER_WASTES_ADDITIONS,
+    AMBIENT_NETHER_WASTES_LOOP,
+    AMBIENT_NETHER_WASTES_MOOD,
+    AMBIENT_SOUL_SAND_VALLEY_ADDITIONS,
+    AMBIENT_SOUL_SAND_VALLEY_LOOP,
+    AMBIENT_SOUL_SAND_VALLEY_MOOD,
     AMBIENT_UNDERWATER_ENTER,
     AMBIENT_UNDERWATER_EXIT,
     AMBIENT_UNDERWATER_LOOP("AMBIENT_UNDERWATER_EXIT"),
     AMBIENT_UNDERWATER_LOOP_ADDITIONS("AMBIENT_UNDERWATER_EXIT"),
     AMBIENT_UNDERWATER_LOOP_ADDITIONS_RARE("AMBIENT_UNDERWATER_EXIT"),
     AMBIENT_UNDERWATER_LOOP_ADDITIONS_ULTRA_RARE("AMBIENT_UNDERWATER_EXIT"),
+    AMBIENT_WARPED_FOREST_ADDITIONS,
+    AMBIENT_WARPED_FOREST_LOOP,
+    AMBIENT_WARPED_FOREST_MOOD,
+    BLOCK_ANCIENT_DEBRIS_BREAK,
+    BLOCK_ANCIENT_DEBRIS_FALL,
+    BLOCK_ANCIENT_DEBRIS_HIT,
+    BLOCK_ANCIENT_DEBRIS_PLACE,
+    BLOCK_ANCIENT_DEBRIS_STEP,
     BLOCK_ANVIL_BREAK("ANVIL_BREAK"),
     BLOCK_ANVIL_DESTROY,
     BLOCK_ANVIL_FALL,
@@ -86,6 +107,11 @@ public enum XSound {
     BLOCK_BAMBOO_STEP,
     BLOCK_BARREL_CLOSE,
     BLOCK_BARREL_OPEN,
+    BLOCK_BASALT_BREAK,
+    BLOCK_BASALT_FALL,
+    BLOCK_BASALT_HIT,
+    BLOCK_BASALT_PLACE,
+    BLOCK_BASALT_STEP,
     BLOCK_BEACON_ACTIVATE,
     BLOCK_BEACON_AMBIENT,
     BLOCK_BEACON_DEACTIVATE("BLOCK_BEACON_AMBIENT"),
@@ -98,6 +124,11 @@ public enum XSound {
     BLOCK_BELL_RESONATE,
     BLOCK_BELL_USE,
     BLOCK_BLASTFURNACE_FIRE_CRACKLE,
+    BLOCK_BONE_BLOCK_BREAK,
+    BLOCK_BONE_BLOCK_FALL,
+    BLOCK_BONE_BLOCK_HIT,
+    BLOCK_BONE_BLOCK_PLACE,
+    BLOCK_BONE_BLOCK_STEP,
     BLOCK_BREWING_STAND_BREW,
     BLOCK_BUBBLE_COLUMN_BUBBLE_POP,
     BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT,
@@ -105,6 +136,11 @@ public enum XSound {
     BLOCK_BUBBLE_COLUMN_WHIRLPOOL_AMBIENT,
     BLOCK_BUBBLE_COLUMN_WHIRLPOOL_INSIDE,
     BLOCK_CAMPFIRE_CRACKLE,
+    BLOCK_CHAIN_BREAK,
+    BLOCK_CHAIN_FALL,
+    BLOCK_CHAIN_HIT,
+    BLOCK_CHAIN_PLACE,
+    BLOCK_CHAIN_STEP,
     BLOCK_CHEST_CLOSE("CHEST_CLOSE", "ENTITY_CHEST_CLOSE"),
     BLOCK_CHEST_LOCKED,
     BLOCK_CHEST_OPEN("CHEST_OPEN", "ENTITY_CHEST_OPEN"),
@@ -139,7 +175,17 @@ public enum XSound {
     BLOCK_FENCE_GATE_OPEN,
     BLOCK_FIRE_AMBIENT("FIRE"),
     BLOCK_FIRE_EXTINGUISH("FIZZ"),
+    BLOCK_FUNGUS_BREAK,
+    BLOCK_FUNGUS_FALL,
+    BLOCK_FUNGUS_HIT,
+    BLOCK_FUNGUS_PLACE,
+    BLOCK_FUNGUS_STEP,
     BLOCK_FURNACE_FIRE_CRACKLE,
+    BLOCK_GILDED_BLACKSTONE_BREAK,
+    BLOCK_GILDED_BLACKSTONE_FALL,
+    BLOCK_GILDED_BLACKSTONE_HIT,
+    BLOCK_GILDED_BLACKSTONE_PLACE,
+    BLOCK_GILDED_BLACKSTONE_STEP,
     BLOCK_GLASS_BREAK("GLASS"),
     BLOCK_GLASS_FALL,
     BLOCK_GLASS_HIT,
@@ -181,6 +227,11 @@ public enum XSound {
     BLOCK_LAVA_POP("LAVA_POP"),
     BLOCK_LEVER_CLICK,
     BLOCK_LILY_PAD_PLACE("BLOCK_WATERLILY_PLACE"),
+    BLOCK_LODESTONE_BREAK,
+    BLOCK_LODESTONE_FALL,
+    BLOCK_LODESTONE_HIT,
+    BLOCK_LODESTONE_PLACE,
+    BLOCK_LODESTONE_STEP,
     BLOCK_METAL_BREAK,
     BLOCK_METAL_FALL,
     BLOCK_METAL_HIT,
@@ -188,6 +239,36 @@ public enum XSound {
     BLOCK_METAL_PRESSURE_PLATE_CLICK_OFF("BLOCK_METAL_PRESSUREPLATE_CLICK_OFF"),
     BLOCK_METAL_PRESSURE_PLATE_CLICK_ON("BLOCK_METAL_PRESSUREPLATE_CLICK_ON"),
     BLOCK_METAL_STEP,
+    BLOCK_NETHERITE_BLOCK_BREAK,
+    BLOCK_NETHERITE_BLOCK_FALL,
+    BLOCK_NETHERITE_BLOCK_HIT,
+    BLOCK_NETHERITE_BLOCK_PLACE,
+    BLOCK_NETHERITE_BLOCK_STEP,
+    BLOCK_NETHERRACK_BREAK,
+    BLOCK_NETHERRACK_FALL,
+    BLOCK_NETHERRACK_HIT,
+    BLOCK_NETHERRACK_PLACE,
+    BLOCK_NETHERRACK_STEP,
+    BLOCK_NETHER_BRICKS_BREAK,
+    BLOCK_NETHER_BRICKS_FALL,
+    BLOCK_NETHER_BRICKS_HIT,
+    BLOCK_NETHER_BRICKS_PLACE,
+    BLOCK_NETHER_BRICKS_STEP,
+    BLOCK_NETHER_GOLD_ORE_BREAK,
+    BLOCK_NETHER_GOLD_ORE_FALL,
+    BLOCK_NETHER_GOLD_ORE_HIT,
+    BLOCK_NETHER_GOLD_ORE_PLACE,
+    BLOCK_NETHER_GOLD_ORE_STEP,
+    BLOCK_NETHER_ORE_BREAK,
+    BLOCK_NETHER_ORE_FALL,
+    BLOCK_NETHER_ORE_HIT,
+    BLOCK_NETHER_ORE_PLACE,
+    BLOCK_NETHER_ORE_STEP,
+    BLOCK_NETHER_SPROUTS_BREAK,
+    BLOCK_NETHER_SPROUTS_FALL,
+    BLOCK_NETHER_SPROUTS_HIT,
+    BLOCK_NETHER_SPROUTS_PLACE,
+    BLOCK_NETHER_SPROUTS_STEP,
     BLOCK_NETHER_WART_BREAK,
     BLOCK_NOTE_BLOCK_BANJO,
     BLOCK_NOTE_BLOCK_BASEDRUM("NOTE_BASS_DRUM", "BLOCK_NOTE_BASEDRUM"),
@@ -205,6 +286,11 @@ public enum XSound {
     BLOCK_NOTE_BLOCK_PLING("NOTE_PLING", "BLOCK_NOTE_PLING"),
     BLOCK_NOTE_BLOCK_SNARE("NOTE_SNARE_DRUM", "BLOCK_NOTE_SNARE"),
     BLOCK_NOTE_BLOCK_XYLOPHONE("BLOCK_NOTE_XYLOPHONE"),
+    BLOCK_NYLIUM_BREAK,
+    BLOCK_NYLIUM_FALL,
+    BLOCK_NYLIUM_HIT,
+    BLOCK_NYLIUM_PLACE,
+    BLOCK_NYLIUM_STEP,
     BLOCK_PISTON_CONTRACT("PISTON_RETRACT"),
     BLOCK_PISTON_EXTEND("PISTON_EXTEND"),
     BLOCK_PORTAL_AMBIENT("PORTAL"),
@@ -212,6 +298,15 @@ public enum XSound {
     BLOCK_PORTAL_TRIGGER("PORTAL_TRIGGER"),
     BLOCK_PUMPKIN_CARVE,
     BLOCK_REDSTONE_TORCH_BURNOUT,
+    BLOCK_RESPAWN_ANCHOR_AMBIENT,
+    BLOCK_RESPAWN_ANCHOR_CHARGE,
+    BLOCK_RESPAWN_ANCHOR_DEPLETE,
+    BLOCK_RESPAWN_ANCHOR_SET_SPAWN,
+    BLOCK_ROOTS_BREAK,
+    BLOCK_ROOTS_FALL,
+    BLOCK_ROOTS_HIT,
+    BLOCK_ROOTS_PLACE,
+    BLOCK_ROOTS_STEP,
     BLOCK_SAND_BREAK("DIG_SAND"),
     BLOCK_SAND_FALL,
     BLOCK_SAND_HIT,
@@ -222,6 +317,11 @@ public enum XSound {
     BLOCK_SCAFFOLDING_HIT,
     BLOCK_SCAFFOLDING_PLACE,
     BLOCK_SCAFFOLDING_STEP,
+    BLOCK_SHROOMLIGHT_BREAK,
+    BLOCK_SHROOMLIGHT_FALL,
+    BLOCK_SHROOMLIGHT_HIT,
+    BLOCK_SHROOMLIGHT_PLACE,
+    BLOCK_SHROOMLIGHT_STEP,
     BLOCK_SHULKER_BOX_CLOSE,
     BLOCK_SHULKER_BOX_OPEN,
     BLOCK_SLIME_BLOCK_BREAK("BLOCK_SLIME_BREAK"),
@@ -229,12 +329,28 @@ public enum XSound {
     BLOCK_SLIME_BLOCK_HIT("BLOCK_SLIME_HIT"),
     BLOCK_SLIME_BLOCK_PLACE("BLOCK_SLIME_PLACE"),
     BLOCK_SLIME_BLOCK_STEP("BLOCK_SLIME_STEP"),
+    BLOCK_SMITHING_TABLE_USE,
     BLOCK_SMOKER_SMOKE,
     BLOCK_SNOW_BREAK("DIG_SNOW"),
     BLOCK_SNOW_FALL,
     BLOCK_SNOW_HIT,
     BLOCK_SNOW_PLACE,
     BLOCK_SNOW_STEP("STEP_SNOW"),
+    BLOCK_SOUL_SAND_BREAK,
+    BLOCK_SOUL_SAND_FALL,
+    BLOCK_SOUL_SAND_HIT,
+    BLOCK_SOUL_SAND_PLACE,
+    BLOCK_SOUL_SAND_STEP,
+    BLOCK_SOUL_SOIL_BREAK,
+    BLOCK_SOUL_SOIL_FALL,
+    BLOCK_SOUL_SOIL_HIT,
+    BLOCK_SOUL_SOIL_PLACE,
+    BLOCK_SOUL_SOIL_STEP,
+    BLOCK_STEM_BREAK,
+    BLOCK_STEM_FALL,
+    BLOCK_STEM_HIT,
+    BLOCK_STEM_PLACE,
+    BLOCK_STEM_STEP,
     BLOCK_STONE_BREAK("DIG_STONE"),
     BLOCK_STONE_BUTTON_CLICK_OFF,
     BLOCK_STONE_BUTTON_CLICK_ON,
@@ -250,7 +366,18 @@ public enum XSound {
     BLOCK_TRIPWIRE_CLICK_OFF,
     BLOCK_TRIPWIRE_CLICK_ON,
     BLOCK_TRIPWIRE_DETACH,
+    BLOCK_VINE_STEP,
+    BLOCK_WART_BLOCK_BREAK,
+    BLOCK_WART_BLOCK_FALL,
+    BLOCK_WART_BLOCK_HIT,
+    BLOCK_WART_BLOCK_PLACE,
+    BLOCK_WART_BLOCK_STEP,
     BLOCK_WATER_AMBIENT("WATER"),
+    BLOCK_WEEPING_VINES_BREAK,
+    BLOCK_WEEPING_VINES_FALL,
+    BLOCK_WEEPING_VINES_HIT,
+    BLOCK_WEEPING_VINES_PLACE,
+    BLOCK_WEEPING_VINES_STEP,
     BLOCK_WET_GRASS_BREAK,
     BLOCK_WET_GRASS_FALL,
     BLOCK_WET_GRASS_HIT,
@@ -299,176 +426,9 @@ public enum XSound {
     ENTITY_BLAZE_HURT("BLAZE_HIT"),
     ENTITY_BLAZE_SHOOT,
     ENTITY_BOAT_PADDLE_LAND,
-    AMBIENT_BASALT_DELTAS_ADDITIONS,
-    AMBIENT_BASALT_DELTAS_LOOP,
-    AMBIENT_BASALT_DELTAS_MOOD,
-    AMBIENT_CRIMSON_FOREST_ADDITIONS,
-    AMBIENT_CRIMSON_FOREST_LOOP,
-    AMBIENT_CRIMSON_FOREST_MOOD,
-    AMBIENT_NETHER_WASTES_ADDITIONS,
-    AMBIENT_NETHER_WASTES_LOOP,
-    AMBIENT_NETHER_WASTES_MOOD,
-    AMBIENT_SOUL_SAND_VALLEY_ADDITIONS,
-    AMBIENT_SOUL_SAND_VALLEY_LOOP,
-    AMBIENT_SOUL_SAND_VALLEY_MOOD,
     ENTITY_BOAT_PADDLE_WATER,
     ENTITY_CAT_AMBIENT("CAT_MEOW"),
     ENTITY_CAT_BEG_FOR_FOOD,
-    AMBIENT_WARPED_FOREST_ADDITIONS,
-    AMBIENT_WARPED_FOREST_LOOP,
-    AMBIENT_WARPED_FOREST_MOOD,
-    BLOCK_ANCIENT_DEBRIS_BREAK,
-    BLOCK_ANCIENT_DEBRIS_FALL,
-    BLOCK_ANCIENT_DEBRIS_HIT,
-    BLOCK_ANCIENT_DEBRIS_PLACE,
-    BLOCK_ANCIENT_DEBRIS_STEP,
-    BLOCK_BASALT_BREAK,
-    BLOCK_BASALT_FALL,
-    BLOCK_BASALT_HIT,
-    BLOCK_BASALT_PLACE,
-    BLOCK_BASALT_STEP,
-    BLOCK_BONE_BLOCK_BREAK,
-    BLOCK_BONE_BLOCK_FALL,
-    BLOCK_BONE_BLOCK_HIT,
-    BLOCK_BONE_BLOCK_PLACE,
-    BLOCK_BONE_BLOCK_STEP,
-    BLOCK_CHAIN_BREAK,
-    BLOCK_CHAIN_FALL,
-    BLOCK_CHAIN_HIT,
-    BLOCK_CHAIN_PLACE,
-    BLOCK_CHAIN_STEP,
-    BLOCK_FUNGUS_BREAK,
-    BLOCK_FUNGUS_FALL,
-    BLOCK_FUNGUS_HIT,
-    BLOCK_FUNGUS_PLACE,
-    BLOCK_FUNGUS_STEP,
-    BLOCK_LODESTONE_BREAK,
-    BLOCK_LODESTONE_FALL,
-    BLOCK_LODESTONE_HIT,
-    BLOCK_LODESTONE_PLACE,
-    BLOCK_LODESTONE_STEP,
-    BLOCK_NETHERITE_BLOCK_BREAK,
-    BLOCK_NETHERITE_BLOCK_FALL,
-    BLOCK_NETHERITE_BLOCK_HIT,
-    BLOCK_NETHERITE_BLOCK_PLACE,
-    BLOCK_NETHERITE_BLOCK_STEP,
-    BLOCK_NETHERRACK_BREAK,
-    BLOCK_NETHERRACK_FALL,
-    BLOCK_NETHERRACK_HIT,
-    BLOCK_NETHERRACK_PLACE,
-    BLOCK_NETHERRACK_STEP,
-    BLOCK_NETHER_BRICKS_BREAK,
-    BLOCK_NETHER_BRICKS_FALL,
-    BLOCK_NETHER_BRICKS_HIT,
-    BLOCK_NETHER_BRICKS_PLACE,
-    BLOCK_NETHER_BRICKS_STEP,
-    BLOCK_NETHER_GOLD_ORE_BREAK,
-    BLOCK_NETHER_GOLD_ORE_FALL,
-    BLOCK_NETHER_GOLD_ORE_HIT,
-    BLOCK_NETHER_GOLD_ORE_PLACE,
-    BLOCK_NETHER_GOLD_ORE_STEP,
-    BLOCK_NETHER_ORE_BREAK,
-    BLOCK_NETHER_ORE_FALL,
-    BLOCK_NETHER_ORE_HIT,
-    BLOCK_NETHER_ORE_PLACE,
-    BLOCK_NETHER_ORE_STEP,
-    BLOCK_NETHER_SPROUTS_BREAK,
-    BLOCK_NETHER_SPROUTS_FALL,
-    BLOCK_NETHER_SPROUTS_HIT,
-    BLOCK_NETHER_SPROUTS_PLACE,
-    BLOCK_NETHER_SPROUTS_STEP,
-    BLOCK_NYLIUM_BREAK,
-    BLOCK_NYLIUM_FALL,
-    BLOCK_NYLIUM_HIT,
-    BLOCK_NYLIUM_PLACE,
-    BLOCK_NYLIUM_STEP,
-    BLOCK_RESPAWN_ANCHOR_AMBIENT,
-    BLOCK_RESPAWN_ANCHOR_CHARGE,
-    BLOCK_RESPAWN_ANCHOR_DEPLETE,
-    BLOCK_RESPAWN_ANCHOR_SET_SPAWN,
-    BLOCK_ROOTS_BREAK,
-    BLOCK_ROOTS_FALL,
-    BLOCK_ROOTS_HIT,
-    BLOCK_ROOTS_PLACE,
-    BLOCK_ROOTS_STEP,
-    BLOCK_SHROOMLIGHT_BREAK,
-    BLOCK_SHROOMLIGHT_FALL,
-    BLOCK_SHROOMLIGHT_HIT,
-    BLOCK_SHROOMLIGHT_PLACE,
-    BLOCK_SHROOMLIGHT_STEP,
-    BLOCK_SMITHING_TABLE_USE,
-    BLOCK_SOUL_SAND_BREAK,
-    BLOCK_SOUL_SAND_FALL,
-    BLOCK_SOUL_SAND_HIT,
-    BLOCK_SOUL_SAND_PLACE,
-    BLOCK_SOUL_SAND_STEP,
-    BLOCK_SOUL_SOIL_BREAK,
-    BLOCK_SOUL_SOIL_FALL,
-    BLOCK_SOUL_SOIL_HIT,
-    BLOCK_SOUL_SOIL_PLACE,
-    BLOCK_SOUL_SOIL_STEP,
-    BLOCK_STEM_BREAK,
-    BLOCK_STEM_FALL,
-    BLOCK_STEM_HIT,
-    BLOCK_STEM_PLACE,
-    BLOCK_STEM_STEP,
-    BLOCK_VINE_STEP,
-    BLOCK_WART_BLOCK_BREAK,
-    BLOCK_WART_BLOCK_FALL,
-    BLOCK_WART_BLOCK_HIT,
-    BLOCK_WART_BLOCK_PLACE,
-    BLOCK_WART_BLOCK_STEP,
-    ENTITY_DONKEY_EAT,
-    ENTITY_FOX_TELEPORT,
-    ENTITY_HOGLIN_AMBIENT,
-    ENTITY_HOGLIN_ANGRY,
-    ENTITY_HOGLIN_ATTACK,
-    ENTITY_HOGLIN_CONVERTED_TO_ZOMBIFIED,
-    ENTITY_HOGLIN_DEATH,
-    ENTITY_HOGLIN_HURT,
-    ENTITY_HOGLIN_RETREAT,
-    ENTITY_HOGLIN_STEP,
-    ENTITY_MULE_EAT,
-    ENTITY_MULE_ANGRY,
-    ENTITY_PARROT_IMITATE_HOGLIN,
-    ENTITY_PARROT_IMITATE_PIGLIN,
-    ENTITY_PARROT_IMITATE_ZOGLIN,
-    ENTITY_PIGLIN_ADMIRING_ITEM,
-    ENTITY_PIGLIN_AMBIENT,
-    ENTITY_PIGLIN_ANGRY,
-    ENTITY_PIGLIN_CELEBRATE,
-    ENTITY_PIGLIN_CONVERTED_TO_ZOMBIFIED,
-    ENTITY_PIGLIN_DEATH,
-    ENTITY_PIGLIN_HURT,
-    ENTITY_PIGLIN_JEALOUS,
-    ENTITY_PIGLIN_RETREAT,
-    ENTITY_PIGLIN_STEP,
-    ENTITY_SNOW_GOLEM_SHEAR,
-    ENTITY_STRIDER_AMBIENT,
-    ENTITY_STRIDER_DEATH,
-    ENTITY_STRIDER_EAT,
-    ENTITY_STRIDER_HAPPY,
-    ENTITY_STRIDER_HURT,
-    ENTITY_STRIDER_RETREAT,
-    ENTITY_STRIDER_SADDLE,
-    ENTITY_STRIDER_STEP,
-    ENTITY_STRIDER_STEP_LAVA,
-    ENTITY_ZOGLIN_AMBIENT,
-    ENTITY_ZOGLIN_ANGRY,
-    ENTITY_ZOGLIN_ATTACK,
-    ENTITY_ZOGLIN_DEATH,
-    ENTITY_ZOGLIN_HURT,
-    ENTITY_ZOGLIN_STEP,
-    BLOCK_WEEPING_VINES_BREAK,
-    BLOCK_WEEPING_VINES_FALL,
-    BLOCK_WEEPING_VINES_HIT,
-    BLOCK_WEEPING_VINES_PLACE,
-    BLOCK_WEEPING_VINES_STEP,
-    BLOCK_GILDED_BLACKSTONE_BREAK,
-    BLOCK_GILDED_BLACKSTONE_FALL,
-    BLOCK_GILDED_BLACKSTONE_HIT,
-    BLOCK_GILDED_BLACKSTONE_PLACE,
-    BLOCK_GILDED_BLACKSTONE_STEP,
     ENTITY_CAT_DEATH,
     ENTITY_CAT_EAT,
     ENTITY_CAT_HISS("CAT_HISS"),
@@ -507,6 +467,7 @@ public enum XSound {
     ENTITY_DONKEY_ANGRY("DONKEY_ANGRY"),
     ENTITY_DONKEY_CHEST,
     ENTITY_DONKEY_DEATH("DONKEY_DEATH"),
+    ENTITY_DONKEY_EAT,
     ENTITY_DONKEY_HURT("DONKEY_HIT"),
     ENTITY_DRAGON_FIREBALL_EXPLODE("ENTITY_ENDERDRAGON_FIREBALL_EXPLODE"),
     ENTITY_DROWNED_AMBIENT,
@@ -579,6 +540,7 @@ public enum XSound {
     ENTITY_FOX_SLEEP,
     ENTITY_FOX_SNIFF,
     ENTITY_FOX_SPIT,
+    ENTITY_FOX_TELEPORT,
     ENTITY_GENERIC_BIG_FALL("FALL_BIG"),
     ENTITY_GENERIC_BURN,
     ENTITY_GENERIC_DEATH,
@@ -604,6 +566,14 @@ public enum XSound {
     ENTITY_GUARDIAN_FLOP,
     ENTITY_GUARDIAN_HURT,
     ENTITY_GUARDIAN_HURT_LAND,
+    ENTITY_HOGLIN_AMBIENT,
+    ENTITY_HOGLIN_ANGRY,
+    ENTITY_HOGLIN_ATTACK,
+    ENTITY_HOGLIN_CONVERTED_TO_ZOMBIFIED,
+    ENTITY_HOGLIN_DEATH,
+    ENTITY_HOGLIN_HURT,
+    ENTITY_HOGLIN_RETREAT,
+    ENTITY_HOGLIN_STEP,
     ENTITY_HORSE_AMBIENT("HORSE_IDLE"),
     ENTITY_HORSE_ANGRY("HORSE_ANGRY"),
     ENTITY_HORSE_ARMOR("HORSE_ARMOR"),
@@ -677,8 +647,10 @@ public enum XSound {
     ENTITY_MOOSHROOM_SHEAR,
     ENTITY_MOOSHROOM_SUSPICIOUS_MILK,
     ENTITY_MULE_AMBIENT,
+    ENTITY_MULE_ANGRY,
     ENTITY_MULE_CHEST("ENTITY_MULE_AMBIENT"),
     ENTITY_MULE_DEATH("ENTITY_MULE_AMBIENT"),
+    ENTITY_MULE_EAT,
     ENTITY_MULE_HURT("ENTITY_MULE_AMBIENT"),
     ENTITY_OCELOT_AMBIENT,
     ENTITY_OCELOT_DEATH,
@@ -711,10 +683,12 @@ public enum XSound {
     ENTITY_PARROT_IMITATE_EVOKER,
     ENTITY_PARROT_IMITATE_GHAST,
     ENTITY_PARROT_IMITATE_GUARDIAN,
+    ENTITY_PARROT_IMITATE_HOGLIN,
     ENTITY_PARROT_IMITATE_HUSK,
     ENTITY_PARROT_IMITATE_ILLUSIONER,
     ENTITY_PARROT_IMITATE_MAGMA_CUBE,
     ENTITY_PARROT_IMITATE_PHANTOM,
+    ENTITY_PARROT_IMITATE_PIGLIN,
     ENTITY_PARROT_IMITATE_PILLAGER,
     ENTITY_PARROT_IMITATE_POLAR_BEAR,
     ENTITY_PARROT_IMITATE_RAVAGER,
@@ -730,6 +704,7 @@ public enum XSound {
     ENTITY_PARROT_IMITATE_WITHER,
     ENTITY_PARROT_IMITATE_WITHER_SKELETON,
     ENTITY_PARROT_IMITATE_WOLF,
+    ENTITY_PARROT_IMITATE_ZOGLIN,
     ENTITY_PARROT_IMITATE_ZOMBIE,
     ENTITY_PARROT_IMITATE_ZOMBIE_VILLAGER,
     ENTITY_PARROT_STEP,
@@ -739,6 +714,16 @@ public enum XSound {
     ENTITY_PHANTOM_FLAP,
     ENTITY_PHANTOM_HURT,
     ENTITY_PHANTOM_SWOOP,
+    ENTITY_PIGLIN_ADMIRING_ITEM,
+    ENTITY_PIGLIN_AMBIENT,
+    ENTITY_PIGLIN_ANGRY,
+    ENTITY_PIGLIN_CELEBRATE,
+    ENTITY_PIGLIN_CONVERTED_TO_ZOMBIFIED,
+    ENTITY_PIGLIN_DEATH,
+    ENTITY_PIGLIN_HURT,
+    ENTITY_PIGLIN_JEALOUS,
+    ENTITY_PIGLIN_RETREAT,
+    ENTITY_PIGLIN_STEP,
     ENTITY_PIG_AMBIENT("PIG_IDLE"),
     ENTITY_PIG_DEATH("PIG_DEATH"),
     ENTITY_PIG_HURT,
@@ -842,6 +827,7 @@ public enum XSound {
     ENTITY_SNOW_GOLEM_AMBIENT("ENTITY_SNOWMAN_AMBIENT"),
     ENTITY_SNOW_GOLEM_DEATH("ENTITY_SNOWMAN_DEATH"),
     ENTITY_SNOW_GOLEM_HURT("ENTITY_SNOWMAN_HURT"),
+    ENTITY_SNOW_GOLEM_SHEAR,
     ENTITY_SNOW_GOLEM_SHOOT("ENTITY_SNOWMAN_SHOOT"),
     ENTITY_SPIDER_AMBIENT("SPIDER_IDLE"),
     ENTITY_SPIDER_DEATH("SPIDER_DEATH"),
@@ -857,6 +843,15 @@ public enum XSound {
     ENTITY_STRAY_DEATH,
     ENTITY_STRAY_HURT,
     ENTITY_STRAY_STEP,
+    ENTITY_STRIDER_AMBIENT,
+    ENTITY_STRIDER_DEATH,
+    ENTITY_STRIDER_EAT,
+    ENTITY_STRIDER_HAPPY,
+    ENTITY_STRIDER_HURT,
+    ENTITY_STRIDER_RETREAT,
+    ENTITY_STRIDER_SADDLE,
+    ENTITY_STRIDER_STEP,
+    ENTITY_STRIDER_STEP_LAVA,
     ENTITY_TNT_PRIMED("FUSE"),
     ENTITY_TROPICAL_FISH_AMBIENT,
     ENTITY_TROPICAL_FISH_DEATH,
@@ -937,6 +932,12 @@ public enum XSound {
     ENTITY_WOLF_SHAKE("WOLF_SHAKE"),
     ENTITY_WOLF_STEP("WOLF_WALK"),
     ENTITY_WOLF_WHINE("WOLF_WHINE"),
+    ENTITY_ZOGLIN_AMBIENT,
+    ENTITY_ZOGLIN_ANGRY,
+    ENTITY_ZOGLIN_ATTACK,
+    ENTITY_ZOGLIN_DEATH,
+    ENTITY_ZOGLIN_HURT,
+    ENTITY_ZOGLIN_STEP,
     ENTITY_ZOMBIE_AMBIENT("ZOMBIE_IDLE"),
     ENTITY_ZOMBIE_ATTACK_IRON_DOOR("ZOMBIE_METAL"),
     ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR("ZOMBIE_WOOD", "ENTITY_ZOMBIE_ATTACK_DOOR_WOOD"),
@@ -949,21 +950,18 @@ public enum XSound {
     ENTITY_ZOMBIE_HORSE_HURT("HORSE_ZOMBIE_HIT"),
     ENTITY_ZOMBIE_HURT("ZOMBIE_HURT"),
     ENTITY_ZOMBIE_INFECT("ZOMBIE_INFECT"),
-    ITEM_ARMOR_EQUIP_NETHERITE,
-    ITEM_LODESTONE_COMPASS_LOCK,
-    MUSIC_DISC_PIGSTEP,
-
-    ENTITY_ZOMBIFIED_PIGLIN_AMBIENT("ZOMBE_PIG_IDLE", "ENTITY_ZOMBIE_PIG_AMBIENT", "ENTITY_ZOMBIE_PIGMAN_AMBIENT"),
-    ENTITY_ZOMBIFIED_PIGLIN_ANGRY("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIGMAN_ANGRY"),
-    ENTITY_ZOMBIFIED_PIGLIN_DEATH("ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIGMAN_DEATH"),
-    ENTITY_ZOMBIFIED_PIGLIN_HURT("ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIGMAN_HURT"),
     ENTITY_ZOMBIE_STEP("ZOMBIE_WALK"),
     ENTITY_ZOMBIE_VILLAGER_AMBIENT,
     ENTITY_ZOMBIE_VILLAGER_CONVERTED("ZOMBIE_UNFECT"),
+
     ENTITY_ZOMBIE_VILLAGER_CURE("ZOMBIE_REMEDY"),
     ENTITY_ZOMBIE_VILLAGER_DEATH,
     ENTITY_ZOMBIE_VILLAGER_HURT,
     ENTITY_ZOMBIE_VILLAGER_STEP,
+    ENTITY_ZOMBIFIED_PIGLIN_AMBIENT("ZOMBE_PIG_IDLE", "ENTITY_ZOMBIE_PIG_AMBIENT", "ENTITY_ZOMBIE_PIGMAN_AMBIENT"),
+    ENTITY_ZOMBIFIED_PIGLIN_ANGRY("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIE_PIGMAN_ANGRY"),
+    ENTITY_ZOMBIFIED_PIGLIN_DEATH("ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIG_DEATH", "ENTITY_ZOMBIE_PIGMAN_DEATH"),
+    ENTITY_ZOMBIFIED_PIGLIN_HURT("ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIG_HURT", "ENTITY_ZOMBIE_PIGMAN_HURT"),
     EVENT_RAID_HORN,
     ITEM_ARMOR_EQUIP_CHAIN,
     ITEM_ARMOR_EQUIP_DIAMOND,
@@ -972,6 +970,7 @@ public enum XSound {
     ITEM_ARMOR_EQUIP_GOLD,
     ITEM_ARMOR_EQUIP_IRON,
     ITEM_ARMOR_EQUIP_LEATHER,
+    ITEM_ARMOR_EQUIP_NETHERITE,
     ITEM_ARMOR_EQUIP_TURTLE,
     ITEM_AXE_STRIP,
     ITEM_BOOK_PAGE_TURN,
@@ -1000,6 +999,7 @@ public enum XSound {
     ITEM_FLINTANDSTEEL_USE("FIRE_IGNITE"),
     ITEM_HOE_TILL,
     ITEM_HONEY_BOTTLE_DRINK,
+    ITEM_LODESTONE_COMPASS_LOCK,
     ITEM_NETHER_WART_PLANT,
     ITEM_SHIELD_BLOCK,
     ITEM_SHIELD_BREAK,
@@ -1024,6 +1024,7 @@ public enum XSound {
     MUSIC_DISC_FAR("RECORD_FAR"),
     MUSIC_DISC_MALL("RECORD_MALL"),
     MUSIC_DISC_MELLOHI("RECORD_MELLOHI"),
+    MUSIC_DISC_PIGSTEP,
     MUSIC_DISC_STAL("RECORD_STAL"),
     MUSIC_DISC_STRAD("RECORD_STRAD"),
     MUSIC_DISC_WAIT("RECORD_WAIT"),
@@ -1033,12 +1034,12 @@ public enum XSound {
     MUSIC_GAME,
     MUSIC_MENU,
     MUSIC_NETHER_BASALT_DELTAS("MUSIC_NETHER"),
-    PARTICLE_SOUL_ESCAPE,
     MUSIC_NETHER_CRIMSON_FOREST,
     MUSIC_NETHER_NETHER_WASTES,
     MUSIC_NETHER_SOUL_SAND_VALLEY,
     MUSIC_NETHER_WARPED_FOREST,
     MUSIC_UNDER_WATER,
+    PARTICLE_SOUL_ESCAPE,
     UI_BUTTON_CLICK("CLICK"),
     UI_CARTOGRAPHY_TABLE_TAKE_RESULT,
     UI_LOOM_SELECT_PATTERN,
@@ -1059,6 +1060,7 @@ public enum XSound {
      * @since 2.0.0
      */
     public static final EnumSet<XSound> VALUES = EnumSet.allOf(XSound.class);
+
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * Caches the parsed {@link Sound} objects instead of string. Because it has to go through catching exceptions again
@@ -1067,10 +1069,23 @@ public enum XSound {
      *
      * @since 2.0.0
      */
-    private static final Cache<XSound, com.google.common.base.Optional<Sound>> CACHE = CacheBuilder.newBuilder()
+    private static final Cache<XSound, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .softValues()
             .build();
+
+    /**
+     * We don't want to use {@link Enums#getIfPresent(Class, String)} to avoid a few checks.
+     *
+     * @since 3.1.0
+     */
+    private static final Map<String, XSound> NAMES;
+    /**
+     * Since {@link Sound} doesn't provde a method to get a sound from a method like {@link Material#getMaterial(String)}
+     *
+     * @since 3.1.0
+     */
+    private static final Map<String, Sound> BUKKIT_NAMES;
     /**
      * Pre-compiled RegEx pattern.
      * Include both replacements to avoid creating string multiple times and multiple RegEx checks.
@@ -1079,6 +1094,26 @@ public enum XSound {
      */
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private static final Pattern DOUBLE_SPACE = Pattern.compile("  +");
+
+    static {
+        Map<String, XSound> builder = new HashMap<>();
+        for (XSound sound : VALUES) {
+            builder.put(sound.name(), sound);
+            for (String legacy : sound.getLegacy()) {
+                if (!builder.containsKey(legacy)) builder.put(legacy, sound);
+            }
+        }
+        NAMES = ImmutableMap.copyOf(builder);
+    }
+
+    static {
+        ImmutableMap.Builder<String, Sound> builder = ImmutableMap.builder();
+        for (Sound sound : Sound.values()) {
+            builder.put(sound.name(), sound);
+        }
+        BUKKIT_NAMES = builder.build();
+    }
+
     private final String[] legacy;
 
     XSound(String... legacy) {
@@ -1100,22 +1135,6 @@ public enum XSound {
     }
 
     /**
-     * Checks if XSound enum and the legacy names contains a sound with this name.
-     *
-     * @param sound name of the sound
-     * @return true if XSound enum has this sound.
-     * @since 1.0.0
-     */
-    public static boolean contains(@Nonnull String sound) {
-        Validate.notEmpty(sound, "Cannot check for null or empty sound name");
-        sound = format(sound);
-
-        for (XSound sounds : VALUES)
-            if (sounds.name().equals(sound) || sounds.anyMatchLegacy(sound)) return true;
-        return false;
-    }
-
-    /**
      * Parses the XSound with the given name.
      *
      * @param sound the name of the sound.
@@ -1125,11 +1144,7 @@ public enum XSound {
     @Nonnull
     public static Optional<XSound> matchXSound(@Nonnull String sound) {
         Validate.notEmpty(sound, "Cannot match XSound of a null or empty sound name");
-        sound = format(sound);
-
-        for (XSound sounds : VALUES)
-            if (sounds.name().equals(sound) || sounds.anyMatchLegacy(sound)) return Optional.of(sounds);
-        return Optional.empty();
+        return getIfPresent(format(sound));
     }
 
     /**
@@ -1206,7 +1221,7 @@ public enum XSound {
      */
     @Nonnull
     public static CompletableFuture<Record> parse(@Nullable Player player, @Nonnull Location location, @Nullable String sound, boolean play) {
-        Objects.requireNonNull(player, "Cannot play sound to null location");
+        Objects.requireNonNull(location, "Cannot play sound to null location");
         if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;
 
         return CompletableFuture.supplyAsync(() -> {
@@ -1277,6 +1292,17 @@ public enum XSound {
     }
 
     /**
+     * Gets the {@link XSound} with this name without throwing an exception.
+     *
+     * @param name the name of the sound.
+     * @return an optional that can be empty.
+     * @since 5.1.0
+     */
+    private static Optional<XSound> getIfPresent(@Nonnull String name) {
+        return Optional.ofNullable(NAMES.get(name));
+    }
+
+    /**
      * In most cases your should be using {@link #name()} instead.
      *
      * @return a friendly readable string name.
@@ -1304,26 +1330,26 @@ public enum XSound {
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings({"Guava", "OptionalAssignedToNull"})
+    @SuppressWarnings({"OptionalAssignedToNull", "OptionalGetWithoutIsPresent"})
     public Sound parseSound() {
-        com.google.common.base.Optional<Sound> cachedSound = CACHE.getIfPresent(this);
-        if (cachedSound != null) return cachedSound.orNull();
-        com.google.common.base.Optional<Sound> sound;
+        Optional<Sound> cachedSound = CACHE.getIfPresent(this);
+        if (cachedSound != null) return cachedSound.get();
+        Sound sound;
 
         // Since Sound class doesn't have a getSound() method we'll use Guava so
         // it can cache it for us.
-        sound = Enums.getIfPresent(Sound.class, this.name());
+        sound = BUKKIT_NAMES.get(this.name());
 
-        if (!sound.isPresent()) {
+        if (sound == null) {
             for (String legacy : this.legacy) {
-                sound = Enums.getIfPresent(Sound.class, legacy);
-                if (sound.isPresent()) break;
+                sound = BUKKIT_NAMES.get(legacy);
+                if (sound != null) break;
             }
         }
 
         // Put nulls too, because there's no point of parsing them again if it's going to give us null again.
-        CACHE.put(this, sound);
-        return sound.orNull();
+        CACHE.put(this, Optional.ofNullable(sound));
+        return sound;
     }
 
     /**
@@ -1340,18 +1366,6 @@ public enum XSound {
      */
     public boolean isSupported() {
         return this.parseSound() != null;
-    }
-
-    /**
-     * Checks if the given string matches any of this sound's legacy sound names.
-     *
-     * @param name the sound name to check
-     * @return true if it's one of the legacy names.
-     * @since 1.0.0
-     */
-    public boolean anyMatchLegacy(@Nonnull String name) {
-        Validate.notEmpty(name, "Cannot check for legacy name for null or empty sound name");
-        return Arrays.asList(this.legacy).contains(format(name));
     }
 
     /**

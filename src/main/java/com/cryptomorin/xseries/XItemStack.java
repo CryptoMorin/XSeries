@@ -57,7 +57,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -254,13 +254,15 @@ public class XItemStack {
             }
 
             String baseEffect = config.getString("base-effect");
-            String[] split = StringUtils.split(baseEffect, ',');
-            PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.UNCRAFTABLE);
-            boolean extended = Boolean.parseBoolean(split[1].trim());
-            boolean upgraded = Boolean.parseBoolean(split[2].trim());
+            if (!Strings.isNullOrEmpty(baseEffect)) {
+                String[] split = StringUtils.split(baseEffect, ',');
+                PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.UNCRAFTABLE);
+                boolean extended = split.length != 1 && Boolean.parseBoolean(split[1].trim());
+                boolean upgraded = split.length > 2 && Boolean.parseBoolean(split[2].trim());
 
-            PotionData potionData = new PotionData(type, extended, upgraded);
-            potion.setBasePotionData(potionData);
+                PotionData potionData = new PotionData(type, extended, upgraded);
+                potion.setBasePotionData(potionData);
+            }
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
             BlockState state = bsm.getBlockState();
