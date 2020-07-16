@@ -125,7 +125,7 @@ public class SkullUtils {
         return BASE64.matcher(base64).matches();
     }
 
-    @Nonnull
+    @Nullable
     public static String getSkinValue(@Nonnull ItemStack skull) {
         Objects.requireNonNull(skull, "Skull ItemStack cannot be null");
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
