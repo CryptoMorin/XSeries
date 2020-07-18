@@ -1,6 +1,5 @@
 package com.cryptomorin.xseries;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 
@@ -13,16 +12,16 @@ import java.nio.file.StandardOpenOption;
 
 public class Examples {
     private static void print(String str) {
-        Bukkit.getLogger().info(str);
+        System.out.println(str);
     }
 
-    public static void testMaterials() {
+    public static void main(String[] args) {
         XMaterial[] subjects = {XMaterial.MELON, XMaterial.MELON_SLICE, XMaterial.CARROT, XMaterial.CARROTS,
                 XMaterial.MAP, XMaterial.FILLED_MAP, XMaterial.BLACK_GLAZED_TERRACOTTA, XMaterial.COD_BUCKET, XMaterial.WHITE_DYE};
 
         for (XMaterial subject : subjects) {
-            Material parsed = subject.parseMaterial();
-            Material suggestion = subject.parseMaterial(true);
+            Material parsed = subject.parseMaterial().orElse(null);
+            Material suggestion = subject.parseMaterial(true).orElse(null);
 
             print("Matched(" + subject.name() + ") -> " + XMaterial.matchXMaterial(subject.name()) +
                     ", parsed: " + parsed + ", suggestion: " + suggestion);
@@ -41,11 +40,11 @@ public class Examples {
                         int index = line.indexOf(':');
                         String material = line.substring(index + 1);
                         XMaterial mat = XMaterial.matchXMaterial(material).orElse(null);
-                        if (mat == null || mat.name().contains(mat.parseMaterial().name()) || mat.parseMaterial().name().contains(mat.name())) {
+                        if (mat == null || mat.name().contains(mat.parseMaterial().orElse(null).name()) || mat.parseMaterial().orElse(null).name().contains(mat.name())) {
                             sb.append(line).append(System.lineSeparator());
                             continue;
                         }
-                        sb.append(line, 0, index).append(": ").append(mat.parseMaterial().name());
+                        sb.append(line, 0, index).append(": ").append(mat.parseMaterial().orElse(null).name());
                         if (!XMaterial.isNewVersion() && mat.getData() != 0) {
                             sb.append(System.lineSeparator());
                             sb.append(line, 0, index - 4).append("damage: ").append(mat.getData());

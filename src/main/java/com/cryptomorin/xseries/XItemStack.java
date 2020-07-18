@@ -57,7 +57,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.1.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -65,6 +65,8 @@ import java.util.*;
  * @see ItemStack
  */
 public class XItemStack {
+    private static final Material PLAYER_HEAD = XMaterial.PLAYER_HEAD.parseMaterial().orElse(null);
+
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -124,7 +126,8 @@ public class XItemStack {
         }
 
         if (meta instanceof SkullMeta) {
-            config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId());
+            if (XMaterial.isNewVersion()) config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId().toString());
+            else config.set("skull", ((SkullMeta) meta).getOwner());
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.createSection("patterns");
@@ -224,7 +227,7 @@ public class XItemStack {
         }
 
         // Special Items
-        if (item.getType() == XMaterial.PLAYER_HEAD.parseMaterial()) {
+        if (item.getType() == PLAYER_HEAD) {
             String skull = config.getString("skull");
             if (skull != null) SkullUtils.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {

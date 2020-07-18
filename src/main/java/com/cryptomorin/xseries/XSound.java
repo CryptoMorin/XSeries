@@ -1330,10 +1330,10 @@ public enum XSound {
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings({"OptionalAssignedToNull", "OptionalGetWithoutIsPresent"})
+    @SuppressWarnings("OptionalAssignedToNull")
     public Sound parseSound() {
         Optional<Sound> cachedSound = CACHE.getIfPresent(this);
-        if (cachedSound != null) return cachedSound.get();
+        if (cachedSound != null) return cachedSound.orElse(null);
         Sound sound;
 
         // Since Sound class doesn't have a getSound() method we'll use Guava so

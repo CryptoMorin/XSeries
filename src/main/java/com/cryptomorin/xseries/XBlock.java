@@ -362,7 +362,7 @@ public class XBlock {
     }
 
     public static boolean setWooden(Block block, XMaterial species) {
-        block.setType(species.parseMaterial());
+        block.setType(species.parseMaterial().orElse(null));
         if (ISFLAT) return true;
 
         TreeSpecies type = species == XMaterial.SPRUCE_LOG ? TreeSpecies.REDWOOD :

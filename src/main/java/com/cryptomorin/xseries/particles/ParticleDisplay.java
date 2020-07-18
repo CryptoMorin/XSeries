@@ -51,7 +51,7 @@ import java.util.Objects;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.0.1
  * @see XParticle
  */
 public class ParticleDisplay {
@@ -265,6 +265,19 @@ public class ParticleDisplay {
     @Nonnull
     public ParticleDisplay withCount(int count) {
         this.count = count;
+        return this;
+    }
+
+    /**
+     * In most cases extra is the speed of the particles.
+     *
+     * @param extra the extra number.
+     * @return the same particle display.
+     * @since 3.0.1
+     */
+    @Nonnull
+    public ParticleDisplay withExtra(double extra) {
+        this.extra = extra;
         return this;
     }
 
