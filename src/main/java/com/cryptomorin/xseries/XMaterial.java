@@ -435,7 +435,7 @@ public enum XMaterial {
     FARMLAND("SOIL"),
     FEATHER,
     FERMENTED_SPIDER_EYE,
-    FERN(1, "LONG_GRASS"),
+    FERN(2, "LONG_GRASS"),
     /**
      * For some reasons filled map items are really special.
      * Their data value starts from 0 and every time a player
