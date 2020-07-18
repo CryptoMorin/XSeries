@@ -1411,6 +1411,7 @@ public enum XMaterial {
      * @return an optional that can be empty.
      * @since 5.1.0
      */
+    @Nonnull
     private static Optional<XMaterial> getIfPresent(@Nonnull String name) {
         return Optional.ofNullable(NAMES.get(name));
     }
@@ -1501,6 +1502,7 @@ public enum XMaterial {
      * @see #matchXMaterial(String)
      * @since 3.0.0
      */
+    @Nonnull
     private static Optional<XMaterial> matchXMaterialWithData(String name) {
         for (char separator : new char[]{',', ':'}) {
             int index = name.indexOf(separator);
