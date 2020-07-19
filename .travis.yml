@@ -1,0 +1,4 @@
+language: java
+install: true
+jdk:
+  - '1.8'

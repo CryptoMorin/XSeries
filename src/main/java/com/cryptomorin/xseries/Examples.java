@@ -98,8 +98,8 @@ public class Examples {
      * @since 1.0.0
      */
     public static <S extends Enum<S>, E extends Enum<E>> void writeDifference(@Nonnull Path path, @Nonnull Class<S> system, @Nonnull Class<E> custom) {
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+            writer.write("Added:");
             for (Enum<S> systemConst : system.getEnumConstants()) {
                 boolean exists = true;
                 for (Enum<E> customConst : custom.getEnumConstants()) {
@@ -109,11 +109,15 @@ public class Examples {
                     }
                 }
                 if (exists) {
-                    writer.write(systemConst.name());
+                    writer.write(systemConst.name() + ',');
                     writer.newLine();
                 }
             }
-            writer.write("--------------------------------");
+
+            writer.newLine();
+            writer.write("----------------------------------------------- Removed:");
+            writer.newLine();
+
             for (Enum<E> customConst : custom.getEnumConstants()) {
                 boolean exists = true;
                 for (Enum<S> systemConst : system.getEnumConstants()) {

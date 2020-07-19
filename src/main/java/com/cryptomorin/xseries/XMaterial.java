@@ -55,7 +55,7 @@ import java.util.regex.Pattern;
  * XMaterial v1: https://www.spigotmc.org/threads/329630/
  *
  * @author Crypto Morin
- * @version 5.2.0
+ * @version 5.2.1
  * @see Material
  * @see ItemStack
  */
@@ -493,8 +493,11 @@ public enum XMaterial {
     GRANITE_SLAB,
     GRANITE_STAIRS,
     GRANITE_WALL,
-    GRASS,
+    GRASS(1, "LONG_GRASS"),
     GRASS_BLOCK("GRASS"),
+    POTTED_CRIMSON_ROOTS("1.16"),
+    POTTED_WARPED_FUNGUS("1.16"),
+    POTTED_WARPED_ROOTS("1.16"),
     GRASS_PATH,
     GRAVEL,
     GRAY_BANNER(8, "BANNER", "STANDING_BANNER"),
