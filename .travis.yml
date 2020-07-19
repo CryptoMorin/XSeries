@@ -1,4 +1,4 @@
 language: java
 install: true
-jdk:
-  - '1.8'
+script:
+  - mvn install -Dgpg.skip=true -B -ntp
