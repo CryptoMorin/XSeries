@@ -148,6 +148,10 @@ public class XItemStack {
             config.set("effects", effects);
             PotionData potionData = potion.getBasePotionData();
             config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
+
+            if (potion.hasColor()) {
+                config.set("color", potion.getColor().asRGB());
+            }
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
             config.set("power", firework.getPower());
@@ -265,6 +269,10 @@ public class XItemStack {
 
                 PotionData potionData = new PotionData(type, extended, upgraded);
                 potion.setBasePotionData(potionData);
+            }
+
+            if (config.contains("color")) {
+                potion.setColor(Color.fromRGB(config.getInt("color")));
             }
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
