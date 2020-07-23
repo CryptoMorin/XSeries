@@ -7,7 +7,8 @@
 XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers.
 But it also includes numerous extra methods to help developers design their plugins easier.
 Some utilities are completely unrelated to cross-version support
-such as NoteBlockMusic.
+such as NoteBlockMusic.\
+Don't forget to add `api-version: "1.13"` to your `plugin.yml`
 
 This project aims to provide quality utilities with high performance using the latest yet efficient techniques.
 Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all server owners
