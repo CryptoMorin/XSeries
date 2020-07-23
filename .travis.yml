@@ -2,6 +2,8 @@ language: java
 install: true
 script:
   - mvn install -Dgpg.skip=true -B -ntp
+
+# Travis no longer supports oraclejdk8
 jdk:
-  - oraclejdk8
+  - openjdk8
   - oraclejdk11
