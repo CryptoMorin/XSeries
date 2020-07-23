@@ -35,7 +35,7 @@ utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/XParticle.ja
 another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleDisplay.java))
 
 
-#### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries) 
+#### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 ```xml
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
@@ -44,10 +44,36 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleD
 </dependency>
 ```
 
-You shouldn't worry if the reflection or other classes are going to use your memory with the heavy useless static cache. As long as you don't use them anywhere in your code, they'll not do anything.
+You shouldn't worry if the reflection or other classes are going to use your memory with the heavy useless static cache.
+As long as you don't use them anywhere in your code, they won't initialize.
 
-**Note:** You need to include the **extracted JAR** in your artifact for this to work.
-You can include the utility directly in your plugin code this way.
+**Note:** DO NOT extract the Jar into your project if you're using maven. You have to shade the library,
+otherwise your plugin or other plugins will break due to version mismatch.
+To shade the library:
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-shade-plugin</artifactId>
+    <version>3.2.4</version>
+    <configuration>
+        <relocations>
+            <relocation>
+                <pattern>com.cryptomorin.xseries</pattern>
+                <!-- Be sure to change the package below -->
+                <shadedPattern>my.plugin.utils</shadedPattern>
+            </relocation>
+        </relocations>
+    </configuration>
+    <executions>
+        <execution>
+            <phase>package</phase>
+            <goals>
+                <goal>shade</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
 
 ### Contributing
 

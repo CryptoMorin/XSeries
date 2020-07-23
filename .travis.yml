@@ -2,3 +2,6 @@ language: java
 install: true
 script:
   - mvn install -Dgpg.skip=true -B -ntp
+jdk:
+  - oraclejdk8
+  - oraclejdk11
