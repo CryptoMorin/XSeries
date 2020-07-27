@@ -55,7 +55,7 @@ import java.util.regex.Pattern;
  * XMaterial v1: https://www.spigotmc.org/threads/329630/
  *
  * @author Crypto Morin
- * @version 5.2.1
+ * @version 5.3.0
  * @see Material
  * @see ItemStack
  */
@@ -1041,7 +1041,7 @@ public enum XMaterial {
     SPRUCE_DOOR("SPRUCE_DOOR_ITEM", "SPRUCE_DOOR"),
     SPRUCE_FENCE,
     SPRUCE_FENCE_GATE,
-    SPRUCE_LEAVES(1, "LEAVES"),
+    SPRUCE_LEAVES(1, "LEAVES", "LEAVES_2"),
     SPRUCE_LOG(1, "LOG"),
     SPRUCE_PLANKS(1, "WOOD"),
     SPRUCE_PRESSURE_PLATE("WOOD_PLATE"),
@@ -1811,10 +1811,10 @@ public enum XMaterial {
             }
 
             // Direct Object Equals
-            Optional<XMaterial> mat = matchXMaterial(comp);
-            if (mat.isPresent()) {
-                Optional<Material> xmat = mat.get().parseMaterial();
-                if (xmat.isPresent() && xmat.get() == material) return true;
+            Optional<XMaterial> xMat = matchXMaterial(comp);
+            if (xMat.isPresent()) {
+                Material mat = xMat.get().parseMaterial();
+                if (mat == material) return true;
             }
         }
         return false;
@@ -1849,10 +1849,10 @@ public enum XMaterial {
     @SuppressWarnings("deprecation")
     public ItemStack setType(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot set material for null ItemStack");
-        Optional<Material> opt = this.parseMaterial();
-        Validate.isTrue(opt.isPresent(), "Unsupported material: " + this.name());
+        Material material = this.parseMaterial();
+        Validate.isTrue(material != null, "Unsupported material: " + this.name());
 
-        item.setType(opt.get());
+        item.setType(material);
         if (!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
         return item;
     }
@@ -1867,8 +1867,8 @@ public enum XMaterial {
      * @since 3.0.0
      */
     public boolean isOneOf(@Nullable List<String> materials) {
-        Optional<Material> material = this.parseMaterial();
-        return material.filter(value -> isOneOf(value, materials)).isPresent();
+        Material material = this.parseMaterial();
+        return material != null && isOneOf(material, materials);
     }
 
     /**
@@ -1910,8 +1910,8 @@ public enum XMaterial {
     @SuppressWarnings("deprecation")
     public int getId() {
         if (this.data != 0 || (this.legacy.length != 0 && Integer.parseInt(this.legacy[0].substring(2)) >= 13)) return -1;
-        Optional<Material> opt = this.parseMaterial();
-        return opt.map(Material::getId).orElse(-1);
+        Material material = this.parseMaterial();
+        return material.getId();
     }
 
     /**
@@ -1990,9 +1990,8 @@ public enum XMaterial {
     @Nullable
     @SuppressWarnings("deprecation")
     public ItemStack parseItem(boolean suggest) {
-        Optional<Material> opt = this.parseMaterial(suggest);
-        if (!opt.isPresent()) return null;
-        Material material = opt.get();
+        Material material = this.parseMaterial(suggest);
+        Objects.requireNonNull(material, "Unsupported material: " + this.name() + " (" + data + '\'');
         return ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 
@@ -2003,8 +2002,8 @@ public enum XMaterial {
      * @see #parseMaterial(boolean)
      * @since 1.0.0
      */
-    @Nonnull
-    public Optional<Material> parseMaterial() {
+    @Nullable
+    public Material parseMaterial() {
         return parseMaterial(false);
     }
 
@@ -2016,10 +2015,10 @@ public enum XMaterial {
      * @since 2.0.0
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    @Nonnull
-    public Optional<Material> parseMaterial(boolean suggest) {
+    @Nullable
+    public Material parseMaterial(boolean suggest) {
         Optional<Material> cache = PARSED_CACHE.getIfPresent(this);
-        if (cache != null) return cache;
+        if (cache != null) return cache.orElse(null);
         Material mat;
 
         if (!ISFLAT && this.isDuplicated()) mat = requestOldMaterial(suggest);
@@ -2030,7 +2029,7 @@ public enum XMaterial {
 
         Optional<Material> opt = Optional.ofNullable(mat);
         PARSED_CACHE.put(this, opt);
-        return opt;
+        return mat;
     }
 
     /**
@@ -2075,7 +2074,7 @@ public enum XMaterial {
     @SuppressWarnings("deprecation")
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
-        if (item.getType() != this.parseMaterial().orElse(null)) return false;
+        if (item.getType() != this.parseMaterial()) return false;
         return ISFLAT || this.isDamageable() || item.getDurability() == this.data;
     }
 

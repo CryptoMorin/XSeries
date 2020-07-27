@@ -58,24 +58,24 @@ import java.util.concurrent.Callable;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  * @see ReflectionUtils
  */
 public class ActionBar {
-    private static final boolean sixteen = Material.getMaterial("LODESTONE") != null;
-    private static final boolean spigot;
+    private static final boolean SIXTEEN;
+    private static final boolean SPIGOT;
     /**
      * ChatComponentText JSON message builder.
      */
-    private static final MethodHandle chatComponentText;
+    private static final MethodHandle CHAT_COMPONENT_TEXT;
     /**
      * PacketPlayOutChat
      */
-    private static final MethodHandle packetPlayOutChat;
+    private static final MethodHandle PACKET_PLAY_OUT_CHAT;
     /**
      * GAME_INFO enum constant.
      */
-    private static final Object chatMessageType;
+    private static final Object CHAT_MESSAGE_TYPE;
 
     static {
         boolean exists = false;
@@ -86,7 +86,18 @@ public class ActionBar {
             } catch (ClassNotFoundException ignored) {
             }
         }
-        spigot = exists;
+        SPIGOT = exists;
+    }
+
+    static {
+        boolean sixteen;
+        try {
+            Class.forName("org.bukkit.entity.Zoglin");
+            sixteen = true;
+        } catch (ClassNotFoundException ignored) {
+            sixteen = false;
+        }
+        SIXTEEN = sixteen;
     }
 
     static {
@@ -94,7 +105,7 @@ public class ActionBar {
         MethodHandle chatComp = null;
         Object chatMsgType = null;
 
-        if (!spigot) {
+        if (!SPIGOT) {
             MethodHandles.Lookup lookup = MethodHandles.lookup();
             Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("PacketPlayOutChat");
             Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("IChatBaseComponent");
@@ -105,7 +116,7 @@ public class ActionBar {
 
                 // Packet Constructor
                 MethodType type;
-                if (sixteen) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
+                if (SIXTEEN) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
                 else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
 
                 for (Object obj : chatMessageTypeClass.getEnumConstants()) {
@@ -138,9 +149,9 @@ public class ActionBar {
             }
         }
 
-        chatMessageType = chatMsgType;
-        chatComponentText = chatComp;
-        packetPlayOutChat = packet;
+        CHAT_MESSAGE_TYPE = chatMsgType;
+        CHAT_COMPONENT_TEXT = chatComp;
+        PACKET_PLAY_OUT_CHAT = packet;
     }
 
     /**
@@ -153,16 +164,16 @@ public class ActionBar {
      */
     public static void sendActionBar(@Nonnull Player player, @Nullable String message) {
         Objects.requireNonNull(player, "Cannot send action bar to null player");
-        if (spigot) {
+        if (SPIGOT) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
             return;
         }
 
         try {
-            Object component = chatComponentText.invoke(message);
+            Object component = CHAT_COMPONENT_TEXT.invoke(message);
             Object packet;
-            if (sixteen) packet = packetPlayOutChat.invoke(component, chatMessageType, player.getUniqueId());
-            else packet = packetPlayOutChat.invoke(component, chatMessageType);
+            if (SIXTEEN) packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE, player.getUniqueId());
+            else packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
 
             ReflectionUtils.sendPacket(player, packet);
         } catch (Throwable throwable) {

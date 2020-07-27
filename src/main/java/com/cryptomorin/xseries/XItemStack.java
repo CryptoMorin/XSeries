@@ -65,7 +65,7 @@ import java.util.*;
  * @see ItemStack
  */
 public class XItemStack {
-    private static final Material PLAYER_HEAD = XMaterial.PLAYER_HEAD.parseMaterial().orElse(null);
+    private static final Material PLAYER_HEAD = XMaterial.PLAYER_HEAD.parseMaterial();
 
     /**
      * Writes an ItemStack object into a config.

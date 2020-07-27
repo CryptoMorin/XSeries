@@ -116,9 +116,7 @@ public class ReflectionUtils {
             try {
                 Object handle = GET_HANDLE.invoke(player);
                 Object connection = PLAYER_CONNECTION.invoke(handle);
-
-                if (!player.isOnline()) return;
-                SEND_PACKET.invoke(connection, packet);
+                if (player.isOnline()) SEND_PACKET.invoke(connection, packet);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }

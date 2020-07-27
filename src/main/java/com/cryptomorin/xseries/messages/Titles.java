@@ -57,7 +57,8 @@ public class Titles {
      * Check if the server is runnong on 1.11 or higher.
      * Since in 1.11 you can change the timings.
      */
-    private static final boolean supported = Material.getMaterial("OBSERVER") != null;
+    private static final boolean SUPPORTED_API = Material.getMaterial("OBSERVER") != null;
+
     /**
      * EnumTitleAction
      * Used for the fade in, stay and fade out feature of titles.
@@ -85,7 +86,7 @@ public class Titles {
         Object subtitle = null;
         Object clear = null;
 
-        if (!supported) {
+        if (!SUPPORTED_API) {
             Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
             Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
             Class<?> titleTypes = packet.getDeclaredClasses()[0];
@@ -144,7 +145,7 @@ public class Titles {
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
-        if (supported) {
+        if (SUPPORTED_API) {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             return;
         }
@@ -219,7 +220,7 @@ public class Titles {
      */
     public static void clearTitle(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
-        if (supported) {
+        if (SUPPORTED_API) {
             player.resetTitle();
             return;
         }
