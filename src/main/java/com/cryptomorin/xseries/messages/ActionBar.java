@@ -212,7 +212,7 @@ public class ActionBar {
      * @since 2.1.0
      */
     public static void clearPlayersActionBar(){
-        for (Player player : Bukkit.getOnlinePlayers()) clearActionbar(player);
+        for (Player player : Bukkit.getOnlinePlayers()) clearActionBar(player);
     }
 
     /**
