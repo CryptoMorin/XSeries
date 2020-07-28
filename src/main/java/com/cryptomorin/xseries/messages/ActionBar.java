@@ -199,7 +199,7 @@ public class ActionBar {
      * @see #sendActionBar(Player, String)
      * @since 2.1.0
      */
-    public static void clearActionbar(Player player){
+    public static void clearActionBar(Player player){
         sendActionBar(player, " ");
     }
     
@@ -211,7 +211,7 @@ public class ActionBar {
      * @see #clearActionbar(Player player)
      * @since 2.1.0
      */
-    public static void clearActionbar(Player player){
+    public static void clearActionBar(Player player){
         for (Player player : Bukkit.getOnlinePlayers()) clearActionbar(player);
     }
 
