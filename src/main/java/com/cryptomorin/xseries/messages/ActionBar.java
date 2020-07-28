@@ -211,7 +211,7 @@ public class ActionBar {
      * @see #clearActionbar(Player player)
      * @since 2.1.0
      */
-    public static void clearActionBar(Player player){
+    public static void clearPlayersActionBar(){
         for (Player player : Bukkit.getOnlinePlayers()) clearActionbar(player);
     }
 
