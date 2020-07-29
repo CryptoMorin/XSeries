@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see Biome
  */
 public enum XBiome {
@@ -146,8 +146,7 @@ public enum XBiome {
      *
      * @since 1.0.0
      */
-    private static final Cache<XBiome, Optional<Biome>> CACHE = CacheBuilder.newBuilder()
-            .softValues().build();
+    private static final Cache<XBiome, Optional<Biome>> CACHE = CacheBuilder.newBuilder().build();
     /**
      * Pre-compiled RegEx pattern.
      * Include both replacements to avoid creating string multiple times and multiple RegEx checks.

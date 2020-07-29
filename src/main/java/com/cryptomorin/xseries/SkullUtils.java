@@ -30,6 +30,7 @@ import com.mojang.authlib.properties.Property;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -51,7 +52,7 @@ import java.util.regex.Pattern;
  * Mojang API: https://wiki.vg/Mojang_API
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  * @see XMaterial
  */
 public class SkullUtils {
@@ -81,12 +82,14 @@ public class SkullUtils {
         SkullMeta meta = (SkullMeta) head;
 
         if (id != null || isUsername(player)) {
-            if (id != null) {
-                if (XMaterial.isNewVersion()) meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
-                else meta.setOwner(player);
+            if (XMaterial.isNewVersion()) {
+                OfflinePlayer offlinePlayer;
+                if (id == null) offlinePlayer = Bukkit.getOfflinePlayer(player);
+                else offlinePlayer = Bukkit.getOfflinePlayer(id);
+
+                meta.setOwningPlayer(offlinePlayer);
             } else {
-                if (XMaterial.isNewVersion()) meta.setOwningPlayer(Bukkit.getOfflinePlayer(player));
-                else meta.setOwner(player);
+                meta.setOwner(player);
             }
             return meta;
         }
@@ -152,18 +155,6 @@ public class SkullUtils {
                     return property.getValue();
 
         return null;
-    }
-
-    @Nullable
-    private static String getFullUUID(@Nullable String id) {
-        if (Strings.isNullOrEmpty(id)) return id;
-        if (id.length() != 32) return id;
-
-        return id.substring(0, 8) +
-                '-' + id.substring(8, 12) +
-                '-' + id.substring(12, 16) +
-                '-' + id.substring(16, 20) +
-                '-' + id.substring(20, 32);
     }
 
     private static boolean isUsername(@Nullable String name) {

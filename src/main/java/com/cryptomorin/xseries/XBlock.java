@@ -35,8 +35,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
+import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * <b>XBlock</b> - MaterialData/BlockData Support<br>
@@ -45,7 +47,7 @@ import java.util.List;
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
  *
  * @author Crypto Morin
- * @version 1.1.2
+ * @version 1.1.3
  * @see Block
  * @see BlockData
  * @see BlockState
@@ -292,8 +294,28 @@ public class XBlock {
         return name.equals("WATER") || name.equals("STATIONARY_WATER");
     }
 
-    public static boolean isOneOf(Block block, List<String> blocks) {
-        return XMaterial.isOneOf(block.getType(), blocks);
+    public static boolean isOneOf(Block block, Collection<String> blocks) {
+        if (blocks == null || blocks.isEmpty()) return false;
+        String name = block.getType().name();
+
+        for (String comp : blocks) {
+            String checker = comp.toUpperCase(Locale.ENGLISH);
+            if (checker.startsWith("CONTAINS:")) {
+                comp = XMaterial.format(checker.substring(9));
+                if (name.contains(comp)) return true;
+                continue;
+            }
+            if (checker.startsWith("REGEX:")) {
+                comp = comp.substring(6);
+                if (name.matches(comp)) return true;
+                continue;
+            }
+
+            // Direct Object Equals
+            Optional<XMaterial> xMat = XMaterial.matchXMaterial(comp);
+            if (xMat.isPresent() && isType(block, xMat.get())) return true;
+        }
+        return false;
     }
 
     public static void setCakeSlices(Block block, int amount) {

@@ -481,7 +481,7 @@ public class XItemStack {
         Map<Integer, ItemStack> drop = player.getInventory().addItem(items);
         World world = player.getWorld();
         Location location = player.getLocation();
-        drop.forEach((x, z) -> world.dropItemNaturally(location, z));
+        drop.values().forEach(item -> world.dropItemNaturally(location, item));
         return drop;
     }
 }

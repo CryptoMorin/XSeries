@@ -51,7 +51,7 @@ import java.util.Objects;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.0.1
+ * @version 3.0.2
  * @see XParticle
  */
 public class ParticleDisplay {
@@ -190,7 +190,7 @@ public class ParticleDisplay {
 
         String offset = config.getString("offset");
         if (offset != null) {
-            String[] offsets = StringUtils.split(offset, ',');
+            String[] offsets = StringUtils.split(StringUtils.deleteWhitespace(offset), ',');
             if (offsets.length > 0) {
                 offsetx = NumberUtils.toDouble(offsets[0]);
                 if (offsets.length > 1) {
@@ -205,7 +205,7 @@ public class ParticleDisplay {
         double x = 0, y = 0, z = 0;
         String rotation = config.getString("rotation");
         if (rotation != null) {
-            String[] rotations = StringUtils.split(rotation, ',');
+            String[] rotations = StringUtils.split(StringUtils.deleteWhitespace(rotation), ',');
             if (rotations.length > 0) {
                 x = NumberUtils.toDouble(rotations[0]);
                 if (rotations.length > 1) {
@@ -220,7 +220,7 @@ public class ParticleDisplay {
         float[] rgbs = null;
         String color = config.getString("color");
         if (color != null) {
-            String[] colors = StringUtils.split(rotation, ',');
+            String[] colors = StringUtils.split(StringUtils.deleteWhitespace(rotation), ',');
             if (colors.length >= 3) rgbs = new float[]
                     {NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
                             (colors.length > 3 ? NumberUtils.toFloat(colors[0]) : 1.0f)};

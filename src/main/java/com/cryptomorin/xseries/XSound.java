@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.1.1
  * @see Sound
  */
 public enum XSound {
@@ -1080,7 +1080,6 @@ public enum XSound {
      */
     private static final Cache<XSound, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
-            .softValues()
             .build();
 
     /**
@@ -1102,7 +1101,6 @@ public enum XSound {
      * @since 1.0.0
      */
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private static final Pattern DOUBLE_SPACE = Pattern.compile("  +");
 
     static {
         Map<String, XSound> builder = new HashMap<>();
@@ -1234,15 +1232,14 @@ public enum XSound {
         if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;
 
         return CompletableFuture.supplyAsync(() -> {
-            String[] split = StringUtils.contains(sound, ',') ?
-                    StringUtils.split(StringUtils.deleteWhitespace(sound), ',') :
-                    StringUtils.split(DOUBLE_SPACE.matcher(sound).replaceAll(" "), ' ');
+            String[] split = StringUtils.split(StringUtils.deleteWhitespace(sound), ',');
+            if (split.length == 0) split = StringUtils.split(sound, ' ');
 
             String name = split[0];
-            boolean playForEveryone = player == null;
-            if (!playForEveryone && StringUtils.startsWithIgnoreCase(name, "loc:")) {
+            boolean playAtLocation = player == null;
+            if (!playAtLocation && StringUtils.startsWithIgnoreCase(name, "loc:")) {
                 name = name.substring(4);
-                playForEveryone = true;
+                playAtLocation = true;
             }
             Optional<XSound> typeOpt = matchXSound(name);
             if (!typeOpt.isPresent()) return null;
@@ -1260,7 +1257,7 @@ public enum XSound {
             } catch (NumberFormatException ignored) {
             }
 
-            Record record = new Record(type, player, location, volume, pitch, playForEveryone);
+            Record record = new Record(type, player, location, volume, pitch, playAtLocation);
             if (play) record.play();
             return record;
         }).exceptionally((ex) -> {

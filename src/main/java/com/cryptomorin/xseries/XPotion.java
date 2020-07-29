@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 1.1.1
+ * @version 1.1.2
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -102,8 +102,8 @@ public enum XPotion {
     public static final EnumSet<XPotion> DEBUFFS = EnumSet.of(
             BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
             SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER);
+
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private static final Pattern SPACE = Pattern.compile("  +");
     private final String[] aliases;
 
     XPotion(String... aliases) {
@@ -197,9 +197,8 @@ public enum XPotion {
     @Nullable
     public static PotionEffect parsePotionEffectFromString(@Nullable String potion) {
         if (Strings.isNullOrEmpty(potion) || potion.equalsIgnoreCase("none")) return null;
-        String[] split = StringUtils.contains(potion, ',') ?
-                StringUtils.split(StringUtils.deleteWhitespace(potion), ',') :
-                StringUtils.split(SPACE.matcher(potion).replaceAll(" "), ' ');
+        String[] split = StringUtils.split(StringUtils.deleteWhitespace(potion), ',');
+        if (split.length == 0) split = StringUtils.split(potion, ' ');
 
         Optional<XPotion> typeOpt = matchXPotion(split[0]);
         if (!typeOpt.isPresent()) return null;

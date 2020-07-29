@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 1.1.1
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -106,7 +106,6 @@ public enum XEnchantment {
      */
     private static final boolean ISFLAT;
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private static final Pattern SPACE = Pattern.compile("  +");
 
     static {
         boolean flat;
@@ -243,9 +242,8 @@ public enum XEnchantment {
         Objects.requireNonNull(item, "Cannot add enchantment to null ItemStack");
         if (Strings.isNullOrEmpty(enchantment) || enchantment.equalsIgnoreCase("none")) return item;
 
-        String[] split = StringUtils.contains(enchantment, ',') ?
-                StringUtils.split(StringUtils.deleteWhitespace(enchantment), ',') :
-                StringUtils.split(SPACE.matcher(enchantment).replaceAll(" "), ' ');
+        String[] split = StringUtils.split(StringUtils.deleteWhitespace(enchantment), ',');
+        if (split.length == 0) split = StringUtils.split(enchantment, ' ');
 
         Optional<XEnchantment> enchantOpt = matchXEnchantment(split[0]);
         if (enchantOpt.isPresent()) return item;

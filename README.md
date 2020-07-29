@@ -4,11 +4,11 @@
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
-XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers.
-But it also includes numerous extra methods to help developers design their plugins easier.
+XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers,
+but it also includes numerous extra methods to help developers design their plugins easier.
 Some utilities are completely unrelated to cross-version support
 such as NoteBlockMusic.\
-Don't forget to add `api-version: "1.13"` to your `plugin.yml`
+Don't forget to add `api-version: "1.13"` to your `plugin.yml`.
 
 This project aims to provide quality utilities with high performance using the latest yet efficient techniques.
 Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all server owners
@@ -32,8 +32,8 @@ It's quite common to miss the whole purpose of cross-version support by using th
 
 You can use the classes individually or use the maven dependency.
 Most of the utilities are intended to be independent. However some
-utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/XParticle.java) are intended to use
-another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/ParticleDisplay.java))
+utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
+another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java))
 
 
 #### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
@@ -78,7 +78,7 @@ To shade the library:
 
 ### Contributing
 
-There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me.
-But please make sure you know what you're doing and tested the project on different versions.
+There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me,
+but please make sure you know what you're doing and tested the project on different versions.
 Any new ideas are welcome as long as it's useful not just for you but for everyone else.\
 Please refer to [contributing guidelines](CONTRIBUTING.md) for more info.

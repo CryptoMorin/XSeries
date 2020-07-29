@@ -12,7 +12,6 @@ It's also used for JavaX nullability annotations.
 ### Rules
 * Only Java 8 should be used. All the functions in the latest version of Java 8 can be used.
 * Make sure the utility work on different versions.
-* Do not use Java streams unless it's for a constant. Use for-each loops instead.
 * Use method and variable names that make sense and are related to the context.
 * Don't use Optional everywhere that can return null.
 * Using Guava's lib and Apache Commons is a plus, but make sure that what you're using is supported in
@@ -26,3 +25,5 @@ Using extra methods from Spigot is a plus as long as it supports Bukkit, but do 
 Functions such as the common ISFLAT boolean check should not depend on XMaterial's isNewVersion() Except
 XBlock which is intended, since it already uses XMaterial for materials. Same for XParticle and ParticleDisplay.
 * Do not attempt to support older versions than 1.8 even if it can be fixed with a single line.
+* Do not use one liner if statements if it doesn't fit the screen.
+* Try to avoid streams for frequently used methods.

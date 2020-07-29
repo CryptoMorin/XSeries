@@ -25,6 +25,8 @@ package com.cryptomorin.xseries;
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
@@ -37,8 +39,10 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
@@ -53,9 +57,13 @@ import java.util.regex.Pattern;
  * Material IDs: https://minecraft-ids.grahamedgecombe.com/
  * Material Source Code: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
  * XMaterial v1: https://www.spigotmc.org/threads/329630/
+ * <p>
+ * This class will throw a "unsupported material" error if someone tries to use an item with an invalid data value which can only happen in 1.12 servers and below.
+ * To get an invalid item, (aka <a href="https://minecraft.fandom.com/wiki/Missing_Texture_Block">Missing Texture Block</a>) you can use the command
+ * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 5.3.0
+ * @version 5.4.0
  * @see Material
  * @see ItemStack
  */
@@ -1298,7 +1306,6 @@ public enum XMaterial {
      * @since 1.0.0
      */
     private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
-            .softValues()
             .expireAfterAccess(15, TimeUnit.MINUTES)
             .build();
     /*
@@ -1322,9 +1329,26 @@ public enum XMaterial {
      * @since 3.0.0
      */
     private static final Cache<XMaterial, Optional<Material>> PARSED_CACHE = CacheBuilder.newBuilder()
-            .softValues()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
+    /**
+     * This is used for {@link #isOneOf(Collection)}
+     *
+     * @since 3.4.0
+     */
+    private static final LoadingCache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build(new CacheLoader<String, Pattern>() {
+                @Override
+                public Pattern load(@Nonnull String str) {
+                    try {
+                        return Pattern.compile(str);
+                    } catch (PatternSyntaxException ex) {
+                        ex.printStackTrace();
+                        return null;
+                    }
+                }
+            });
     /**
      * Pre-compiled RegEx pattern.
      * Include both replacements to avoid recreating string multiple times with multiple RegEx checks.
@@ -1497,13 +1521,13 @@ public enum XMaterial {
 
     /**
      * Parses material name and data value from the specified string.
-     * The seperators are: <b>, or :</b>
+     * The separator for the material name and its data value is {@code :}
      * Spaces are allowed. Mostly used when getting materials from config for old school minecrafters.
      * <p>
      * <b>Examples</b>
      * <p><pre>
      *     {@code INK_SACK:1 -> RED_DYE}
-     *     {@code WOOL, 14  -> RED_WOOL}
+     *     {@code WOOL: 14  -> RED_WOOL}
      * </pre>
      *
      * @param name the material string that consists of the material name, data and separator character.
@@ -1513,13 +1537,15 @@ public enum XMaterial {
      */
     @Nonnull
     private static Optional<XMaterial> matchXMaterialWithData(String name) {
-        for (char separator : new char[]{',', ':'}) {
-            int index = name.indexOf(separator);
-            if (index == -1) continue;
-
+        int index = name.indexOf(':');
+        if (index != -1) {
             String mat = format(name.substring(0, index));
-            byte data = Byte.parseByte(StringUtils.deleteWhitespace(name.substring(index + 1)));
-            return matchDefinedXMaterial(mat, data);
+
+            try {
+                byte data = (byte) Integer.parseInt(StringUtils.deleteWhitespace(name.substring(index + 1)));
+                return matchDefinedXMaterial(mat, data);
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         return Optional.empty();
@@ -1537,7 +1563,7 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull Material material) {
         Objects.requireNonNull(material, "Cannot match null material");
         return matchDefinedXMaterial(material.name(), (byte) -1)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported Material With No Bytes: " + material.name()));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported material with no data value: " + material.name()));
     }
 
     /**
@@ -1557,7 +1583,7 @@ public enum XMaterial {
         byte data = (byte) (ISFLAT || isDamageable(material) ? 0 : item.getDurability());
 
         return matchDefinedXMaterial(material, data)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported Material: " + material + " (" + data + ')'));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported material: " + material + " (" + data + ')'));
     }
 
     /**
@@ -1658,7 +1684,7 @@ public enum XMaterial {
      * @since 2.0.0
      */
     @Nonnull
-    private static String format(@Nonnull String name) {
+    protected static String format(@Nonnull String name) {
         return FORMAT_PATTERN.matcher(
                 name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
     }
@@ -1787,35 +1813,31 @@ public enum XMaterial {
      * <p>
      * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
      *
-     * @param material  the base material to match other materials with.
      * @param materials the material names to check base material on.
      * @return true if one of the given material names is similar to the base material.
      * @since 3.1.1
      */
-    public static boolean isOneOf(@Nonnull Material material, @Nullable List<String> materials) {
+    public boolean isOneOf(@Nullable Collection<String> materials) {
         if (materials == null || materials.isEmpty()) return false;
-        Objects.requireNonNull(material, "Cannot match materials with a null material");
-        String name = material.name();
+        String name = this.name();
 
         for (String comp : materials) {
-            comp = comp.toUpperCase();
-            if (comp.startsWith("CONTAINS:")) {
-                comp = format(comp.substring(9));
+            String checker = comp.toUpperCase(Locale.ENGLISH);
+            if (checker.startsWith("CONTAINS:")) {
+                comp = format(checker.substring(9));
                 if (name.contains(comp)) return true;
                 continue;
             }
-            if (comp.startsWith("REGEX:")) {
+            if (checker.startsWith("REGEX:")) {
                 comp = comp.substring(6);
-                if (name.matches(comp)) return true;
+                Pattern pattern = CACHED_REGEX.getUnchecked(comp);
+                if (pattern != null && pattern.matcher(name).matches()) return true;
                 continue;
             }
 
             // Direct Object Equals
             Optional<XMaterial> xMat = matchXMaterial(comp);
-            if (xMat.isPresent()) {
-                Material mat = xMat.get().parseMaterial();
-                if (mat == material) return true;
-            }
+            if (xMat.isPresent() && xMat.get() == this) return true;
         }
         return false;
     }
@@ -1855,20 +1877,6 @@ public enum XMaterial {
         item.setType(material);
         if (!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
         return item;
-    }
-
-    /**
-     * Checks if the list of given material names matches the given base material.
-     * Mostly used for configs.
-     *
-     * @param materials the material names to check base material on.
-     * @return true if one of the given material names is similar to the base material.
-     * @see #isOneOf(Material, List)
-     * @since 3.0.0
-     */
-    public boolean isOneOf(@Nullable List<String> materials) {
-        Material material = this.parseMaterial();
-        return material != null && isOneOf(material, materials);
     }
 
     /**
