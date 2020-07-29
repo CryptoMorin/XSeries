@@ -189,7 +189,7 @@ public class ActionBar {
      * @since 1.0.0
      */
     public static void sendPlayersActionBar(@Nullable final String message) {
-        Bukkit.getOnlinePlayers().forEach(p-> sendActionBar(p, message));
+        for(Player player : Bukkit.getOnlinePlayers()) sendActionBar(player, message);
     }
 
     /**
@@ -210,7 +210,7 @@ public class ActionBar {
      * @since 2.1.0
      */
     public static void clearPlayersActionBar(){
-        Bukkit.getOnlinePlayers().forEach(ActionBar::clearActionBar);
+        for(Player player : Bukkit.getOnlinePlayers()) clearActionBar(player);
     }
 
     /**
