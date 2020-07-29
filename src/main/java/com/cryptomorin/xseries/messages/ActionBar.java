@@ -188,8 +188,29 @@ public class ActionBar {
      * @see #sendActionBar(Player, String)
      * @since 1.0.0
      */
-    public static void sendPlayersActionBar(@Nullable String message) {
-        for (Player player : Bukkit.getOnlinePlayers()) sendActionBar(player, message);
+    public static void sendPlayersActionBar(@Nullable final String message) {
+        for(Player player : Bukkit.getOnlinePlayers()) sendActionBar(player, message);
+    }
+
+    /**
+     * Clear the action bar by sending an empty message
+     *
+     * @param player   the player to send the action bar to.
+     * @see #sendActionBar(Player, String)
+     * @since 2.1.0
+     */
+    public static void clearActionBar(Player player){
+        sendActionBar(player, " ");
+    }
+
+    /**
+     * Clear the action bar by sending an empty message to all the online players
+     *
+     * @see #clearActionBar(Player player)
+     * @since 2.1.0
+     */
+    public static void clearPlayersActionBar(){
+        for(Player player : Bukkit.getOnlinePlayers()) clearActionBar(player);
     }
 
     /**
