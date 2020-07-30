@@ -63,7 +63,6 @@ public class XEntity {
             EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
 
     static {
-        UNDEAD.add(EntityType.ZOMBIFIED_PIGLIN);
         if (XMaterial.supports(10)) {
             UNDEAD.add(EntityType.HUSK);
             UNDEAD.add(EntityType.STRAY);
@@ -74,11 +73,10 @@ public class XEntity {
                     UNDEAD.add(EntityType.ZOGLIN);
                     UNDEAD.add(EntityType.PIGLIN);
                     UNDEAD.add(EntityType.ZOMBIFIED_PIGLIN);
-                } else {
-                    UNDEAD.add(EntityType.valueOf("PIG_ZOMBIE"));
                 }
             }
         }
+        if (!XMaterial.supports(16)) UNDEAD.add(EntityType.valueOf("PIG_ZOMBIE"));
     }
 
     /**
