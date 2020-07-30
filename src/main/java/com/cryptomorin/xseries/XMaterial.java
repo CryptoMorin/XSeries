@@ -27,8 +27,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
@@ -39,7 +37,6 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -63,7 +60,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 5.4.0
+ * @version 6.0.0
  * @see Material
  * @see ItemStack
  */
@@ -78,11 +75,11 @@ public enum XMaterial {
     ACACIA_PLANKS(4, "WOOD"),
     ACACIA_PRESSURE_PLATE("WOOD_PLATE"),
     ACACIA_SAPLING(4, "SAPLING"),
-    ACACIA_SIGN("SIGN"),
+    ACACIA_SIGN("SIGN_POST", "SIGN"),
     ACACIA_SLAB(4, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     ACACIA_STAIRS,
     ACACIA_TRAPDOOR("TRAP_DOOR"),
-    ACACIA_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    ACACIA_WALL_SIGN("WALL_SIGN"),
     ACACIA_WOOD("LOG_2"),
     ACTIVATOR_RAIL,
     /**
@@ -138,11 +135,11 @@ public enum XMaterial {
     BIRCH_PLANKS(2, "WOOD"),
     BIRCH_PRESSURE_PLATE("WOOD_PLATE"),
     BIRCH_SAPLING(2, "SAPLING"),
-    BIRCH_SIGN("SIGN"),
+    BIRCH_SIGN("SIGN_POST", "SIGN"),
     BIRCH_SLAB(2, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     BIRCH_STAIRS("BIRCH_WOOD_STAIRS"),
     BIRCH_TRAPDOOR("TRAP_DOOR"),
-    BIRCH_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    BIRCH_WALL_SIGN("WALL_SIGN"),
     BIRCH_WOOD(2, "LOG"),
     BLACKSTONE("1.16"),
     BLACKSTONE_SLAB("1.16"),
@@ -315,12 +312,12 @@ public enum XMaterial {
     CRIMSON_PLANKS("1.16"),
     CRIMSON_PRESSURE_PLATE("1.16"),
     CRIMSON_ROOTS("1.16"),
-    CRIMSON_SIGN("1.16"),
+    CRIMSON_SIGN("1.16", "SIGN_POST"),
     CRIMSON_SLAB("1.16"),
     CRIMSON_STAIRS("1.16"),
     CRIMSON_STEM("1.16"),
     CRIMSON_TRAPDOOR("1.16"),
-    CRIMSON_WALL_SIGN("1.16"),
+    CRIMSON_WALL_SIGN("1.16", "WALL_SIGN"),
     CROSSBOW,
     CRYING_OBSIDIAN("1.16"),
     CUT_RED_SANDSTONE("1.13"),
@@ -352,11 +349,11 @@ public enum XMaterial {
     DARK_OAK_PLANKS(5, "WOOD"),
     DARK_OAK_PRESSURE_PLATE("WOOD_PLATE"),
     DARK_OAK_SAPLING(5, "SAPLING"),
-    DARK_OAK_SIGN("SIGN"),
+    DARK_OAK_SIGN("SIGN_POST", "SIGN"),
     DARK_OAK_SLAB(5, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     DARK_OAK_STAIRS,
     DARK_OAK_TRAPDOOR("TRAP_DOOR"),
-    DARK_OAK_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    DARK_OAK_WALL_SIGN("WALL_SIGN"),
     DARK_OAK_WOOD(1, "LOG", "LOG_2"),
     DARK_PRISMARINE(1, "PRISMARINE"),
     DARK_PRISMARINE_SLAB("1.13"),
@@ -597,11 +594,11 @@ public enum XMaterial {
     JUNGLE_PLANKS(3, "WOOD"),
     JUNGLE_PRESSURE_PLATE("WOOD_PLATE"),
     JUNGLE_SAPLING(3, "SAPLING"),
-    JUNGLE_SIGN("SIGN"),
+    JUNGLE_SIGN("SIGN_POST", "SIGN"),
     JUNGLE_SLAB(3, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     JUNGLE_STAIRS("JUNGLE_WOOD_STAIRS"),
     JUNGLE_TRAPDOOR("TRAP_DOOR"),
-    JUNGLE_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    JUNGLE_WALL_SIGN("WALL_SIGN"),
     JUNGLE_WOOD(3, "LOG"),
     KELP("1.13"),
     KELP_PLANT("1.13"),
@@ -777,11 +774,11 @@ public enum XMaterial {
     OAK_PLANKS("WOOD"),
     OAK_PRESSURE_PLATE("WOOD_PLATE"),
     OAK_SAPLING("SAPLING"),
-    OAK_SIGN("SIGN"),
+    OAK_SIGN("SIGN_POST", "SIGN"),
     OAK_SLAB("WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     OAK_STAIRS("WOOD_STAIRS"),
     OAK_TRAPDOOR("TRAP_DOOR"),
-    OAK_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    OAK_WALL_SIGN("WALL_SIGN"),
     OAK_WOOD("LOG"),
     OBSERVER,
     OBSIDIAN,
@@ -980,7 +977,7 @@ public enum XMaterial {
     RED_TULIP(4, "RED_ROSE"),
     RED_WALL_BANNER(1, "WALL_BANNER"),
     RED_WOOL(14, "WOOL"),
-    REPEATER("DIODE", "DIODE_BLOCK_ON", "DIODE_BLOCK_OFF"),
+    REPEATER("DIODE_BLOCK_ON", "DIODE_BLOCK_OFF", "DIODE"),
     REPEATING_COMMAND_BLOCK("COMMAND", "COMMAND_REPEATING"),
     RESPAWN_ANCHOR("1.16"),
     ROSE_BUSH(4, "DOUBLE_PLANT"),
@@ -1054,11 +1051,11 @@ public enum XMaterial {
     SPRUCE_PLANKS(1, "WOOD"),
     SPRUCE_PRESSURE_PLATE("WOOD_PLATE"),
     SPRUCE_SAPLING(1, "SAPLING"),
-    SPRUCE_SIGN("SIGN"),
+    SPRUCE_SIGN("SIGN_POST", "SIGN"),
     SPRUCE_SLAB(1, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
     SPRUCE_STAIRS("SPRUCE_WOOD_STAIRS"),
     SPRUCE_TRAPDOOR("TRAP_DOOR"),
-    SPRUCE_WALL_SIGN("SIGN_POST", "WALL_SIGN"),
+    SPRUCE_WALL_SIGN("WALL_SIGN"),
     SPRUCE_WOOD(1, "LOG"),
     SQUID_SPAWN_EGG(94, "MONSTER_EGG"),
     STICK,
@@ -1162,12 +1159,12 @@ public enum XMaterial {
     WARPED_PLANKS("1.16"),
     WARPED_PRESSURE_PLATE("1.16"),
     WARPED_ROOTS("1.16"),
-    WARPED_SIGN("1.16"),
+    WARPED_SIGN("1.16", "SIGN_POST"),
     WARPED_SLAB("1.16"),
     WARPED_STAIRS("1.16"),
     WARPED_STEM("1.16"),
     WARPED_TRAPDOOR("1.16"),
-    WARPED_WALL_SIGN("1.16"),
+    WARPED_WALL_SIGN("1.16", "WALL_SIGN"),
     WARPED_WART_BLOCK("1.16"),
     /**
      * This is used for blocks only.
@@ -1237,8 +1234,9 @@ public enum XMaterial {
 
 
     /**
-     * An immutable cached set of {@link XMaterial#values()} to avoid allocating memory for
+     * Cached set of {@link XMaterial#values()} to avoid allocating memory for
      * calling the method every time.
+     * This set is mutable for performance, but do not change the elements.
      *
      * @since 2.0.0
      */
@@ -1249,7 +1247,7 @@ public enum XMaterial {
      *
      * @since 5.1.0
      */
-    private static final Map<String, XMaterial> NAMES;
+    private static final Map<String, XMaterial> NAMES = new HashMap<>();
 
     /**
      * A set of material names that can be damaged.
@@ -1259,13 +1257,13 @@ public enum XMaterial {
      *
      * @since 1.0.0
      */
-    private static final ImmutableSet<String> DAMAGEABLE = ImmutableSet.of(
+    private static final Set<String> DAMAGEABLE = new HashSet<>(Arrays.asList(
             "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS",
             "SWORD", "AXE", "PICKAXE", "SHOVEL", "HOE",
             "ELYTRA", "TRIDENT", "HORSE_ARMOR", "BARDING",
             "SHEARS", "FLINT_AND_STEEL", "BOW", "FISHING_ROD",
             "CARROT_ON_A_STICK", "CARROT_STICK", "SPADE", "SHIELD"
-    );
+    ));
     /**
      * <b>XMaterial Paradox (Duplication Check)</b>
      * <p>
@@ -1297,6 +1295,7 @@ public enum XMaterial {
         put(JUNGLE_DOOR, JUNGLE_DOOR);
         put(SPRUCE_DOOR, SPRUCE_DOOR);
         put(CAULDRON, CAULDRON);
+        put(BREWING_STAND, BREWING_STAND);
     }};
 
     /**
@@ -1350,13 +1349,6 @@ public enum XMaterial {
                 }
             });
     /**
-     * Pre-compiled RegEx pattern.
-     * Include both replacements to avoid recreating string multiple times with multiple RegEx checks.
-     *
-     * @since 3.0.0
-     */
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\W+");
-    /**
      * The current version of the server in the a form of a major version.
      *
      * @since 1.0.0
@@ -1371,9 +1363,7 @@ public enum XMaterial {
     private static final boolean ISFLAT = supports(13);
 
     static {
-        ImmutableMap.Builder<String, XMaterial> builder = ImmutableMap.builder();
-        for (XMaterial material : VALUES) builder.put(material.name(), material);
-        NAMES = builder.build();
+        for (XMaterial material : VALUES) NAMES.put(material.name(), material);
     }
 
     /**
@@ -1677,7 +1667,9 @@ public enum XMaterial {
 
     /**
      * Attempts to build the string like an enum name.
-     * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * Removes all the spaces, and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the material name to modify.
      * @return a Material enum name.
@@ -1685,8 +1677,31 @@ public enum XMaterial {
      */
     @Nonnull
     protected static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
+
+        for (int i = 0; i < len; ++i) {
+            char ch = name.charAt(i);
+
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                boolean number = false;
+                // Old materials have numbers in them.
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (number = (ch >= '0' && ch <= '9'))) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+
+                    if (number) chs[count++] = ch;
+                    else chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**

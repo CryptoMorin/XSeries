@@ -25,7 +25,6 @@ import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
@@ -40,7 +39,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
@@ -58,7 +56,7 @@ import java.util.regex.Pattern;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 3.1.1
+ * @version 4.0.0
  * @see Sound
  */
 public enum XSound {
@@ -1063,8 +1061,9 @@ public enum XSound {
 
 
     /**
-     * An immutable cached list of {@link XSound#values()} to avoid allocating memory for
+     * Cached list of {@link XSound#values()} to avoid allocating memory for
      * calling the method every time.
+     * This set is mutable for performance, but do not change the elements.
      *
      * @since 2.0.0
      */
@@ -1087,38 +1086,22 @@ public enum XSound {
      *
      * @since 3.1.0
      */
-    private static final Map<String, XSound> NAMES;
+    private static final Map<String, XSound> NAMES = new HashMap<>();
     /**
      * Since {@link Sound} doesn't provde a method to get a sound from a method like {@link Material#getMaterial(String)}
      *
      * @since 3.1.0
      */
-    private static final Map<String, Sound> BUKKIT_NAMES;
-    /**
-     * Pre-compiled RegEx pattern.
-     * Include both replacements to avoid creating string multiple times and multiple RegEx checks.
-     *
-     * @since 1.0.0
-     */
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
+    private static final Map<String, Sound> BUKKIT_NAMES = new HashMap<>();
 
     static {
-        Map<String, XSound> builder = new HashMap<>();
+        for (Sound sound : Sound.values()) BUKKIT_NAMES.put(sound.name(), sound);
         for (XSound sound : VALUES) {
-            builder.put(sound.name(), sound);
+            NAMES.put(sound.name(), sound);
             for (String legacy : sound.getLegacy()) {
-                if (!builder.containsKey(legacy)) builder.put(legacy, sound);
+                if (!NAMES.containsKey(legacy)) NAMES.put(legacy, sound);
             }
         }
-        NAMES = ImmutableMap.copyOf(builder);
-    }
-
-    static {
-        ImmutableMap.Builder<String, Sound> builder = ImmutableMap.builder();
-        for (Sound sound : Sound.values()) {
-            builder.put(sound.name(), sound);
-        }
-        BUKKIT_NAMES = builder.build();
     }
 
     private final String[] legacy;
@@ -1130,6 +1113,8 @@ public enum XSound {
     /**
      * Attempts to build the string like an enum name.<br>
      * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the sound name to modify.
      * @return a Sound enum name.
@@ -1137,8 +1122,30 @@ public enum XSound {
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
+
+        for (int i = 0; i < len; ++i) {
+            char ch = name.charAt(i);
+
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                boolean number = false;
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+
+                    if (number) chs[count++] = ch;
+                    else chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**

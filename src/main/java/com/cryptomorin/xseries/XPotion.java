@@ -25,6 +25,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -93,8 +94,9 @@ public enum XPotion {
     WITHER("DECAY");
 
     /**
-     * An immutable cached list of {@link XPotion#values()} to avoid allocating memory for
+     * Cached list of {@link XPotion#values()} to avoid allocating memory for
      * calling the method every time.
+     * This set is mutable for performance, but do not change the elements.
      *
      * @since 1.0.0
      */
@@ -139,8 +141,9 @@ public enum XPotion {
         if (idType != null) return Optional.of(matchXPotion(idType));
         potion = format(potion);
 
-        for (XPotion potions : VALUES)
+        for (XPotion potions : VALUES) {
             if (potions.name().equals(potion) || potions.anyMatchAliases(potion)) return Optional.ofNullable(potions);
+        }
         return Optional.empty();
     }
 
@@ -207,12 +210,9 @@ public enum XPotion {
 
         int duration = 2400; // 20 ticks * 60 seconds * 2 minutes
         int amplifier = 0;
-        try {
-            if (split.length > 1) {
-                duration = Integer.parseInt(split[1]) * 20;
-                if (split.length > 2) amplifier = Integer.parseInt(split[2]) - 1;
-            }
-        } catch (NumberFormatException ignored) {
+        if (split.length > 1) {
+            duration = NumberUtils.toInt(split[1]) * 20;
+            if (split.length > 2) amplifier = NumberUtils.toInt(split[2]) - 1;
         }
 
         return new PotionEffect(type, duration, amplifier);
@@ -309,7 +309,6 @@ public enum XPotion {
      * @since 1.0.0
      */
     public static boolean canHaveEffects(@Nullable Material material) {
-        if (material == null) return false;
         return material.name().endsWith("POTION") || material.name().startsWith("TI"); // TIPPED_ARROW
     }
 

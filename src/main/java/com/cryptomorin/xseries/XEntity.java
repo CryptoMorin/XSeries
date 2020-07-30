@@ -31,8 +31,11 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * <b>XEntity</b> - YAML Entity Serializer<br>
@@ -45,12 +48,50 @@ import java.util.Optional;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 1.1.1
+ * @version 2.0.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
  */
 public class XEntity {
+    /**
+     * A list of entity types that are considerd <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
+     *
+     * @since 2.0.0
+     */
+    public static final Set<EntityType> UNDEAD = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
+            EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
+
+    static {
+        UNDEAD.add(EntityType.ZOMBIFIED_PIGLIN);
+        if (XMaterial.supports(10)) {
+            UNDEAD.add(EntityType.HUSK);
+            UNDEAD.add(EntityType.STRAY);
+            if (XMaterial.isNewVersion()) {
+                UNDEAD.add(EntityType.DROWNED);
+                UNDEAD.add(EntityType.PHANTOM);
+                if (XMaterial.supports(16)) {
+                    UNDEAD.add(EntityType.ZOGLIN);
+                    UNDEAD.add(EntityType.PIGLIN);
+                    UNDEAD.add(EntityType.ZOMBIFIED_PIGLIN);
+                } else {
+                    UNDEAD.add(EntityType.valueOf("PIG_ZOMBIE"));
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if an entity is an <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
+     *
+     * @param type the entity type.
+     * @return true if the entity is an undead.
+     * @since 2.0.0
+     */
+    public static boolean isUndead(@Nullable EntityType type) {
+        return UNDEAD.contains(type);
+    }
+
     public static Entity spawn(Location location, ConfigurationSection config) {
         String typeStr = config.getString("type");
         if (typeStr == null) return null;
@@ -265,12 +306,28 @@ public class XEntity {
                                     MushroomCow mooshroom = (MushroomCow) living;
                                     mooshroom.setVariant(Enums.getIfPresent(MushroomCow.Variant.class, config.getString("variant")).or(MushroomCow.Variant.RED));
                                 } else if (XMaterial.supports(15)) {
-
                                     if (living instanceof Bee) {
                                         Bee bee = (Bee) living;
-                                        bee.setAnger(config.getInt("anger"));
+                                        // Anger time ticks.
+                                        bee.setAnger(config.getInt("anger") * 20);
                                         bee.setHasNectar(config.getBoolean("nectar"));
                                         bee.setHasStung(config.getBoolean("stung"));
+                                        bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
+                                    } else if (XMaterial.supports(16)) {
+                                        if (living instanceof Hoglin) {
+                                            Hoglin hoglin = (Hoglin) living;
+                                            hoglin.setConversionTime(config.getInt("conversation") * 20);
+                                            hoglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
+                                            hoglin.setIsAbleToBeHunted(config.getBoolean("can-be-hunted"));
+                                        } else if (living instanceof Piglin) {
+                                            // Idk why Spigot did this...
+                                            Piglin piglin = (Piglin) living;
+                                            piglin.setConversionTime(config.getInt("conversation") * 20);
+                                            piglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
+                                        } else if (living instanceof Strider) {
+                                            Strider strider = (Strider) living;
+                                            strider.setShivering(config.getBoolean("shivering"));
+                                        }
                                     }
                                 }
                             }

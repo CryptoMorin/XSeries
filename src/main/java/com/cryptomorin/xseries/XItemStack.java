@@ -65,8 +65,6 @@ import java.util.*;
  * @see ItemStack
  */
 public class XItemStack {
-    private static final Material PLAYER_HEAD = XMaterial.PLAYER_HEAD.parseMaterial();
-
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -231,7 +229,7 @@ public class XItemStack {
         }
 
         // Special Items
-        if (item.getType() == PLAYER_HEAD) {
+        if (matOpt.get() == XMaterial.PLAYER_HEAD) {
             String skull = config.getString("skull");
             if (skull != null) SkullUtils.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {
