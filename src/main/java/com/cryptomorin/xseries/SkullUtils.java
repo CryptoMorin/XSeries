@@ -23,11 +23,8 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -37,10 +34,10 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
@@ -52,14 +49,32 @@ import java.util.regex.Pattern;
  * Mojang API: https://wiki.vg/Mojang_API
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 3.0.0
  * @see XMaterial
  */
 public class SkullUtils {
+    protected static final MethodHandle GAME_PROFILE;
+    private static final UUID UNIVERSAL = UUID.nameUUIDFromBytes("Steve".getBytes(StandardCharsets.UTF_8));
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
+    private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
-    private static final String SESSION = "https://sessionserver.mojang.com/session/minecraft/profile/";
     private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
+
+    static {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle gameProfile = null;
+
+        try {
+            Class<?> craftSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
+            Field profileField = craftSkull.getDeclaredField("profile");
+            profileField.setAccessible(true);
+            gameProfile = lookup.unreflectSetter(profileField);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        GAME_PROFILE = gameProfile;
+    }
 
     @SuppressWarnings("deprecation")
     @Nonnull
@@ -67,49 +82,56 @@ public class SkullUtils {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-        if (XMaterial.isNewVersion()) meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
+        if (SUPPORTS_UUID) meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
         else meta.setOwner(id.toString());
 
         head.setItemMeta(meta);
         return head;
     }
 
+    @Nonnull
+    public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
+        String base64 = SkullCacheListener.CACHE.get(identifier);
+        SkullMeta meta = (SkullMeta) head;
+        return getSkullByValue(meta, base64);
+    }
+
     @SuppressWarnings("deprecation")
     @Nonnull
-    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull Object identifier) {
-        UUID id = identifier instanceof UUID ? (UUID) identifier : null;
-        String player = identifier.toString();
+    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull OfflinePlayer identifier) {
         SkullMeta meta = (SkullMeta) head;
-
-        if (id != null || isUsername(player)) {
-            if (XMaterial.isNewVersion()) {
-                OfflinePlayer offlinePlayer;
-                if (id == null) offlinePlayer = Bukkit.getOfflinePlayer(player);
-                else offlinePlayer = Bukkit.getOfflinePlayer(id);
-
-                meta.setOwningPlayer(offlinePlayer);
-            } else {
-                meta.setOwner(player);
-            }
-            return meta;
+        if (SUPPORTS_UUID) {
+            meta.setOwningPlayer(identifier);
+        } else {
+            meta.setOwner(identifier.getName());
         }
+        return meta;
+    }
 
-        if (player.contains("textures.minecraft.net")) return getValueFromTextures(meta, player);
-        if (player.length() > 100 && isBase64(player)) return getSkullByValue(meta, player);
-        return getTexturesFromUrlValue(meta, player);
+    @Nonnull
+    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
+        return applySkin(head, Bukkit.getOfflinePlayer(identifier));
+    }
+
+    @SuppressWarnings("deprecation")
+    @Nonnull
+    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String identifier) {
+        SkullMeta meta = (SkullMeta) head;
+        if (isUsername(identifier)) return applySkin(head, Bukkit.getOfflinePlayer(identifier));
+        if (identifier.contains("textures.minecraft.net")) return getValueFromTextures(meta, identifier);
+        if (identifier.length() > 100 && isBase64(identifier)) return getSkullByValue(meta, identifier);
+        return getTexturesFromUrlValue(meta, identifier);
     }
 
     @Nonnull
     private static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
         Validate.notEmpty(value, "Skull value cannot be null or empty");
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-
+        GameProfile profile = new GameProfile(UNIVERSAL, null);
         profile.getProperties().put("textures", new Property("textures", value));
+
         try {
-            Field profileField = head.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(head, profile);
-        } catch (SecurityException | NoSuchFieldException | IllegalAccessException ex) {
+            GAME_PROFILE.invoke(head, profile);
+        } catch (Throwable ex) {
             ex.printStackTrace();
         }
 
@@ -166,64 +188,6 @@ public class SkullUtils {
         for (char ch : Lists.charactersOf(name)) {
             if (ch != '_' && !(ch >= 'A' && ch <= 'Z') && !(ch >= 'a' && ch <= 'z') && !(ch >= '0' && ch <= '9')) return false;
         }
-        return true;
-    }
-
-    /**
-     * https://api.mojang.com/users/profiles/minecraft/Username gives the ID
-     * https://api.mojang.com/user/profiles/ID without dashes/names gives the names used for the unique ID.
-     * https://sessionserver.mojang.com/session/minecraft/profile/ID example data:
-     * <p>
-     * <pre>
-     * {
-     *      "id": "Without dashes -",
-     *      "name": "",
-     *      "properties": [
-     *      {
-     *          "name": "textures",
-     *          "value": ""
-     *      }
-     *      ]
-     * }
-     * </pre>
-     */
-    @Nonnull
-    public static String getSkinValue(@Nonnull String name, boolean isId) {
-        Validate.notEmpty(name, "Player name/UUID cannot be null or empty");
-
-        try {
-            String uuid;
-            JsonParser parser = new JsonParser();
-
-            if (!isId) {
-                URL convertName = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
-                InputStreamReader readId = new InputStreamReader(convertName.openStream());
-                JsonObject jObject = parser.parse(readId).getAsJsonObject();
-                if (mojangError(jObject)) return null;
-                uuid = jObject.get("id").getAsString();
-            } else uuid = StringUtils.remove(name, '-');
-
-            URL properties = new URL(SESSION + uuid); // + "?unsigned=false"
-            InputStreamReader readProperties = new InputStreamReader(properties.openStream());
-            JsonObject jObjectP = parser.parse(readProperties).getAsJsonObject();
-
-            if (mojangError(jObjectP)) return null;
-            JsonObject textureProperty = jObjectP.get("properties").getAsJsonArray().get(0).getAsJsonObject();
-            //String signature = textureProperty.get("signature").getAsString();
-            return textureProperty.get("value").getAsString();
-        } catch (IOException | IllegalStateException e) {
-            System.err.println("Could not get skin data from session servers! " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static boolean mojangError(@Nonnull JsonObject jsonObject) {
-        if (!jsonObject.has("error")) return false;
-
-        String err = jsonObject.get("error").getAsString();
-        String msg = jsonObject.get("errorMessage").getAsString();
-        System.err.println("Mojang Error " + err + ": " + msg);
         return true;
     }
 }
