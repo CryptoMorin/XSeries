@@ -31,11 +31,9 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <b>XEntity</b> - YAML Entity Serializer<br>
@@ -87,10 +85,14 @@ public class XEntity {
      * @since 2.0.0
      */
     public static boolean isUndead(@Nullable EntityType type) {
-        return UNDEAD.contains(type);
+        return type != null && UNDEAD.contains(type);
     }
 
-    public static Entity spawn(Location location, ConfigurationSection config) {
+    @Nullable
+    public static Entity spawn(@Nonnull Location location, @Nonnull ConfigurationSection config) {
+        Objects.requireNonNull(location, "Cannot spawn entity at a null location.");
+        Objects.requireNonNull(config, "Cannot spawn entity from a null configuration section");
+
         String typeStr = config.getString("type");
         if (typeStr == null) return null;
 
@@ -98,7 +100,11 @@ public class XEntity {
         return edit(location.getWorld().spawnEntity(location, type), config);
     }
 
-    public static Entity edit(Entity entity, ConfigurationSection config) {
+    @Nonnull
+    public static Entity edit(@Nonnull Entity entity, @Nonnull ConfigurationSection config) {
+        Objects.requireNonNull(entity, "Cannot edit properties of a null entity");
+        Objects.requireNonNull(config, "Cannot edit an entity from a null configuration section");
+
         String name = config.getString("name");
         if (name != null) {
             entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));

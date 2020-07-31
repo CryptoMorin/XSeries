@@ -131,7 +131,7 @@ public class SkullUtils {
         return Base64.getEncoder().encodeToString(str.getBytes());
     }
 
-    private static boolean isBase64(String base64) {
+    private static boolean isBase64(@Nonnull String base64) {
         return BASE64.matcher(base64).matches();
     }
 
@@ -218,7 +218,7 @@ public class SkullUtils {
         }
     }
 
-    private static boolean mojangError(JsonObject jsonObject) {
+    private static boolean mojangError(@Nonnull JsonObject jsonObject) {
         if (!jsonObject.has("error")) return false;
 
         String err = jsonObject.get("error").getAsString();

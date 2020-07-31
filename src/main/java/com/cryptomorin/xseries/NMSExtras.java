@@ -33,6 +33,12 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * A class that provides various different essential features that the API
+ * didn't/doesn't support.
+ * <p>
+ * All the parameters are non-null.
+ */
 public class NMSExtras {
     private static final MethodHandle EXP_PACKET;
     private static final MethodHandle WEATHER_PACKET;

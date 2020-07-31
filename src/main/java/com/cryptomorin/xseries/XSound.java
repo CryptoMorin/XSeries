@@ -33,6 +33,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1099,7 +1100,7 @@ public enum XSound {
         for (XSound sound : VALUES) {
             NAMES.put(sound.name(), sound);
             for (String legacy : sound.getLegacy()) {
-                if (!NAMES.containsKey(legacy)) NAMES.put(legacy, sound);
+                NAMES.putIfAbsent(legacy, sound);
             }
         }
     }
@@ -1286,6 +1287,7 @@ public enum XSound {
      * @see #stopSound(Player)
      * @since 2.0.0
      */
+    @Nonnull
     public static CompletableFuture<Void> stopMusic(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing musics from null player");
 
@@ -1311,6 +1313,7 @@ public enum XSound {
      * @return an optional that can be empty.
      * @since 5.1.0
      */
+    @Nonnull
     private static Optional<XSound> getIfPresent(@Nonnull String name) {
         return Optional.ofNullable(NAMES.get(name));
     }
@@ -1393,14 +1396,15 @@ public enum XSound {
      * @see #play(Location, float, float)
      * @since 2.0.0
      */
-    public void playRepeatedly(JavaPlugin plugin, Entity entity, float volume, float pitch, int repeat, int delay) {
+    @Nonnull
+    public BukkitTask playRepeatedly(@Nonnull JavaPlugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
 
         Validate.isTrue(repeat > 0, "Cannot repeat playing sound " + repeat + " times");
         Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
 
-        new BukkitRunnable() {
+        return new BukkitRunnable() {
             int repeating = repeat;
 
             @Override
@@ -1423,7 +1427,8 @@ public enum XSound {
      * @param delay       the delay between each play.
      * @since 2.0.0
      */
-    public void playAscendingNote(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nonnull Entity playTo, Instrument instrument, int ascendLevel, int delay) {
+    @Nonnull
+    public BukkitTask playAscendingNote(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument, int ascendLevel, int delay) {
         Objects.requireNonNull(player, "Cannot play note from null player");
         Objects.requireNonNull(playTo, "Cannot play note to null entity");
 
@@ -1431,7 +1436,7 @@ public enum XSound {
         Validate.isTrue(ascendLevel <= 7, "Note ascend level cannot be greater than 7");
         Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
 
-        new BukkitRunnable() {
+        return new BukkitRunnable() {
             int repeating = ascendLevel;
 
             @Override
@@ -1523,7 +1528,7 @@ public enum XSound {
         public final float pitch;
         public final boolean playAtLocation;
 
-        public Record(Sound sound, Player player, Location location, float volume, float pitch, boolean playAtLocation) {
+        public Record(@Nonnull Sound sound, @Nullable Player player, @Nonnull Location location, float volume, float pitch, boolean playAtLocation) {
             this.sound = sound;
             this.player = player;
             this.location = location;

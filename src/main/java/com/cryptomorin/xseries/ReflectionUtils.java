@@ -92,7 +92,7 @@ public class ReflectionUtils {
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getNMSClass(@Nullable String name) {
+    public static Class<?> getNMSClass(@Nonnull String name) {
         try {
             return Class.forName(NMS + name);
         } catch (ClassNotFoundException ex) {
@@ -131,7 +131,7 @@ public class ReflectionUtils {
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getCraftClass(@Nullable String name) {
+    public static Class<?> getCraftClass(@Nonnull String name) {
         try {
             return Class.forName(CRAFTBUKKIT + name);
         } catch (ClassNotFoundException ex) {

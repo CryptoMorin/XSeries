@@ -199,7 +199,7 @@ public class ActionBar {
      * @see #sendActionBar(Player, String)
      * @since 2.1.1
      */
-    public static void clearActionBar(Player player) {
+    public static void clearActionBar(@Nonnull Player player) {
         sendActionBar(player, " ");
     }
 

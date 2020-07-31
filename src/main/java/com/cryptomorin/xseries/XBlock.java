@@ -35,6 +35,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
@@ -45,6 +46,7 @@ import java.util.Optional;
  * BlockState (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
  * BlockData (New): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
+ * All the parameters are non-null except the ones marked as nullable.
  *
  * @author Crypto Morin
  * @version 1.1.3
@@ -85,7 +87,7 @@ public class XBlock {
      * @param block the block to check.
      * @return true if the block is a container, otherwise false.
      */
-    public static boolean isContainer(Block block) {
+    public static boolean isContainer(@Nullable Block block) {
         return block.getState() instanceof InventoryHolder;
     }
 

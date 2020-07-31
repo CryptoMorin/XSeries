@@ -174,7 +174,7 @@ public enum XEnchantment {
      * @since 1.1.0
      */
     public static boolean isSmiteEffectiveAgainst(@Nullable EntityType type) {
-        return EFFECTIVE_SMITE_ENTITIES.contains(type);
+        return type != null && EFFECTIVE_SMITE_ENTITIES.contains(type);
     }
 
     /**
@@ -186,7 +186,7 @@ public enum XEnchantment {
      * @since 1.1.0
      */
     public static boolean isArthropodsEffectiveAgainst(@Nullable EntityType type) {
-        return EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES.contains(type);
+        return type != null && EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES.contains(type);
     }
 
     /**

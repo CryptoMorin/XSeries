@@ -73,23 +73,15 @@ public class NoteBlockMusic {
             int index = name.indexOf('_');
             if (index != -1) alias.append(name.charAt(index + 1));
 
-            if (!INSTRUMENTS.containsKey(alias.toString())) INSTRUMENTS.put(alias.toString(), instrument);
-            else {
-                boolean start = true;
-                for (char letter : name.toCharArray()) {
-                    if (start) {
-                        start = false;
+            if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) != null) {
+                for (int i = 0; i < name.length(); i++) {
+                    char ch = name.charAt(i);
+                    if (ch == '_') {
+                        i++;
                         continue;
                     }
-                    if (letter == '_') {
-                        start = true;
-                        continue;
-                    }
-                    alias.append(letter);
-                    if (!INSTRUMENTS.containsKey(alias.toString())) {
-                        INSTRUMENTS.put(alias.toString(), instrument);
-                        break;
-                    }
+                    alias.append(ch);
+                    if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) == null) break;
                 }
             }
         }

@@ -1288,7 +1288,7 @@ public enum XMaterial {
         // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
         // We'll trick XMaterial into thinking this needs to be parsed
         // using the old methods.
-        // These materials have their enum name added to the legacy list as well.
+        // Some of these materials have their enum name added to the legacy list as well.
         put(DARK_OAK_DOOR, DARK_OAK_DOOR);
         put(ACACIA_DOOR, ACACIA_DOOR);
         put(BIRCH_DOOR, BIRCH_DOOR);
@@ -1490,8 +1490,9 @@ public enum XMaterial {
         Validate.notEmpty(name, "Cannot check for null or empty material name");
         name = format(name);
 
-        for (XMaterial materials : VALUES)
+        for (XMaterial materials : VALUES) {
             if (materials.name().equals(name)) return true;
+        }
         return false;
     }
 
@@ -1787,8 +1788,9 @@ public enum XMaterial {
      */
     public static boolean isDamageable(@Nonnull String name) {
         Objects.requireNonNull(name, "Material name cannot be null");
-        for (String damageable : DAMAGEABLE)
+        for (String damageable : DAMAGEABLE) {
             if (name.contains(damageable)) return true;
+        }
         return false;
     }
 

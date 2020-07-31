@@ -237,14 +237,14 @@ public class Titles {
 
     /**
      * Changes the tablist header and footer message for a player.
-     * This is not fully completed as it's not used alot.
+     * This is not fully completed as it's not used a lot.
      *
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
      * @since 1.0.0
      */
-    public static void sendTabList(Player player, String header, String footer) {
+    public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
         Objects.requireNonNull(player, "Cannot update tab for null player");
         header = Strings.isNullOrEmpty(header) ?
                 "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', header), "%player%", player.getDisplayName());

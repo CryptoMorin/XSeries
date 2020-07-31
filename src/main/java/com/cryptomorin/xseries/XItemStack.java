@@ -45,6 +45,8 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -57,7 +59,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 3.1.1
+ * @version 3.1.2
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -74,7 +76,9 @@ public class XItemStack {
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    public static void serialize(ItemStack item, ConfigurationSection config) {
+    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+        Objects.requireNonNull(item, "Cannot serialize a null item");
+        Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
 
         if (meta.hasDisplayName()) config.set("name", ChatColor.stripColor(meta.getDisplayName()));
@@ -201,7 +205,10 @@ public class XItemStack {
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    public static ItemStack deserialize(ConfigurationSection config) {
+    @Nullable
+    public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+        Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
+
         // Material
         String material = config.getString("material");
         if (material == null) return null;
@@ -460,7 +467,8 @@ public class XItemStack {
      * @return a color based on the RGB.
      * @since 1.1.0
      */
-    public static Color parseColor(String str) {
+    @Nonnull
+    public static Color parseColor(@Nullable String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');
         if (rgb.length < 3) return Color.WHITE;
@@ -475,7 +483,9 @@ public class XItemStack {
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
-    public static Map<Integer, ItemStack> giveOrDrop(Player player, ItemStack... items) {
+    @Nonnull
+    public static Map<Integer, ItemStack> giveOrDrop(@Nonnull Player player, @Nullable ItemStack... items) {
+        if (items == null || items.length == 0) return new HashMap<>();
         Map<Integer, ItemStack> drop = player.getInventory().addItem(items);
         World world = player.getWorld();
         Location location = player.getLocation();
