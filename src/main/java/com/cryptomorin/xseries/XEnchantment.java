@@ -111,11 +111,10 @@ public enum XEnchantment {
      *
      * @since 1.2.0
      */
-    public static final EnumSet<EntityType> EFFECTIVE_SMITE_ENTITIES = EnumSet.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.WITHER,
-            EntityType.WITHER_SKELETON, EntityType.SKELETON_HORSE, EntityType.STRAY, EntityType.HUSK);
+    public static final EnumSet<EntityType> EFFECTIVE_SMITE_ENTITIES = EnumSet.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.WITHER);
 
     /**
-     * Entity types that {@link #DAMAGE_UNDEAD} enchantment is effective against.
+     * Entity types that {@link #DAMAGE_ARTHROPODS} enchantment is effective against.
      * This set is mutable for performance, but do not change the elements.
      *
      * @since 1.2.0
@@ -133,9 +132,17 @@ public enum XEnchantment {
         EntityType bee = Enums.getIfPresent(EntityType.class, "BEE").orNull();
         EntityType phantom = Enums.getIfPresent(EntityType.class, "PHANTOM").orNull();
         EntityType drowned = Enums.getIfPresent(EntityType.class, "DROWNED").orNull();
+        EntityType witherSkeleton = Enums.getIfPresent(EntityType.class, "WITHER_SKELETON").orNull();
+        EntityType skeletonHorse = Enums.getIfPresent(EntityType.class, "SKELETON_HORSE").orNull();
+        EntityType stray = Enums.getIfPresent(EntityType.class, "STRAY").orNull();
+        EntityType husk = Enums.getIfPresent(EntityType.class, "HUSK").orNull();
         if (bee != null) EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES.add(bee);
         if (phantom != null) EFFECTIVE_SMITE_ENTITIES.add(phantom);
         if (drowned != null) EFFECTIVE_SMITE_ENTITIES.add(drowned);
+        if (witherSkeleton != null) EFFECTIVE_SMITE_ENTITIES.add(witherSkeleton);
+        if (skeletonHorse != null) EFFECTIVE_SMITE_ENTITIES.add(skeletonHorse);
+        if (stray != null) EFFECTIVE_SMITE_ENTITIES.add(stray);
+        if (husk != null) EFFECTIVE_SMITE_ENTITIES.add(husk);
     }
 
     static {
