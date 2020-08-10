@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 /**
  * By default the particle xyz offsets and speed aren't 0, but
@@ -51,7 +52,7 @@ import java.util.Objects;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.0.3
+ * @version 3.1.0
  * @see XParticle
  */
 public class ParticleDisplay {
@@ -59,6 +60,7 @@ public class ParticleDisplay {
     @Nonnull
     public Particle particle;
     public Location location;
+    public Callable<Location> locationCaller;
     public int count;
     public double offsetx, offsety, offsetz;
     public double extra;
@@ -77,9 +79,12 @@ public class ParticleDisplay {
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
      */
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz, double extra) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count, double offsetx, double offsety,
+                           double offsetz,
+                           double extra) {
         this.particle = particle;
         this.location = location;
+        this.locationCaller = locationCaller;
         this.count = count;
         this.offsetx = offsetx;
         this.offsety = offsety;
@@ -88,7 +93,7 @@ public class ParticleDisplay {
     }
 
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
-        this(particle, location, count, offsetx, offsety, offsetz, 0);
+        this(particle, null, location, count, offsetx, offsety, offsetz, 0);
     }
 
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count) {
@@ -111,7 +116,7 @@ public class ParticleDisplay {
      */
     @Nonnull
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
-        ParticleDisplay dust = new ParticleDisplay(Particle.REDSTONE, location, 1, 0, 0, 0, 0);
+        ParticleDisplay dust = new ParticleDisplay(Particle.REDSTONE, null, location, 1, 0, 0, 0, 0);
         dust.data = new float[]{r, g, b, size};
         return dust;
     }
@@ -148,7 +153,7 @@ public class ParticleDisplay {
     @Nonnull
     public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
-        return new ParticleDisplay(particle, location, 1, 0, 0, 0, 0);
+        return new ParticleDisplay(particle, null, location, 1, 0, 0, 0, 0);
     }
 
     /**
@@ -228,7 +233,7 @@ public class ParticleDisplay {
         }
 
         Vector rotate = new Vector(x, y, z);
-        ParticleDisplay display = new ParticleDisplay(particle, location, count, offsetx, offsety, offsetz, extra);
+        ParticleDisplay display = new ParticleDisplay(particle, null, location, count, offsetx, offsety, offsetz, extra);
         display.rotation = rotate;
         display.data = rgbs;
         return display;
@@ -306,6 +311,47 @@ public class ParticleDisplay {
     }
 
     /**
+     * Saves an instance of an entity to track the location from.
+     *
+     * @param entity the entity to track the location from.
+     * @return the location tracker entity.
+     * @since 3.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withEntity(@Nullable Entity entity) {
+        return withLocationCaller(entity::getLocation);
+    }
+
+    /**
+     * Sets a caller for location changes.
+     *
+     * @param locationCaller the caller to call to get the new location.
+     * @return the same particle settings with the caller added.
+     * @since 3.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
+        this.locationCaller = locationCaller;
+        return this;
+    }
+
+    /**
+     * Gets the location of an entity if specified or the constant location.
+     *
+     * @return the location of the particle.
+     * @since 3.1.0
+     */
+    @Nullable
+    public Location getLocation() {
+        try {
+            return locationCaller == null ? location : locationCaller.call();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
      * Adjusts the rotation settings to face the entitys direction.
      * Only some of the shapes support this method.
      *
@@ -367,7 +413,7 @@ public class ParticleDisplay {
     @Override
     @Nonnull
     public ParticleDisplay clone() {
-        ParticleDisplay display = new ParticleDisplay(particle, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
+        ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
         if (rotation != null) display.rotation = rotation.clone();
         display.data = data;
         return display;
@@ -449,7 +495,7 @@ public class ParticleDisplay {
      * @since 2.0.1
      */
     public void spawn() {
-        spawn(this.location, false);
+        spawn(getLocation(), false);
     }
 
     /**
@@ -459,7 +505,7 @@ public class ParticleDisplay {
      * @since 3.0.0
      */
     public void spawn(boolean rotate) {
-        spawn(this.location, rotate);
+        spawn(getLocation(), rotate);
     }
 
     /**
@@ -491,7 +537,7 @@ public class ParticleDisplay {
      */
     @Nonnull
     public Location spawn(double x, double y, double z) {
-        Location loc = rotate(location, x, y, z, rotation);
+        Location loc = rotate(getLocation(), x, y, z, rotation);
         spawn(loc, false);
         return loc;
     }
@@ -505,7 +551,7 @@ public class ParticleDisplay {
      * @since 2.1.0
      */
     public void spawn(@Nonnull Location loc, boolean rotate) {
-        if (rotate) loc = rotate(location, loc.getX(), loc.getY(), loc.getZ(), rotation);
+        if (rotate) loc = rotate(getLocation(), loc.getX(), loc.getY(), loc.getZ(), rotation);
         if (data != null) {
             if (data instanceof float[]) {
                 float[] datas = (float[]) data;

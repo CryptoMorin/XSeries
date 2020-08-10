@@ -60,7 +60,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 6.0.1
  * @see Material
  * @see ItemStack
  */
@@ -500,9 +500,6 @@ public enum XMaterial {
     GRANITE_WALL,
     GRASS(1, "LONG_GRASS"),
     GRASS_BLOCK("GRASS"),
-    POTTED_CRIMSON_ROOTS("1.16"),
-    POTTED_WARPED_FUNGUS("1.16"),
-    POTTED_WARPED_ROOTS("1.16"),
     GRASS_PATH,
     GRAVEL,
     GRAY_BANNER(8, "BANNER", "STANDING_BANNER"),
@@ -868,6 +865,7 @@ public enum XMaterial {
     POTTED_CACTUS("FLOWER_POT"),
     POTTED_CORNFLOWER,
     POTTED_CRIMSON_FUNGUS("1.16"),
+    POTTED_CRIMSON_ROOTS("1.16"),
     POTTED_DANDELION("YELLOW_FLOWER", "FLOWER_POT"),
     POTTED_DARK_OAK_SAPLING(5, "SAPLING", "FLOWER_POT"),
     POTTED_DEAD_BUSH("FLOWER_POT"),
@@ -882,6 +880,8 @@ public enum XMaterial {
     POTTED_RED_MUSHROOM("FLOWER_POT"),
     POTTED_RED_TULIP(4, "RED_ROSE", "FLOWER_POT"),
     POTTED_SPRUCE_SAPLING(1, "SAPLING", "FLOWER_POT"),
+    POTTED_WARPED_FUNGUS("1.16"),
+    POTTED_WARPED_ROOTS("1.16"),
     POTTED_WHITE_TULIP(6, "RED_ROSE", "FLOWER_POT"),
     POTTED_WITHER_ROSE,
     POWERED_RAIL,
@@ -2016,7 +2016,7 @@ public enum XMaterial {
     @SuppressWarnings("deprecation")
     public ItemStack parseItem(boolean suggest) {
         Material material = this.parseMaterial(suggest);
-        Objects.requireNonNull(material, "Unsupported material: " + this.name() + " (" + data + '\'');
+        if (material == null) return null;
         return ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 

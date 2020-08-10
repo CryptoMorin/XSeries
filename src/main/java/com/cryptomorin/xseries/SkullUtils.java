@@ -37,7 +37,6 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
@@ -49,12 +48,11 @@ import java.util.regex.Pattern;
  * Mojang API: https://wiki.vg/Mojang_API
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.0.1
  * @see XMaterial
  */
 public class SkullUtils {
     protected static final MethodHandle GAME_PROFILE;
-    private static final UUID UNIVERSAL = UUID.nameUUIDFromBytes("Steve".getBytes(StandardCharsets.UTF_8));
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
     private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
@@ -126,7 +124,7 @@ public class SkullUtils {
     @Nonnull
     private static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
         Validate.notEmpty(value, "Skull value cannot be null or empty");
-        GameProfile profile = new GameProfile(UNIVERSAL, null);
+        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
         profile.getProperties().put("textures", new Property("textures", value));
 
         try {
