@@ -22,15 +22,14 @@
 package com.cryptomorin.xseries.particles;
 
 import com.google.common.base.Enums;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -102,7 +101,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.1.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -120,6 +119,7 @@ public final class XParticle {
      * <p>
      * <b>Important Radians:</b>
      * <pre>
+     *     PI = 180 degrees
      *     PI / 2 = 90 degrees
      *     PI / 3 = 60 degrees
      *     PI / 4 = 45 degrees
@@ -204,7 +204,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Particle.DustOptions randomDust() {
-        float size = randInt(5, 10) / 0.1f;
+        float size = randInt(5, 10) / 10f;
         return new Particle.DustOptions(randomColor(), size);
     }
 
@@ -422,21 +422,21 @@ public final class XParticle {
      * @param length2    the length of the second pendulum. Recommended is 200
      * @param mass1      the mass of the first pendulum. Recommended is 50
      * @param mass2      the mass of the second pendulum. Recommended is 50
-     * @param Dimension3 if it should enter 3D mode.
+     * @param dimension3 if it should enter 3D mode.
      * @param speed      the speed of the animation.
      * @return the animation handler.
      * @since 4.0.0
      */
     public static BukkitTask chaoticDoublePendulum(JavaPlugin plugin, double radius, double gravity, double length, double length2,
                                                    double mass1, double mass2,
-                                                   boolean Dimension3, int speed, ParticleDisplay display) {
+                                                   boolean dimension3, int speed, ParticleDisplay display) {
         // If you want the particles to stay. But it's gonna lag a lot.
         //Map<Vector, Vector> locs = new HashMap<>();
 
         return new BukkitRunnable() {
+            final Vector rotation = new Vector(Math.PI / 33, Math.PI / 44, Math.PI / 55);
             double theta = Math.PI / 2;
             double theta2 = Math.PI / 2;
-
             double thetaPrime = 0;
             double thetaPrime2 = 0;
 
@@ -444,12 +444,14 @@ public final class XParticle {
             public void run() {
                 int repeat = speed;
                 while (repeat-- != 0) {
-                    if (Dimension3) display.rotate(new Vector(Math.PI / 33, Math.PI / 44, Math.PI / 55));
+                    if (dimension3) display.rotate(rotation);
                     double totalMass = mass1 + mass2;
-                    double totalMassDouble = 2 * mass1 + mass2;
+                    double totalMassDouble = 2 * totalMass;
+                    double deltaTheta = theta - theta2;
+
                     double lenLunar = (totalMassDouble - mass2 * Math.cos(2 * theta - 2 * theta2));
-                    double deltaCosTheta = Math.cos(theta - theta2);
-                    double deltaSinTheta = Math.sin(theta - theta2);
+                    double deltaCosTheta = Math.cos(deltaTheta);
+                    double deltaSinTheta = Math.sin(deltaTheta);
                     double phi = thetaPrime * thetaPrime * length;
                     double phi2 = thetaPrime2 * thetaPrime2 * length2;
 
@@ -458,15 +460,15 @@ public final class XParticle {
                     double num2 = -mass2 * gravity * Math.sin(theta - 2 * theta2);
                     double num3 = -2 * deltaSinTheta * mass2;
                     double num4 = phi2 + phi * deltaCosTheta;
-                    double den = length * lenLunar;
-                    double thetaDoublePrime = (num1 + num2 + num3 * num4) / den;
+                    double len = length * lenLunar;
+                    double thetaDoublePrime = (num1 + num2 + num3 * num4) / len;
 
                     num1 = 2 * deltaSinTheta;
                     num2 = phi * totalMass;
                     num3 = gravity * totalMass * Math.cos(theta);
                     num4 = phi2 * mass2 * deltaCosTheta;
-                    den = length2 * lenLunar;
-                    double thetaDoublePrime2 = (num1 * (num2 + num3 + num4)) / den;
+                    len = length2 * lenLunar;
+                    double thetaDoublePrime2 = (num1 * (num2 + num3 + num4)) / len;
 
                     thetaPrime += thetaDoublePrime;
                     thetaPrime2 += thetaDoublePrime2;
@@ -1465,6 +1467,7 @@ public final class XParticle {
     /**
      * Spawns a line from a location to another.
      * Tutorial: https://www.spigotmc.org/threads/176695/
+     * This method is a modified version to get the best performance.
      *
      * @param start the starting point of the line.
      * @param end   the ending point of the line.
@@ -1473,21 +1476,21 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void line(Location start, Location end, double rate, ParticleDisplay display) {
-        Vector distance = end.toVector().subtract(start.toVector());
-        double length = distance.length();
-        distance.normalize();
+        display.location = start;
+        double x = end.getX() - start.getX();
+        double y = end.getY() - start.getY();
+        double z = end.getZ() - start.getZ();
+        double length = Math.sqrt(NumberConversions.square(x) + NumberConversions.square(y) + NumberConversions.square(z));
 
-        double x = distance.getX();
-        double y = distance.getY();
-        double z = distance.getZ();
+        x /= length;
+        y /= length;
+        z /= length;
 
-        ParticleDisplay clone = display.clone();
-        clone.location = start;
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
             if (i > length) i = length;
-            clone.spawn(x * i, y * i, z * i);
+            display.spawn(x * i, y * i, z * i);
         }
     }
 
@@ -1796,10 +1799,12 @@ public final class XParticle {
                     // To get the prototype version simply rotate the
                     // cube by using the display.rotate method in one of the axis.
                     double[] point = points[i];
+                    double cos = Math.cos(angle);
+                    double sin = Math.sin(angle);
 
                     double[][] rotationXY = {
-                            {Math.cos(angle), -Math.sin(angle), 0, 0},
-                            {Math.sin(angle), Math.cos(angle), 0, 0},
+                            {cos, -sin, 0, 0},
+                            {sin, cos, 0, 0},
                             {0, 0, 1, 0},
                             {0, 0, 0, 1}
                     };
@@ -1808,8 +1813,8 @@ public final class XParticle {
                     double[][] rotationZW = {
                             {1, 0, 0, 0},
                             {0, 1, 0, 0},
-                            {0, 0, Math.cos(angle), -Math.sin(angle)},
-                            {0, 0, Math.sin(angle), Math.cos(angle)}
+                            {0, 0, cos, -sin},
+                            {0, 0, sin, cos}
                     };
 
                     double[] rotated = matrix(rotationXY, point);
@@ -1832,16 +1837,21 @@ public final class XParticle {
 
                 // Connect the generated 4D points together.
                 // This can later be modified to support multi-dimension hypercubes.
-                List<int[]> connections = new ArrayList<>();
+                List<int[]> connections = new ArrayList<>(32);
                 for (int i = 0; i < 4; i++) {
-                    connections.add(new int[]{i, (i + 1) % 4});
-                    connections.add(new int[]{i + 4, ((i + 1) % 4) + 4});
-                    connections.add(new int[]{i, i + 4});
+                    int j = (i + 1) % 4;
+                    int k = j + 4;
+                    int a = i + 4;
+
+                    connections.add(new int[]{i, j});
+                    connections.add(new int[]{a, k});
+                    connections.add(new int[]{i, a});
 
                     int o = i + 8;
-                    connections.add(new int[]{o, ((i + 1) % 4) + 8});
-                    connections.add(new int[]{o + 4, (((i + 1) % 4) + 4) + 8});
-                    connections.add(new int[]{o, o + 4});
+                    int e = o + 4;
+                    connections.add(new int[]{o, j + 8});
+                    connections.add(new int[]{e, k + 8});
+                    connections.add(new int[]{o, e});
                 }
                 for (int i = 0; i < 8; i++) {
                     connections.add(new int[]{i, i + 8});
@@ -2122,6 +2132,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundX(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
@@ -2139,6 +2150,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundY(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
@@ -2156,12 +2168,30 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundZ(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
         double x = vector.getX() * cos - vector.getY() * sin;
         double y = vector.getX() * sin + vector.getY() * cos;
         return vector.setX(x).setY(y);
+    }
+
+    /**
+     * Rotates a vector around the 3 axis with the given angles.
+     *
+     * @param vector the vector to rotate.
+     * @param x      the x rotation in radians.
+     * @param y      the y rotation in radians.
+     * @param z      the z rotation in radians.
+     * @return the rotated vector.
+     * @since 4.1.0
+     */
+    public static Vector rotateAround(Vector vector, double x, double y, double z) {
+        rotateAroundX(vector, x);
+        rotateAroundY(vector, y);
+        rotateAroundZ(vector, z);
+        return vector;
     }
 
     /**
@@ -2308,7 +2338,7 @@ public final class XParticle {
      * @return the rendered particle locations.
      * @since 1.0.0
      */
-    public static CompletableFuture<Map<Location, Color>> renderImage(Path path, int resizedWidth, int resizedHeight, double compact) {
+    public static CompletableFuture<Map<double[], Color>> renderImage(Path path, int resizedWidth, int resizedHeight, double compact) {
         return getScaledImage(path, resizedWidth, resizedHeight).thenCompose((image) -> renderImage(image, resizedWidth, resizedHeight, compact));
     }
 
@@ -2323,20 +2353,22 @@ public final class XParticle {
      * @return a rendered map of an image.
      * @since 1.0.0
      */
-    public static CompletableFuture<Map<Location, Color>> renderImage(BufferedImage image, int resizedWidth, int resizedHeight, double compact) {
+    public static CompletableFuture<Map<double[], Color>> renderImage(BufferedImage image, int resizedWidth, int resizedHeight, double compact) {
         return CompletableFuture.supplyAsync(() -> {
             if (image == null) return null;
 
-            double centerX = image.getWidth() / 2D;
-            double centerY = image.getHeight() / 2D;
+            int width = image.getWidth();
+            int height = image.getHeight();
+            double centerX = width / 2D;
+            double centerY = height / 2D;
 
-            Map<Location, Color> rendered = new HashMap<>();
-            for (int y = 0; y < image.getHeight(); y++) {
-                for (int x = 0; x < image.getWidth(); x++) {
+            Map<double[], Color> rendered = new HashMap<>();
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
                     int pixel = image.getRGB(x, y);
 
                     // Transparency
-                    if ((pixel >> 24) == 0x00) continue;
+                    if ((pixel >> 24) == 0x0) continue;
                     // 0 - 255
                     //if ((pixel & 0xff000000) >>> 24 == 0) continue;
                     // 0.0 - 1.0
@@ -2347,8 +2379,9 @@ public final class XParticle {
                     int g = color.getGreen();
                     int b = color.getBlue();
 
+                    double[] coords = {(x - centerX) * compact, (y - centerY) * compact};
                     Color bukkitColor = Color.fromRGB(r, g, b);
-                    rendered.put(new Location(null, (x - centerX) * compact, (y - centerY) * compact, 0), bukkitColor);
+                    rendered.put(coords, bukkitColor);
                 }
             }
             return rendered;
@@ -2369,7 +2402,7 @@ public final class XParticle {
      * @return the async bukkit task displaying the image.
      * @since 1.0.0
      */
-    public static BukkitTask displayRenderedImage(JavaPlugin plugin, Map<Location, Color> render, Callable<Location> location,
+    public static BukkitTask displayRenderedImage(JavaPlugin plugin, Map<double[], Color> render, Callable<Location> location,
                                                   int repeat, long period, int quality, int speed, float size) {
         return new BukkitRunnable() {
             int times = repeat;
@@ -2396,14 +2429,14 @@ public final class XParticle {
      * @param size     the size of the particle. Recommended amount is 0.8
      * @since 1.0.0
      */
-    public static void displayRenderedImage(Map<Location, Color> render, Location location, int quality, int speed, float size) {
-        for (Map.Entry<Location, Color> pixel : render.entrySet()) {
+    public static void displayRenderedImage(Map<double[], Color> render, Location location, int quality, int speed, float size) {
+        World world = location.getWorld();
+        for (Map.Entry<double[], Color> pixel : render.entrySet()) {
             Particle.DustOptions data = new Particle.DustOptions(pixel.getValue(), size);
-            Location pixelLoc = pixel.getKey();
+            double[] pixelLoc = pixel.getKey();
 
-            Location loc = new Location(location.getWorld(), location.getX() - pixelLoc.getX(),
-                    location.getY() - pixelLoc.getY(), location.getZ() - pixelLoc.getZ());
-            loc.getWorld().spawnParticle(Particle.REDSTONE, loc, quality, 0, 0, 0, speed, data);
+            Location loc = new Location(world, location.getX() - pixelLoc[0], location.getY() - pixelLoc[1], location.getZ());
+            world.spawnParticle(Particle.REDSTONE, loc, quality, 0, 0, 0, speed, data);
         }
     }
 

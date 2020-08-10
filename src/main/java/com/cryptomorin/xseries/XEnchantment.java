@@ -136,9 +136,11 @@ public enum XEnchantment {
         EntityType skeletonHorse = Enums.getIfPresent(EntityType.class, "SKELETON_HORSE").orNull();
         EntityType stray = Enums.getIfPresent(EntityType.class, "STRAY").orNull();
         EntityType husk = Enums.getIfPresent(EntityType.class, "HUSK").orNull();
+
         if (bee != null) EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES.add(bee);
         if (phantom != null) EFFECTIVE_SMITE_ENTITIES.add(phantom);
         if (drowned != null) EFFECTIVE_SMITE_ENTITIES.add(drowned);
+
         if (witherSkeleton != null) EFFECTIVE_SMITE_ENTITIES.add(witherSkeleton);
         if (skeletonHorse != null) EFFECTIVE_SMITE_ENTITIES.add(skeletonHorse);
         if (stray != null) EFFECTIVE_SMITE_ENTITIES.add(stray);

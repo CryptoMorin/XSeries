@@ -11,7 +11,7 @@ It's also used for JavaX nullability annotations.
 
 ### Rules
 * Only Java 8 should be used. All the functions in the latest version of Java 8 can be used.
-* Make sure the utility work on different versions.
+* Make sure the utility works on different versions.
 * Use method and variable names that make sense and are related to the context.
 * Don't use Optional everywhere that can return null.
 * Using Guava's lib and Apache Commons is a plus, but make sure that what you're using is supported in

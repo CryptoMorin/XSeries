@@ -51,7 +51,7 @@ import java.util.Objects;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.0.2
+ * @version 3.0.3
  * @see XParticle
  */
 public class ParticleDisplay {
@@ -164,6 +164,7 @@ public class ParticleDisplay {
      * @return a simple ParticleDisplay.
      * @since 1.0.0
      */
+    @Nonnull
     public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(location, "Cannot display particle in null location");
         ParticleDisplay display = simple(location, particle);
@@ -244,15 +245,23 @@ public class ParticleDisplay {
      */
     @Nonnull
     public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nonnull Vector rotation) {
-        Location loc;
         if (rotation != null) {
             Vector rotate = new Vector(x, y, z);
-            if (rotation.getX() != 0) XParticle.rotateAroundX(rotate, rotation.getX());
-            if (rotation.getY() != 0) XParticle.rotateAroundY(rotate, rotation.getY());
-            if (rotation.getZ() != 0) XParticle.rotateAroundZ(rotate, rotation.getZ());
-            loc = location.clone().add(rotate);
-        } else loc = location.clone().add(x, y, z);
-        return loc;
+            XParticle.rotateAround(rotate, rotation.getX(), rotation.getY(), rotation.getZ());
+            return cloneLocation(location).add(rotate);
+        }
+        return cloneLocation(location).add(x, y, z);
+    }
+
+    /**
+     * We don't want to use {@link Location#clone()} since it doens't copy to constructor and Javas clone method
+     * is known to be inefficient and broken.
+     *
+     * @since 3.0.3
+     */
+    @Nonnull
+    private static Location cloneLocation(@Nonnull Location location) {
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**
@@ -326,7 +335,7 @@ public class ParticleDisplay {
     @Nullable
     public Location cloneLocation(double x, double y, double z) {
         if (location == null) return null;
-        return location.clone().add(x, y, z);
+        return cloneLocation(location).add(x, y, z);
     }
 
     /**
@@ -358,7 +367,7 @@ public class ParticleDisplay {
     @Override
     @Nonnull
     public ParticleDisplay clone() {
-        ParticleDisplay display = new ParticleDisplay(particle, (location == null ? null : location.clone()), count, offsetx, offsety, offsetz, extra);
+        ParticleDisplay display = new ParticleDisplay(particle, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
         if (rotation != null) display.rotation = rotation.clone();
         display.data = data;
         return display;
