@@ -31,7 +31,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -339,7 +338,7 @@ public final class ZEnchantment {
      * @return an enchantment.
      * @since 1.0.0
      */
-    @Nullable
+    @Nonnull
     public static Optional<Enchantment> getByName(@Nonnull String enchant) {
         Validate.notEmpty(enchant, "Enchantment name cannot be null or empty");
         Enchantment enchantment = null;

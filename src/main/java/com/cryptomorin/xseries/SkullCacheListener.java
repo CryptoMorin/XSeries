@@ -47,7 +47,7 @@ final class SkullCacheListener {
      * }
      * </pre>
      */
-    @Nonnull
+    @Nullable
     public static String getSkinValue(@Nonnull String id) {
         Objects.requireNonNull(id, "Player UUID cannot be null");
 

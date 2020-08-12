@@ -230,6 +230,7 @@ public class Titles {
             clearPacket = PACKET.invoke(CLEAR, null, -1, -1, -1);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+            return;
         }
 
         ReflectionUtils.sendPacket(player, clearPacket);

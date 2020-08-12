@@ -33,10 +33,7 @@ import org.bukkit.block.Block;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -136,7 +133,7 @@ public enum XBiome {
      *
      * @since 1.0.0
      */
-    public static final EnumSet<XBiome> VALUES = EnumSet.allOf(XBiome.class);
+    public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * Caches the parsed {@link Biome} objects instead of string. Because it has to go through catching exceptions again

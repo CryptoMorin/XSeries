@@ -36,10 +36,7 @@ import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * <b>XBlock</b> - MaterialData/BlockData Support<br>
@@ -58,14 +55,14 @@ import java.util.Optional;
  */
 @SuppressWarnings("deprecation")
 public class XBlock {
-    public static final EnumSet<XMaterial> CROPS = EnumSet.of(
+    public static final Set<XMaterial> CROPS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.CARROT, XMaterial.POTATO, XMaterial.NETHER_WART, XMaterial.WHEAT_SEEDS, XMaterial.PUMPKIN_SEEDS,
             XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.SUGAR_CANE, XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
             XMaterial.KELP, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM
-    );
-    public static final EnumSet<XMaterial> DANGEROUS = EnumSet.of(
+    ));
+    public static final Set<XMaterial> DANGEROUS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE
-    );
+    ));
     public static final int CAKE_SLICES = 6;
     private static final boolean ISFLAT = XMaterial.isNewVersion();
 
@@ -88,7 +85,7 @@ public class XBlock {
      * @return true if the block is a container, otherwise false.
      */
     public static boolean isContainer(@Nullable Block block) {
-        return block.getState() instanceof InventoryHolder;
+        return block != null && block.getState() instanceof InventoryHolder;
     }
 
     /**

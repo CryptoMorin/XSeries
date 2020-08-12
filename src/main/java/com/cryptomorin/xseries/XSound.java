@@ -1064,11 +1064,11 @@ public enum XSound {
     /**
      * Cached list of {@link XSound#values()} to avoid allocating memory for
      * calling the method every time.
-     * This set is mutable for performance, but do not change the elements.
+     * This list is unmodifiable.
      *
      * @since 2.0.0
      */
-    public static final EnumSet<XSound> VALUES = EnumSet.allOf(XSound.class);
+    public static final List<XSound> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
 
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
@@ -1181,8 +1181,8 @@ public enum XSound {
      * @see #play(Location, String)
      * @since 1.0.0
      */
-    @Nonnull
-    public static CompletableFuture<Record> play(@Nullable Player player, @Nullable String sound) {
+    @Nullable
+    public static CompletableFuture<Record> play(@Nonnull Player player, @Nullable String sound) {
         Objects.requireNonNull(player, "Cannot play sound to null player");
         return parse(player, player.getLocation(), sound, true);
     }
@@ -1191,7 +1191,7 @@ public enum XSound {
      * @see #play(Location, String)
      * @since 3.0.0
      */
-    @Nonnull
+    @Nullable
     public static CompletableFuture<Record> play(@Nonnull Location location, @Nullable String sound) {
         return parse(null, location, sound, true);
     }
@@ -1234,7 +1234,7 @@ public enum XSound {
      * @param play     if the sound should be played right away.
      * @since 3.0.0
      */
-    @Nonnull
+    @Nullable
     public static CompletableFuture<Record> parse(@Nullable Player player, @Nonnull Location location, @Nullable String sound, boolean play) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;

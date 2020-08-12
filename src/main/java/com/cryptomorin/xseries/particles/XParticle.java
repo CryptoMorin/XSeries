@@ -1476,7 +1476,6 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void line(Location start, Location end, double rate, ParticleDisplay display) {
-        display.location = start;
         double x = end.getX() - start.getX();
         double y = end.getY() - start.getY();
         double z = end.getZ() - start.getZ();
@@ -1486,11 +1485,13 @@ public final class XParticle {
         y /= length;
         z /= length;
 
+        ParticleDisplay clone = display.clone();
+        clone.location = start;
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
             if (i > length) i = length;
-            display.spawn(x * i, y * i, z * i);
+            clone.spawn(x * i, y * i, z * i);
         }
     }
 
@@ -1769,24 +1770,52 @@ public final class XParticle {
     public static BukkitTask tesseract(JavaPlugin plugin, double size, double rate, double speed, long ticks, ParticleDisplay display) {
         // We can multiply these later to change the size.
         // This array doesn't really need to be a constant as it's initialized once.
-        double[][] points = {
-                {-1, -1, -1, 1},
-                {1, -1, -1, 1},
-                {1, 1, -1, 1},
-                {-1, 1, -1, 1},
-                {-1, -1, 1, 1},
-                {1, -1, 1, 1},
-                {1, 1, 1, 1},
-                {-1, 1, 1, 1},
-                {-1, -1, -1, -1},
-                {1, -1, -1, -1},
-                {1, 1, -1, -1},
-                {-1, 1, -1, -1},
-                {-1, -1, 1, -1},
-                {1, -1, 1, -1},
-                {1, 1, 1, -1},
-                {-1, 1, 1, -1}
+        double[][] positions = {
+                {-1, -1, -1, 1}, {1, -1, -1, 1},
+                {1, 1, -1, 1}, {-1, 1, -1, 1},
+                {-1, -1, 1, 1}, {1, -1, 1, 1},
+                {1, 1, 1, 1}, {-1, 1, 1, 1},
+
+                {-1, -1, -1, -1}, {1, -1, -1, -1},
+                {1, 1, -1, -1}, {-1, 1, -1, -1},
+                {-1, -1, 1, -1}, {1, -1, 1, -1},
+                {1, 1, 1, -1}, {-1, 1, 1, -1},
         };
+
+//        BiFunction<Double, Double, Double> reverseMatrix = (a, b) -> {
+//            if (a < 0) a -= b;
+//            else a += b;
+//            return -a;
+//        };
+//
+//        List<double[]> original = new ArrayList<>(Arrays.asList(positions));
+//        List<double[]> points = new ArrayList<>(original);
+//        List<double[]> rev = new ArrayList<>(original);
+        List<int[]> connections = new ArrayList<>();
+//
+//        double dist = 0;
+//        Collections.reverse(rev);
+//        List<double[]> reversed = new ArrayList<>();
+//        for (int i = 0; i < 4; i += 2) {
+//            reversed.add(rev.get(i + 1));
+//            reversed.add(rev.get(i));
+//        }
+//        reversed.forEach(x -> points.add(new double[]{
+//                reverseMatrix.apply(x[0], dist), reverseMatrix.apply(x[1], dist),
+//                reverseMatrix.apply(x[2], dist), reverseMatrix.apply(x[3], dist)}));
+
+        // Connect the generated 4D points together.
+        // This can later be modified to support multi-dimension hypercubes.
+        int level = 1;
+        for (int h = 0; h <= level; h++) {
+            int start = 8 * h;
+            for (int i = start; i < start + 4; i++) {
+                connections.add(new int[]{i, ((i + 1) % 4) + start});
+                connections.add(new int[]{i + 4, (((i + 1) % 4) + 4) + start});
+                connections.add(new int[]{i, i + 4});
+            }
+        }
+        for (int i = 0; i < (level + 1) * 4; i++) connections.add(new int[]{i, i + 8});
 
         return new BukkitRunnable() {
             double angle = 0;
@@ -1794,29 +1823,30 @@ public final class XParticle {
 
             @Override
             public void run() {
-                double[][] projected3D = new double[points.length][4];
-                for (int i = 0; i < points.length; i++) {
+                double cos = Math.cos(angle);
+                double sin = Math.sin(angle);
+
+                // https://en.wikipedia.org/wiki/Rotation_matrix
+                double[][] rotationXY = {
+                        {cos, -sin, 0, 0},
+                        {sin, cos, 0, 0},
+                        {0, 0, 1, 0},
+                        {0, 0, 0, 1}
+                };
+
+                // What does it mean to rotate a shape in the w (4th) axis?
+                double[][] rotationZW = {
+                        {1, 0, 0, 0},
+                        {0, 1, 0, 0},
+                        {0, 0, cos, -sin},
+                        {0, 0, sin, cos}
+                };
+
+                double[][] projected3D = new double[positions.length][4];
+                for (int i = 0; i < positions.length; i++) {
                     // To get the prototype version simply rotate the
                     // cube by using the display.rotate method in one of the axis.
-                    double[] point = points[i];
-                    double cos = Math.cos(angle);
-                    double sin = Math.sin(angle);
-
-                    double[][] rotationXY = {
-                            {cos, -sin, 0, 0},
-                            {sin, cos, 0, 0},
-                            {0, 0, 1, 0},
-                            {0, 0, 0, 1}
-                    };
-
-                    // What does it mean to rotate a shape in the w (4th) axis?
-                    double[][] rotationZW = {
-                            {1, 0, 0, 0},
-                            {0, 1, 0, 0},
-                            {0, 0, cos, -sin},
-                            {0, 0, sin, cos}
-                    };
-
+                    double[] point = positions[i];
                     double[] rotated = matrix(rotationXY, point);
                     rotated = matrix(rotationZW, rotated);
 
@@ -1835,39 +1865,17 @@ public final class XParticle {
                     display.spawn(projected[0], projected[1], projected[2]);
                 }
 
-                // Connect the generated 4D points together.
-                // This can later be modified to support multi-dimension hypercubes.
-                List<int[]> connections = new ArrayList<>(32);
-                for (int i = 0; i < 4; i++) {
-                    int j = (i + 1) % 4;
-                    int k = j + 4;
-                    int a = i + 4;
-
-                    connections.add(new int[]{i, j});
-                    connections.add(new int[]{a, k});
-                    connections.add(new int[]{i, a});
-
-                    int o = i + 8;
-                    int e = o + 4;
-                    connections.add(new int[]{o, j + 8});
-                    connections.add(new int[]{e, k + 8});
-                    connections.add(new int[]{o, e});
-                }
-                for (int i = 0; i < 8; i++) {
-                    connections.add(new int[]{i, i + 8});
-                }
-
                 for (int[] connection : connections) {
                     // Get the points of our tesseract and connect the two points using our line method.
                     double[] pointA = projected3D[connection[0]];
                     double[] pointB = projected3D[connection[1]];
                     Location start = display.cloneLocation(pointA[0], pointA[1], pointA[2]);
                     Location end = display.cloneLocation(pointB[0], pointB[1], pointB[2]);
-                    XParticle.line(start, end, rate, display);
+                    line(start, end, rate, display);
                 }
 
-                angle += speed;
-                if (repeat++ > ticks) cancel();
+                if (++repeat > ticks) cancel();
+                else angle += speed;
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }

@@ -96,19 +96,19 @@ public enum XPotion {
     /**
      * Cached list of {@link XPotion#values()} to avoid allocating memory for
      * calling the method every time.
-     * This set is mutable for performance, but do not change the elements.
+     * This list is unmodifiable.
      *
      * @since 1.0.0
      */
-    public static final EnumSet<XPotion> VALUES = EnumSet.allOf(XPotion.class);
+    public static final List<XPotion> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
     /**
-     * A list of "bad" potion effects.
+     * An unmodifiable set of "bad" potion effects.
      *
      * @since 1.1.0
      */
-    public static final EnumSet<XPotion> DEBUFFS = EnumSet.of(
+    public static final Set<XPotion> DEBUFFS = Collections.unmodifiableSet(EnumSet.of(
             BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
-            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER);
+            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER));
 
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private final String[] aliases;
@@ -314,7 +314,7 @@ public enum XPotion {
      * @since 1.0.0
      */
     public static boolean canHaveEffects(@Nullable Material material) {
-        return material.name().endsWith("POTION") || material.name().startsWith("TI"); // TIPPED_ARROW
+        return material != null && (material.name().endsWith("POTION") || material.name().startsWith("TI")); // TIPPED_ARROW
     }
 
     /**
@@ -324,9 +324,10 @@ public enum XPotion {
      * @return true of the aliases contains the potion type.
      * @since 1.0.0
      */
-    private boolean anyMatchAliases(@Nullable String potionEffect) {
-        for (String alias : aliases)
+    private boolean anyMatchAliases(@Nonnull String potionEffect) {
+        for (String alias : aliases) {
             if (potionEffect.equals(alias) || potionEffect.equals(StringUtils.remove(alias, '_'))) return true;
+        }
         return false;
     }
 

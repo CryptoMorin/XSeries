@@ -37,10 +37,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -98,29 +95,27 @@ public enum XEnchantment {
 
     /**
      * Cached list of {@link XEnchantment#values()} to avoid allocating memory for
-     * calling the method every time.
-     * This set is mutable for performance, but do not change the elements.
+     * calling the method every time. This list is unmodifiable.
      *
      * @since 1.0.0
      */
-    public static final EnumSet<XEnchantment> VALUES = EnumSet.allOf(XEnchantment.class);
+    public static final List<XEnchantment> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
 
     /**
      * Entity types that {@link #DAMAGE_UNDEAD} enchantment is effective against.
-     * This set is mutable for performance, but do not change the elements.
+     * This set is unmodifiable.
      *
      * @since 1.2.0
      */
-    public static final EnumSet<EntityType> EFFECTIVE_SMITE_ENTITIES = EnumSet.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.WITHER);
+    public static final Set<EntityType> EFFECTIVE_SMITE_ENTITIES;
 
     /**
      * Entity types that {@link #DAMAGE_ARTHROPODS} enchantment is effective against.
-     * This set is mutable for performance, but do not change the elements.
+     * This set is unmodifiable.
      *
      * @since 1.2.0
      */
-    public static final EnumSet<EntityType> EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES = EnumSet.of(EntityType.SPIDER, EntityType.CAVE_SPIDER,
-            EntityType.SILVERFISH, EntityType.ENDERMITE);
+    public static final Set<EntityType> EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES;
     /**
      * Java Edition 1.13/Flattening Update
      * https://minecraft.gamepedia.com/Java_Edition_1.13/Flattening
@@ -137,14 +132,18 @@ public enum XEnchantment {
         EntityType stray = Enums.getIfPresent(EntityType.class, "STRAY").orNull();
         EntityType husk = Enums.getIfPresent(EntityType.class, "HUSK").orNull();
 
-        if (bee != null) EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES.add(bee);
-        if (phantom != null) EFFECTIVE_SMITE_ENTITIES.add(phantom);
-        if (drowned != null) EFFECTIVE_SMITE_ENTITIES.add(drowned);
+        Set<EntityType> arthorposEffective = EnumSet.of(EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.SILVERFISH, EntityType.ENDERMITE);
+        if (bee != null) arthorposEffective.add(bee);
+        EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES = Collections.unmodifiableSet(arthorposEffective);
 
-        if (witherSkeleton != null) EFFECTIVE_SMITE_ENTITIES.add(witherSkeleton);
-        if (skeletonHorse != null) EFFECTIVE_SMITE_ENTITIES.add(skeletonHorse);
-        if (stray != null) EFFECTIVE_SMITE_ENTITIES.add(stray);
-        if (husk != null) EFFECTIVE_SMITE_ENTITIES.add(husk);
+        Set<EntityType> smiteEffective = EnumSet.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.WITHER);
+        if (phantom != null) smiteEffective.add(phantom);
+        if (drowned != null) smiteEffective.add(drowned);
+        if (witherSkeleton != null) smiteEffective.add(witherSkeleton);
+        if (skeletonHorse != null) smiteEffective.add(skeletonHorse);
+        if (stray != null) smiteEffective.add(stray);
+        if (husk != null) smiteEffective.add(husk);
+        EFFECTIVE_SMITE_ENTITIES = Collections.unmodifiableSet(smiteEffective);
     }
 
     static {
@@ -284,9 +283,9 @@ public enum XEnchantment {
         if (split.length == 0) split = StringUtils.split(enchantment, ' ');
 
         Optional<XEnchantment> enchantOpt = matchXEnchantment(split[0]);
-        if (enchantOpt.isPresent()) return item;
+        if (!enchantOpt.isPresent()) return item;
         Enchantment enchant = enchantOpt.get().parseEnchantment();
-        if (enchant == null) return null;
+        if (enchant == null) return item;
 
         int lvl = 1;
         if (split.length > 1) lvl = NumberUtils.toInt(split[1]);

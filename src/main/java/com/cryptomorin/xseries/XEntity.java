@@ -57,24 +57,26 @@ public class XEntity {
      *
      * @since 2.0.0
      */
-    public static final Set<EntityType> UNDEAD = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
-            EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
+    public static final Set<EntityType> UNDEAD;
 
     static {
+        Set<EntityType> undead = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
+                EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
         if (XMaterial.supports(10)) {
-            UNDEAD.add(EntityType.HUSK);
-            UNDEAD.add(EntityType.STRAY);
+            undead.add(EntityType.HUSK);
+            undead.add(EntityType.STRAY);
             if (XMaterial.isNewVersion()) {
-                UNDEAD.add(EntityType.DROWNED);
-                UNDEAD.add(EntityType.PHANTOM);
+                undead.add(EntityType.DROWNED);
+                undead.add(EntityType.PHANTOM);
                 if (XMaterial.supports(16)) {
-                    UNDEAD.add(EntityType.ZOGLIN);
-                    UNDEAD.add(EntityType.PIGLIN);
-                    UNDEAD.add(EntityType.ZOMBIFIED_PIGLIN);
+                    undead.add(EntityType.ZOGLIN);
+                    undead.add(EntityType.PIGLIN);
+                    undead.add(EntityType.ZOMBIFIED_PIGLIN);
                 }
             }
         }
-        if (!XMaterial.supports(16)) UNDEAD.add(EntityType.valueOf("PIG_ZOMBIE"));
+        if (!XMaterial.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
+        UNDEAD = Collections.unmodifiableSet(undead);
     }
 
     /**

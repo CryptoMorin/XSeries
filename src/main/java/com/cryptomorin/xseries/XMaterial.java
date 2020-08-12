@@ -1236,11 +1236,11 @@ public enum XMaterial {
     /**
      * Cached set of {@link XMaterial#values()} to avoid allocating memory for
      * calling the method every time.
-     * This set is mutable for performance, but do not change the elements.
+     * This list is unmodifiable.
      *
      * @since 2.0.0
      */
-    public static final EnumSet<XMaterial> VALUES = EnumSet.allOf(XMaterial.class);
+    public static final List<XMaterial> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
 
     /**
      * We don't want to use {@link Enums#getIfPresent(Class, String)} to avoid a few checks.
@@ -1274,30 +1274,7 @@ public enum XMaterial {
      *
      * @since 3.0.0
      */
-    private static final EnumMap<XMaterial, XMaterial> DUPLICATED = new EnumMap<XMaterial, XMaterial>(XMaterial.class) {{
-        put(MELON, MELON_SLICE);
-        put(CARROT, CARROTS);
-        put(POTATO, POTATOES);
-        put(BEETROOT, BEETROOTS);
-        put(BROWN_MUSHROOM, BROWN_MUSHROOM_BLOCK);
-        put(BRICK, BRICKS);
-        put(NETHER_BRICK, NETHER_BRICKS);
-
-        // Illegal Elements
-        // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
-        // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
-        // We'll trick XMaterial into thinking this needs to be parsed
-        // using the old methods.
-        // Some of these materials have their enum name added to the legacy list as well.
-        put(DARK_OAK_DOOR, DARK_OAK_DOOR);
-        put(ACACIA_DOOR, ACACIA_DOOR);
-        put(BIRCH_DOOR, BIRCH_DOOR);
-        put(JUNGLE_DOOR, JUNGLE_DOOR);
-        put(SPRUCE_DOOR, SPRUCE_DOOR);
-        put(CAULDRON, CAULDRON);
-        put(BREWING_STAND, BREWING_STAND);
-    }};
-
+    private static final EnumMap<XMaterial, XMaterial> DUPLICATED = new EnumMap<XMaterial, XMaterial>(XMaterial.class);
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * For strings that match a certain XMaterial. Mostly cached for configs.
@@ -1306,6 +1283,15 @@ public enum XMaterial {
      */
     private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
+            .build();
+    /**
+     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
+     * For XMaterials that are already parsed once.
+     *
+     * @since 3.0.0
+     */
+    private static final Cache<XMaterial, Optional<Material>> PARSED_CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
     /*
      * A set of all the legacy names without duplicates.
@@ -1321,15 +1307,6 @@ public enum XMaterial {
             .filter(m -> m.charAt(1) == '.')
             .collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
     */
-    /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * For XMaterials that are already parsed once.
-     *
-     * @since 3.0.0
-     */
-    private static final Cache<XMaterial, Optional<Material>> PARSED_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .build();
     /**
      * This is used for {@link #isOneOf(Collection)}
      *
@@ -1361,6 +1338,30 @@ public enum XMaterial {
      * @since 3.0.0
      */
     private static final boolean ISFLAT = supports(13);
+
+    static {
+        DUPLICATED.put(MELON, MELON_SLICE);
+        DUPLICATED.put(CARROT, CARROTS);
+        DUPLICATED.put(POTATO, POTATOES);
+        DUPLICATED.put(BEETROOT, BEETROOTS);
+        DUPLICATED.put(BROWN_MUSHROOM, BROWN_MUSHROOM_BLOCK);
+        DUPLICATED.put(BRICK, BRICKS);
+        DUPLICATED.put(NETHER_BRICK, NETHER_BRICKS);
+
+        // Illegal Elements
+        // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
+        // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
+        // We'll trick XMaterial into thinking this needs to be parsed
+        // using the old methods.
+        // Some of these materials have their enum name added to the legacy list as well.
+        DUPLICATED.put(DARK_OAK_DOOR, DARK_OAK_DOOR);
+        DUPLICATED.put(ACACIA_DOOR, ACACIA_DOOR);
+        DUPLICATED.put(BIRCH_DOOR, BIRCH_DOOR);
+        DUPLICATED.put(JUNGLE_DOOR, JUNGLE_DOOR);
+        DUPLICATED.put(SPRUCE_DOOR, SPRUCE_DOOR);
+        DUPLICATED.put(CAULDRON, CAULDRON);
+        DUPLICATED.put(BREWING_STAND, BREWING_STAND);
+    }
 
     static {
         for (XMaterial material : VALUES) NAMES.put(material.name(), material);
@@ -1889,7 +1890,7 @@ public enum XMaterial {
     public ItemStack setType(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot set material for null ItemStack");
         Material material = this.parseMaterial();
-        Validate.isTrue(material != null, "Unsupported material: " + this.name());
+        Objects.requireNonNull(material, "Unsupported material: " + this.name());
 
         item.setType(material);
         if (!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
@@ -1936,6 +1937,7 @@ public enum XMaterial {
     public int getId() {
         if (this.data != 0 || (this.legacy.length != 0 && Integer.parseInt(this.legacy[0].substring(2)) >= 13)) return -1;
         Material material = this.parseMaterial();
+        Objects.requireNonNull(material, "Unsupported material ID check: " + this.name() + " (" + this.data + ')');
         return material.getId();
     }
 

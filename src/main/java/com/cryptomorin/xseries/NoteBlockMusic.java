@@ -78,13 +78,16 @@ public class NoteBlockMusic {
                     char ch = name.charAt(i);
                     if (ch == '_') {
                         i++;
-                        continue;
+                    } else {
+                        alias.append(ch);
+                        if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) == null) break;
                     }
-                    alias.append(ch);
-                    if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) == null) break;
                 }
             }
         }
+    }
+
+    private NoteBlockMusic() {
     }
 
     /**
@@ -112,9 +115,7 @@ public class NoteBlockMusic {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
-                    if (line.isEmpty()) continue;
-                    if (line.startsWith("#")) continue;
-
+                    if (line.isEmpty() || line.startsWith("#")) continue;
                     parseSegment(player, location, line, 1, 0);
                 }
             } catch (IOException ex) {
@@ -200,7 +201,7 @@ public class NoteBlockMusic {
                     try {
                         Thread.sleep(betweenDelay);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
                     }
                     continue;
                 }
@@ -279,7 +280,7 @@ public class NoteBlockMusic {
                         try {
                             Thread.sleep(delay);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
@@ -289,7 +290,7 @@ public class NoteBlockMusic {
                 try {
                     Thread.sleep(segmentDelay);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 }
             }
         }
