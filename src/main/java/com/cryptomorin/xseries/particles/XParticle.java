@@ -601,14 +601,16 @@ public final class XParticle {
      * @param radius the radius of the blackhole circle.
      * @param rate   the rate of the blackhole circle points.
      * @param mode   blackhole mode. There are 5 modes.
+     * @param time   the amount of ticks to keep the blackhole.
      * @since 3.0.0
      */
-    public static void blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, ParticleDisplay display) {
+    public static BukkitTask blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
         display.directional();
         display.extra = 0.1;
-        double rateDiv = Math.PI / rate;
 
-        new BukkitRunnable() {
+        return new BukkitRunnable() {
+            final double rateDiv = Math.PI / rate;
+            int timer = time;
             double theta = 0;
 
             @Override
@@ -647,6 +649,7 @@ public final class XParticle {
                 }
 
                 theta += rateDiv;
+                if (--timer <= 0) cancel();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }

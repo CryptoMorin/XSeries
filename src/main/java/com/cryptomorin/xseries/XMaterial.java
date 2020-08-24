@@ -60,7 +60,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 6.0.1
+ * @version 6.0.2
  * @see Material
  * @see ItemStack
  */
@@ -145,7 +145,7 @@ public enum XMaterial {
     BLACKSTONE_SLAB("1.16"),
     BLACKSTONE_STAIRS("1.16"),
     BLACKSTONE_WALL("1.16"),
-    BLACK_BANNER("BANNER", "STANDING_BANNER"),
+    BLACK_BANNER("STANDING_BANNER", "BANNER"),
     BLACK_BED(15, "BED_BLOCK", "BED"),
     BLACK_CARPET(15, "CARPET"),
     BLACK_CONCRETE(15, "CONCRETE"),
@@ -162,7 +162,7 @@ public enum XMaterial {
     BLAZE_POWDER,
     BLAZE_ROD,
     BLAZE_SPAWN_EGG(61, "MONSTER_EGG"),
-    BLUE_BANNER(4, "BANNER", "STANDING_BANNER"),
+    BLUE_BANNER(4, "STANDING_BANNER", "BANNER"),
     BLUE_BED(11, "BED_BLOCK", "BED"),
     BLUE_CARPET(11, "CARPET"),
     BLUE_CONCRETE(11, "CONCRETE"),
@@ -195,7 +195,7 @@ public enum XMaterial {
     BRICK_SLAB(4, "STEP"),
     BRICK_STAIRS,
     BRICK_WALL,
-    BROWN_BANNER(3, "BANNER", "STANDING_BANNER"),
+    BROWN_BANNER(3, "STANDING_BANNER", "BANNER"),
     BROWN_BED(12, "BED_BLOCK", "BED"),
     BROWN_CARPET(12, "CARPET"),
     BROWN_CONCRETE(12, "CONCRETE"),
@@ -324,7 +324,7 @@ public enum XMaterial {
     CUT_RED_SANDSTONE_SLAB("STONE_SLAB2"),
     CUT_SANDSTONE("1.13"),
     CUT_SANDSTONE_SLAB("STEP"),
-    CYAN_BANNER(6, "BANNER", "STANDING_BANNER"),
+    CYAN_BANNER(6, "STANDING_BANNER", "BANNER"),
     CYAN_BED(9, "BED_BLOCK", "BED"),
     CYAN_CARPET(9, "CARPET"),
     CYAN_CONCRETE(9, "CONCRETE"),
@@ -502,7 +502,7 @@ public enum XMaterial {
     GRASS_BLOCK("GRASS"),
     GRASS_PATH,
     GRAVEL,
-    GRAY_BANNER(8, "BANNER", "STANDING_BANNER"),
+    GRAY_BANNER(8, "STANDING_BANNER", "BANNER"),
     GRAY_BED(7, "BED_BLOCK", "BED"),
     GRAY_CARPET(7, "CARPET"),
     GRAY_CONCRETE(7, "CONCRETE"),
@@ -515,7 +515,7 @@ public enum XMaterial {
     GRAY_TERRACOTTA(7, "HARD_CLAY", "STAINED_CLAY"),
     GRAY_WALL_BANNER(8, "WALL_BANNER"),
     GRAY_WOOL(7, "WOOL"),
-    GREEN_BANNER(2, "BANNER", "STANDING_BANNER"),
+    GREEN_BANNER(2, "STANDING_BANNER", "BANNER"),
     GREEN_BED(13, "BED_BLOCK", "BED"),
     GREEN_CARPET(13, "CARPET"),
     GREEN_CONCRETE(13, "CONCRETE"),
@@ -617,7 +617,7 @@ public enum XMaterial {
     LEATHER_LEGGINGS,
     LECTERN("1.14", "BOOKSHELF", ""),
     LEVER,
-    LIGHT_BLUE_BANNER(12, "BANNER", "STANDING_BANNER"),
+    LIGHT_BLUE_BANNER(12, "STANDING_BANNER", "BANNER"),
     LIGHT_BLUE_BED(3, "BED_BLOCK", "BED"),
     LIGHT_BLUE_CARPET(3, "CARPET"),
     LIGHT_BLUE_CONCRETE(3, "CONCRETE"),
@@ -628,9 +628,9 @@ public enum XMaterial {
     LIGHT_BLUE_STAINED_GLASS(3, "STAINED_GLASS"),
     LIGHT_BLUE_STAINED_GLASS_PANE(3, "THIN_GLASS", "STAINED_GLASS_PANE"),
     LIGHT_BLUE_TERRACOTTA(3, "STAINED_CLAY"),
-    LIGHT_BLUE_WALL_BANNER(12, "WALL_BANNER", "BANNER", "STANDING_BANNER"),
+    LIGHT_BLUE_WALL_BANNER(12, "WALL_BANNER", "STANDING_BANNER", "BANNER"),
     LIGHT_BLUE_WOOL(3, "WOOL"),
-    LIGHT_GRAY_BANNER(7, "BANNER", "STANDING_BANNER"),
+    LIGHT_GRAY_BANNER(7, "STANDING_BANNER", "BANNER"),
     LIGHT_GRAY_BED(8, "BED_BLOCK", "BED"),
     LIGHT_GRAY_CARPET(8, "CARPET"),
     LIGHT_GRAY_CONCRETE(8, "CONCRETE"),
@@ -651,7 +651,7 @@ public enum XMaterial {
     LILAC(1, "DOUBLE_PLANT"),
     LILY_OF_THE_VALLEY(15, "1.14", "WHITE_DYE", ""),
     LILY_PAD("WATER_LILY"),
-    LIME_BANNER(10, "BANNER", "STANDING_BANNER"),
+    LIME_BANNER(10, "STANDING_BANNER", "BANNER"),
     LIME_BED(5, "BED_BLOCK", "BED"),
     LIME_CARPET(5, "CARPET"),
     LIME_CONCRETE(5, "CONCRETE"),
@@ -668,7 +668,7 @@ public enum XMaterial {
     LLAMA_SPAWN_EGG(103, "MONSTER_EGG"),
     LODESTONE("1.16"),
     LOOM("1.14"),
-    MAGENTA_BANNER(13, "BANNER", "STANDING_BANNER"),
+    MAGENTA_BANNER(13, "STANDING_BANNER", "BANNER"),
     MAGENTA_BED(2, "BED_BLOCK", "BED"),
     MAGENTA_CARPET(2, "CARPET"),
     MAGENTA_CONCRETE(2, "CONCRETE"),
@@ -780,7 +780,7 @@ public enum XMaterial {
     OBSERVER,
     OBSIDIAN,
     OCELOT_SPAWN_EGG(98, "MONSTER_EGG"),
-    ORANGE_BANNER(14, "BANNER", "STANDING_BANNER"),
+    ORANGE_BANNER(14, "STANDING_BANNER", "BANNER"),
     ORANGE_BED(1, "BED_BLOCK", "BED"),
     ORANGE_CARPET(1, "CARPET"),
     ORANGE_CONCRETE(1, "CONCRETE"),
@@ -808,7 +808,7 @@ public enum XMaterial {
     PIGLIN_SPAWN_EGG(57, "MONSTER_EGG"),
     PIG_SPAWN_EGG(90, "MONSTER_EGG"),
     PILLAGER_SPAWN_EGG("1.14"),
-    PINK_BANNER(9, "BANNER", "STANDING_BANNER"),
+    PINK_BANNER(9, "STANDING_BANNER", "BANNER"),
     PINK_BED(6, "BED_BLOCK", "BED"),
     PINK_CARPET(6, "CARPET"),
     PINK_CONCRETE(6, "CONCRETE"),
@@ -901,7 +901,7 @@ public enum XMaterial {
     PUMPKIN_PIE,
     PUMPKIN_SEEDS,
     PUMPKIN_STEM,
-    PURPLE_BANNER(5, "BANNER", "STANDING_BANNER"),
+    PURPLE_BANNER(5, "STANDING_BANNER", "BANNER"),
     PURPLE_BED(10, "BED_BLOCK", "BED"),
     PURPLE_CARPET(10, "CARPET"),
     PURPLE_CONCRETE(10, "CONCRETE"),
@@ -949,7 +949,7 @@ public enum XMaterial {
     REDSTONE_TORCH("REDSTONE_TORCH_OFF", "REDSTONE_TORCH_ON"),
     REDSTONE_WALL_TORCH,
     REDSTONE_WIRE,
-    RED_BANNER(1, "BANNER", "STANDING_BANNER"),
+    RED_BANNER(1, "STANDING_BANNER", "BANNER"),
     /**
      * Data value 14 or 0
      */
@@ -1184,7 +1184,7 @@ public enum XMaterial {
      */
     WHEAT("CROPS"),
     WHEAT_SEEDS("SEEDS"),
-    WHITE_BANNER(15, "BANNER", "STANDING_BANNER"),
+    WHITE_BANNER(15, "STANDING_BANNER", "BANNER"),
     WHITE_BED("BED_BLOCK", "BED"),
     WHITE_CARPET("CARPET"),
     WHITE_CONCRETE("CONCRETE"),
@@ -1211,7 +1211,7 @@ public enum XMaterial {
     WOODEN_SWORD("WOOD_SWORD"),
     WRITABLE_BOOK("BOOK_AND_QUILL"),
     WRITTEN_BOOK,
-    YELLOW_BANNER(11, "BANNER", "STANDING_BANNER"),
+    YELLOW_BANNER(11, "STANDING_BANNER", "BANNER"),
     YELLOW_BED(4, "BED_BLOCK", "BED"),
     YELLOW_CARPET(4, "CARPET"),
     YELLOW_CONCRETE(4, "CONCRETE"),
@@ -1937,7 +1937,7 @@ public enum XMaterial {
     public int getId() {
         if (this.data != 0 || (this.legacy.length != 0 && this.legacy[0].charAt(1) == '.' && Integer.parseInt(this.legacy[0].substring(2)) >= 13)) return -1;
         Material material = this.parseMaterial();
-        return material == null ? -1: material.getId();
+        return material == null ? -1 : material.getId();
     }
 
     /**

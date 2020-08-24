@@ -105,18 +105,20 @@ public class ReflectionUtils {
      * Sends a packet to the player asynchronously.
      * Packets are thread-safe.
      *
-     * @param player the player to send the packet to.
-     * @param packet the packet to send.
+     * @param player  the player to send the packet to.
+     * @param packets the packets to send.
      * @return the async thread handling the packet.
      * @since 1.0.0
      */
     @Nonnull
-    public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object packet) {
+    public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
         return CompletableFuture.runAsync(() -> {
             try {
                 Object handle = GET_HANDLE.invoke(player);
                 Object connection = PLAYER_CONNECTION.invoke(handle);
-                if (player.isOnline()) SEND_PACKET.invoke(connection, packet);
+                if (player.isOnline()) {
+                    for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
+                }
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
