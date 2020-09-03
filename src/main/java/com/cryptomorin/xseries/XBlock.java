@@ -29,10 +29,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.EndPortalFrame;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.material.Openable;
 import org.bukkit.material.*;
 
 import javax.annotation.Nullable;
@@ -46,9 +44,9 @@ import java.util.*;
  * All the parameters are non-null except the ones marked as nullable.
  *
  * @author Crypto Morin
- * @version 1.1.3
+ * @version 1.2.0
  * @see Block
- * @see BlockData
+ * @see org.bukkit.block.data.BlockData
  * @see BlockState
  * @see MaterialData
  * @see XMaterial
@@ -68,8 +66,8 @@ public class XBlock {
 
     public static boolean isLit(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Lightable)) return false;
-            Lightable lightable = (Lightable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Lightable)) return false;
+            org.bukkit.block.data.Lightable lightable = (org.bukkit.block.data.Lightable) block.getBlockData();
             return lightable.isLit();
         }
 
@@ -93,8 +91,8 @@ public class XBlock {
      */
     public static void setLit(Block block, boolean lit) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Lightable)) return;
-            Lightable lightable = (Lightable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Lightable)) return;
+            org.bukkit.block.data.Lightable lightable = (org.bukkit.block.data.Lightable) block.getBlockData();
             lightable.setLit(lit);
             return;
         }
@@ -205,8 +203,8 @@ public class XBlock {
 
     public static int getAge(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Ageable)) return 0;
-            Ageable ageable = (Ageable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Ageable)) return 0;
+            org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) block.getBlockData();
             return ageable.getAge();
         }
 
@@ -217,8 +215,8 @@ public class XBlock {
 
     public static void setAge(Block block, int age) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Ageable)) return;
-            Ageable ageable = (Ageable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Ageable)) return;
+            org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) block.getBlockData();
             ageable.setAge(age);
         }
 
@@ -259,8 +257,8 @@ public class XBlock {
      */
     public static boolean setFluidLevel(Block block, int level) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Levelled)) return false;
-            Levelled levelled = (Levelled) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled)) return false;
+            org.bukkit.block.data.Levelled levelled = (org.bukkit.block.data.Levelled) block.getBlockData();
             levelled.setLevel(level);
             return true;
         }
@@ -274,8 +272,8 @@ public class XBlock {
 
     public static int getFluidLevel(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Levelled)) return -1;
-            Levelled levelled = (Levelled) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled)) return -1;
+            org.bukkit.block.data.Levelled levelled = (org.bukkit.block.data.Levelled) block.getBlockData();
             return levelled.getLevel();
         }
 
@@ -320,7 +318,7 @@ public class XBlock {
     public static void setCakeSlices(Block block, int amount) {
         Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
         if (ISFLAT) {
-            BlockData bd = block.getBlockData();
+            org.bukkit.block.data.BlockData bd = block.getBlockData();
             if (bd instanceof org.bukkit.block.data.type.Cake) {
                 org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
 
@@ -354,7 +352,7 @@ public class XBlock {
     public static int addCakeSlices(Block block, int slices) {
         Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
         if (ISFLAT) {
-            BlockData bd = block.getBlockData();
+            org.bukkit.block.data.BlockData bd = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
             int bites = cake.getBites() + slices;
 
@@ -399,7 +397,7 @@ public class XBlock {
     public static void setEnderPearlOnFrame(Block endPortalFrame, boolean eye) {
         BlockState state = endPortalFrame.getState();
         if (ISFLAT) {
-            BlockData data = state.getBlockData();
+            org.bukkit.block.data.BlockData data = state.getBlockData();
             EndPortalFrame frame = (EndPortalFrame) data;
             frame.setEye(eye);
             state.setBlockData(frame);
@@ -479,8 +477,8 @@ public class XBlock {
 
     public static boolean isPowered(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Powerable)) return false;
-            Powerable powerable = (Powerable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Powerable)) return false;
+            org.bukkit.block.data.Powerable powerable = (org.bukkit.block.data.Powerable) block.getBlockData();
             return powerable.isPowered();
         }
 
@@ -493,8 +491,8 @@ public class XBlock {
 
     public static void setPowered(Block block, boolean powered) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Powerable)) return;
-            Powerable powerable = (Powerable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Powerable)) return;
+            org.bukkit.block.data.Powerable powerable = (org.bukkit.block.data.Powerable) block.getBlockData();
             powerable.setPowered(powered);
             return;
         }
@@ -534,8 +532,8 @@ public class XBlock {
 
     public static BlockFace getRotation(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Rotatable)) return null;
-            Rotatable rotatable = (Rotatable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Rotatable)) return null;
+            org.bukkit.block.data.Rotatable rotatable = (org.bukkit.block.data.Rotatable) block.getBlockData();
             return rotatable.getRotation();
         }
 
@@ -544,8 +542,8 @@ public class XBlock {
 
     public static void setRotation(Block block, BlockFace facing) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Rotatable)) return;
-            Rotatable rotatable = (Rotatable) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Rotatable)) return;
+            org.bukkit.block.data.Rotatable rotatable = (org.bukkit.block.data.Rotatable) block.getBlockData();
             rotatable.setRotation(facing);
         }
     }

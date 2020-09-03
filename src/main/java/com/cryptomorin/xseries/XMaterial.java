@@ -1361,6 +1361,7 @@ public enum XMaterial {
         DUPLICATED.put(SPRUCE_DOOR, SPRUCE_DOOR);
         DUPLICATED.put(CAULDRON, CAULDRON);
         DUPLICATED.put(BREWING_STAND, BREWING_STAND);
+        DUPLICATED.put(FLOWER_POT, FLOWER_POT);
     }
 
     static {
