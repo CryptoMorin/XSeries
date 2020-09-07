@@ -28,8 +28,6 @@ import org.bukkit.TreeSpecies;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.type.EndPortalFrame;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.*;
 
@@ -44,7 +42,7 @@ import java.util.*;
  * All the parameters are non-null except the ones marked as nullable.
  *
  * @author Crypto Morin
- * @version 1.2.0
+ * @version 1.2.1
  * @see Block
  * @see org.bukkit.block.data.BlockData
  * @see BlockState
@@ -185,16 +183,16 @@ public class XBlock {
 
     public static boolean setDirection(Block block, BlockFace facing) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Directional)) return false;
-            Directional direction = (Directional) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Directional)) return false;
+            org.bukkit.block.data.Directional direction = (org.bukkit.block.data.Directional) block.getBlockData();
             direction.setFacing(facing);
             return true;
         }
 
         BlockState state = block.getState();
         MaterialData data = state.getData();
-        if (data instanceof org.bukkit.material.Directional) {
-            ((org.bukkit.material.Directional) data).setFacingDirection(facing);
+        if (data instanceof Directional) {
+            ((Directional) data).setFacingDirection(facing);
             state.update(true);
             return true;
         }
@@ -398,7 +396,7 @@ public class XBlock {
         BlockState state = endPortalFrame.getState();
         if (ISFLAT) {
             org.bukkit.block.data.BlockData data = state.getBlockData();
-            EndPortalFrame frame = (EndPortalFrame) data;
+            org.bukkit.block.data.type.EndPortalFrame frame = (org.bukkit.block.data.type.EndPortalFrame) data;
             frame.setEye(eye);
             state.setBlockData(frame);
         } else {
