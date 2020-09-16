@@ -28,6 +28,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.block.Banner;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.banner.Pattern;
@@ -38,6 +39,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -59,7 +61,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 3.1.2
+ * @version 4.0.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -282,10 +284,28 @@ public class XItemStack {
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
             BlockState state = bsm.getBlockState();
+
             if (state instanceof CreatureSpawner) {
                 CreatureSpawner spawner = (CreatureSpawner) state;
                 spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
+                spawner.update(true);
                 bsm.setBlockState(spawner);
+            } else if (state instanceof Banner) {
+                Banner banner = (Banner) state;
+                ConfigurationSection patterns = config.getConfigurationSection("patterns");
+
+                if (patterns != null) {
+                    for (String pattern : patterns.getKeys(false)) {
+                        PatternType type = PatternType.getByIdentifier(pattern);
+                        if (type == null) type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                        DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
+
+                        banner.addPattern(new Pattern(color, type));
+                    }
+
+                    banner.update(true);
+                    bsm.setBlockState(banner);
+                }
             }
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
@@ -484,12 +504,167 @@ public class XItemStack {
      * @since 2.0.1
      */
     @Nonnull
-    public static Map<Integer, ItemStack> giveOrDrop(@Nonnull Player player, @Nullable ItemStack... items) {
-        if (items == null || items.length == 0) return new HashMap<>();
-        Map<Integer, ItemStack> drop = player.getInventory().addItem(items);
+    public static List<ItemStack> giveOrDrop(@Nonnull Player player, @Nullable ItemStack... items) {
+        return giveOrDrop(player, false, items);
+    }
+
+    /**
+     * Adds a list of items to the player's inventory and drop the items that did not fit.
+     *
+     * @param player the player to give the items to.
+     * @param items  the items to give.
+     * @param split  same as {@link #addItems(Inventory, boolean, ItemStack...)}
+     * @return the items that did not fit and were dropped.
+     * @since 2.0.1
+     */
+    @Nonnull
+    public static List<ItemStack> giveOrDrop(@Nonnull Player player, boolean split, @Nullable ItemStack... items) {
+        if (items == null || items.length == 0) return new ArrayList<>();
+        List<ItemStack> leftOvers = addItems(player.getInventory(), split, items);
         World world = player.getWorld();
         Location location = player.getLocation();
-        drop.values().forEach(item -> world.dropItemNaturally(location, item));
-        return drop;
+
+        for (ItemStack drop : leftOvers) world.dropItemNaturally(location, drop);
+        return leftOvers;
+    }
+
+    /**
+     * Optimized version of {@link Inventory#addItem(ItemStack...)}
+     * https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventory.java
+     *
+     * @param inventory the inventory to add the items to.
+     * @param split     if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or
+     *                  item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
+     *                  you're adding stacked tools such as swords that you'd like to split them to other slots.
+     * @param items     the items to add.
+     * @since 4.0.0
+     */
+    @Nonnull
+    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
+        Objects.requireNonNull(inventory, "Inventory cannot be null");
+        Objects.requireNonNull(items, "Items cannot be null");
+
+        List<ItemStack> leftOvers = new ArrayList<>(items.length);
+        int lastEmpty = 0;
+        int invSize = inventory.getSize();
+
+        for (ItemStack item : items) {
+            int partialIndex = 0;
+
+            while (true) {
+                int firstPartial = firstPartial(inventory, item, partialIndex);
+                if (firstPartial == -1) {
+                    if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty);
+                    if (lastEmpty == -1) {
+                        leftOvers.add(item);
+                        break;
+                    }
+                    partialIndex = lastEmpty;
+
+                    int maxSize = split ? item.getMaxStackSize() : inventory.getMaxStackSize();
+                    int amount = item.getAmount();
+                    if (amount <= maxSize) {
+                        inventory.setItem(lastEmpty, item);
+                        break;
+                    } else {
+                        ItemStack copy = item.clone();
+                        copy.setAmount(maxSize);
+                        inventory.setItem(lastEmpty, copy);
+                        item.setAmount(amount - maxSize);
+                    }
+                    if (++lastEmpty == invSize) lastEmpty = -1;
+                } else {
+                    ItemStack partialItem = inventory.getItem(firstPartial);
+                    int maxAmount = partialItem.getMaxStackSize();
+                    int partialAmount = partialItem.getAmount();
+                    int amount = item.getAmount();
+                    int sum = amount + partialAmount;
+
+                    if (sum <= maxAmount) {
+                        partialItem.setAmount(sum);
+                        inventory.setItem(firstPartial, partialItem);
+                        break;
+                    } else {
+                        partialItem.setAmount(maxAmount);
+                        inventory.setItem(firstPartial, partialItem);
+                        item.setAmount(sum - maxAmount);
+                    }
+                    if (sum >= maxAmount) partialIndex = firstPartial + 1;
+                }
+            }
+        }
+
+        return leftOvers;
+    }
+
+    /**
+     * Gets the item index in the inventory that matches the given item argument.
+     * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
+     * reached its {@link ItemStack#getMaxStackSize()} for the inventory.
+     *
+     * @param inventory  the inventory to match the item from.
+     * @param item       the item to match.
+     * @param beginIndex the index which to start the search from in the inventory.
+     * @return the index of the matched item, otherwise -1
+     * @since 4.0.0
+     */
+    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+        if (item != null) {
+            ItemStack[] items = inventory.getStorageContents();
+            int len = items.length;
+            if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+
+            for (; beginIndex < len; beginIndex++) {
+                ItemStack cItem = items[beginIndex];
+                if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)) return beginIndex;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Stacks up the items in the given item collection that are {@link ItemStack#isSimilar(ItemStack)}.
+     *
+     * @param items the items to stack.
+     * @return stacked up items.
+     * @since 4.0.0
+     */
+    public static List<ItemStack> stack(Collection<ItemStack> items) {
+        List<ItemStack> stacked = new ArrayList<>();
+        for (ItemStack item : items) {
+            if (item == null) continue;
+            ;
+
+            boolean add = true;
+            for (ItemStack stack : stacked) {
+                if (stack.isSimilar(item)) {
+                    stack.setAmount(stack.getAmount() + item.getAmount());
+                    add = false;
+                    break;
+                }
+            }
+
+            if (add) stacked.add(item.clone());
+        }
+        return stacked;
+    }
+
+    /**
+     * Gets the first empty slot in the inventory from an index.
+     *
+     * @param inventory  the inventory to search from.
+     * @param beginIndex the item index to start our search from in the inventory.
+     * @return first empty item index, otherwise -1
+     * @since 4.0.0
+     */
+    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
+        ItemStack[] items = inventory.getStorageContents();
+        int len = items.length;
+        if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+
+        for (; beginIndex < len; beginIndex++) {
+            if (items[beginIndex] == null) return beginIndex;
+        }
+        return -1;
     }
 }

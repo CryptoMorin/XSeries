@@ -4,7 +4,6 @@ about: Create a report to request a feature.
 title: "[Utility Name] - Feature"
 labels: 'enhancement'
 assignees: CryptoMorin
-
 ---
 
 **Description**

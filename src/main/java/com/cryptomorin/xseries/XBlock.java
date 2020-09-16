@@ -44,7 +44,6 @@ import java.util.*;
  * @author Crypto Morin
  * @version 1.2.1
  * @see Block
- * @see org.bukkit.block.data.BlockData
  * @see BlockState
  * @see MaterialData
  * @see XMaterial
@@ -333,17 +332,12 @@ public class XBlock {
         }
 
         BlockState state = block.getState();
-        if (state instanceof Cake) {
-            Cake cake = (Cake) state.getData();
-
-            if (amount <= 1) {
-                cake.setSlicesRemaining(amount);
-            } else {
-                block.breakNaturally();
-                return;
-            }
-
-            state.update();
+        Cake cake = (Cake) state.getData();
+        if (amount <= 1) {
+            cake.setSlicesRemaining(amount);
+            state.update(true);
+        } else {
+            block.breakNaturally();
         }
     }
 
@@ -354,7 +348,7 @@ public class XBlock {
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
             int bites = cake.getBites() + slices;
 
-            if (bites >= 0 && bites <= cake.getMaximumBites()) {
+            if (bites > 0) {
                 cake.setBites(bites);
             } else {
                 block.breakNaturally();
@@ -367,14 +361,15 @@ public class XBlock {
 
         BlockState state = block.getState();
         Cake cake = (Cake) state.getData();
+        int bites = cake.getSlicesRemaining() + slices;
 
-        if (cake.getSlicesEaten() + slices < CAKE_SLICES) {
-            cake.setSlicesEaten(cake.getSlicesEaten() + slices);
+        if (bites > 0) {
+            cake.setSlicesRemaining(bites);
         } else {
             block.breakNaturally();
             return cake.getSlicesRemaining();
         }
-        state.update();
+        state.update(true);
         return cake.getSlicesRemaining();
     }
 
@@ -398,7 +393,8 @@ public class XBlock {
             org.bukkit.block.data.BlockData data = state.getBlockData();
             org.bukkit.block.data.type.EndPortalFrame frame = (org.bukkit.block.data.type.EndPortalFrame) data;
             frame.setEye(eye);
-            state.setBlockData(frame);
+            // For some reasons adding this line will attempt to load org.bukkit.block.data even if it's not accessed.
+            //state.setBlockData(frame);
         } else {
             state.setRawData((byte) (eye ? 4 : 0));
         }
