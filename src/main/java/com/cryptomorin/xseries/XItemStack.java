@@ -61,7 +61,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -537,12 +537,13 @@ public class XItemStack {
      *                  item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
      *                  you're adding stacked tools such as swords that you'd like to split them to other slots.
      * @param items     the items to add.
+     * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
     @Nonnull
     public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
-        Objects.requireNonNull(inventory, "Inventory cannot be null");
-        Objects.requireNonNull(items, "Items cannot be null");
+        Objects.requireNonNull(inventory, "Cannot add items to null inventory");
+        Objects.requireNonNull(items, "Cannot add null items to inventory");
 
         List<ItemStack> leftOvers = new ArrayList<>(items.length);
         int lastEmpty = 0;
@@ -606,6 +607,7 @@ public class XItemStack {
      * @param item       the item to match.
      * @param beginIndex the index which to start the search from in the inventory.
      * @return the index of the matched item, otherwise -1
+     * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
     public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
@@ -629,11 +631,13 @@ public class XItemStack {
      * @return stacked up items.
      * @since 4.0.0
      */
-    public static List<ItemStack> stack(Collection<ItemStack> items) {
+    @Nonnull
+    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
+        Objects.requireNonNull(items, "Cannot stack null items");
         List<ItemStack> stacked = new ArrayList<>();
+
         for (ItemStack item : items) {
             if (item == null) continue;
-            ;
 
             boolean add = true;
             for (ItemStack stack : stacked) {
@@ -655,6 +659,7 @@ public class XItemStack {
      * @param inventory  the inventory to search from.
      * @param beginIndex the item index to start our search from in the inventory.
      * @return first empty item index, otherwise -1
+     * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
     public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {

@@ -225,7 +225,7 @@ public enum XMaterial {
     CARTOGRAPHY_TABLE("1.14", "CRAFTING_TABLE", ""),
     CARVED_PUMPKIN(1, "1.13", "PUMPKIN", ""),
     CAT_SPAWN_EGG,
-    CAULDRON("CAULDRON" ,"CAULDRON_ITEM"),
+    CAULDRON("CAULDRON", "CAULDRON_ITEM"),
     /**
      * 1.13 tag is not added because it's the same thing as {@link #AIR}
      *
