@@ -316,24 +316,21 @@ public class XBlock {
         Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
         if (ISFLAT) {
             org.bukkit.block.data.BlockData bd = block.getBlockData();
-            if (bd instanceof org.bukkit.block.data.type.Cake) {
-                org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
-
-                if (amount <= cake.getMaximumBites()) {
-                    cake.setBites(cake.getBites() + 1);
-                } else {
-                    block.breakNaturally();
-                    return;
-                }
-
+            org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
+            int remaining = cake.getMaximumBites() - (cake.getBites() + amount);
+            if (remaining > 0) {
+                cake.setBites(remaining);
                 block.setBlockData(bd);
+            } else {
+                block.breakNaturally();
             }
+
             return;
         }
 
         BlockState state = block.getState();
         Cake cake = (Cake) state.getData();
-        if (amount <= 1) {
+        if (amount > 0) {
             cake.setSlicesRemaining(amount);
             state.update(true);
         } else {
@@ -346,31 +343,31 @@ public class XBlock {
         if (ISFLAT) {
             org.bukkit.block.data.BlockData bd = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) bd;
-            int bites = cake.getBites() + slices;
+            int bites = cake.getBites() - slices;
+            int remaining = cake.getMaximumBites() - bites;
 
-            if (bites > 0) {
+            if (remaining > 0) {
                 cake.setBites(bites);
+                block.setBlockData(bd);
+                return remaining;
             } else {
                 block.breakNaturally();
-                return cake.getMaximumBites() - cake.getBites();
+                return 0;
             }
-
-            block.setBlockData(bd);
-            return cake.getMaximumBites() - cake.getBites();
         }
 
         BlockState state = block.getState();
         Cake cake = (Cake) state.getData();
-        int bites = cake.getSlicesRemaining() + slices;
+        int remaining = cake.getSlicesRemaining() + slices;
 
-        if (bites > 0) {
-            cake.setSlicesRemaining(bites);
+        if (remaining > 0) {
+            cake.setSlicesRemaining(remaining);
+            state.update(true);
+            return remaining;
         } else {
             block.breakNaturally();
-            return cake.getSlicesRemaining();
+            return 0;
         }
-        state.update(true);
-        return cake.getSlicesRemaining();
     }
 
     public static boolean setWooden(Block block, XMaterial species) {
@@ -393,8 +390,7 @@ public class XBlock {
             org.bukkit.block.data.BlockData data = state.getBlockData();
             org.bukkit.block.data.type.EndPortalFrame frame = (org.bukkit.block.data.type.EndPortalFrame) data;
             frame.setEye(eye);
-            // For some reasons adding this line will attempt to load org.bukkit.block.data even if it's not accessed.
-            //state.setBlockData(frame);
+            state.setBlockData(data);
         } else {
             state.setRawData((byte) (eye ? 4 : 0));
         }

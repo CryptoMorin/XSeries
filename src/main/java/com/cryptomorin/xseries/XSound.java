@@ -1068,7 +1068,7 @@ public enum XSound {
      *
      * @since 2.0.0
      */
-    public static final List<XSound> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+    public static final XSound[] VALUES = values();
 
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
@@ -1128,7 +1128,7 @@ public enum XSound {
         int count = 0;
         boolean appendUnderline = false;
 
-        for (int i = 0; i < len; ++i) {
+        for (int i = 0; i < len; i++) {
             char ch = name.charAt(i);
 
             if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
@@ -1291,14 +1291,15 @@ public enum XSound {
     public static CompletableFuture<Void> stopMusic(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing musics from null player");
 
-        // We don't need to cache because it's rarely used.
-        EnumSet<XSound> musics = EnumSet.of(MUSIC_CREATIVE, MUSIC_CREDITS,
-                MUSIC_DISC_11, MUSIC_DISC_13, MUSIC_DISC_BLOCKS, MUSIC_DISC_CAT, MUSIC_DISC_CHIRP,
-                MUSIC_DISC_FAR, MUSIC_DISC_MALL, MUSIC_DISC_MELLOHI, MUSIC_DISC_STAL,
-                MUSIC_DISC_STRAD, MUSIC_DISC_WAIT, MUSIC_DISC_WARD,
-                MUSIC_DRAGON, MUSIC_END, MUSIC_GAME, MUSIC_MENU, MUSIC_NETHER_BASALT_DELTAS, MUSIC_UNDER_WATER);
-
         return CompletableFuture.runAsync(() -> {
+            // We don't need to cache because it's rarely used.
+            XSound[] musics = {MUSIC_CREATIVE, MUSIC_CREDITS,
+                    MUSIC_DISC_11, MUSIC_DISC_13, MUSIC_DISC_BLOCKS, MUSIC_DISC_CAT, MUSIC_DISC_CHIRP,
+                    MUSIC_DISC_FAR, MUSIC_DISC_MALL, MUSIC_DISC_MELLOHI, MUSIC_DISC_STAL,
+                    MUSIC_DISC_STRAD, MUSIC_DISC_WAIT, MUSIC_DISC_WARD,
+                    MUSIC_DRAGON, MUSIC_END, MUSIC_GAME, MUSIC_MENU, MUSIC_NETHER_BASALT_DELTAS, MUSIC_UNDER_WATER,
+                    MUSIC_NETHER_CRIMSON_FOREST, MUSIC_NETHER_WARPED_FOREST};
+
             for (XSound music : musics) {
                 Sound sound = music.parseSound();
                 if (sound != null) player.stopSound(sound);

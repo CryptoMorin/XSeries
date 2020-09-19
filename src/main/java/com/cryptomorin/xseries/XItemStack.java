@@ -130,8 +130,7 @@ public class XItemStack {
         }
 
         if (meta instanceof SkullMeta) {
-            if (XMaterial.isNewVersion()) config.set("skull", ((SkullMeta) meta).getOwningPlayer().getUniqueId().toString());
-            else config.set("skull", ((SkullMeta) meta).getOwner());
+            config.set("skull", SkullUtils.getSkinValue(meta));
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.createSection("patterns");

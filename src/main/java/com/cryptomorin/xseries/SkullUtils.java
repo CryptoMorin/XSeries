@@ -156,9 +156,9 @@ public class SkullUtils {
     }
 
     @Nullable
-    public static String getSkinValue(@Nonnull ItemStack skull) {
+    public static String getSkinValue(@Nonnull ItemMeta skull) {
         Objects.requireNonNull(skull, "Skull ItemStack cannot be null");
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        SkullMeta meta = (SkullMeta) skull;
         GameProfile profile = null;
 
         try {
@@ -169,10 +169,11 @@ public class SkullUtils {
             ex.printStackTrace();
         }
 
-        if (profile != null && !profile.getProperties().get("textures").isEmpty())
-            for (Property property : profile.getProperties().get("textures"))
-                if (!property.getValue().isEmpty())
-                    return property.getValue();
+        if (profile != null && !profile.getProperties().get("textures").isEmpty()) {
+            for (Property property : profile.getProperties().get("textures")) {
+                if (!property.getValue().isEmpty()) return property.getValue();
+            }
+        }
 
         return null;
     }
