@@ -45,7 +45,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
  * 1.13 and above as priority.
  * <p>
- * This class is mainly designed to support ItemStacks. If you want to use it on blocks, you'll have to use
+ * This class is mainly designed to support {@link ItemStack}. If you want to use it on blocks, you'll have to use
  * <a href="https://github.com/CryptoMorin/XSeries/blob/master/src/main/java/com/cryptomorin/xseries/XBlock.java">XBlock</a>
  * <p>
  * Pre-flattening: https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
@@ -55,12 +55,13 @@ import java.util.regex.PatternSyntaxException;
  * Material Source Code: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
  * XMaterial v1: https://www.spigotmc.org/threads/329630/
  * <p>
- * This class will throw a "unsupported material" error if someone tries to use an item with an invalid data value which can only happen in 1.12 servers and below.
+ * This class will throw a "unsupported material" error if someone tries to use an item with an invalid data value which can only happen in 1.12 servers and below or when the
+ * utility is missing a new material in that specific version.
  * To get an invalid item, (aka <a href="https://minecraft.fandom.com/wiki/Missing_Texture_Block">Missing Texture Block</a>) you can use the command
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.0.0.1
  * @see Material
  * @see ItemStack
  */
@@ -1388,15 +1389,16 @@ public enum XMaterial {
      *
      * @see #getLegacy()
      */
+    @Nonnull
     private final String[] legacy;
 
-    XMaterial(int data, int version, String... legacy) {
+    XMaterial(int data, int version, @Nonnull String... legacy) {
         this.data = (byte) data;
         this.version = (byte) version;
         this.legacy = legacy;
     }
 
-    XMaterial(int data, String... legacy) {
+    XMaterial(int data, @Nonnull String... legacy) {
         this(data, 0, legacy);
     }
 
@@ -1525,13 +1527,13 @@ public enum XMaterial {
      * @since 3.0.0
      */
     @Nonnull
-    private static Optional<XMaterial> matchXMaterialWithData(String name) {
+    private static Optional<XMaterial> matchXMaterialWithData(@Nonnull String name) {
         int index = name.indexOf(':');
         if (index != -1) {
             String mat = format(name.substring(0, index));
 
             try {
-                byte data = (byte) Byte.parseByte(StringUtils.deleteWhitespace(name.substring(index + 1)));
+                byte data = Byte.parseByte(StringUtils.deleteWhitespace(name.substring(index + 1)));
                 return matchDefinedXMaterial(mat, data);
             } catch (NumberFormatException ignored) {
             }
@@ -1905,6 +1907,7 @@ public enum XMaterial {
      * @since 3.0.0
      */
     @Override
+    @Nonnull
     public String toString() {
         return toWord(this.name());
     }

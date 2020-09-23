@@ -42,14 +42,14 @@ import java.util.*;
  * All the parameters are non-null except the ones marked as nullable.
  *
  * @author Crypto Morin
- * @version 1.2.1
+ * @version 1.2.2
  * @see Block
  * @see BlockState
  * @see MaterialData
  * @see XMaterial
  */
 @SuppressWarnings("deprecation")
-public class XBlock {
+public final class XBlock {
     public static final Set<XMaterial> CROPS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.CARROT, XMaterial.POTATO, XMaterial.NETHER_WART, XMaterial.WHEAT_SEEDS, XMaterial.PUMPKIN_SEEDS,
             XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.SUGAR_CANE, XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
@@ -60,6 +60,9 @@ public class XBlock {
     ));
     public static final int CAKE_SLICES = 6;
     private static final boolean ISFLAT = XMaterial.isNewVersion();
+
+    private XBlock() {
+    }
 
     public static boolean isLit(Block block) {
         if (ISFLAT) {
@@ -540,8 +543,9 @@ public class XBlock {
 
     private static boolean isMaterial(Block block, String... materials) {
         String type = block.getType().name();
-        for (String material : materials)
+        for (String material : materials) {
             if (type.equals(material)) return true;
+        }
         return false;
     }
 }

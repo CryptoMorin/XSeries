@@ -51,7 +51,7 @@ import java.util.*;
  * @see XItemStack
  * @see XPotion
  */
-public class XEntity {
+public final class XEntity {
     /**
      * A list of entity types that are considerd <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
      *
@@ -77,6 +77,9 @@ public class XEntity {
         }
         if (!XMaterial.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
         UNDEAD = Collections.unmodifiableSet(undead);
+    }
+
+    private XEntity() {
     }
 
     /**

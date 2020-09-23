@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -40,15 +39,19 @@ import java.lang.reflect.Field;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * <b>SkullUtils</b> - Apply skull texture from different sources.<br>
  * Skull Meta: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html
  * Mojang API: https://wiki.vg/Mojang_API
+ * <p>
+ * Some websites to get custom heads:
+ * <ul>
+ *     <li>https://minecraft-heads.com/</li>
+ * </ul>
  *
  * @author Crypto Morin
- * @version 3.0.1
+ * @version 3.1.0
  * @see XMaterial
  */
 public class SkullUtils {
@@ -56,7 +59,7 @@ public class SkullUtils {
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
     private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
-    private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
+    //private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -151,8 +154,19 @@ public class SkullUtils {
         return Base64.getEncoder().encodeToString(str.getBytes());
     }
 
+    /**
+     * While RegEx is a little faster for small strings, this always checks strings with a length
+     * greater than 100, so it'll perform a lot better.
+     */
     private static boolean isBase64(@Nonnull String base64) {
-        return BASE64.matcher(base64).matches();
+        Base64.Decoder decoder = Base64.getDecoder();
+        try {
+            decoder.decode(base64);
+            return true;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+        //return BASE64.matcher(base64).matches();
     }
 
     @Nullable
@@ -178,8 +192,13 @@ public class SkullUtils {
         return null;
     }
 
-    private static boolean isUsername(@Nullable String name) {
-        if (Strings.isNullOrEmpty(name)) return false;
+    /**
+     * https://help.minecraft.net/hc/en-us/articles/360034636712
+     *
+     * @param name the username to check.
+     * @return true if the string matches the Minecraft username rule, otherwise false.
+     */
+    private static boolean isUsername(@Nonnull String name) {
         int len = name.length();
         if (len < 3 || len > 16) return false;
 

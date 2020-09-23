@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 1.1.1
+ * @version 1.1.2
  * @see Biome
  */
 public enum XBiome {
@@ -283,6 +283,9 @@ public enum XBiome {
                     if (block.getBiome() != biome) block.setBiome(biome);
                 }
             }
+        }).exceptionally((result) -> {
+            result.printStackTrace();
+            return null;
         });
     }
 
@@ -312,6 +315,9 @@ public enum XBiome {
                     if (block.getBiome() != biome) block.setBiome(biome);
                 }
             }
+        }).exceptionally((result) -> {
+            result.printStackTrace();
+            return null;
         });
     }
 }

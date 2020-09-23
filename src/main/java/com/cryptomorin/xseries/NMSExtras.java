@@ -125,6 +125,9 @@ public class NMSExtras {
         GET_BLOCK = getBlock;
     }
 
+    private NMSExtras() {
+    }
+
     public static void setExp(Player player, float bar, int lvl, int exp) {
         try {
             Object packet = EXP_PACKET.invoke(bar, lvl, exp);

@@ -154,6 +154,9 @@ public class ActionBar {
         PACKET_PLAY_OUT_CHAT = packet;
     }
 
+    private ActionBar() {
+    }
+
     /**
      * Sends an action bar to a player.
      *

@@ -133,6 +133,9 @@ public final class XParticle {
      */
     public static final double PII = 2 * Math.PI;
 
+    private XParticle() {
+    }
+
     /**
      * An optimized and stable way of getting particles for cross-version support.
      *

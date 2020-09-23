@@ -128,6 +128,9 @@ public class Titles {
         CHAT_COMPONENT_TEXT = chatComp;
     }
 
+    private Titles() {
+    }
+
     /**
      * Sends a title message with title and subtitle to a player.
      *
@@ -224,8 +227,8 @@ public class Titles {
             player.resetTitle();
             return;
         }
-        Object clearPacket = null;
 
+        Object clearPacket;
         try {
             clearPacket = PACKET.invoke(CLEAR, null, -1, -1, -1);
         } catch (Throwable throwable) {

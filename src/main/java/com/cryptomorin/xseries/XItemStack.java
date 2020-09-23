@@ -68,7 +68,10 @@ import java.util.*;
  * @see XEnchantment
  * @see ItemStack
  */
-public class XItemStack {
+public final class XItemStack {
+    private XItemStack() {
+    }
+
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.

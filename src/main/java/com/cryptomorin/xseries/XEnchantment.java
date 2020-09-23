@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 1.2.0
+ * @version 1.2.1
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -166,13 +166,14 @@ public enum XEnchantment {
      * @see NamespacedKey#getKey()
      */
     private final boolean self;
+    @Nonnull
     private final String[] aliases;
 
     XEnchantment(String... names) {
         this(false, names);
     }
 
-    XEnchantment(boolean self, String... aliases) {
+    XEnchantment(boolean self, @Nonnull String... aliases) {
         this.self = self;
         this.aliases = aliases;
     }
@@ -377,6 +378,7 @@ public enum XEnchantment {
      * @return a friendly readable string name.
      */
     @Override
+    @Nonnull
     public String toString() {
         return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
