@@ -42,7 +42,7 @@ import java.util.*;
  * All the parameters are non-null except the ones marked as nullable.
  *
  * @author Crypto Morin
- * @version 1.2.2
+ * @version 1.3.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -294,6 +294,7 @@ public final class XBlock {
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
+        XMaterial matched = XMaterial.matchXMaterial(block.getType());
 
         for (String comp : blocks) {
             String checker = comp.toUpperCase(Locale.ENGLISH);
@@ -310,7 +311,9 @@ public final class XBlock {
 
             // Direct Object Equals
             Optional<XMaterial> xMat = XMaterial.matchXMaterial(comp);
-            if (xMat.isPresent() && isType(block, xMat.get())) return true;
+            if (xMat.isPresent()) {
+                if (matched == xMat.get() || isType(block, xMat.get())) return true;
+            }
         }
         return false;
     }
@@ -419,17 +422,31 @@ public final class XBlock {
     }
 
     /**
+     * Same as {@link #isType(Block, XMaterial)} except it also does a simple {@link XMaterial#matchXMaterial(Material)}
+     * comparison with the given block and material.
+     *
+     * @param block    the block to compare.
+     * @param material the material to compare with.
+     * @return true if block type is similar to the given material.
+     * @since 1.3.0
+     */
+    public static boolean isSimilar(Block block, XMaterial material) {
+        return material == XMaterial.matchXMaterial(block.getType()) || isType(block, material);
+    }
+
+    /**
      * <b>Universal Method</b>
      * <p>
-     * Check if the block type matches the specified XMaterial
+     * Check if the block type matches the specified XMaterial.
+     * Note that this method assumes that you've already tried doing {@link XMaterial#matchXMaterial(Material)} using
+     * {@link Block#getType()} and compared it with the other XMaterial. If not, use {@link #isSimilar(Block, XMaterial)}
      *
      * @param block    the block to check.
      * @param material the XMaterial similar to this block type.
-     * @return true if the block type is similar to the material.
+     * @return true if the raw block type matches with the material.
      */
     public static boolean isType(Block block, XMaterial material) {
         Material mat = block.getType();
-
         switch (material) {
             case CAKE:
                 return isCake(mat);
@@ -460,7 +477,6 @@ public final class XBlock {
                 // And I don't know why would anyone use the other air types.
                 return isAir(mat);
         }
-
         return false;
     }
 
