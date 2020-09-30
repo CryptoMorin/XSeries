@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 1.1.2
+ * @version 2.0.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -90,7 +90,7 @@ public enum XPotion {
     SPEED("SPRINT", "RUNFAST", "SWIFT", "FAST"),
     UNLUCK("UNLUCKY"),
     WATER_BREATHING("WATER_BREATH", "UNDERWATER_BREATHING", "UNDERWATER_BREATH", "AIR"),
-    WEAKNESS("WEAK", "DONALD_TRUMP"),
+    WEAKNESS("WEAK"),
     WITHER("DECAY");
 
     /**
@@ -111,10 +111,12 @@ public enum XPotion {
             SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER));
 
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private final String[] aliases;
+    private final PotionEffectType type;
 
-    XPotion(String... aliases) {
-        this.aliases = aliases;
+    XPotion(@Nonnull String... aliases) {
+        this.type = PotionEffectType.getByName(this.name());
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : aliases) Data.NAMES.put(legacy, this);
     }
 
     /**
@@ -143,13 +145,12 @@ public enum XPotion {
     public static Optional<XPotion> matchXPotion(@Nonnull String potion) {
         Validate.notEmpty(potion, "Cannot match XPotion of a null or empty potion effect type");
         PotionEffectType idType = getIdFromString(potion);
-        if (idType != null) return Optional.of(matchXPotion(idType));
-        potion = format(potion);
-
-        for (XPotion potions : VALUES) {
-            if (potions.name().equals(potion) || potions.anyMatchAliases(potion)) return Optional.ofNullable(potions);
+        if (idType != null) {
+            XPotion type = Data.NAMES.get(idType.getName());
+            if (type == null) throw new NullPointerException("Unsupported potion effect type ID: " + idType);
+            return Optional.of(type);
         }
-        return Optional.empty();
+        return Optional.ofNullable(Data.NAMES.get(format(potion)));
     }
 
     /**
@@ -318,20 +319,6 @@ public enum XPotion {
     }
 
     /**
-     * Checks if the potion effect type name matches one of the aliases.
-     *
-     * @param potionEffect the potion effect type name.
-     * @return true of the aliases contains the potion type.
-     * @since 1.0.0
-     */
-    private boolean anyMatchAliases(@Nonnull String potionEffect) {
-        for (String alias : aliases) {
-            if (potionEffect.equals(alias) || potionEffect.equals(StringUtils.remove(alias, '_'))) return true;
-        }
-        return false;
-    }
-
-    /**
      * Parses the potion effect type.
      *
      * @return the parsed potion effect type.
@@ -340,7 +327,7 @@ public enum XPotion {
      */
     @Nullable
     public PotionEffectType parsePotionEffectType() {
-        return PotionEffectType.getByName(this.name());
+        return this.type;
     }
 
     /**
@@ -390,11 +377,6 @@ public enum XPotion {
         return type == null ? null : new PotionEffect(type, duration, amplifier);
     }
 
-    @Nonnull
-    public String[] getAliases() {
-        return aliases;
-    }
-
     /**
      * In most cases your should be using {@link #name()} instead.
      *
@@ -403,5 +385,14 @@ public enum XPotion {
     @Override
     public String toString() {
         return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 2.0.0
+     */
+    private static final class Data {
+        private static final Map<String, XPotion> NAMES = new HashMap<>();
     }
 }

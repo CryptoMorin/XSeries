@@ -23,12 +23,13 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.*;
+import org.bukkit.Instrument;
+import org.bukkit.Location;
+import org.bukkit.Note;
+import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -39,7 +40,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 5.0.0
  * @see Sound
  */
 public enum XSound {
@@ -1069,46 +1069,23 @@ public enum XSound {
      * @since 2.0.0
      */
     public static final XSound[] VALUES = values();
+    @Nullable
+    private final Sound sound;
 
-    /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * Caches the parsed {@link Sound} objects instead of string. Because it has to go through catching exceptions again
-     * since {@link Sound} class doesn't have a method like {@link Material#getMaterial(String)}.
-     * So caching these would be more efficient.
-     *
-     * @since 2.0.0
-     */
-    private static final Cache<XSound, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .build();
-
-    /**
-     * We don't want to use {@link Enums#getIfPresent(Class, String)} to avoid a few checks.
-     *
-     * @since 3.1.0
-     */
-    private static final Map<String, XSound> NAMES = new HashMap<>();
-    /**
-     * Since {@link Sound} doesn't provde a method to get a sound from a method like {@link Material#getMaterial(String)}
-     *
-     * @since 3.1.0
-     */
-    private static final Map<String, Sound> BUKKIT_NAMES = new HashMap<>();
-
-    static {
-        for (Sound sound : Sound.values()) BUKKIT_NAMES.put(sound.name(), sound);
-        for (XSound sound : VALUES) {
-            NAMES.put(sound.name(), sound);
-            for (String legacy : sound.getLegacy()) {
-                NAMES.putIfAbsent(legacy, sound);
+    XSound(@Nonnull String... legacies) {
+        Sound bukkitSound = Data.BUKKIT_NAMES.get(this.name());
+        if (bukkitSound == null) {
+            for (String legacy : legacies) {
+                bukkitSound = Data.BUKKIT_NAMES.get(legacy);
+                if (bukkitSound != null) break;
             }
         }
-    }
+        this.sound = bukkitSound;
 
-    private final String[] legacy;
-
-    XSound(String... legacy) {
-        this.legacy = legacy;
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : legacies) {
+            Data.NAMES.putIfAbsent(legacy, this);
+        }
     }
 
     /**
@@ -1134,7 +1111,8 @@ public enum XSound {
             if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
             else {
                 boolean number = false;
-                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                // A few sounds have numbers in them.
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (number = (ch >= '0' && ch <= '9'))) {
                     if (appendUnderline) {
                         chs[count++] = '_';
                         appendUnderline = false;
@@ -1316,7 +1294,7 @@ public enum XSound {
      */
     @Nonnull
     private static Optional<XSound> getIfPresent(@Nonnull String name) {
-        return Optional.ofNullable(NAMES.get(name));
+        return Optional.ofNullable(Data.NAMES.get(name));
     }
 
     /**
@@ -1330,43 +1308,14 @@ public enum XSound {
     }
 
     /**
-     * Gets all the previous sound names used for this sound.
-     *
-     * @return a list of legacy sound names.
-     * @since 1.0.0
-     */
-    @Nonnull
-    public String[] getLegacy() {
-        return legacy;
-    }
-
-    /**
      * Parses the XSound as a {@link Sound} based on the server version.
      *
      * @return the vanilla sound.
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings("OptionalAssignedToNull")
     public Sound parseSound() {
-        Optional<Sound> cachedSound = CACHE.getIfPresent(this);
-        if (cachedSound != null) return cachedSound.orElse(null);
-        Sound sound;
-
-        // Since Sound class doesn't have a getSound() method we'll use Guava so
-        // it can cache it for us.
-        sound = BUKKIT_NAMES.get(this.name());
-
-        if (sound == null) {
-            for (String legacy : this.legacy) {
-                sound = BUKKIT_NAMES.get(legacy);
-                if (sound != null) break;
-            }
-        }
-
-        // Put nulls too, because there's no point of parsing them again if it's going to give us null again.
-        CACHE.put(this, Optional.ofNullable(sound));
-        return sound;
+        return this.sound;
     }
 
     /**
@@ -1514,6 +1463,30 @@ public enum XSound {
         Sound sound = this.parseSound();
         if (sound == null) return;
         location.getWorld().playSound(location, sound, volume, pitch);
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 5.0.0
+     */
+    private static final class Data {
+        /**
+         * Just for enum initialization.
+         *
+         * @since 5.0.0
+         */
+        private static final WeakHashMap<String, Sound> BUKKIT_NAMES = new WeakHashMap<>();
+        /**
+         * We don't want to use {@link Enums#getIfPresent(Class, String)} to avoid a few checks.
+         *
+         * @since 3.1.0
+         */
+        private static final Map<String, XSound> NAMES = new HashMap<>();
+
+        static {
+            for (Sound sound : Sound.values()) BUKKIT_NAMES.put(sound.name(), sound);
+        }
     }
 
     /**

@@ -22,9 +22,6 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -43,7 +40,7 @@ import java.util.regex.Pattern;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 1.1.2
+ * @version 2.0.0
  * @see Biome
  */
 public enum XBiome {
@@ -135,16 +132,6 @@ public enum XBiome {
      */
     public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
     /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * Caches the parsed {@link Biome} objects instead of string. Because it has to go through catching exceptions again
-     * since {@link Biome} class doesn't have a method like {@link org.bukkit.Material#getMaterial(String)}.
-     * So caching these would be more efficient.
-     * This cache will not expire since there are only a few biome names.
-     *
-     * @since 1.0.0
-     */
-    private static final Cache<XBiome, Optional<Biome>> CACHE = CacheBuilder.newBuilder().build();
-    /**
      * Pre-compiled RegEx pattern.
      * Include both replacements to avoid creating string multiple times and multiple RegEx checks.
      *
@@ -152,9 +139,19 @@ public enum XBiome {
      */
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private final String[] legacy;
+    private final Biome biome;
 
-    XBiome(String... legacy) {
-        this.legacy = legacy;
+    XBiome(String... legacies) {
+        this.legacy = legacies;
+
+        Biome biome = Enums.getIfPresent(Biome.class, this.name()).orNull();
+        if (biome == null) {
+            for (String legacy : legacies) {
+                biome = Enums.getIfPresent(Biome.class, legacy).orNull();
+                if (biome != null) break;
+            }
+        }
+        this.biome = biome;
     }
 
     /**
@@ -238,23 +235,8 @@ public enum XBiome {
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings({"Guava", "OptionalAssignedToNull"})
     public Biome parseBiome() {
-        com.google.common.base.Optional<Biome> cached = CACHE.getIfPresent(this);
-        if (cached != null) return cached.orNull();
-        com.google.common.base.Optional<Biome> biome;
-
-        biome = Enums.getIfPresent(Biome.class, this.name());
-
-        if (!biome.isPresent()) {
-            for (String legacy : this.legacy) {
-                biome = Enums.getIfPresent(Biome.class, legacy);
-                if (biome.isPresent()) break;
-            }
-        }
-
-        CACHE.put(this, biome);
-        return biome.orNull();
+        return this.biome;
     }
 
     /**

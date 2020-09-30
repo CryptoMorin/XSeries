@@ -1252,24 +1252,6 @@ public enum XMaterial {
     private static final Map<String, XMaterial> NAMES = new HashMap<>();
 
     /**
-     * An array of material names that can be <a href="https://minecraft.gamepedia.com/Item_durability">damaged</a>.
-     * <p>
-     * Most of the names are not complete as this list is intended to be
-     * checked with {@link String#contains} for memory usage and maintainability.
-     * <p>
-     * New items will probably not be added to the list since they're new and it
-     * doesn't matter what their data value is.
-     *
-     * @since 1.0.0
-     */
-    private static final String[] DAMAGEABLE = {
-            "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS",
-            "SWORD", "AXE", "PICKAXE", "SHOVEL", "HOE",
-            "ELYTRA", "TRIDENT", "HORSE_ARMOR", "BARDING",
-            "SHEARS", "FLINT_AND_STEEL", "BOW", "FISHING_ROD",
-            "CARROT_ON_A_STICK", "CARROT_STICK", "SPADE", "SHIELD"
-    };
-    /**
      * <b>XMaterial Paradox (Duplication Check)</b>
      * <p>
      * A map of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
@@ -1577,7 +1559,7 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (ISFLAT || isDamageable(material) ? 0 : item.getDurability());
+        byte data = (byte) (ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         return matchDefinedXMaterial(material, data)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported material: " + material + " (" + data + ')'));
@@ -1615,20 +1597,20 @@ public enum XMaterial {
         // I've concluded that this is just an infinite loop that keeps
         // going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
         // This solution works just fine anyway.
-        XMaterial xMat = requestOldXMaterial(name, data);
-        if (xMat == null) {
+        XMaterial oldXMaterial = requestOldXMaterial(name, data);
+        if (oldXMaterial == null) {
             // Special case. Refer to FILLED_MAP for more info.
             if (data > 0 && name.endsWith("MAP")) return Optional.of(FILLED_MAP);
             return Optional.empty();
         }
 
-        if (!ISFLAT && xMat.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
+        if (!ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
             // A solution for XMaterial Paradox.
             // Manually parses the duplicated materials to find the exact material based on the server version.
             // If ends with "S" -> Plural Form Material
             return xMaterial == null ? getIfPresent(name) : xMaterial;
         }
-        return Optional.ofNullable(xMat);
+        return Optional.ofNullable(oldXMaterial);
     }
 
     /**
@@ -1755,26 +1737,9 @@ public enum XMaterial {
     }
 
     /**
-     * Checks if the material can be damaged by using it.
-     * Names going through this method are not formatted.
-     *
-     * @param name the name of the material.
-     * @return true of the material can be damaged.
-     * @see #isDamageable()
-     * @since 1.0.0
-     */
-    public static boolean isDamageable(@Nonnull String name) {
-        Objects.requireNonNull(name, "Material name cannot be null");
-        for (String damageable : DAMAGEABLE) {
-            if (name.contains(damageable)) return true;
-        }
-        return false;
-    }
-
-    /**
      * A solution for XMaterial Paradox.
      * Manually parses the duplicated materials to find the exact material based on the server version.
-     * If ends with "S" -> Plural Form Material.
+     * If the name ends with "S" -> Plural Form Material.
      *
      * @return true if this material is a plural form material, otherwise false.
      * @since 8.0.0
@@ -1807,15 +1772,12 @@ public enum XMaterial {
      *     {@code "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR}
      * </pre>
      * <p>
-     * The reason that there are tags for {@code CONTAINS} and {@code REGEX}
-     * is for the performance.
-     * Please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag.
+     * The reason that there are tags for {@code CONTAINS} and {@code REGEX} is for the performance.
+     * Although RegEx patterns are cached in this method,
+     * please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag instead.
      * It'll have a huge impact on performance.
      * Please avoid using {@code (capturing groups)} there's no use for them in this case.
      * If you want to use groups, use {@code (?: non-capturing groups)}. It's faster.
-     * <p>
-     * You can make a cache for pre-compiled RegEx patterns from your config.
-     * It's better, but not much faster since these patterns are not that complex.
      * <p>
      * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
      *
@@ -1866,16 +1828,16 @@ public enum XMaterial {
         Objects.requireNonNull(material, "Unsupported material: " + this.name());
 
         item.setType(material);
-        if (!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
+        if (!ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
         return item;
     }
 
     /**
-     * Checks if the given string matches any of this material's legacy material names.
+     * Checks if the given material name matches any of this xmaterial's legacy material names.
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
      * @param name the material name to check.
-     * @return true if it's one of the legacy names.
+     * @return true if it's one of the legacy names, otherwise false.
      * @since 2.0.0
      */
     private boolean anyMatchLegacy(@Nonnull String name) {
@@ -1908,8 +1870,9 @@ public enum XMaterial {
 
     /**
      * Gets the ID (Magic value) of the material.
+     * https://www.minecraftinfo.com/idlist.htm
      *
-     * @return the ID of the material or <b>-1</b> if it's a new block, the material is not supported or it's not a legacy material..
+     * @return the ID of the material or <b>-1</b> if it's not a legacy material or the server doesn't support the material.
      * @see #matchXMaterial(int, byte)
      * @since 2.2.0
      */
@@ -1929,18 +1892,6 @@ public enum XMaterial {
      */
     private boolean isDuplicated() {
         return DUPLICATED.containsKey(this);
-    }
-
-    /**
-     * Checks if the material can be damaged by using it.
-     * Names going through this method are not formatted.
-     *
-     * @return true if the item can be damaged (have its durability changed), otherwise false.
-     * @see #isDamageable(String)
-     * @since 1.0.0
-     */
-    public boolean isDamageable() {
-        return isDamageable(this.name());
     }
 
     /**
@@ -2076,7 +2027,7 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
-        return ISFLAT || item.getDurability() == this.data || this.isDamageable();
+        return ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
     }
 
     /**

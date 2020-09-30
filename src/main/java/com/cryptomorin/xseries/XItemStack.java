@@ -61,7 +61,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.0.1
+ * @version 4.0.1.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -98,7 +98,7 @@ public final class XItemStack {
                 Damageable damageable = (Damageable) meta;
                 if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
             }
-        } else if (XMaterial.isDamageable(item.getType().name())) {
+        } else if (item.getType().getMaxDurability() > 0) {
             config.set("damage", item.getDurability());
         }
         config.set("material", item.getType().name());

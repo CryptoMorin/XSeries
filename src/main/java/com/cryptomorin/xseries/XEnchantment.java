@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 1.2.1
+ * @version 2.0.0
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -100,7 +100,6 @@ public enum XEnchantment {
      * @since 1.0.0
      */
     public static final List<XEnchantment> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-
     /**
      * Entity types that {@link #DAMAGE_UNDEAD} enchantment is effective against.
      * This set is unmodifiable.
@@ -108,7 +107,6 @@ public enum XEnchantment {
      * @since 1.2.0
      */
     public static final Set<EntityType> EFFECTIVE_SMITE_ENTITIES;
-
     /**
      * Entity types that {@link #DAMAGE_ARTHROPODS} enchantment is effective against.
      * This set is unmodifiable.
@@ -120,7 +118,6 @@ public enum XEnchantment {
      * Java Edition 1.13/Flattening Update
      * https://minecraft.gamepedia.com/Java_Edition_1.13/Flattening
      */
-    private static final boolean ISFLAT;
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
 
     static {
@@ -146,17 +143,10 @@ public enum XEnchantment {
         EFFECTIVE_SMITE_ENTITIES = Collections.unmodifiableSet(smiteEffective);
     }
 
-    static {
-        boolean flat;
-        try {
-            Class<?> namespacedKeyClass = Class.forName("org.bukkit.NamespacedKey");
-            Class<?> enchantmentClass = Class.forName("org.bukkit.enchantments.Enchantment");
-            enchantmentClass.getDeclaredMethod("getByKey", namespacedKeyClass);
-            flat = true;
-        } catch (ClassNotFoundException | NoSuchMethodException ex) {
-            flat = false;
-        }
-        ISFLAT = flat;
+    private final Enchantment enchantment;
+
+    XEnchantment(String... names) {
+        this(false, names);
     }
 
     /**
@@ -165,17 +155,17 @@ public enum XEnchantment {
      *
      * @see NamespacedKey#getKey()
      */
-    private final boolean self;
-    @Nonnull
-    private final String[] aliases;
-
-    XEnchantment(String... names) {
-        this(false, names);
-    }
-
+    @SuppressWarnings("deprecation")
     XEnchantment(boolean self, @Nonnull String... aliases) {
-        this.self = self;
-        this.aliases = aliases;
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : aliases) Data.NAMES.put(legacy, this);
+
+        Enchantment enchantment;
+        if (Data.ISFLAT) {
+            String vanilla = self ? this.name() : aliases[0];
+            enchantment = Enchantment.getByKey(NamespacedKey.minecraft(vanilla.toLowerCase(Locale.ENGLISH)));
+        } else enchantment = Enchantment.getByName(this.name());
+        this.enchantment = enchantment;
     }
 
     /**
@@ -227,12 +217,7 @@ public enum XEnchantment {
     @Nonnull
     public static Optional<XEnchantment> matchXEnchantment(@Nonnull String enchantment) {
         Validate.notEmpty(enchantment, "Enchantment name cannot be null or empty");
-        enchantment = format(enchantment);
-
-        for (XEnchantment value : VALUES) {
-            if (value.name().equals(enchantment) || value.anyMatchAliases(enchantment)) return Optional.of(value);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(Data.NAMES.get(format(enchantment)));
     }
 
     /**
@@ -248,11 +233,7 @@ public enum XEnchantment {
     @SuppressWarnings("deprecation")
     public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
-        try {
-            return valueOf(enchantment.getName());
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Unsupported enchantment: " + enchantment.getName(), ex.getCause());
-        }
+        return matchXEnchantment(enchantment.getName()).orElseThrow(() -> new IllegalArgumentException("Unsupported enchantment: " + enchantment.getName()));
     }
 
     /**
@@ -313,42 +294,14 @@ public enum XEnchantment {
     }
 
     /**
-     * Checks if the formatted enchantment name matches any of the aliases.
-     *
-     * @param enchantment the formatted enchant name.
-     * @return true if the aliases conntain the enchantment name, otherwise false.
-     * @since 1.0.0
-     */
-    private boolean anyMatchAliases(@Nonnull String enchantment) {
-        for (String alias : aliases) {
-            if (enchantment.equals(alias) || enchantment.equals(StringUtils.remove(alias, '_'))) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Gets the Minecraft Vanilla name of this enchantment.
-     *
-     * @return the Minecraft Vanilla name.
-     * @see Enchantment#getByKey(NamespacedKey)
-     * @since 1.0.0
-     */
-    @Nonnull
-    public String getVanillaName() {
-        return this.self ? this.name() : this.aliases[0];
-    }
-
-    /**
      * Parse the Vanilla enchantment.
      *
      * @return a Vanilla  enchantment.
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings("deprecation")
     public Enchantment parseEnchantment() {
-        return ISFLAT ? Enchantment.getByKey(NamespacedKey.minecraft(this.getVanillaName().toLowerCase(Locale.ENGLISH)))
-                : Enchantment.getByName(this.name());
+        return this.enchantment;
     }
 
     /**
@@ -367,11 +320,6 @@ public enum XEnchantment {
         return parseEnchantment() != null;
     }
 
-    @Nonnull
-    public String[] getAliases() {
-        return aliases;
-    }
-
     /**
      * In most cases your should be using {@link #name()} instead.
      *
@@ -381,5 +329,28 @@ public enum XEnchantment {
     @Nonnull
     public String toString() {
         return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 2.0.0
+     */
+    private static final class Data {
+        private static final boolean ISFLAT;
+        private static final Map<String, XEnchantment> NAMES = new HashMap<>();
+
+        static {
+            boolean flat;
+            try {
+                Class<?> namespacedKeyClass = Class.forName("org.bukkit.NamespacedKey");
+                Class<?> enchantmentClass = Class.forName("org.bukkit.enchantments.Enchantment");
+                enchantmentClass.getDeclaredMethod("getByKey", namespacedKeyClass);
+                flat = true;
+            } catch (ClassNotFoundException | NoSuchMethodException ex) {
+                flat = false;
+            }
+            ISFLAT = flat;
+        }
     }
 }
