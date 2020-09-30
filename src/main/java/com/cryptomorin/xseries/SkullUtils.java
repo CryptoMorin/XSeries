@@ -159,9 +159,8 @@ public class SkullUtils {
      * greater than 100, so it'll perform a lot better.
      */
     private static boolean isBase64(@Nonnull String base64) {
-        Base64.Decoder decoder = Base64.getDecoder();
         try {
-            decoder.decode(base64);
+            Base64.getDecoder().decode(base64);
             return true;
         } catch (IllegalArgumentException ignored) {
             return false;

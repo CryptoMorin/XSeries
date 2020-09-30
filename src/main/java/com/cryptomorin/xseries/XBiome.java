@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 /**
  * <b>XBiome</b> - Cross-version support for biome names.<br>
@@ -40,7 +39,7 @@ import java.util.regex.Pattern;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 3.0.0
  * @see Biome
  */
 public enum XBiome {
@@ -125,24 +124,18 @@ public enum XBiome {
     BAMBOO_JUNGLE_HILLS;
 
     /**
-     * A cached list of {@link XBiome#values()} to avoid allocating memory for
+     * A cached unmodifiable list of {@link XBiome#values()} to avoid allocating memory for
      * calling the method every time.
      *
      * @since 1.0.0
      */
     public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-    /**
-     * Pre-compiled RegEx pattern.
-     * Include both replacements to avoid creating string multiple times and multiple RegEx checks.
-     *
-     * @since 1.0.0
-     */
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private final String[] legacy;
+    @Nullable
     private final Biome biome;
 
-    XBiome(String... legacies) {
-        this.legacy = legacies;
+    XBiome(@Nonnull String... legacies) {
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : legacies) Data.NAMES.put(legacy, this);
 
         Biome biome = Enums.getIfPresent(Biome.class, this.name()).orNull();
         if (biome == null) {
@@ -157,31 +150,36 @@ public enum XBiome {
     /**
      * Attempts to build the string like an enum name.<br>
      * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
-     * @param name the biome name to modify.
-     * @return a Biome enum name.
+     * @param name the biome name to format.
+     * @return an enum name.
      * @since 1.0.0
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
-    }
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
 
-    /**
-     * Checks if XBiome enum and the legacy names contains a biome with this name.
-     *
-     * @param biome name of the biome
-     * @return true if XBiome enum has this biome.
-     * @since 1.0.0
-     */
-    public static boolean contains(@Nonnull String biome) {
-        Validate.notEmpty(biome, "Cannot check for null or empty biome name");
-        biome = format(biome);
+        for (int i = 0; i < len; i++) {
+            char ch = name.charAt(i);
 
-        for (XBiome biomes : VALUES)
-            if (biomes.name().equals(biome) || biomes.anyMatchLegacy(biome)) return true;
-        return false;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+                    chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**
@@ -192,13 +190,9 @@ public enum XBiome {
      * @since 1.0.0
      */
     @Nonnull
-    public static java.util.Optional<XBiome> matchXBiome(@Nonnull String biome) {
+    public static Optional<XBiome> matchXBiome(@Nonnull String biome) {
         Validate.notEmpty(biome, "Cannot match XBiome of a null or empty biome name");
-        biome = format(biome);
-
-        for (XBiome biomes : VALUES)
-            if (biomes.name().equals(biome) || biomes.anyMatchLegacy(biome)) return java.util.Optional.of(biomes);
-        return java.util.Optional.empty();
+        return Optional.ofNullable(Data.NAMES.get(format(biome)));
     }
 
     /**
@@ -212,20 +206,7 @@ public enum XBiome {
     @Nonnull
     public static XBiome matchXBiome(@Nonnull Biome biome) {
         Objects.requireNonNull(biome, "Cannot match XBiome of a null biome");
-        return matchXBiome(biome.name())
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported Biome: " + biome.name()));
-    }
-
-    /**
-     * Checks if the given string matches any of this biome's legacy biome names.
-     *
-     * @param biome the biome name to check
-     * @return true if it's one of the legacy names.
-     * @since 1.0.0
-     */
-    public boolean anyMatchLegacy(@Nonnull String biome) {
-        Validate.notEmpty(biome, "Cannot check for legacy name for null or empty biome name");
-        return Arrays.asList(this.legacy).contains(format(biome));
+        return Objects.requireNonNull(Data.NAMES.get(biome.name()), "Unsupported biome: " + biome.name());
     }
 
     /**
@@ -235,7 +216,7 @@ public enum XBiome {
      * @since 1.0.0
      */
     @Nullable
-    public Biome parseBiome() {
+    public Biome getBiome() {
         return this.biome;
     }
 
@@ -249,13 +230,11 @@ public enum XBiome {
      */
     @Nonnull
     public CompletableFuture<Void> setBiome(@Nonnull Chunk chunk) {
+        Objects.requireNonNull(biome, "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
             Validate.isTrue(chunk.load(true), "Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
-
-        Biome biome = this.parseBiome();
-        Validate.isTrue(biome != null, "Unsupported Biome: " + this.name());
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -284,10 +263,8 @@ public enum XBiome {
     public CompletableFuture<Void> setBiome(@Nonnull Location start, @Nonnull Location end) {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
+        Objects.requireNonNull(biome, "Unsupported biome: " + this.name());
         Validate.isTrue(start.getWorld().getUID().equals(end.getWorld().getUID()), "Location worlds mismatch");
-
-        Biome biome = this.parseBiome();
-        Validate.isTrue(biome != null, "Unsupported Biome: " + this.name());
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -301,5 +278,14 @@ public enum XBiome {
             result.printStackTrace();
             return null;
         });
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 3.0.0
+     */
+    private static final class Data {
+        private static final Map<String, XBiome> NAMES = new HashMap<>();
     }
 }

@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 8.0.0
+ * @version 8.0.0.1
  * @see Material
  * @see ItemStack
  */
@@ -1269,7 +1269,7 @@ public enum XMaterial {
      * @since 1.0.0
      */
     private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
@@ -1278,7 +1278,7 @@ public enum XMaterial {
      * @since 3.0.0
      */
     private static final Cache<XMaterial, Optional<Material>> PARSED_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
             .build();
 
     /**
@@ -1287,7 +1287,7 @@ public enum XMaterial {
      * @since 3.4.0
      */
     private static final LoadingCache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.HOURS)
+            .expireAfterAccess(3, TimeUnit.HOURS)
             .build(new CacheLoader<String, Pattern>() {
                 @Override
                 public Pattern load(@Nonnull String str) {
@@ -1661,7 +1661,7 @@ public enum XMaterial {
      * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the material name to modify.
-     * @return a Material enum name.
+     * @return an enum name.
      * @since 2.0.0
      */
     @Nonnull

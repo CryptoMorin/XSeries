@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 5.1.0
  * @see Sound
  */
 public enum XSound {
@@ -1069,6 +1069,7 @@ public enum XSound {
      * @since 2.0.0
      */
     public static final XSound[] VALUES = values();
+
     @Nullable
     private final Sound sound;
 
@@ -1094,8 +1095,8 @@ public enum XSound {
      * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
      * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
-     * @param name the sound name to modify.
-     * @return a Sound enum name.
+     * @param name the sound name to format.
+     * @return an enum name.
      * @since 1.0.0
      */
     @Nonnull
@@ -1137,7 +1138,7 @@ public enum XSound {
     @Nonnull
     public static Optional<XSound> matchXSound(@Nonnull String sound) {
         Validate.notEmpty(sound, "Cannot match XSound of a null or empty sound name");
-        return getIfPresent(format(sound));
+        return Optional.ofNullable(Data.NAMES.get(format(sound)));
     }
 
     /**
@@ -1151,8 +1152,7 @@ public enum XSound {
     @Nonnull
     public static XSound matchXSound(@Nonnull Sound sound) {
         Objects.requireNonNull(sound, "Cannot match XSound of a null sound");
-        return matchXSound(sound.name())
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported Sound: " + sound.name()));
+        return Objects.requireNonNull(Data.NAMES.get(sound.name()), "Unsupported sound: " + sound.name());
     }
 
     /**
@@ -1283,18 +1283,6 @@ public enum XSound {
                 if (sound != null) player.stopSound(sound);
             }
         });
-    }
-
-    /**
-     * Gets the {@link XSound} with this name without throwing an exception.
-     *
-     * @param name the name of the sound.
-     * @return an optional that can be empty.
-     * @since 5.1.0
-     */
-    @Nonnull
-    private static Optional<XSound> getIfPresent(@Nonnull String name) {
-        return Optional.ofNullable(Data.NAMES.get(name));
     }
 
     /**
@@ -1433,8 +1421,7 @@ public enum XSound {
         Objects.requireNonNull(entity, "Cannot play sound to a null entity");
         if (entity instanceof Player) {
             Sound sound = this.parseSound();
-            if (sound == null) return;
-            ((Player) entity).playSound(entity.getLocation(), sound, volume, pitch);
+            if (sound != null) ((Player) entity).playSound(entity.getLocation(), sound, volume, pitch);
         } else {
             play(entity.getLocation(), volume, pitch);
         }
@@ -1461,8 +1448,7 @@ public enum XSound {
     public void play(@Nonnull Location location, float volume, float pitch) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         Sound sound = this.parseSound();
-        if (sound == null) return;
-        location.getWorld().playSound(location, sound, volume, pitch);
+        if (sound != null) location.getWorld().playSound(location, sound, volume, pitch);
     }
 
     /**
@@ -1526,7 +1512,7 @@ public enum XSound {
          * @param updatedLocation the upated location.
          * @since 3.0.0
          */
-        public void play(Location updatedLocation) {
+        public void play(@Nonnull Location updatedLocation) {
             if (playAtLocation) location.getWorld().playSound(updatedLocation, sound, volume, pitch);
             else if (player.isOnline()) player.playSound(updatedLocation, sound, volume, pitch);
         }

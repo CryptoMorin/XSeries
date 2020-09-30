@@ -40,7 +40,6 @@ import org.bukkit.potion.PotionType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Potion type support for multiple aliases.
@@ -110,7 +109,6 @@ public enum XPotion {
             BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
             SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER));
 
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
     private final PotionEffectType type;
 
     XPotion(@Nonnull String... aliases) {
@@ -120,17 +118,38 @@ public enum XPotion {
     }
 
     /**
-     * Attempts to build the string like an enum name.
+     * Attempts to build the string like an enum name.<br>
      * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
-     * @param name the material name to modify.
-     * @return a Material enum name.
+     * @param name the potion effect type name to format.
+     * @return an enum name.
      * @since 1.0.0
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
+
+        for (int i = 0; i < len; i++) {
+            char ch = name.charAt(i);
+
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+                    chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**
@@ -164,11 +183,7 @@ public enum XPotion {
     @Nonnull
     public static XPotion matchXPotion(@Nonnull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");
-        try {
-            return valueOf(type.getName());
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Unsupported PotionEffectType: " + type.getName(), ex.getCause());
-        }
+        return Objects.requireNonNull(Data.NAMES.get(type.getName()), "Unsupported potion effect type: " + type.getName());
     }
 
     /**
@@ -306,7 +321,7 @@ public enum XPotion {
     }
 
     /**
-     * Checks if a material is a potion.
+     * Checks if a material can have potion effects.
      * This method does not check for {@code LEGACY} materials.
      * You should avoid using them or use XMaterial instead.
      *
@@ -315,7 +330,7 @@ public enum XPotion {
      * @since 1.0.0
      */
     public static boolean canHaveEffects(@Nullable Material material) {
-        return material != null && (material.name().endsWith("POTION") || material.name().startsWith("TI")); // TIPPED_ARROW
+        return material != null && (material.name().endsWith("POTION") || material.name().startsWith("TIPPED_ARROW"));
     }
 
     /**
@@ -353,7 +368,7 @@ public enum XPotion {
      * @return a potion type for potions.
      * @see #parsePotionEffectType()
      * @since 1.0.0
-     * @deprecated not for removal. Use {@link PotionEffectType} instead.
+     * @deprecated not for removal, but use {@link PotionEffectType} instead.
      */
     @Nullable
     @Deprecated

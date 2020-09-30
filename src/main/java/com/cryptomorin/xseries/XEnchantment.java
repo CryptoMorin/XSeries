@@ -38,7 +38,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Enchantment support with multiple aliases.
@@ -50,7 +49,7 @@ import java.util.regex.Pattern;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -114,11 +113,6 @@ public enum XEnchantment {
      * @since 1.2.0
      */
     public static final Set<EntityType> EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES;
-    /**
-     * Java Edition 1.13/Flattening Update
-     * https://minecraft.gamepedia.com/Java_Edition_1.13/Flattening
-     */
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
 
     static {
         EntityType bee = Enums.getIfPresent(EntityType.class, "BEE").orNull();
@@ -143,9 +137,10 @@ public enum XEnchantment {
         EFFECTIVE_SMITE_ENTITIES = Collections.unmodifiableSet(smiteEffective);
     }
 
+    @Nullable
     private final Enchantment enchantment;
 
-    XEnchantment(String... names) {
+    XEnchantment(@Nonnull String... names) {
         this(false, names);
     }
 
@@ -193,17 +188,38 @@ public enum XEnchantment {
     }
 
     /**
-     * Attempts to build the string like an enum name.
+     * Attempts to build the string like an enum name.<br>
      * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
-     * @param name the material name to modify.
-     * @return a Material enum name.
+     * @param name the enchantment name to format.
+     * @return an enum name.
      * @since 1.0.0
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
+
+        for (int i = 0; i < len; i++) {
+            char ch = name.charAt(i);
+
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+                    chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**
@@ -233,7 +249,7 @@ public enum XEnchantment {
     @SuppressWarnings("deprecation")
     public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
-        return matchXEnchantment(enchantment.getName()).orElseThrow(() -> new IllegalArgumentException("Unsupported enchantment: " + enchantment.getName()));
+        return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), "Unsupported enchantment: " + enchantment.getName());
     }
 
     /**
