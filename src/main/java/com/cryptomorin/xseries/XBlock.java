@@ -39,10 +39,12 @@ import java.util.*;
  * BlockState (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
  * BlockData (New): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
  * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
+ * <p>
  * All the parameters are non-null except the ones marked as nullable.
+ * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 1.3.0
+ * @version 2.0.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -56,9 +58,9 @@ public final class XBlock {
             XMaterial.KELP, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM
     ));
     public static final Set<XMaterial> DANGEROUS = Collections.unmodifiableSet(EnumSet.of(
-            XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE
+            XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
     ));
-    public static final int CAKE_SLICES = 6;
+    public static final byte CAKE_SLICES = 6;
     private static final boolean ISFLAT = XMaterial.isNewVersion();
 
     private XBlock() {
@@ -71,7 +73,7 @@ public final class XBlock {
             return lightable.isLit();
         }
 
-        return isMaterial(block, "REDSTONE_LAMP_ON", "REDSTONE_TORCH_ON", "BURNING_FURNACE");
+        return isMaterial(block, BlockMaterial.REDSTONE_LAMP_ON, BlockMaterial.REDSTONE_TORCH_ON, BlockMaterial.BURNING_FURNACE);
     }
 
     /**
@@ -98,23 +100,23 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.endsWith("FURNACE")) block.setType(Material.getMaterial("BURNING_FURNACE"));
-        else if (name.startsWith("REDSTONE_LAMP")) block.setType(Material.getMaterial("REDSTONE_LAMP_ON"));
-        else block.setType(Material.getMaterial("REDSTONE_TORCH_ON"));
+        if (name.endsWith("FURNACE")) block.setType(BlockMaterial.BURNING_FURNACE.material);
+        else if (name.startsWith("REDSTONE_LAMP")) block.setType(BlockMaterial.REDSTONE_LAMP_ON.material);
+        else block.setType(BlockMaterial.REDSTONE_TORCH_ON.material);
     }
 
     /**
      * Any material that can be planted.
      */
-    public static boolean isCrops(Material material) {
-        return CROPS.contains(XMaterial.matchXMaterial(material));
+    public static boolean isCrops(XMaterial material) {
+        return CROPS.contains(material);
     }
 
     /**
      * Any material that can damage the player.
      */
-    public static boolean isDangerous(Block block) {
-        return DANGEROUS.contains(XMaterial.matchXMaterial(block.getType()));
+    public static boolean isDangerous(XMaterial material) {
+        return DANGEROUS.contains(material);
     }
 
     /**
@@ -136,36 +138,76 @@ public final class XBlock {
         return null;
     }
 
-    public static boolean isCake(Material material) {
-        return material == Material.CAKE || material.name().equals("CAKE_BLOCK");
+    /**
+     * An enum with cached legacy materials which can be used when comparing blocks with blocks and blocks with items.
+     * @since 2.0.0
+     */
+    public enum BlockMaterial {
+        // Blocks
+        CAKE_BLOCK, CROPS, SUGAR_CANE_BLOCK, BEETROOT_BLOCK, NETHER_WARTS, MELON_BLOCK,
+
+        // Items
+        CAULDRON_ITEM, BREWING_STAND_ITEM, FLOWER_POT_ITEM,
+        SPRUCE_DOOR_ITEM, JUNGLE_DOOR_ITEM, DARK_OAK_DOOR_ITEM, BIRCH_DOOR_ITEM, ACACIA_DOOR_ITEM,
+
+        // Others
+        BURNING_FURNACE, STATIONARY_WATER, STATIONARY_LAVA,
+
+        // Toggleable
+        REDSTONE_LAMP_ON, REDSTONE_LAMP_OFF,
+        REDSTONE_TORCH_ON, REDSTONE_TORCH_OFF,
+        REDSTONE_COMPARATOR_ON, REDSTONE_COMPARATOR_OFF;
+
+        @Nullable
+        private final Material material;
+
+        BlockMaterial() {
+            this.material = Material.getMaterial(this.name());
+        }
     }
 
-    public static boolean isWheat(Material material) {
-        return material == Material.WHEAT || material.name().equals("CROPS");
+    public static boolean isCake(@Nullable Material material) {
+        return material == Material.CAKE || material == BlockMaterial.CAKE_BLOCK.material;
     }
 
-    public static boolean isSugarCane(Material material) {
-        return material == Material.SUGAR_CANE || material.name().equals("SUGAR_CANE_BLOCK");
+    public static boolean isWheat(@Nullable Material material) {
+        return material == Material.WHEAT || material == BlockMaterial.CROPS.material;
     }
 
-    public static boolean isBeetroot(Material material) {
-        return material == Material.BEETROOT || material == Material.BEETROOTS || material.name().equals("BEETROOT_BLOCK");
+    public static boolean isSugarCane(@Nullable Material material) {
+        return material == Material.SUGAR_CANE || material == BlockMaterial.SUGAR_CANE_BLOCK.material;
     }
 
-    public static boolean isNetherWart(Material material) {
-        return material == Material.NETHER_WART || material.name().equals("NETHER_WARTS");
+    public static boolean isBeetroot(@Nullable Material material) {
+        return material == Material.BEETROOT || material == Material.BEETROOTS || material == BlockMaterial.BEETROOT_BLOCK.material;
     }
 
-    public static boolean isCarrot(Material material) {
+    public static boolean isNetherWart(@Nullable Material material) {
+        return material == Material.NETHER_WART || material == BlockMaterial.NETHER_WARTS.material;
+    }
+
+    public static boolean isCarrot(@Nullable Material material) {
         return material == Material.CARROT || material == Material.CARROTS;
     }
 
-    public static boolean isMelon(Material material) {
-        return material == Material.MELON || material == Material.MELON_SLICE || material.name().equalsIgnoreCase("MELON_BLOCK");
+    public static boolean isMelon(@Nullable Material material) {
+        return material == Material.MELON || material == Material.MELON_SLICE || material == BlockMaterial.MELON_BLOCK.material;
     }
 
-    public static boolean isPotato(Material material) {
+    public static boolean isPotato(@Nullable Material material) {
         return material == Material.POTATO || material == Material.POTATOES;
+    }
+
+    public static boolean isCauldron(@Nullable Material material) {
+        return material == Material.CAULDRON || material == BlockMaterial.CAULDRON_ITEM.material;
+    }
+
+    public static boolean isBrewingStand(@Nullable Material material) {
+        return material == Material.BREWING_STAND || material == BlockMaterial.BREWING_STAND_ITEM.material;
+    }
+
+    public static boolean isFlowerPot(@Nullable Material material) {
+        return material == Material.FLOWER_POT || material == BlockMaterial.FLOWER_POT_ITEM.material;
     }
 
     public static BlockFace getDirection(Block block) {
@@ -283,12 +325,15 @@ public final class XBlock {
     }
 
     public static boolean isWaterStationary(Block block) {
-        return ISFLAT ? getFluidLevel(block) < 7 : block.getType().name().equals("STATIONARY_WATER");
+        return ISFLAT ? getFluidLevel(block) < 7 : block.getType() == BlockMaterial.STATIONARY_WATER.material;
     }
 
     public static boolean isWater(Material material) {
-        String name = material.name();
-        return name.equals("WATER") || name.equals("STATIONARY_WATER");
+        return material == Material.WATER || material == BlockMaterial.STATIONARY_WATER.material;
+    }
+
+    public static boolean isLava(Material material) {
+        return material == Material.LAVA || material == BlockMaterial.STATIONARY_LAVA.material;
     }
 
     public static boolean isOneOf(Block block, Collection<String> blocks) {
@@ -403,6 +448,11 @@ public final class XBlock {
         state.update(true);
     }
 
+    /**
+     * @deprecated Not stable, use {@link #isType(Block, XMaterial)} or {@link #isSimilar(Block, XMaterial)} instead.
+     * If you want to save a block material somewhere, you need to use {@link XMaterial#matchXMaterial(Material)}
+     */
+    @Deprecated
     public static XMaterial getType(Block block) {
         if (ISFLAT) return XMaterial.matchXMaterial(block.getType());
         String type = block.getType().name();
@@ -429,6 +479,7 @@ public final class XBlock {
      * @param material the material to compare with.
      * @return true if block type is similar to the given material.
      * @since 1.3.0
+     * @see #isType(Block, XMaterial)
      */
     public static boolean isSimilar(Block block, XMaterial material) {
         return material == XMaterial.matchXMaterial(block.getType()) || isType(block, material);
@@ -444,6 +495,7 @@ public final class XBlock {
      * @param block    the block to check.
      * @param material the XMaterial similar to this block type.
      * @return true if the raw block type matches with the material.
+     * @see #isSimilar(Block, XMaterial)
      */
     public static boolean isType(Block block, XMaterial material) {
         Material mat = block.getType();
@@ -472,16 +524,37 @@ public final class XBlock {
                 return isSugarCane(mat);
             case WATER:
                 return isWater(mat);
+            case LAVA:
+                return isLava(mat);
+            case BREWING_STAND:
+                return isBrewingStand(mat);
+            case CAULDRON:
+                return isCauldron(mat);
+            case FLOWER_POT:
+                return isFlowerPot(mat);
             case AIR:
-                // We don't look for other airs as material variable is supposed to be parsed from a user friendly string.
-                // And I don't know why would anyone use the other air types.
+            case CAVE_AIR:
+            case VOID_AIR:
                 return isAir(mat);
+
+                // Doors
+            case SPRUCE_DOOR:
+                return mat == Material.SPRUCE_DOOR || mat == BlockMaterial.SPRUCE_DOOR_ITEM.material;
+            case JUNGLE_DOOR:
+                return mat == Material.JUNGLE_DOOR || mat == BlockMaterial.JUNGLE_DOOR_ITEM.material;
+            case DARK_OAK_DOOR:
+                return mat == Material.DARK_OAK_DOOR || mat == BlockMaterial.DARK_OAK_DOOR_ITEM.material;
+            case BIRCH_DOOR:
+                return mat == Material.BIRCH_DOOR || mat == BlockMaterial.BIRCH_DOOR_ITEM.material;
+            case ACACIA_DOOR:
+                return mat == Material.ACACIA_DOOR || mat == BlockMaterial.ACACIA_DOOR_ITEM.material;
         }
         return false;
     }
 
-    public static boolean isAir(Material material) {
-        return material.name().endsWith("AIR");
+    public static boolean isAir(@Nullable Material material) {
+        if (material == Material.AIR) return true;
+        return ISFLAT && (material == Material.CAVE_AIR || material == Material.VOID_AIR);
     }
 
     public static boolean isPowered(Block block) {
@@ -492,9 +565,7 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.startsWith("REDSTONE_COMPARATOR"))
-            return isMaterial(block, "REDSTONE_COMPARATOR_ON");
-
+        if (name.startsWith("REDSTONE_COMPARATOR")) return block.getType() == BlockMaterial.REDSTONE_COMPARATOR_ON.material;
         return false;
     }
 
@@ -507,7 +578,7 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(Material.getMaterial("REDSTONE_COMPARATOR_ON"));
+        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(BlockMaterial.REDSTONE_COMPARATOR_ON.material);
     }
 
     public static boolean isOpen(Block block) {
@@ -557,10 +628,10 @@ public final class XBlock {
         }
     }
 
-    private static boolean isMaterial(Block block, String... materials) {
-        String type = block.getType().name();
-        for (String material : materials) {
-            if (type.equals(material)) return true;
+    private static boolean isMaterial(Block block, BlockMaterial... materials) {
+        Material type = block.getType();
+        for (BlockMaterial material : materials) {
+            if (type == material.material) return true;
         }
         return false;
     }

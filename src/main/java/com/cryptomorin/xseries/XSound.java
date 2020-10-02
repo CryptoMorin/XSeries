@@ -1064,7 +1064,6 @@ public enum XSound {
     /**
      * Cached list of {@link XSound#values()} to avoid allocating memory for
      * calling the method every time.
-     * This list is unmodifiable.
      *
      * @since 2.0.0
      */

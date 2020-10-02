@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 8.0.0.1
+ * @version 8.1.0
  * @see Material
  * @see ItemStack
  */
@@ -1238,7 +1238,6 @@ public enum XMaterial {
     /**
      * Cached array of {@link XMaterial#values()} to avoid allocating memory for
      * calling the method every time.
-     * This list is unmodifiable.
      *
      * @since 2.0.0
      */
@@ -1261,7 +1260,7 @@ public enum XMaterial {
      *
      * @since 3.0.0
      */
-    private static final EnumMap<XMaterial, XMaterial> DUPLICATED = new EnumMap<>(XMaterial.class);
+    private static final Map<XMaterial, XMaterial> DUPLICATED = new EnumMap<>(XMaterial.class);
     /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * For strings that match a certain XMaterial. Mostly cached for configs.
@@ -1313,8 +1312,7 @@ public enum XMaterial {
      */
     private static final boolean ISFLAT = supports(13);
     /**
-     * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}
-     * with a data value of {@code 120}<br>
+     * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
      * https://minecraftitemids.com/types/spawn-egg
      *
      * @see #matchXMaterialWithData(String)
@@ -1328,6 +1326,12 @@ public enum XMaterial {
      * @since 8.0.0
      */
     private static final byte UNKNOWN_DATA_VALUE = -1;
+    /**
+     * The maximum material ID before the pre-flattening update which belongs to {@link #MUSIC_DISC_WAIT}
+     *
+     * @since 8.1.0
+     */
+    private static final short MAX_ID = 2267;
 
     static {
         DUPLICATED.put(MELON, MELON_SLICE);
@@ -1349,6 +1353,7 @@ public enum XMaterial {
         DUPLICATED.put(BIRCH_DOOR, BIRCH_DOOR);
         DUPLICATED.put(JUNGLE_DOOR, JUNGLE_DOOR);
         DUPLICATED.put(SPRUCE_DOOR, SPRUCE_DOOR);
+
         DUPLICATED.put(CAULDRON, CAULDRON);
         DUPLICATED.put(BREWING_STAND, BREWING_STAND);
         DUPLICATED.put(FLOWER_POT, FLOWER_POT);
@@ -1360,12 +1365,13 @@ public enum XMaterial {
 
     /**
      * The data value of this material https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
+     * It's never a negative number.
      *
      * @see #getData()
      */
     private final byte data;
     /**
-     * The version that this material was added in.
+     * The version that this material was added in, otherwise 0 if the version is not recorded.
      *
      * @since 7.0.0
      */
@@ -1450,7 +1456,7 @@ public enum XMaterial {
     /**
      * The current version of the server.
      *
-     * @return the current server version or 0.0 if unknown.
+     * @return the current server version minor number.
      * @see #isNewVersion()
      * @since 2.0.0
      */
@@ -1492,8 +1498,7 @@ public enum XMaterial {
     public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
         Validate.notEmpty(name, "Cannot match a material with null or empty material name");
         Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
-        if (oldMatch.isPresent()) return oldMatch;
-        return matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
+        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
     }
 
     /**
@@ -1600,8 +1605,7 @@ public enum XMaterial {
         XMaterial oldXMaterial = requestOldXMaterial(name, data);
         if (oldXMaterial == null) {
             // Special case. Refer to FILLED_MAP for more info.
-            if (data > 0 && name.endsWith("MAP")) return Optional.of(FILLED_MAP);
-            return Optional.empty();
+            return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
         if (!ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
@@ -1642,12 +1646,14 @@ public enum XMaterial {
      * @return a parsed XMaterial with the same ID and data value.
      * @see #matchXMaterial(ItemStack)
      * @since 2.0.0
+     * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
+     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} yourself.
      */
     @Nonnull
+    @Deprecated
     public static Optional<XMaterial> matchXMaterial(int id, byte data) {
-        if (id < 0 || data < 0) return Optional.empty();
+        if (id < 0 || id > MAX_ID || data < 0) return Optional.empty();
 
-        // Looping through Material.values() will take longer.
         for (XMaterial materials : VALUES) {
             if (materials.data == data && materials.getId() == id) return Optional.of(materials);
         }
@@ -1880,7 +1886,9 @@ public enum XMaterial {
     public int getId() {
         if (this.data != 0 || this.version >= 13) return -1;
         Material material = this.parseMaterial();
-        return material == null || !material.isLegacy() ? -1 : material.getId();
+        if (material == null) return -1;
+        if (ISFLAT && !material.isLegacy()) return -1;
+        return material.getId();
     }
 
     /**
@@ -1983,8 +1991,7 @@ public enum XMaterial {
             if (mat == null) mat = requestOldMaterial(suggest);
         }
 
-        Optional<Material> opt = Optional.ofNullable(mat);
-        PARSED_CACHE.put(this, opt);
+        PARSED_CACHE.put(this, Optional.ofNullable(mat));
         return mat;
     }
 
@@ -2041,7 +2048,7 @@ public enum XMaterial {
     @Nonnull
     public List<String> getSuggestions() {
         if (this.legacy.length == 0 || this.version == 0) return new ArrayList<>();
-        List<String> suggestions = new ArrayList<>();
+        List<String> suggestions = new ArrayList<>(this.legacy.length);
         for (String legacy : this.legacy) {
             if (legacy == null) break;
             suggestions.add(legacy);
@@ -2061,10 +2068,7 @@ public enum XMaterial {
      */
     public boolean isSupported() {
         if (this.version != 0) return supports(this.version);
-
-        Material material = Material.getMaterial(this.name());
-        if (material != null) return true;
-        return requestOldMaterial(false) != null;
+        return Material.getMaterial(this.name()) != null || requestOldMaterial(false) != null;
     }
 
     /**
