@@ -144,6 +144,10 @@ public class NMSExtras {
     /**
      * https://minecraft.gamepedia.com/Damage#Lightning_damage
      * Lightnings deal 5 damage.
+     *
+     * @param players  the players to send the packet to.
+     * @param location the location to spawn the lightning.
+     * @param sound    if the lightning should have a sound or be silent.
      */
     public static void lightning(Collection<Player> players, Location location, boolean sound) {
         try {

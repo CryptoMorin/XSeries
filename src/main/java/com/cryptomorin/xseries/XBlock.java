@@ -90,6 +90,9 @@ public final class XBlock {
 
     /**
      * Can be furnaces or redstone lamps.
+     *
+     * @param block the block to change.
+     * @param lit   if it should be lit or not.
      */
     public static void setLit(Block block, boolean lit) {
         if (ISFLAT) {
@@ -106,14 +109,20 @@ public final class XBlock {
     }
 
     /**
-     * Any material that can be planted.
+     * Any material that can be planted which is from {@link #CROPS}
+     *
+     * @param material the material to check.
+     * @return true if this material is a crop, otherwise false.
      */
-    public static boolean isCrops(XMaterial material) {
+    public static boolean isCrop(XMaterial material) {
         return CROPS.contains(material);
     }
 
     /**
-     * Any material that can damage the player.
+     * Any material that can damage players, usually by interacting with the block.
+     *
+     * @param material the material to check.
+     * @return true if this material is dangerous, otherwise false.
      */
     public static boolean isDangerous(XMaterial material) {
         return DANGEROUS.contains(material);
@@ -255,7 +264,11 @@ public final class XBlock {
     }
 
     /**
-     * Can be used on cauldron.
+     * Can be used on cauldrons as well.
+     *
+     * @param block the block to set the fluid level of.
+     * @param level the level of fluid.
+     * @return true if this block can have a fluid level, otherwise false.
      */
     public static boolean setFluidLevel(Block block, int level) {
         if (ISFLAT) {
@@ -409,6 +422,8 @@ public final class XBlock {
     }
 
     /**
+     * @param block the block to get its XMaterial type.
+     * @return the XMaterial of the block.
      * @deprecated Not stable, use {@link #isType(Block, XMaterial)} or {@link #isSimilar(Block, XMaterial)} instead.
      * If you want to save a block material somewhere, you need to use {@link XMaterial#matchXMaterial(Material)}
      */

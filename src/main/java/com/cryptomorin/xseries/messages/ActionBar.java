@@ -223,6 +223,7 @@ public class ActionBar {
      * If the caller returns true, the action bar will continue.
      * If the caller returns false, action bar will not be sent anymore.
      *
+     * @param plugin   the plugin handling the message scheduler.
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will not be updated.
      * @param callable the condition for the action bar to continue.
@@ -253,6 +254,7 @@ public class ActionBar {
      * If the caller returns true, the action bar will continue.
      * If the caller returns false, action bar will not be sent anymore.
      *
+     * @param plugin   the plugin handling the message scheduler.
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will be updated.
      * @param callable the condition for the action bar to continue.
@@ -280,6 +282,7 @@ public class ActionBar {
     /**
      * Sends an action bar to a player for a specific amount of ticks.
      *
+     * @param plugin   the plugin handling the message scheduler.
      * @param player   the player to send the action bar to.
      * @param message  the message to send.
      * @param duration the duration to keep the action bar in ticks.

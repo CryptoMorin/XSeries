@@ -5,14 +5,14 @@
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
 XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers,
-but it also includes numerous extra methods to help developers design their plugins easier.
-Some utilities are completely unrelated to cross-version support
-such as NoteBlockMusic.\
-Don't forget to add `api-version: "1.13"` to your `plugin.yml`.
+but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
+Some utilities are completely unrelated to cross-version support such as NoteBlockMusic.
 
-This project aims to provide quality utilities with high performance using the latest yet efficient techniques.
-Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all server owners
-to update your servers to 1.12 if you're using an older version.
+Don't forget to add `api-version: "1.13"` to your `plugin.yml`. This will keep the plugin working even if the server is not 1.13
+
+This project aims to provide quality utilities with high performance using the latest, yet efficient techniques.
+Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all developers
+drop support for anything below 1.12
 
 
 ### Links
@@ -27,11 +27,11 @@ When compiling your plugin you should be using the latest version that your plug
 Which means, at least you have to use 1.13 (for cross-version support utilities only)
 You can clone the project using: `git clone https://github.com/CryptoMorin/XSeries.git`
 
-All the methods are explained in the JavaDoc. Please read the JavaDoc before using a method.
-It's quite common to miss the whole purpose of cross-version support by using the wrong methods.
+All the methods are explained in the JavaDocs. Please read them before using a method.
+It's quite common to miss the whole purpose of cross-version support and the efficiency of the utility by using the wrong methods.
 
-You can use the classes individually or use the maven dependency.
-Most of the utilities are intended to be independent. However some
+You can use most of these utilities individually or use the maven dependency.
+Most of the utilities are intended to be independent. However, some
 utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
 another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java))
 
@@ -45,12 +45,13 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles
 </dependency>
 ```
 
-You shouldn't worry if the reflection or other classes are going to use your memory with the heavy useless static cache.
+You shouldn't worry if the reflection or other classes are going to use your memory with heavy useless static cache.
 As long as you don't use them anywhere in your code, they won't initialize.
+The memory usage of these utilities are extremely enhanced.
 
-**Note:** DO NOT extract the Jar into your project if you're using maven. You have to shade the library,
+**Note:** DO NOT extract the JAR into your project if you're using maven. You have to shade the library,
 otherwise your plugin or other plugins will break due to version mismatch.
-To shade the library:
+To shade the library, add the following under your maven plugins:
 ```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -80,5 +81,5 @@ To shade the library:
 
 There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me,
 but please make sure you know what you're doing and tested the project on different versions.
-Any new ideas are welcome as long as it's useful not just for you but for everyone else.\
+Any new ideas are welcome as long as they're useful; not just for you, but for everyone else.\
 Please refer to [contributing guidelines](CONTRIBUTING.md) for more info.

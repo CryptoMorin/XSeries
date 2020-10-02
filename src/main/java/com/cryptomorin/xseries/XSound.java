@@ -1155,6 +1155,8 @@ public enum XSound {
     }
 
     /**
+     * @param player the player to play the sound to.
+     * @param sound  the sound to play to the player.
      * @see #play(Location, String)
      * @since 1.0.0
      */
@@ -1204,6 +1206,7 @@ public enum XSound {
      *     none
      *     null
      * </pre>
+     * <p>
      *
      * @param player   the only player to play the sound to if requested to do so.
      * @param location the location to play the sound to.
@@ -1261,6 +1264,7 @@ public enum XSound {
      * affected by this.
      *
      * @param player the player to stop all the sounds from.
+     * @return the async task handling the operation.
      * @see #stopSound(Player)
      * @since 2.0.0
      */
@@ -1330,6 +1334,7 @@ public enum XSound {
      * @param pitch  the pitch of the sound.
      * @param repeat the amount of times to repeat playing.
      * @param delay  the delay between each repeat.
+     * @return the async task handling this operation.
      * @see #play(Location, float, float)
      * @since 2.0.0
      */
@@ -1362,6 +1367,7 @@ public enum XSound {
      * @param instrument  the instrument.
      * @param ascendLevel the ascend level of notes. Can only be positive and not higher than 7
      * @param delay       the delay between each play.
+     * @return the async task handling the operation.
      * @since 2.0.0
      */
     @Nonnull

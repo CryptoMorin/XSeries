@@ -95,6 +95,8 @@ public class NoteBlockMusic {
      * If you made a cool script using this let me know, I'll put it here.
      * You can still give me the script and I'll put it on the Spigot page.
      *
+     * @param player the player to send the notes to.
+     * @return the async task handling the notes.
      * @since 1.0.0
      */
     public static CompletableFuture<Void> testMusic(@Nonnull Player player) {
@@ -106,6 +108,10 @@ public class NoteBlockMusic {
      * Plays a music from a file.
      * This file can have YAML comments (#) and empty lines.
      *
+     * @param player   the player to play the music to.
+     * @param location the location to play the notes to.
+     * @param path     the path of the file to read the music notes from.
+     * @return the async task handling the file operations and music parsers.
      * @see #playMusic(Player, Location, String)
      * @since 1.0.0
      */

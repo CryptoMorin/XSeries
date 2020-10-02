@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>7.5.2.1</version>
+    <version>7.5.3</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -54,13 +54,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
+            <version>1.16.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -96,9 +90,10 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <additionalOptions>-Xdoclint:none</additionalOptions>
-                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <!--all,-missing-->
+                    <doclint>none</doclint>
                     <source>8</source>
+                    <excludePackageNames>com.cryptomorin.xseries.unused:com.cryptomorin.xseries.particles</excludePackageNames>
                     <!-- Apparently this is needed because it's a bug with maven JavaDoc plugin not being able to find the exe by itself. -->
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                 </configuration>
@@ -143,6 +138,9 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
+                    <excludes>
+                        <exclude>com/cryptomorin/xseries/unused/</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

@@ -468,6 +468,7 @@ public class ParticleDisplay {
      * <p>
      * Colored particles in 1.12 and below don't support this.
      *
+     * @return the same particle display.
      * @see #isDirectional()
      * @since 1.1.0
      */
@@ -501,6 +502,7 @@ public class ParticleDisplay {
     /**
      * Spawns the particle at the current location.
      *
+     * @param rotate if the rotation axis should be applied before spawning the particle.
      * @see #spawn(Location, boolean)
      * @since 3.0.0
      */
@@ -511,6 +513,7 @@ public class ParticleDisplay {
     /**
      * Spawns the particle at the given location.
      *
+     * @param location the new location to spawn the particle at, ignoring the current one.
      * @see #spawn(Location, boolean)
      * @since 1.0.0
      */
