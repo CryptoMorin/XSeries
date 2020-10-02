@@ -138,34 +138,6 @@ public final class XBlock {
         return null;
     }
 
-    /**
-     * An enum with cached legacy materials which can be used when comparing blocks with blocks and blocks with items.
-     * @since 2.0.0
-     */
-    public enum BlockMaterial {
-        // Blocks
-        CAKE_BLOCK, CROPS, SUGAR_CANE_BLOCK, BEETROOT_BLOCK, NETHER_WARTS, MELON_BLOCK,
-
-        // Items
-        CAULDRON_ITEM, BREWING_STAND_ITEM, FLOWER_POT_ITEM,
-        SPRUCE_DOOR_ITEM, JUNGLE_DOOR_ITEM, DARK_OAK_DOOR_ITEM, BIRCH_DOOR_ITEM, ACACIA_DOOR_ITEM,
-
-        // Others
-        BURNING_FURNACE, STATIONARY_WATER, STATIONARY_LAVA,
-
-        // Toggleable
-        REDSTONE_LAMP_ON, REDSTONE_LAMP_OFF,
-        REDSTONE_TORCH_ON, REDSTONE_TORCH_OFF,
-        REDSTONE_COMPARATOR_ON, REDSTONE_COMPARATOR_OFF;
-
-        @Nullable
-        private final Material material;
-
-        BlockMaterial() {
-            this.material = Material.getMaterial(this.name());
-        }
-    }
-
     public static boolean isCake(@Nullable Material material) {
         return material == Material.CAKE || material == BlockMaterial.CAKE_BLOCK.material;
     }
@@ -196,18 +168,6 @@ public final class XBlock {
 
     public static boolean isPotato(@Nullable Material material) {
         return material == Material.POTATO || material == Material.POTATOES;
-    }
-
-    public static boolean isCauldron(@Nullable Material material) {
-        return material == Material.CAULDRON || material == BlockMaterial.CAULDRON_ITEM.material;
-    }
-
-    public static boolean isBrewingStand(@Nullable Material material) {
-        return material == Material.BREWING_STAND || material == BlockMaterial.BREWING_STAND_ITEM.material;
-    }
-
-    public static boolean isFlowerPot(@Nullable Material material) {
-        return material == Material.FLOWER_POT || material == BlockMaterial.FLOWER_POT_ITEM.material;
     }
 
     public static BlockFace getDirection(Block block) {
@@ -478,8 +438,8 @@ public final class XBlock {
      * @param block    the block to compare.
      * @param material the material to compare with.
      * @return true if block type is similar to the given material.
-     * @since 1.3.0
      * @see #isType(Block, XMaterial)
+     * @since 1.3.0
      */
     public static boolean isSimilar(Block block, XMaterial material) {
         return material == XMaterial.matchXMaterial(block.getType()) || isType(block, material);
@@ -526,28 +486,10 @@ public final class XBlock {
                 return isWater(mat);
             case LAVA:
                 return isLava(mat);
-            case BREWING_STAND:
-                return isBrewingStand(mat);
-            case CAULDRON:
-                return isCauldron(mat);
-            case FLOWER_POT:
-                return isFlowerPot(mat);
             case AIR:
             case CAVE_AIR:
             case VOID_AIR:
                 return isAir(mat);
-
-                // Doors
-            case SPRUCE_DOOR:
-                return mat == Material.SPRUCE_DOOR || mat == BlockMaterial.SPRUCE_DOOR_ITEM.material;
-            case JUNGLE_DOOR:
-                return mat == Material.JUNGLE_DOOR || mat == BlockMaterial.JUNGLE_DOOR_ITEM.material;
-            case DARK_OAK_DOOR:
-                return mat == Material.DARK_OAK_DOOR || mat == BlockMaterial.DARK_OAK_DOOR_ITEM.material;
-            case BIRCH_DOOR:
-                return mat == Material.BIRCH_DOOR || mat == BlockMaterial.BIRCH_DOOR_ITEM.material;
-            case ACACIA_DOOR:
-                return mat == Material.ACACIA_DOOR || mat == BlockMaterial.ACACIA_DOOR_ITEM.material;
         }
         return false;
     }
@@ -634,5 +576,30 @@ public final class XBlock {
             if (type == material.material) return true;
         }
         return false;
+    }
+
+    /**
+     * An enum with cached legacy materials which can be used when comparing blocks with blocks and blocks with items.
+     *
+     * @since 2.0.0
+     */
+    public enum BlockMaterial {
+        // Blocks
+        CAKE_BLOCK, CROPS, SUGAR_CANE_BLOCK, BEETROOT_BLOCK, NETHER_WARTS, MELON_BLOCK,
+
+        // Others
+        BURNING_FURNACE, STATIONARY_WATER, STATIONARY_LAVA,
+
+        // Toggleable
+        REDSTONE_LAMP_ON, REDSTONE_LAMP_OFF,
+        REDSTONE_TORCH_ON, REDSTONE_TORCH_OFF,
+        REDSTONE_COMPARATOR_ON, REDSTONE_COMPARATOR_OFF;
+
+        @Nullable
+        private final Material material;
+
+        BlockMaterial() {
+            this.material = Material.getMaterial(this.name());
+        }
     }
 }
