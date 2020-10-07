@@ -46,9 +46,9 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -81,7 +81,7 @@ public final class XItemStack {
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+    public static void serialize(@NotNull ItemStack item, @NotNull ConfigurationSection config) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
@@ -210,7 +210,7 @@ public final class XItemStack {
      */
     @SuppressWarnings("deprecation")
     @Nullable
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+    public static ItemStack deserialize(@NotNull ConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
 
         // Material
@@ -489,7 +489,7 @@ public final class XItemStack {
      * @return a color based on the RGB.
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public static Color parseColor(@Nullable String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         String[] rgb = StringUtils.split(StringUtils.deleteWhitespace(str), ',');
@@ -505,8 +505,8 @@ public final class XItemStack {
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
-    @Nonnull
-    public static List<ItemStack> giveOrDrop(@Nonnull Player player, @Nullable ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> giveOrDrop(@NotNull Player player, @Nullable ItemStack... items) {
         return giveOrDrop(player, false, items);
     }
 
@@ -519,8 +519,8 @@ public final class XItemStack {
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
-    @Nonnull
-    public static List<ItemStack> giveOrDrop(@Nonnull Player player, boolean split, @Nullable ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> giveOrDrop(@NotNull Player player, boolean split, @Nullable ItemStack... items) {
         if (items == null || items.length == 0) return new ArrayList<>();
         List<ItemStack> leftOvers = addItems(player.getInventory(), split, items);
         World world = player.getWorld();
@@ -542,8 +542,8 @@ public final class XItemStack {
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
-    @Nonnull
-    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> addItems(@NotNull Inventory inventory, boolean split, @NotNull ItemStack... items) {
         Objects.requireNonNull(inventory, "Cannot add items to null inventory");
         Objects.requireNonNull(items, "Cannot add null items to inventory");
 
@@ -612,7 +612,7 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+    public static int firstPartial(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int len = items.length;
@@ -633,8 +633,8 @@ public final class XItemStack {
      * @return stacked up items.
      * @since 4.0.0
      */
-    @Nonnull
-    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
+    @NotNull
+    public static List<ItemStack> stack(@NotNull Collection<ItemStack> items) {
         Objects.requireNonNull(items, "Cannot stack null items");
         List<ItemStack> stacked = new ArrayList<>();
 
@@ -664,7 +664,7 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
+    public static int firstEmpty(@NotNull Inventory inventory, int beginIndex) {
         ItemStack[] items = inventory.getStorageContents();
         int len = items.length;
         if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);

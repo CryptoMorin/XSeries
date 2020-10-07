@@ -31,9 +31,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -69,7 +69,7 @@ final class SkullCacheListener {
      * </pre>
      */
     @Nullable
-    public static String getSkinValue(@Nonnull String id) {
+    public static String getSkinValue(@NotNull String id) {
         Objects.requireNonNull(id, "Player UUID cannot be null");
 
         try {
@@ -91,7 +91,7 @@ final class SkullCacheListener {
     }
 
     @Nullable
-    public static String getIdFromUsername(@Nonnull String username) {
+    public static String getIdFromUsername(@NotNull String username) {
         Validate.notEmpty(username, "Cannot get UUID of a null or empty username");
         int len = username.length();
         if (len < 3 || len > 16) throw new IllegalArgumentException("Username cannot be less than 3 and longer than 16 characters: " + username);
@@ -114,7 +114,7 @@ final class SkullCacheListener {
         }
     }
 
-    private static boolean mojangError(@Nonnull JsonObject jsonObject) {
+    private static boolean mojangError(@NotNull JsonObject jsonObject) {
         if (!jsonObject.has("error")) return false;
 
         String err = jsonObject.get("error").getAsString();

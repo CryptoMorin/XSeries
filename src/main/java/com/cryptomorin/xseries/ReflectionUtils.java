@@ -23,9 +23,9 @@ package com.cryptomorin.xseries;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -95,7 +95,7 @@ public class ReflectionUtils {
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getNMSClass(@Nonnull String name) {
+    public static Class<?> getNMSClass(@NotNull String name) {
         try {
             return Class.forName(NMS + name);
         } catch (ClassNotFoundException ex) {
@@ -113,8 +113,8 @@ public class ReflectionUtils {
      * @return the async thread handling the packet.
      * @since 1.0.0
      */
-    @Nonnull
-    public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
+    @NotNull
+    public static CompletableFuture<Void> sendPacket(@NotNull Player player, @NotNull Object... packets) {
         return CompletableFuture.runAsync(() -> {
             try {
                 Object handle = GET_HANDLE.invoke(player);
@@ -141,7 +141,7 @@ public class ReflectionUtils {
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getCraftClass(@Nonnull String name) {
+    public static Class<?> getCraftClass(@NotNull String name) {
         try {
             return Class.forName(CRAFTBUKKIT + name);
         } catch (ClassNotFoundException ex) {

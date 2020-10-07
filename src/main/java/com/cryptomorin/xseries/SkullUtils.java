@@ -30,9 +30,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -78,8 +78,8 @@ public class SkullUtils {
     }
 
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public static ItemStack getSkull(@Nonnull UUID id) {
+    @NotNull
+    public static ItemStack getSkull(@NotNull UUID id) {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
@@ -90,16 +90,16 @@ public class SkullUtils {
         return head;
     }
 
-    @Nonnull
-    public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
+    @NotNull
+    public static SkullMeta applyCachedSkin(@NotNull ItemMeta head, @NotNull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
         SkullMeta meta = (SkullMeta) head;
         return getSkullByValue(meta, base64);
     }
 
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull OfflinePlayer identifier) {
+    @NotNull
+    public static SkullMeta applySkin(@NotNull ItemMeta head, @NotNull OfflinePlayer identifier) {
         SkullMeta meta = (SkullMeta) head;
         if (SUPPORTS_UUID) {
             meta.setOwningPlayer(identifier);
@@ -109,14 +109,14 @@ public class SkullUtils {
         return meta;
     }
 
-    @Nonnull
-    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
+    @NotNull
+    public static SkullMeta applySkin(@NotNull ItemMeta head, @NotNull UUID identifier) {
         return applySkin(head, Bukkit.getOfflinePlayer(identifier));
     }
 
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String identifier) {
+    @NotNull
+    public static SkullMeta applySkin(@NotNull ItemMeta head, @NotNull String identifier) {
         SkullMeta meta = (SkullMeta) head;
         if (isUsername(identifier)) return applySkin(head, Bukkit.getOfflinePlayer(identifier));
         if (identifier.contains("textures.minecraft.net")) return getValueFromTextures(meta, identifier);
@@ -124,8 +124,8 @@ public class SkullUtils {
         return getTexturesFromUrlValue(meta, identifier);
     }
 
-    @Nonnull
-    private static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
+    @NotNull
+    private static SkullMeta getSkullByValue(@NotNull SkullMeta head, @NotNull String value) {
         Validate.notEmpty(value, "Skull value cannot be null or empty");
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
         profile.getProperties().put("textures", new Property("textures", value));
@@ -139,18 +139,18 @@ public class SkullUtils {
         return head;
     }
 
-    @Nonnull
-    private static SkullMeta getValueFromTextures(@Nonnull SkullMeta head, @Nonnull String url) {
+    @NotNull
+    private static SkullMeta getValueFromTextures(@NotNull SkullMeta head, @NotNull String url) {
         return getSkullByValue(head, encodeBase64(VALUE_PROPERTY + url + "\"}}}"));
     }
 
-    @Nonnull
-    private static SkullMeta getTexturesFromUrlValue(@Nonnull SkullMeta head, @Nonnull String urlValue) {
+    @NotNull
+    private static SkullMeta getTexturesFromUrlValue(@NotNull SkullMeta head, @NotNull String urlValue) {
         return getValueFromTextures(head, TEXTURES + urlValue);
     }
 
-    @Nonnull
-    private static String encodeBase64(@Nonnull String str) {
+    @NotNull
+    private static String encodeBase64(@NotNull String str) {
         return Base64.getEncoder().encodeToString(str.getBytes());
     }
 
@@ -158,7 +158,7 @@ public class SkullUtils {
      * While RegEx is a little faster for small strings, this always checks strings with a length
      * greater than 100, so it'll perform a lot better.
      */
-    private static boolean isBase64(@Nonnull String base64) {
+    private static boolean isBase64(@NotNull String base64) {
         try {
             Base64.getDecoder().decode(base64);
             return true;
@@ -169,7 +169,7 @@ public class SkullUtils {
     }
 
     @Nullable
-    public static String getSkinValue(@Nonnull ItemMeta skull) {
+    public static String getSkinValue(@NotNull ItemMeta skull) {
         Objects.requireNonNull(skull, "Skull ItemStack cannot be null");
         SkullMeta meta = (SkullMeta) skull;
         GameProfile profile = null;
@@ -197,7 +197,7 @@ public class SkullUtils {
      * @param name the username to check.
      * @return true if the string matches the Minecraft username rule, otherwise false.
      */
-    private static boolean isUsername(@Nonnull String name) {
+    private static boolean isUsername(@NotNull String name) {
         int len = name.length();
         if (len < 3 || len > 16) return false;
 

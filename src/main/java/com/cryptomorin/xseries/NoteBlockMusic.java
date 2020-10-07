@@ -29,9 +29,9 @@ import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -99,7 +99,7 @@ public class NoteBlockMusic {
      * @return the async task handling the notes.
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> testMusic(@Nonnull Player player) {
+    public static CompletableFuture<Void> testMusic(@NotNull Player player) {
         return playMusic(player, player.getLocation(), // Starting piece of Megalovania (not perfectly toned, it's screwed up)
                 "PIANO,D,2,100 PIANO,B#1 200 PIANO,F 250 PIANO,E 250 PIANO,B 200 PIANO,A 100 PIANO,B 100 PIANO,E");
     }
@@ -115,7 +115,7 @@ public class NoteBlockMusic {
      * @see #playMusic(Player, Location, String)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> fromFile(@Nonnull Player player, @Nonnull Location location, @Nonnull Path path) {
+    public static CompletableFuture<Void> fromFile(@NotNull Player player, @NotNull Location location, @NotNull Path path) {
         return CompletableFuture.runAsync(() -> {
             try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 String line;
@@ -176,7 +176,7 @@ public class NoteBlockMusic {
      * @see #fromFile(Player, Location, Path)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> playMusic(@Nonnull Player player, @Nonnull Location location, @Nullable String script) {
+    public static CompletableFuture<Void> playMusic(@NotNull Player player, @NotNull Location location, @Nullable String script) {
         // We don't want to mess around in the main thread.
         // Sounds are thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -190,7 +190,7 @@ public class NoteBlockMusic {
      *
      * @since 1.0.0
      */
-    private static void parseSegment(@Nonnull Player player, @Nonnull Location location, @Nonnull String script,
+    private static void parseSegment(@NotNull Player player, @NotNull Location location, @NotNull String script,
                                      int segmentRepeat, int segmentDelay) {
         ArrayList<String> repeater = new ArrayList<>();
         String[] splitScript = StringUtils.split(script, ' ');

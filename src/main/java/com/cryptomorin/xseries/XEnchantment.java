@@ -34,9 +34,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -140,7 +140,7 @@ public enum XEnchantment {
     @Nullable
     private final Enchantment enchantment;
 
-    XEnchantment(@Nonnull String... names) {
+    XEnchantment(@NotNull String... names) {
         this(false, names);
     }
 
@@ -151,7 +151,7 @@ public enum XEnchantment {
      * @see NamespacedKey#getKey()
      */
     @SuppressWarnings("deprecation")
-    XEnchantment(boolean self, @Nonnull String... aliases) {
+    XEnchantment(boolean self, @NotNull String... aliases) {
         Data.NAMES.put(this.name(), this);
         for (String legacy : aliases) Data.NAMES.put(legacy, this);
 
@@ -197,8 +197,8 @@ public enum XEnchantment {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -230,8 +230,8 @@ public enum XEnchantment {
      * @return an enchantment.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XEnchantment> matchXEnchantment(@Nonnull String enchantment) {
+    @NotNull
+    public static Optional<XEnchantment> matchXEnchantment(@NotNull String enchantment) {
         Validate.notEmpty(enchantment, "Enchantment name cannot be null or empty");
         return Optional.ofNullable(Data.NAMES.get(format(enchantment)));
     }
@@ -245,9 +245,9 @@ public enum XEnchantment {
      * @throws IllegalArgumentException may be thrown as an unexpeceted exception.
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("deprecation")
-    public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
+    public static XEnchantment matchXEnchantment(@NotNull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
         return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), "Unsupported enchantment: " + enchantment.getName());
     }
@@ -272,8 +272,8 @@ public enum XEnchantment {
      * @see #matchXEnchantment(String)
      * @since 1.0.0
      */
-    @Nonnull
-    public static ItemStack addEnchantFromString(@Nonnull ItemStack item, @Nullable String enchantment) {
+    @NotNull
+    public static ItemStack addEnchantFromString(@NotNull ItemStack item, @Nullable String enchantment) {
         Objects.requireNonNull(item, "Cannot add enchantment to null ItemStack");
         if (Strings.isNullOrEmpty(enchantment) || enchantment.equalsIgnoreCase("none")) return item;
 
@@ -299,7 +299,7 @@ public enum XEnchantment {
      * @return an enchanted book.
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public ItemStack getBook(int level) {
         ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
@@ -342,7 +342,7 @@ public enum XEnchantment {
      * @return a friendly readable string name.
      */
     @Override
-    @Nonnull
+    @NotNull
     public String toString() {
         return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }

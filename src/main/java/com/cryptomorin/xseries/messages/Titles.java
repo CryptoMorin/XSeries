@@ -28,9 +28,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -143,7 +143,7 @@ public class Titles {
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
-    public static void sendTitle(@Nonnull Player player,
+    public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
@@ -180,7 +180,7 @@ public class Titles {
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
-    public static void sendTitle(@Nonnull Player player, @Nonnull String title, @Nonnull String subtitle) {
+    public static void sendTitle(@NotNull Player player, @NotNull String title, @NotNull String subtitle) {
         sendTitle(player, 10, 20, 10, title, subtitle);
     }
 
@@ -200,7 +200,7 @@ public class Titles {
      * @param config the configuration section to parse the title properties from.
      * @since 1.0.0
      */
-    public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+    public static void sendTitle(@NotNull Player player, @NotNull ConfigurationSection config) {
         String title = config.getString("title");
         String subtitle = config.getString("subtitle");
 
@@ -221,7 +221,7 @@ public class Titles {
      * @param player the player to clear the title from.
      * @since 1.0.0
      */
-    public static void clearTitle(@Nonnull Player player) {
+    public static void clearTitle(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
         if (SUPPORTED_API) {
             player.resetTitle();
@@ -248,7 +248,7 @@ public class Titles {
      * @param footer the footer of the tablist.
      * @since 1.0.0
      */
-    public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
+    public static void sendTabList(@NotNull Player player, @Nullable String header, @Nullable String footer) {
         Objects.requireNonNull(player, "Cannot update tab for null player");
         header = Strings.isNullOrEmpty(header) ?
                 "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', header), "%player%", player.getDisplayName());

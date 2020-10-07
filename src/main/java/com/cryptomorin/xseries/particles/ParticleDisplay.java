@@ -28,9 +28,9 @@ import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -57,7 +57,7 @@ import java.util.concurrent.Callable;
  */
 public class ParticleDisplay {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
-    @Nonnull
+    @NotNull
     public Particle particle;
     public Location location;
     public Callable<Location> locationCaller;
@@ -79,7 +79,7 @@ public class ParticleDisplay {
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
      */
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count, double offsetx, double offsety,
+    public ParticleDisplay(@NotNull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count, double offsetx, double offsety,
                            double offsetz,
                            double extra) {
         this.particle = particle;
@@ -92,15 +92,15 @@ public class ParticleDisplay {
         this.extra = extra;
     }
 
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
+    public ParticleDisplay(@NotNull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
         this(particle, null, location, count, offsetx, offsety, offsetz, 0);
     }
 
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count) {
+    public ParticleDisplay(@NotNull Particle particle, @Nullable Location location, int count) {
         this(particle, location, count, 0, 0, 0);
     }
 
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location) {
+    public ParticleDisplay(@NotNull Particle particle, @Nullable Location location) {
         this(particle, location, 0);
     }
 
@@ -114,7 +114,7 @@ public class ParticleDisplay {
      * @see #simple(Location, Particle)
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
         ParticleDisplay dust = new ParticleDisplay(Particle.REDSTONE, null, location, 1, 0, 0, 0, 0);
         dust.data = new float[]{r, g, b, size};
@@ -132,8 +132,8 @@ public class ParticleDisplay {
      * @see #colored(Location, int, int, int, float)
      * @since 3.0.0
      */
-    @Nonnull
-    public static ParticleDisplay colored(@Nullable Location location, @Nonnull Color color, float size) {
+    @NotNull
+    public static ParticleDisplay colored(@Nullable Location location, @NotNull Color color, float size) {
         return colored(location, color.getRed(), color.getGreen(), color.getBlue(), size);
     }
 
@@ -150,8 +150,8 @@ public class ParticleDisplay {
      * @return a simple ParticleDisplay.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
+    @NotNull
+    public static ParticleDisplay simple(@Nullable Location location, @NotNull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
         return new ParticleDisplay(particle, null, location, 1, 0, 0, 0, 0);
     }
@@ -169,8 +169,8 @@ public class ParticleDisplay {
      * @return a simple ParticleDisplay.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
+    @NotNull
+    public static ParticleDisplay display(@NotNull Location location, @NotNull Particle particle) {
         Objects.requireNonNull(location, "Cannot display particle in null location");
         ParticleDisplay display = simple(location, particle);
         display.spawn();
@@ -185,8 +185,8 @@ public class ParticleDisplay {
      * @return a parsed ParticleDisplay.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ParticleDisplay fromConfig(@Nullable Location location, @Nonnull ConfigurationSection config) {
+    @NotNull
+    public static ParticleDisplay fromConfig(@Nullable Location location, @NotNull ConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot parse ParticleDisplay from a null config section");
         Particle particle = XParticle.getParticle(config.getString("particle"));
         if (particle == null) particle = Particle.FLAME;
@@ -248,8 +248,8 @@ public class ParticleDisplay {
      * @return a cloned rotated location.
      * @since 3.0.0
      */
-    @Nonnull
-    public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nonnull Vector rotation) {
+    @NotNull
+    public static Location rotate(@NotNull Location location, double x, double y, double z, @NotNull Vector rotation) {
         if (rotation != null) {
             Vector rotate = new Vector(x, y, z);
             XParticle.rotateAround(rotate, rotation.getX(), rotation.getY(), rotation.getZ());
@@ -264,8 +264,8 @@ public class ParticleDisplay {
      *
      * @since 3.0.3
      */
-    @Nonnull
-    private static Location cloneLocation(@Nonnull Location location) {
+    @NotNull
+    private static Location cloneLocation(@NotNull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
@@ -276,7 +276,7 @@ public class ParticleDisplay {
      * @return the same particle display.
      * @since 3.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withCount(int count) {
         this.count = count;
         return this;
@@ -289,7 +289,7 @@ public class ParticleDisplay {
      * @return the same particle display.
      * @since 3.0.1
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withExtra(double extra) {
         this.extra = extra;
         return this;
@@ -304,8 +304,8 @@ public class ParticleDisplay {
      * @see #colored(Location, Color, float)
      * @since 3.0.0
      */
-    @Nonnull
-    public ParticleDisplay withColor(@Nonnull Color color, float size) {
+    @NotNull
+    public ParticleDisplay withColor(@NotNull Color color, float size) {
         data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), size};
         return this;
     }
@@ -317,7 +317,7 @@ public class ParticleDisplay {
      * @return the location tracker entity.
      * @since 3.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withEntity(@Nullable Entity entity) {
         return withLocationCaller(entity::getLocation);
     }
@@ -329,7 +329,7 @@ public class ParticleDisplay {
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
         this.locationCaller = locationCaller;
         return this;
@@ -360,8 +360,8 @@ public class ParticleDisplay {
      * @see #rotate(Vector)
      * @since 3.0.0
      */
-    @Nonnull
-    public ParticleDisplay faceEntity(@Nonnull Entity entity) {
+    @NotNull
+    public ParticleDisplay faceEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "Cannot face null entity");
         Location loc = entity.getLocation();
         this.rotation = new Vector(Math.toRadians(loc.getPitch() + 90), Math.toRadians(-loc.getYaw()), 0);
@@ -394,7 +394,7 @@ public class ParticleDisplay {
      * @see #clone()
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay cloneWithLocation(double x, double y, double z) {
         ParticleDisplay display = clone();
         if (location == null) return display;
@@ -411,7 +411,7 @@ public class ParticleDisplay {
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    @Nonnull
+    @NotNull
     public ParticleDisplay clone() {
         ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
         if (rotation != null) display.rotation = rotation.clone();
@@ -426,8 +426,8 @@ public class ParticleDisplay {
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
-    @Nonnull
-    public ParticleDisplay rotate(@Nonnull Vector vector) {
+    @NotNull
+    public ParticleDisplay rotate(@NotNull Vector vector) {
         Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
         if (rotation == null) rotation = vector;
         else rotation.add(vector);
@@ -442,7 +442,7 @@ public class ParticleDisplay {
      * @see #rotate(Vector)
      * @since 3.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay rotate(double x, double y, double z) {
         rotate(new Vector(x, y, z));
         return this;
@@ -453,7 +453,7 @@ public class ParticleDisplay {
      *
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay offset(double x, double y, double z) {
         offsetx = x;
         offsety = y;
@@ -472,7 +472,7 @@ public class ParticleDisplay {
      * @see #isDirectional()
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay directional() {
         count = 0;
         return this;
@@ -517,7 +517,7 @@ public class ParticleDisplay {
      * @see #spawn(Location, boolean)
      * @since 1.0.0
      */
-    public void spawn(@Nonnull Location location) {
+    public void spawn(@NotNull Location location) {
         spawn(location, false);
     }
 
@@ -528,7 +528,7 @@ public class ParticleDisplay {
      * @param location the xyz to add.
      * @since 1.0.0
      */
-    public void spawn(@Nonnull Vector location) {
+    public void spawn(@NotNull Vector location) {
         Objects.requireNonNull(location, "Cannot add xyz of null vector to ParticleDisplay");
         spawn(location.getX(), location.getY(), location.getZ());
     }
@@ -538,7 +538,7 @@ public class ParticleDisplay {
      *
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public Location spawn(double x, double y, double z) {
         Location loc = rotate(getLocation(), x, y, z, rotation);
         spawn(loc, false);
@@ -553,7 +553,7 @@ public class ParticleDisplay {
      * @see #spawn(double, double, double)
      * @since 2.1.0
      */
-    public void spawn(@Nonnull Location loc, boolean rotate) {
+    public void spawn(@NotNull Location loc, boolean rotate) {
         if (rotate) loc = rotate(getLocation(), loc.getX(), loc.getY(), loc.getZ(), rotation);
         if (data != null) {
             if (data instanceof float[]) {

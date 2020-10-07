@@ -29,8 +29,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -338,8 +338,8 @@ public final class ZEnchantment {
      * @return an enchantment.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<Enchantment> getByName(@Nonnull String enchant) {
+    @NotNull
+    public static Optional<Enchantment> getByName(@NotNull String enchant) {
         Validate.notEmpty(enchant, "Enchantment name cannot be null or empty");
         Enchantment enchantment = null;
         enchant = StringUtils.deleteWhitespace(StringUtils.lowerCase(enchant, Locale.ENGLISH));
@@ -371,8 +371,8 @@ public final class ZEnchantment {
      * @return an enchanted {@link ItemStack}.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ItemStack addEnchantFromString(@Nonnull ItemStack item, @Nonnull String enchantment) {
+    @NotNull
+    public static ItemStack addEnchantFromString(@NotNull ItemStack item, @NotNull String enchantment) {
         Objects.requireNonNull(item, "Cannot add enchantment to null ItemStack");
         Validate.notEmpty(enchantment, "Cannot add null or empty enchantment to item");
 
@@ -387,12 +387,12 @@ public final class ZEnchantment {
         return item;
     }
 
-    @Nonnull
+    @NotNull
     public static ImmutableList<String> getEnchantments() {
         return ENCHANTMENTS.keySet().asList();
     }
 
-    @Nonnull
+    @NotNull
     public static ImmutableList<String> getEnchantmentAliases() {
         return ALIASENCHANTMENTS.keySet().asList();
     }
@@ -404,7 +404,7 @@ public final class ZEnchantment {
      * @return concatenation of the main and the aliases lists.
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public static List<String> getAllEnchantmentNames() {
         return Stream.concat(ALIASENCHANTMENTS.keySet().stream(), ENCHANTMENTS.keySet().stream()).collect(Collectors.toList());
     }

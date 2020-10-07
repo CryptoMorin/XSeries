@@ -27,9 +27,9 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -133,7 +133,7 @@ public enum XBiome {
     @Nullable
     private final Biome biome;
 
-    XBiome(@Nonnull String... legacies) {
+    XBiome(@NotNull String... legacies) {
         Data.NAMES.put(this.name(), this);
         for (String legacy : legacies) Data.NAMES.put(legacy, this);
 
@@ -157,8 +157,8 @@ public enum XBiome {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -189,8 +189,8 @@ public enum XBiome {
      * @return a matched XBiome.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XBiome> matchXBiome(@Nonnull String biome) {
+    @NotNull
+    public static Optional<XBiome> matchXBiome(@NotNull String biome) {
         Validate.notEmpty(biome, "Cannot match XBiome of a null or empty biome name");
         return Optional.ofNullable(Data.NAMES.get(format(biome)));
     }
@@ -203,8 +203,8 @@ public enum XBiome {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
-    @Nonnull
-    public static XBiome matchXBiome(@Nonnull Biome biome) {
+    @NotNull
+    public static XBiome matchXBiome(@NotNull Biome biome) {
         Objects.requireNonNull(biome, "Cannot match XBiome of a null biome");
         return Objects.requireNonNull(Data.NAMES.get(biome.name()), "Unsupported biome: " + biome.name());
     }
@@ -229,8 +229,8 @@ public enum XBiome {
      * @return the async task handling this operation.
      * @since 1.0.0
      */
-    @Nonnull
-    public CompletableFuture<Void> setBiome(@Nonnull Chunk chunk) {
+    @NotNull
+    public CompletableFuture<Void> setBiome(@NotNull Chunk chunk) {
         Objects.requireNonNull(biome, "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
@@ -260,8 +260,8 @@ public enum XBiome {
      * @param end   the end position.
      * @since 1.0.0
      */
-    @Nonnull
-    public CompletableFuture<Void> setBiome(@Nonnull Location start, @Nonnull Location end) {
+    @NotNull
+    public CompletableFuture<Void> setBiome(@NotNull Location start, @NotNull Location end) {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
         Objects.requireNonNull(biome, "Unsupported biome: " + this.name());

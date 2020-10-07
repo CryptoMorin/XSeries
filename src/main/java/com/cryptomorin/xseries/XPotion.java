@@ -36,9 +36,9 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -111,7 +111,7 @@ public enum XPotion {
 
     private final PotionEffectType type;
 
-    XPotion(@Nonnull String... aliases) {
+    XPotion(@NotNull String... aliases) {
         this.type = PotionEffectType.getByName(this.name());
         Data.NAMES.put(this.name(), this);
         for (String legacy : aliases) Data.NAMES.put(legacy, this);
@@ -127,8 +127,8 @@ public enum XPotion {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -160,8 +160,8 @@ public enum XPotion {
      * @return a potion effect type.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XPotion> matchXPotion(@Nonnull String potion) {
+    @NotNull
+    public static Optional<XPotion> matchXPotion(@NotNull String potion) {
         Validate.notEmpty(potion, "Cannot match XPotion of a null or empty potion effect type");
         PotionEffectType idType = getIdFromString(potion);
         if (idType != null) {
@@ -180,8 +180,8 @@ public enum XPotion {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
-    @Nonnull
-    public static XPotion matchXPotion(@Nonnull PotionEffectType type) {
+    @NotNull
+    public static XPotion matchXPotion(@NotNull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");
         return Objects.requireNonNull(Data.NAMES.get(type.getName()), "Unsupported potion effect type: " + type.getName());
     }
@@ -195,7 +195,7 @@ public enum XPotion {
      */
     @Nullable
     @SuppressWarnings("deprecation")
-    private static PotionEffectType getIdFromString(@Nonnull String type) {
+    private static PotionEffectType getIdFromString(@NotNull String type) {
         try {
             int id = Integer.parseInt(type);
             return PotionEffectType.getById(id);
@@ -247,7 +247,7 @@ public enum XPotion {
      * @see #parsePotionEffectFromString(String)
      * @since 1.0.0
      */
-    public static void addPotionEffectsFromString(@Nonnull Player player, @Nonnull List<String> effects) {
+    public static void addPotionEffectsFromString(@NotNull Player player, @NotNull List<String> effects) {
         if (effects == null || effects.isEmpty()) return;
         Objects.requireNonNull(player, "Cannot add potion effects to null player");
 
@@ -267,8 +267,8 @@ public enum XPotion {
      * @return a thrown splash potion.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ThrownPotion throwPotion(@Nonnull LivingEntity entity, @Nullable Color color, @Nullable PotionEffect... effects) {
+    @NotNull
+    public static ThrownPotion throwPotion(@NotNull LivingEntity entity, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(entity, "Cannot throw potion from null entity");
         @SuppressWarnings("deprecation")
         ItemStack potion = Material.getMaterial("SPLASH_POTION") == null ?
@@ -304,8 +304,8 @@ public enum XPotion {
      * @return an item with the specified effects.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ItemStack buildItemWithEffects(@Nonnull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
+    @NotNull
+    public static ItemStack buildItemWithEffects(@NotNull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(type, "Cannot build an effected item with null type");
         Validate.isTrue(canHaveEffects(type), "Cannot build item with " + type.name() + " potion type");
 
