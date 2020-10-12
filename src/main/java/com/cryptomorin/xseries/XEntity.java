@@ -105,6 +105,7 @@ public final class XEntity {
         return edit(location.getWorld().spawnEntity(location, type), config);
     }
 
+    @SuppressWarnings("deprecation")
     @Nonnull
     public static Entity edit(@Nonnull Entity entity, @Nonnull ConfigurationSection config) {
         Objects.requireNonNull(entity, "Cannot edit properties of a null entity");

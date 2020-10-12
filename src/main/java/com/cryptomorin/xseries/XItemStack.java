@@ -61,7 +61,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.0.1.1
+ * @version 4.0.1.2
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -112,7 +112,7 @@ public final class XItemStack {
         }
 
         // Flags
-        if (meta.getItemFlags().size() != 0) {
+        if (!meta.getItemFlags().isEmpty()) {
             List<String> flags = new ArrayList<>();
             for (ItemFlag flag : meta.getItemFlags()) flags.add(flag.name());
             config.set("flags", flags);
@@ -592,7 +592,7 @@ public final class XItemStack {
                         inventory.setItem(firstPartial, partialItem);
                         item.setAmount(sum - maxAmount);
                     }
-                    if (sum >= maxAmount) partialIndex = firstPartial + 1;
+                    partialIndex = firstPartial + 1;
                 }
             }
         }

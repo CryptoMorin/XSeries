@@ -52,19 +52,23 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.1.1
  * @see XParticle
  */
 public class ParticleDisplay {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
     @Nonnull
     public Particle particle;
+    @Nullable
     public Location location;
+    @Nullable
     public Callable<Location> locationCaller;
     public int count;
     public double offsetx, offsety, offsetz;
     public double extra;
+    @Nullable
     public Vector rotation;
+    @Nullable
     public Object data;
 
     /**
@@ -249,7 +253,7 @@ public class ParticleDisplay {
      * @since 3.0.0
      */
     @Nonnull
-    public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nonnull Vector rotation) {
+    public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nullable Vector rotation) {
         if (rotation != null) {
             Vector rotate = new Vector(x, y, z);
             XParticle.rotateAround(rotate, rotation.getX(), rotation.getY(), rotation.getZ());

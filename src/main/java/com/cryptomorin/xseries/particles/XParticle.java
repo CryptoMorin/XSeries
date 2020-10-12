@@ -101,7 +101,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 4.1.0
+ * @version 4.1.1
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -900,9 +900,9 @@ public final class XParticle {
                 for (ParticleDisplay display : displays) display.location.subtract(x, y, z);
 
                 if (opposite) {
-                    if (multiplier <= 0) opposite = !opposite;
+                    if (multiplier <= 0) opposite = false;
                 } else {
-                    if (multiplier >= endRate) opposite = !opposite;
+                    if (multiplier >= endRate) opposite = true;
                 }
             }
         }.runTaskTimerAsynchronously(plugin, 0L, update);
@@ -2367,6 +2367,7 @@ public final class XParticle {
      * @return a rendered map of an image.
      * @since 1.0.0
      */
+    @SuppressWarnings("unused")
     public static CompletableFuture<Map<double[], Color>> renderImage(BufferedImage image, int resizedWidth, int resizedHeight, double compact) {
         return CompletableFuture.supplyAsync(() -> {
             if (image == null) return null;

@@ -50,7 +50,7 @@ import java.util.concurrent.CompletableFuture;
  * This class is independent of XSound.
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.0.1
  * @see Instrument
  * @see Note.Tone
  */
@@ -282,7 +282,7 @@ public class NoteBlockMusic {
                 for (; repeat > 0; repeat--) {
                     player.playNote(location, instrument, noteObj);
 
-                    if (repeat != 0 && delay > 1) {
+                    if (delay > 1) {
                         try {
                             Thread.sleep(delay);
                         } catch (InterruptedException e) {

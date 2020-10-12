@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.0.1
  * @see Biome
  */
 public enum XBiome {
@@ -206,7 +206,7 @@ public enum XBiome {
     @Nonnull
     public static XBiome matchXBiome(@Nonnull Biome biome) {
         Objects.requireNonNull(biome, "Cannot match XBiome of a null biome");
-        return Objects.requireNonNull(Data.NAMES.get(biome.name()), "Unsupported biome: " + biome.name());
+        return Objects.requireNonNull(Data.NAMES.get(biome.name()), () -> "Unsupported biome: " + biome.name());
     }
 
     /**
@@ -231,7 +231,7 @@ public enum XBiome {
      */
     @Nonnull
     public CompletableFuture<Void> setBiome(@Nonnull Chunk chunk) {
-        Objects.requireNonNull(biome, "Unsupported biome: " + this.name());
+        Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
             Validate.isTrue(chunk.load(true), "Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
@@ -264,7 +264,7 @@ public enum XBiome {
     public CompletableFuture<Void> setBiome(@Nonnull Location start, @Nonnull Location end) {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
-        Objects.requireNonNull(biome, "Unsupported biome: " + this.name());
+        Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Validate.isTrue(start.getWorld().getUID().equals(end.getWorld().getUID()), "Location worlds mismatch");
 
         // Apparently setBiome is thread-safe.

@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 8.1.0
+ * @version 8.1.1
  * @see Material
  * @see ItemStack
  */
@@ -1582,19 +1582,14 @@ public enum XMaterial {
      * @see #matchXMaterial(ItemStack)
      * @since 3.0.0
      */
-    @SuppressWarnings("OptionalAssignedToNull")
     @Nonnull
     private static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
+        // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
         Boolean duplicated = null;
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        // Maybe we can simplify (ISFLAT || !duplicated) with the (!ISFLAT && duplicated) under it to save a few nanoseconds?
-        // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
-        Optional<XMaterial> xMaterial = null;
         if (data <= 0 && (ISFLAT || !(duplicated = isDuplicated(name)))) {
-            // Apparently the transform method is more efficient than toJavaUtil()
-            // toJavaUtil isn't even supported in older versions.
-            xMaterial = getIfPresent(name);
+            Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
 
@@ -1612,9 +1607,9 @@ public enum XMaterial {
             // A solution for XMaterial Paradox.
             // Manually parses the duplicated materials to find the exact material based on the server version.
             // If ends with "S" -> Plural Form Material
-            return xMaterial == null ? getIfPresent(name) : xMaterial;
+            return getIfPresent(name);
         }
-        return Optional.ofNullable(oldXMaterial);
+        return Optional.of(oldXMaterial);
     }
 
     /**
@@ -1831,7 +1826,7 @@ public enum XMaterial {
     public ItemStack setType(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot set material for null ItemStack");
         Material material = this.parseMaterial();
-        Objects.requireNonNull(material, "Unsupported material: " + this.name());
+        Objects.requireNonNull(material, () -> "Unsupported material: " + this.name());
 
         item.setType(material);
         if (!ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);

@@ -49,7 +49,7 @@ import java.util.*;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 2.1.1
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -249,7 +249,7 @@ public enum XEnchantment {
     @SuppressWarnings("deprecation")
     public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
-        return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), "Unsupported enchantment: " + enchantment.getName());
+        return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), () -> "Unsupported enchantment: " + enchantment.getName());
     }
 
     /**

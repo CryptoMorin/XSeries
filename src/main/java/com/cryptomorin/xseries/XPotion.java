@@ -53,7 +53,7 @@ import java.util.*;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.0.1
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -183,7 +183,7 @@ public enum XPotion {
     @Nonnull
     public static XPotion matchXPotion(@Nonnull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");
-        return Objects.requireNonNull(Data.NAMES.get(type.getName()), "Unsupported potion effect type: " + type.getName());
+        return Objects.requireNonNull(Data.NAMES.get(type.getName()), () -> "Unsupported potion effect type: " + type.getName());
     }
 
     /**
@@ -247,7 +247,7 @@ public enum XPotion {
      * @see #parsePotionEffectFromString(String)
      * @since 1.0.0
      */
-    public static void addPotionEffectsFromString(@Nonnull Player player, @Nonnull List<String> effects) {
+    public static void addPotionEffectsFromString(@Nonnull Player player, @Nullable List<String> effects) {
         if (effects == null || effects.isEmpty()) return;
         Objects.requireNonNull(player, "Cannot add potion effects to null player");
 
