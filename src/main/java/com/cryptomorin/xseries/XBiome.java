@@ -22,9 +22,6 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -33,12 +30,8 @@ import org.bukkit.block.Block;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 /**
  * <b>XBiome</b> - Cross-version support for biome names.<br>
@@ -46,7 +39,7 @@ import java.util.regex.Pattern;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 3.0.1
  * @see Biome
  */
 public enum XBiome {
@@ -93,7 +86,11 @@ public enum XBiome {
     MOUNTAIN_EDGE("SMALLER_EXTREME_HILLS"),
     MUSHROOM_FIELDS("MUSHROOM_ISLAND"),
     MUSHROOM_FIELD_SHORE("MUSHROOM_ISLAND_SHORE", "MUSHROOM_SHORE"),
-    NETHER("HELL"),
+    SOUL_SAND_VALLEY,
+    CRIMSON_FOREST,
+    WARPED_FOREST,
+    BASALT_DELTAS,
+    NETHER_WASTES("NETHER", "HELL"),
     OCEAN("OCEAN"),
     PLAINS("PLAINS"),
     RIVER("RIVER"),
@@ -127,64 +124,62 @@ public enum XBiome {
     BAMBOO_JUNGLE_HILLS;
 
     /**
-     * A cached list of {@link XBiome#values()} to avoid allocating memory for
+     * A cached unmodifiable list of {@link XBiome#values()} to avoid allocating memory for
      * calling the method every time.
      *
      * @since 1.0.0
      */
-    public static final EnumSet<XBiome> VALUES = EnumSet.allOf(XBiome.class);
-    /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * Caches the parsed {@link Biome} objects instead of string. Because it has to go through catching exceptions again
-     * since {@link Biome} class doesn't have a method like {@link org.bukkit.Material#getMaterial(String)}.
-     * So caching these would be more efficient.
-     * This cache will not expire since there are only a few biome names.
-     *
-     * @since 1.0.0
-     */
-    private static final Cache<XBiome, Optional<Biome>> CACHE = CacheBuilder.newBuilder()
-            .softValues().build();
-    /**
-     * Pre-compiled RegEx pattern.
-     * Include both replacements to avoid creating string multiple times and multiple RegEx checks.
-     *
-     * @since 1.0.0
-     */
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("\\d+|\\W+");
-    private String[] legacy;
+    public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+    @Nullable
+    private final Biome biome;
 
-    XBiome(String... legacy) {
-        this.legacy = legacy;
+    XBiome(@Nonnull String... legacies) {
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : legacies) Data.NAMES.put(legacy, this);
+
+        Biome biome = Enums.getIfPresent(Biome.class, this.name()).orNull();
+        if (biome == null) {
+            for (String legacy : legacies) {
+                biome = Enums.getIfPresent(Biome.class, legacy).orNull();
+                if (biome != null) break;
+            }
+        }
+        this.biome = biome;
     }
 
     /**
      * Attempts to build the string like an enum name.<br>
      * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
+     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
+     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
-     * @param name the biome name to modify.
-     * @return a Biome enum name.
+     * @param name the biome name to format.
+     * @return an enum name.
      * @since 1.0.0
      */
     @Nonnull
     private static String format(@Nonnull String name) {
-        return FORMAT_PATTERN.matcher(
-                name.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
-    }
+        int len = name.length();
+        char[] chs = new char[len];
+        int count = 0;
+        boolean appendUnderline = false;
 
-    /**
-     * Checks if XBiome enum and the legacy names contains a biome with this name.
-     *
-     * @param biome name of the biome
-     * @return true if XBiome enum has this biome.
-     * @since 1.0.0
-     */
-    public static boolean contains(@Nonnull String biome) {
-        Validate.notEmpty(biome, "Cannot check for null or empty biome name");
-        biome = format(biome);
+        for (int i = 0; i < len; i++) {
+            char ch = name.charAt(i);
 
-        for (XBiome biomes : VALUES)
-            if (biomes.name().equals(biome) || biomes.anyMatchLegacy(biome)) return true;
-        return false;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            else {
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                    if (appendUnderline) {
+                        chs[count++] = '_';
+                        appendUnderline = false;
+                    }
+                    chs[count++] = (char) (ch & 0x5f);
+                }
+            }
+        }
+
+        return new String(chs, 0, count);
     }
 
     /**
@@ -195,13 +190,9 @@ public enum XBiome {
      * @since 1.0.0
      */
     @Nonnull
-    public static java.util.Optional<XBiome> matchXBiome(@Nonnull String biome) {
+    public static Optional<XBiome> matchXBiome(@Nonnull String biome) {
         Validate.notEmpty(biome, "Cannot match XBiome of a null or empty biome name");
-        biome = format(biome);
-
-        for (XBiome biomes : VALUES)
-            if (biomes.name().equals(biome) || biomes.anyMatchLegacy(biome)) return java.util.Optional.of(biomes);
-        return java.util.Optional.empty();
+        return Optional.ofNullable(Data.NAMES.get(format(biome)));
     }
 
     /**
@@ -215,20 +206,7 @@ public enum XBiome {
     @Nonnull
     public static XBiome matchXBiome(@Nonnull Biome biome) {
         Objects.requireNonNull(biome, "Cannot match XBiome of a null biome");
-        return matchXBiome(biome.name())
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported Biome: " + biome.name()));
-    }
-
-    /**
-     * Checks if the given string matches any of this biome's legacy biome names.
-     *
-     * @param biome the biome name to check
-     * @return true if it's one of the legacy names.
-     * @since 1.0.0
-     */
-    public boolean anyMatchLegacy(@Nonnull String biome) {
-        Validate.notEmpty(biome, "Cannot check for legacy name for null or empty biome name");
-        return Arrays.asList(this.legacy).contains(format(biome));
+        return Objects.requireNonNull(Data.NAMES.get(biome.name()), () -> "Unsupported biome: " + biome.name());
     }
 
     /**
@@ -238,23 +216,8 @@ public enum XBiome {
      * @since 1.0.0
      */
     @Nullable
-    @SuppressWarnings({"Guava", "OptionalAssignedToNull"})
-    public Biome parseBiome() {
-        com.google.common.base.Optional<Biome> cached = CACHE.getIfPresent(this);
-        if (cached != null) return cached.orNull();
-        com.google.common.base.Optional<Biome> biome;
-
-        biome = Enums.getIfPresent(Biome.class, this.name());
-
-        if (!biome.isPresent()) {
-            for (String legacy : this.legacy) {
-                biome = Enums.getIfPresent(Biome.class, legacy);
-                if (biome.isPresent()) break;
-            }
-        }
-
-        CACHE.put(this, biome);
-        return biome.orNull();
+    public Biome getBiome() {
+        return this.biome;
     }
 
     /**
@@ -263,17 +226,16 @@ public enum XBiome {
      * Note that this doesn't send any update packets to the nearby clients.
      *
      * @param chunk the chunk to change the biome.
+     * @return the async task handling this operation.
      * @since 1.0.0
      */
     @Nonnull
     public CompletableFuture<Void> setBiome(@Nonnull Chunk chunk) {
+        Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
-            if (!chunk.load(true)) throw new IllegalArgumentException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
+            Validate.isTrue(chunk.load(true), "Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
-
-        Biome biome = this.parseBiome();
-        if (biome == null) throw new IllegalArgumentException("Unsupported Biome: " + this.name());
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -283,6 +245,9 @@ public enum XBiome {
                     if (block.getBiome() != biome) block.setBiome(biome);
                 }
             }
+        }).exceptionally((result) -> {
+            result.printStackTrace();
+            return null;
         });
     }
 
@@ -299,11 +264,8 @@ public enum XBiome {
     public CompletableFuture<Void> setBiome(@Nonnull Location start, @Nonnull Location end) {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
-        if (!start.getWorld().getName().equals(end.getWorld().getName()))
-            throw new IllegalArgumentException("Location worlds mismatch");
-
-        Biome biome = this.parseBiome();
-        if (biome == null) throw new IllegalArgumentException("Unsupported Biome: " + this.name());
+        Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
+        Validate.isTrue(start.getWorld().getUID().equals(end.getWorld().getUID()), "Location worlds mismatch");
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -313,6 +275,18 @@ public enum XBiome {
                     if (block.getBiome() != biome) block.setBiome(biome);
                 }
             }
+        }).exceptionally((result) -> {
+            result.printStackTrace();
+            return null;
         });
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 3.0.0
+     */
+    private static final class Data {
+        private static final Map<String, XBiome> NAMES = new HashMap<>();
     }
 }

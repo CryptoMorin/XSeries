@@ -23,7 +23,6 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Instrument;
@@ -40,9 +39,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 /**
  * <b>NoteBlockMusic</b> - Write music scripts for Minecraft.<br>
@@ -51,7 +50,7 @@ import java.util.regex.Pattern;
  * This class is independent of XSound.
  *
  * @author Crypto Morin
- * @version 1.0.0
+ * @version 2.0.1
  * @see Instrument
  * @see Note.Tone
  */
@@ -62,48 +61,33 @@ public class NoteBlockMusic {
      *
      * @since 1.0.0
      */
-    private static final ImmutableMap<String, Instrument> INSTRUMENTS;
-    /**
-     * Not much efficient but we're still using this a lot.
-     * Allows you to use spaces and new lines for really long scripts.
-     *
-     * @since 1.0.0
-     */
-    private static final Pattern SPLITTER = Pattern.compile("\\s+");
+    private static final Map<String, Instrument> INSTRUMENTS = new HashMap<>();
 
     static {
         // Add instrument shortcuts.
-        Map<String, Instrument> instruments = new HashMap<>();
         for (Instrument instrument : Instrument.values()) {
             String name = instrument.name();
-            instruments.put(name, instrument);
+            INSTRUMENTS.put(name, instrument);
 
-            StringBuilder alias = new StringBuilder(name.charAt(0) + "");
+            StringBuilder alias = new StringBuilder(String.valueOf(name.charAt(0)));
             int index = name.indexOf('_');
             if (index != -1) alias.append(name.charAt(index + 1));
 
-            if (!instruments.containsKey(alias.toString())) instruments.put(alias.toString(), instrument);
-            else {
-                boolean start = false;
-                for (char letter : name.toCharArray()) {
-                    if (!start) {
-                        start = true;
-                        continue;
-                    }
-                    if (letter == '_') {
-                        start = false;
-                        continue;
-                    }
-                    alias.append(letter);
-                    if (!instruments.containsKey(alias.toString())) {
-                        instruments.put(alias.toString(), instrument);
-                        break;
+            if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) != null) {
+                for (int i = 0; i < name.length(); i++) {
+                    char ch = name.charAt(i);
+                    if (ch == '_') {
+                        i++;
+                    } else {
+                        alias.append(ch);
+                        if (INSTRUMENTS.putIfAbsent(alias.toString(), instrument) == null) break;
                     }
                 }
             }
         }
+    }
 
-        INSTRUMENTS = ImmutableMap.copyOf(instruments);
+    private NoteBlockMusic() {
     }
 
     /**
@@ -111,6 +95,8 @@ public class NoteBlockMusic {
      * If you made a cool script using this let me know, I'll put it here.
      * You can still give me the script and I'll put it on the Spigot page.
      *
+     * @param player the player to send the notes to.
+     * @return the async task handling the notes.
      * @since 1.0.0
      */
     public static CompletableFuture<Void> testMusic(@Nonnull Player player) {
@@ -122,6 +108,10 @@ public class NoteBlockMusic {
      * Plays a music from a file.
      * This file can have YAML comments (#) and empty lines.
      *
+     * @param player   the player to play the music to.
+     * @param location the location to play the notes to.
+     * @param path     the path of the file to read the music notes from.
+     * @return the async task handling the file operations and music parsers.
      * @see #playMusic(Player, Location, String)
      * @since 1.0.0
      */
@@ -131,9 +121,7 @@ public class NoteBlockMusic {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
-                    if (line.isEmpty()) continue;
-                    if (line.startsWith("#")) continue;
-
+                    if (line.isEmpty() || line.startsWith("#")) continue;
                     parseSegment(player, location, line, 1, 0);
                 }
             } catch (IOException ex) {
@@ -205,7 +193,7 @@ public class NoteBlockMusic {
     private static void parseSegment(@Nonnull Player player, @Nonnull Location location, @Nonnull String script,
                                      int segmentRepeat, int segmentDelay) {
         ArrayList<String> repeater = new ArrayList<>();
-        String[] splitScript = SPLITTER.split(script);
+        String[] splitScript = StringUtils.split(script, ' ');
 
         for (; segmentRepeat > 0; segmentRepeat--) {
             for (String action : splitScript) {
@@ -214,18 +202,18 @@ public class NoteBlockMusic {
                     // Add to last Repeat Segment
                     if (!repeater.isEmpty()) {
                         String old = repeater.remove(repeater.size() - 1);
-                        repeater.add(old + " " + betweenDelay);
+                        repeater.add(old + ' ' + betweenDelay);
                     }
                     try {
                         Thread.sleep(betweenDelay);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
                     }
                     continue;
                 }
 
-                String[] split = StringUtils.split(StringUtils.deleteWhitespace(action.toUpperCase()), ',');
-                String instrumentStr = split[0].toUpperCase();
+                String[] split = StringUtils.split(StringUtils.deleteWhitespace(action.toUpperCase(Locale.ENGLISH)), ',');
+                String instrumentStr = split[0].toUpperCase(Locale.ENGLISH);
 
                 // Start of a new Repeat Segment
                 if (instrumentStr.charAt(0) == '(') {
@@ -238,7 +226,7 @@ public class NoteBlockMusic {
                     if (!repeater.isEmpty()) {
                         String old = repeater.remove(repeater.size() - 1);
                         String add = index == -1 ? action : action.substring(0, index);
-                        repeater.add(old + " " + add);
+                        repeater.add(old + ' ' + add);
                     }
 
                     // End of last Repeat Segment
@@ -250,16 +238,11 @@ public class NoteBlockMusic {
                         int newSegmentDelay = 0;
 
                         if (segmentProperties.length > 0) {
-                            try {
-                                newSegmentRepeat = Integer.parseInt(segmentProperties[0]);
-                                if (segmentProperties.length > 1)
-                                    newSegmentDelay = Integer.parseInt(segmentProperties[1]);
-                            } catch (NumberFormatException ignored) {
-                            }
+                            newSegmentRepeat = NumberUtils.toInt(segmentProperties[0]);
+                            if (segmentProperties.length > 1) newSegmentDelay = NumberUtils.toInt(segmentProperties[1]);
                         }
 
-                        parseSegment(player, location, repeater.remove(repeater.size() - 1),
-                                newSegmentRepeat, newSegmentDelay);
+                        parseSegment(player, location, repeater.remove(repeater.size() - 1), newSegmentRepeat, newSegmentDelay);
                         continue;
                     }
                 }
@@ -267,8 +250,8 @@ public class NoteBlockMusic {
                 Instrument instrument = INSTRUMENTS.get(instrumentStr);
                 if (instrument == null) continue;
 
-                String note = split[1].toUpperCase();
-                Note.Tone tone = Enums.getIfPresent(Note.Tone.class, note.charAt(0) + "").orNull();
+                String note = split[1].toUpperCase(Locale.ENGLISH);
+                Note.Tone tone = Enums.getIfPresent(Note.Tone.class, String.valueOf(note.charAt(0))).orNull();
                 if (tone == null) continue;
 
                 int len = note.length();
@@ -277,8 +260,8 @@ public class NoteBlockMusic {
 
                 if (len > 1) {
                     toneType = note.charAt(1);
-                    if (Character.isDigit(toneType)) octave = NumberUtils.toInt(toneType + "");
-                    else if (len > 2) octave = NumberUtils.toInt(note.charAt(2) + "");
+                    if (isDigit(toneType)) octave = NumberUtils.toInt(String.valueOf(toneType));
+                    else if (len > 2) octave = NumberUtils.toInt(String.valueOf(note.charAt(2)));
 
                     if (octave < 0 || octave > 2) octave = 0;
                 }
@@ -292,21 +275,18 @@ public class NoteBlockMusic {
                 int delay = 0;
 
                 if (split.length > 2) {
-                    try {
-                        repeat = Integer.parseInt(split[2]);
-                        if (split.length > 3) delay = Integer.parseInt(split[3]);
-                    } catch (NumberFormatException ignored) {
-                    }
+                    repeat = NumberUtils.toInt(split[2]);
+                    if (split.length > 3) delay = NumberUtils.toInt(split[3]);
                 }
 
                 for (; repeat > 0; repeat--) {
                     player.playNote(location, instrument, noteObj);
 
-                    if (repeat != 0 && delay > 1) {
+                    if (delay > 1) {
                         try {
                             Thread.sleep(delay);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
@@ -316,9 +296,20 @@ public class NoteBlockMusic {
                 try {
                     Thread.sleep(segmentDelay);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 }
             }
         }
+    }
+
+    /**
+     * {@link Character#isDigit(char)} won't work perfectly in this case.
+     *
+     * @param ch the character to check.
+     * @return if and only if this character is an English digit number.
+     * @since 1.2.0
+     */
+    private static boolean isDigit(char ch) {
+        return ch >= '0' && ch <= '9';
     }
 }

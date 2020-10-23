@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * by the server.
  *
  * @author Crypto Morin
- * @version 1.0.1
+ * @version 1.1.0
  */
 public class ReflectionUtils {
     /**
@@ -55,8 +55,8 @@ public class ReflectionUtils {
      * In order to maintain cross-version compatibility we cannot import these classes.
      */
     public static final String VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-    public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + ".";
-    public static final String NMS = "net.minecraft.server." + VERSION + ".";
+    public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + '.';
+    public static final String NMS = "net.minecraft.server." + VERSION + '.';
 
     private static final MethodHandle PLAYER_CONNECTION;
     private static final MethodHandle GET_HANDLE;
@@ -84,15 +84,18 @@ public class ReflectionUtils {
         GET_HANDLE = getHandle;
     }
 
+    private ReflectionUtils() {
+    }
+
     /**
      * Get a NMS (net.minecraft.server) class.
      *
      * @param name the name of the class.
-     * @return the class.
+     * @return the NMS class or null if not found.
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getNMSClass(@Nullable String name) {
+    public static Class<?> getNMSClass(@Nonnull String name) {
         try {
             return Class.forName(NMS + name);
         } catch (ClassNotFoundException ex) {
@@ -102,38 +105,43 @@ public class ReflectionUtils {
     }
 
     /**
-     * Sends a packet to the player asynchronously.
+     * Sends a packet to the player asynchronously if they're online.
      * Packets are thread-safe.
      *
-     * @param player the player to send the packet to.
-     * @param packet the packet to send.
+     * @param player  the player to send the packet to.
+     * @param packets the packets to send.
      * @return the async thread handling the packet.
      * @since 1.0.0
      */
     @Nonnull
-    public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object packet) {
+    public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
         return CompletableFuture.runAsync(() -> {
             try {
                 Object handle = GET_HANDLE.invoke(player);
                 Object connection = PLAYER_CONNECTION.invoke(handle);
 
-                if (!player.isOnline()) return;
-                SEND_PACKET.invoke(connection, packet);
+                // Checking if the connection is not null is enough. There is no need to check if the player is online.
+                if (connection != null) {
+                    for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
+                }
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
+        }).exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
         });
     }
 
     /**
-     * Get a CraftBukkit class.
+     * Get a CraftBukkit (org.bukkit.craftbukkit) class.
      *
-     * @param name the name of the class.
-     * @return a class.
+     * @param name the name of the class to load.
+     * @return the CraftBukkit class or null if not found.
      * @since 1.0.0
      */
     @Nullable
-    public static Class<?> getCraftClass(@Nullable String name) {
+    public static Class<?> getCraftClass(@Nonnull String name) {
         try {
             return Class.forName(CRAFTBUKKIT + name);
         } catch (ClassNotFoundException ex) {

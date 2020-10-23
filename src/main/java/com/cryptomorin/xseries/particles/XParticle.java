@@ -19,18 +19,17 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.particles;
 
 import com.google.common.base.Enums;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -51,22 +50,29 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * <b>XParticle</b> - Different particle animations, text and image renderer.<br>
+ * <b>XParticle</b> - The most unique particle animation, text and image renderer.<br>
  * This utility uses {@link ParticleDisplay} for cleaner code. This class adds the ability
  * to define the optional values for spawning particles.
  * <p>
  * While this class provides many methods with options to spawn unique shapes,
- * it's recommended to make your own shapes by copying the code from these methods.
+ * it's recommended to make your own shapes by copying the code from these methods.<br>
+ * There are some shapes such as the magic circles, illuminati and the explosion method
+ * that mainly focus on using the other methods to create a new shape.
+ * <p>
  * Note that some of the values for some methods are extremely sensitive and can change
- * the shape significantly by adding small numbers such as 0.5<br>
+ * the shape significantly by adding small numbers such as 0.5 Yes, Chaos theory.<br>
  * Most of the method parameters have a recommended value set to start with.
  * Note that these values are there to show how the intended normal shape
- * looks like before you start changing the values.
+ * looks like before you start changing the values.<br>
+ * All the parameters and return types are not null.
  * <p>
  * It's recommended to use low particle counts.
- * In most cases, decreasing the rate is better than increasing the particle count.
+ * In most cases, increasing the rate is better than increasing the particle count.
  * Most of the methods provide an option called "rate" that you can get more particles
- * by decreasing the distance between each point the particle spawns.<br>
+ * by decreasing the distance between each point the particle spawns.
+ * Rates for methods act in two ways. They're either for straight lines like the polygon
+ * method which lower rate means more points (usually 0.1 is used) and shapes that are curved such as
+ * the circle method, which higher rate means more points (these types of rates usually start from 30).<br>
  * Most of the {@link ParticleDisplay} used in this class are intended to
  * have 1 particle count and 0 xyz offset and speed.
  * <p>
@@ -85,16 +91,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * https://www.spigotmc.org/threads/409003/
  * By "huge", the algorithm used to generate locations is considered. You should not spawn
  * a lot of particles at once. This will cause FPS drops for most of
- * the clients, unless they have a good PC.
+ * the clients, unless they have a powerful PC.
  * <p>
- * You can test your 2D shapes at <a href="https://www.desmos.com/calculator">Desmos</a>
+ * You can test your 2D shapes at <a href="https://www.desmos.com/calculator">Desmos</a><br>
  * Stuff you can do with with
- * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html">Java {@link Math}</a>
- * Getting started with <a href="https://www.spigotmc.org/wiki/vector-programming-for-beginners/">Vectors</a>.
- * Particles: https://minecraft.gamepedia.com/Particles
+ * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html">Java {@link Math}</a><br>
+ * Getting started with <a href="https://www.spigotmc.org/wiki/vector-programming-for-beginners/">Vectors</a><br>
+ * Extra stuff if you want to read more: https://www.spigotmc.org/threads/418399/<br>
+ * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 4.1.1
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -112,6 +119,7 @@ public final class XParticle {
      * <p>
      * <b>Important Radians:</b>
      * <pre>
+     *     PI = 180 degrees
      *     PI / 2 = 90 degrees
      *     PI / 3 = 60 degrees
      *     PI / 4 = 45 degrees
@@ -124,21 +132,8 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static final double PII = 2 * Math.PI;
-    /**
-     * RGB list of all the 7 rainbow colors in order.
-     *
-     * @since 2.0.0
-     */
-    public static final List<int[]> RAINBOW = new ArrayList<>();
 
-    static {
-        RAINBOW.add(new int[]{128, 0, 128}); // Violet
-        RAINBOW.add(new int[]{75, 0, 130}); // Indigo
-        RAINBOW.add(new int[]{0, 0, 255}); // Blue
-        RAINBOW.add(new int[]{0, 255, 0}); // Green
-        RAINBOW.add(new int[]{255, 255, 0}); // Yellow
-        RAINBOW.add(new int[]{255, 140, 0}); // Orange
-        RAINBOW.add(new int[]{255, 0, 0}); // Red
+    private XParticle() {
     }
 
     /**
@@ -212,7 +207,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Particle.DustOptions randomDust() {
-        float size = randInt(5, 10) / 0.1f;
+        float size = randInt(5, 10) / 10f;
         return new Particle.DustOptions(randomColor(), size);
     }
 
@@ -236,15 +231,42 @@ public final class XParticle {
 
     /**
      * Spawn a circle.
-     * Tutorial: https://www.spigotmc.org/threads/111238/
-     * Uses its own unique directional pattern.
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
      * @see #sphere(double, double, ParticleDisplay)
+     * @see #circle(double, double, double, double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void circle(double radius, double rate, ParticleDisplay display) {
+        circle(radius, rate, 1, rate, 0, display);
+    }
+
+    /**
+     * Spawns a circle.
+     * Most common shapes that can be built:
+     * <pre>
+     *     The simplest shape, a circle
+     *     circle(3, 3, 1, 30, 0, display);
+     *
+     *     An ellipse only has a different radius for one of its waves.
+     *     circle(3, 4, 1, 30, 0, display);
+     * </pre>
+     * <p>
+     * Tutorial: https://www.spigotmc.org/threads/111238/
+     * Uses its own unique directional pattern.
+     *
+     * @param radius    the first radius of the circle.
+     * @param radius2   the second radius of the circle.
+     * @param extension the extension of the circle waves.
+     * @param rate      the rate of the circle points.
+     * @param limit     the limit of the circle. Usually from 0 to PII.
+     *                  If you choose 0, it'll be a full circle {@link #PII}
+     *                  If you choose -1, it'll do a full loop based on the extension.
+     * @see #illuminati(double, double, ParticleDisplay)
+     * @see #eye(double, double, double, double, ParticleDisplay)
+     */
+    public static void circle(double radius, double radius2, double extension, double rate, double limit, ParticleDisplay display) {
         // 180 degrees = PI
         // We need a full circle, 360 so we need two pies!
         // https://www.spigotmc.org/threads/176792/
@@ -252,24 +274,55 @@ public final class XParticle {
         // Converting degrees to radians is not resource intensive. It's a really simple operation.
         // However we can skip the conversion by using radians in the first place.
         double rateDiv = Math.PI / rate;
-        for (double theta = 0; theta <= PII; theta += rateDiv) {
+
+        // If no limit is specified do a full loop.
+        if (limit == 0) limit = PII;
+        else if (limit == -1) limit = PII / Math.abs(extension);
+        // If the extension changes (isn't 1), the wave might not do a full
+        // loop anymore. So by simply dividing PI from the extension you can get the limit for a full loop.
+        // By full loop it means: sin(bx) {0 < x < PI} if b (the extension) is equal to 1
+        // Using period => T = 2PI/|b|
+
+        for (double theta = 0; theta <= limit; theta += rateDiv) {
             // In order to curve our straight line in the loop, we need to
             // use cos and sin. It doesn't matter, you can get x as sin and z as cos.
             // But you'll get weird results if you use si+n or cos for both or using tan or cot.
-            double x = radius * Math.cos(theta);
-            double z = radius * Math.sin(theta);
+            double x = radius * Math.cos(extension * theta);
+            double z = radius2 * Math.sin(extension * theta);
 
             if (display.isDirectional()) {
                 // We're going to get the angle in these two coordinates.
                 // Then we can spread each particle in the right angle.
                 double phi = Math.atan2(z, x);
-                double directionX = Math.cos(phi);
-                double directionZ = Math.sin(phi);
+                double directionX = Math.cos(extension * phi);
+                double directionZ = Math.sin(extension * phi);
 
                 display.offset(directionX, display.offsety, directionZ);
             }
 
             display.spawn(x, 0, z);
+        }
+    }
+
+    /**
+     * Spawns a diamond-shaped rhombus.
+     *
+     * @param radiusRate the radius of the diamond. Lower means longer radius.
+     * @param rate       the rate of the diamond points.
+     * @param height     the height of the diamond.
+     * @since 4.0.0
+     */
+    public static void diamond(double radiusRate, double rate, double height, ParticleDisplay display) {
+        double count = 0;
+        for (double y = 0; y < height * 2; y += rate) {
+            // We're going to increase our x particles as we get closer to the center
+            // and decrease as we move away. If the radius is equal to rate it'll form a rotated square.
+            if (y < height) count += radiusRate;
+            else count -= radiusRate;
+
+            // Now we can make an arrow or a right triangle if let x be equal to 0
+            // But we want both sides to have particle.
+            for (double x = -count; x < count; x += rate) display.spawn(x, y, 0);
         }
     }
 
@@ -287,10 +340,10 @@ public final class XParticle {
      */
     public static BukkitTask circularBeam(JavaPlugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
         return new BukkitRunnable() {
-            double rateDiv = Math.PI / rate;
-            double radiusDiv = Math.PI / radiusRate;
+            final double rateDiv = Math.PI / rate;
+            final double radiusDiv = Math.PI / radiusRate;
+            final Vector dir = display.location.getDirection().normalize().multiply(extend);
             double dynamicRadius = 0;
-            Vector dir = display.location.getDirection().normalize().multiply(extend);
 
             @Override
             public void run() {
@@ -313,6 +366,137 @@ public final class XParticle {
     }
 
     /**
+     * Spawns the given shape(s) in the runnable in a circular form.
+     * The distance between the shapes are evenly separated.
+     *
+     * @param count    the count of the shapes.
+     * @param radius   the radius of the circular form.
+     * @param runnable the shape(s) to display.
+     * @since 4.0.0
+     */
+    public static void flower(int count, double radius, ParticleDisplay display, Runnable runnable) {
+        for (double theta = 0; theta < PII; theta += PII / count) {
+            double x = radius * Math.cos(theta);
+            double z = radius * Math.sin(theta);
+
+            display.location.add(x, 0, z);
+            runnable.run();
+            display.location.subtract(x, 0, z);
+        }
+    }
+
+    /**
+     * Spawns a filled cirlce using circles.
+     *
+     * @param radius     the radius of the circle.
+     * @param rate       the rate of the circle points.
+     * @param radiusRate the radius change of the circle to fill it.
+     * @see #circle(double, double, ParticleDisplay)
+     * @since 4.0.0
+     */
+    public static void filledCircle(double radius, double rate, double radiusRate, ParticleDisplay display) {
+        double dynamicRate = 0;
+        for (double i = 0.1; i < radius; i += radiusRate) {
+            if (i > radius) i = radius;
+            dynamicRate += rate / (radius / radiusRate);
+            circle(i, dynamicRate, display);
+        }
+    }
+
+    /**
+     * Spawns a double pendulum with chaotic movement.
+     * Note that if this runs for too long it'll stop working due to
+     * the limit of doubles resulting in a {@link Double#NaN}
+     * <p>
+     * <a href="https://en.wikipedia.org/wiki/Double_pendulum">Double pendulum</a>
+     * is a way to show <a href="https://en.wikipedia.org/wiki/Chaos_theory">Chaos motion</a>.
+     * The particles display are showing the path where the second
+     * pendulum is going from.
+     * <p>
+     * Changing the mass or length to a lower value can make the
+     * shape stop producing new paths since it reaches the doubles limit.
+     * Source: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
+     *
+     * @param plugin     the timer handler.
+     * @param radius     the radius of the pendulum. Yes this doesn't depend on length since the length needs to be a really
+     *                   high value and this won't work with Minecraft's xyz.
+     * @param gravity    the gravity of the enviroment. Recommended is -1 positive numbers will mean gravity towards space.
+     * @param length     the length of the first pendulum. Recommended is 200
+     * @param length2    the length of the second pendulum. Recommended is 200
+     * @param mass1      the mass of the first pendulum. Recommended is 50
+     * @param mass2      the mass of the second pendulum. Recommended is 50
+     * @param dimension3 if it should enter 3D mode.
+     * @param speed      the speed of the animation.
+     * @return the animation handler.
+     * @since 4.0.0
+     */
+    public static BukkitTask chaoticDoublePendulum(JavaPlugin plugin, double radius, double gravity, double length, double length2,
+                                                   double mass1, double mass2,
+                                                   boolean dimension3, int speed, ParticleDisplay display) {
+        // If you want the particles to stay. But it's gonna lag a lot.
+        //Map<Vector, Vector> locs = new HashMap<>();
+
+        return new BukkitRunnable() {
+            final Vector rotation = new Vector(Math.PI / 33, Math.PI / 44, Math.PI / 55);
+            double theta = Math.PI / 2;
+            double theta2 = Math.PI / 2;
+            double thetaPrime = 0;
+            double thetaPrime2 = 0;
+
+            @Override
+            public void run() {
+                int repeat = speed;
+                while (repeat-- != 0) {
+                    if (dimension3) display.rotate(rotation);
+                    double totalMass = mass1 + mass2;
+                    double totalMassDouble = 2 * totalMass;
+                    double deltaTheta = theta - theta2;
+
+                    double lenLunar = (totalMassDouble - mass2 * Math.cos(2 * theta - 2 * theta2));
+                    double deltaCosTheta = Math.cos(deltaTheta);
+                    double deltaSinTheta = Math.sin(deltaTheta);
+                    double phi = thetaPrime * thetaPrime * length;
+                    double phi2 = thetaPrime2 * thetaPrime2 * length2;
+
+                    // Don't expect me to explain these... Read the website.
+                    double num1 = -gravity * totalMassDouble * Math.sin(theta);
+                    double num2 = -mass2 * gravity * Math.sin(theta - 2 * theta2);
+                    double num3 = -2 * deltaSinTheta * mass2;
+                    double num4 = phi2 + phi * deltaCosTheta;
+                    double len = length * lenLunar;
+                    double thetaDoublePrime = (num1 + num2 + num3 * num4) / len;
+
+                    num1 = 2 * deltaSinTheta;
+                    num2 = phi * totalMass;
+                    num3 = gravity * totalMass * Math.cos(theta);
+                    num4 = phi2 * mass2 * deltaCosTheta;
+                    len = length2 * lenLunar;
+                    double thetaDoublePrime2 = (num1 * (num2 + num3 + num4)) / len;
+
+                    thetaPrime += thetaDoublePrime;
+                    thetaPrime2 += thetaDoublePrime2;
+                    theta += thetaPrime;
+                    theta2 += thetaPrime2;
+
+                    double x = radius * Math.sin(theta);
+                    double y = radius * Math.cos(theta);
+                    double x2 = x + radius * Math.sin(theta2);
+                    double y2 = y + radius * Math.cos(theta2);
+
+                    display.spawn(x2, y2, 0);
+
+//                locs.forEach((v, v2) -> {
+//                    ParticleDisplay dis = display.clone();
+//                    dis.rotation = v2;
+//                    dis.spawn(v.getX(), v.getY(), v.getZ());
+//                });
+//                locs.put(new Vector(x2, y2, 0), display.rotation.clone());
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
      * Spawns circles increasing their radius.
      *
      * @param plugin     the timer handler.
@@ -326,9 +510,9 @@ public final class XParticle {
      */
     public static BukkitTask magicCircles(JavaPlugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
         return new BukkitRunnable() {
-            double radiusDiv = Math.PI / radiusRate;
+            final double radiusDiv = Math.PI / radiusRate;
+            final Vector dir = display.location.getDirection().normalize().multiply(distance);
             double dynamicRadius = radius;
-            Vector dir = display.location.getDirection().normalize().multiply(distance);
 
             @Override
             public void run() {
@@ -420,14 +604,16 @@ public final class XParticle {
      * @param radius the radius of the blackhole circle.
      * @param rate   the rate of the blackhole circle points.
      * @param mode   blackhole mode. There are 5 modes.
+     * @param time   the amount of ticks to keep the blackhole.
      * @since 3.0.0
      */
-    public static void blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, ParticleDisplay display) {
+    public static BukkitTask blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
         display.directional();
         display.extra = 0.1;
-        double rateDiv = Math.PI / rate;
 
-        new BukkitRunnable() {
+        return new BukkitRunnable() {
+            final double rateDiv = Math.PI / rate;
+            int timer = time;
             double theta = 0;
 
             @Override
@@ -466,6 +652,7 @@ public final class XParticle {
                 }
 
                 theta += rateDiv;
+                if (--timer <= 0) cancel();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
@@ -481,14 +668,23 @@ public final class XParticle {
      * @since 2.0.0
      */
     public static void rainbow(double radius, double rate, double curve, double layers, double compact, ParticleDisplay display) {
+        int[][] rainbow = {
+                {128, 0, 128}, // Violet
+                {75, 0, 130}, // Indigo
+                {0, 0, 255}, // Blue
+                {0, 255, 0}, // Green
+                {255, 255, 0}, // Yellow
+                {255, 140, 0}, // Orange
+                {255, 0, 0} // Red
+        };
         double secondRadius = radius * curve;
 
         // Rainbows have 7 colors.
         // Refer to RAINBOW constant for the color order.
         for (int i = 0; i < 7; i++) {
             // Get the rainbow color in order.
-            int[] rgb = RAINBOW.get(i);
-            display = ParticleDisplay.paintDust(display.location, rgb[0], rgb[1], rgb[2], 1F);
+            int[] rgb = rainbow[i];
+            display = ParticleDisplay.colored(display.location, rgb[0], rgb[1], rgb[2], 1);
 
             // Display the same color multiple times.
             for (int layer = 0; layer < layers; layer++) {
@@ -624,34 +820,10 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void cylinder(double height, double radius, double rate, ParticleDisplay display) {
-        double rateDiv = Math.PI / rate;
-
-        // We want to connect our circle points so we use 180
-        for (double theta = 0; theta <= Math.PI; theta += rateDiv) {
-            // Our circle at the bottom.
-            double x = radius * Math.cos(theta);
-            double z = radius * Math.sin(theta);
-
-            // Bottom Circle
-            display.spawn(x, 0, z);
-            display.spawn(-x, 0, -z);
-
-            // Top Circle
-            display.spawn(x, height, z);
-            display.spawn(-x, height, -z);
-
-            // Connect the circle points from opposite sides to each other.
-            Location point1 = display.cloneLocation(x, 0, z);
-            Location point2 = display.cloneLocation(-x, 0, -z);
-            line(point1, point2, 0.1, display);
-
-            Location point21 = display.cloneLocation(x, height, z);
-            Location point22 = display.cloneLocation(-x, height, -z);
-            line(point21, point22, 0.1, display);
-
-            // Connect the two circles points to each other.
-            line(point1, point21, 0.1, display);
-            line(point2, point22, 0.1, display);
+        filledCircle(radius, rate, 3, display);
+        filledCircle(radius, rate, 3, display.cloneWithLocation(0, height, 0));
+        for (double y = 0; y < height; y += 0.1) {
+            circle(radius, rate, display.cloneWithLocation(0, y, 0));
         }
     }
 
@@ -728,9 +900,9 @@ public final class XParticle {
                 for (ParticleDisplay display : displays) display.location.subtract(x, y, z);
 
                 if (opposite) {
-                    if (multiplier <= 0) opposite = !opposite;
+                    if (multiplier <= 0) opposite = false;
                 } else {
-                    if (multiplier >= endRate) opposite = !opposite;
+                    if (multiplier >= endRate) opposite = true;
                 }
             }
         }.runTaskTimerAsynchronously(plugin, 0L, update);
@@ -916,11 +1088,10 @@ public final class XParticle {
      * @param rate       the number of circles used to form the ring (tunnel circles)
      * @param radius     the radius of the ring.
      * @param tubeRadius the radius of the circles used to form the ring (tunnel circles)
-     * @param tubeRate   the rate of circle points.
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void ring(double rate, double tubeRate, double radius, double tubeRadius, ParticleDisplay display) {
+    public static void ring(double rate, double radius, double tubeRadius, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
         double tubeDiv = Math.PI / tubeRadius;
 
@@ -957,20 +1128,18 @@ public final class XParticle {
 
             @Override
             public void run() {
-                count--;
                 int frame = rate;
 
-                while (frame != 0) {
+                while (frame-- != 0) {
                     double x = random(-offsetx, offsetx);
                     double y = random(-offsety, offsety);
                     double z = random(-offsetz, offsetz);
 
                     Location end = originEnd.clone().add(x, y, z);
                     line(start, end, 0.1, display);
-                    frame--;
                 }
 
-                if (count == 0) cancel();
+                if (count-- == 0) cancel();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
@@ -1012,9 +1181,9 @@ public final class XParticle {
      */
     public static void atomic(JavaPlugin plugin, int orbits, double radius, double rate, ParticleDisplay orbit) {
         new BukkitRunnable() {
+            final double rateDiv = Math.PI / rate;
+            final double dist = Math.PI / orbits;
             double theta = 0;
-            double rateDiv = Math.PI / rate;
-            double dist = Math.PI / orbits;
 
             @Override
             public void run() {
@@ -1057,9 +1226,9 @@ public final class XParticle {
             // upwards to get a curvy tunnel.
             // Since we're generating this string infinitely we don't need
             // to use radians or degrees.
-            double dist = PII / strings;
-            double radiusDiv = radius / (height / rate);
-            double radiusDiv2 = fadeUp && fadeDown ? radiusDiv * 2 : radiusDiv;
+            final double dist = PII / strings;
+            final double radiusDiv = radius / (height / rate);
+            final double radiusDiv2 = fadeUp && fadeDown ? radiusDiv * 2 : radiusDiv;
             double dynamicRadius = fadeDown ? 0 : radius;
             boolean center = !fadeDown;
             double y = 0;
@@ -1067,8 +1236,7 @@ public final class XParticle {
             @Override
             public void run() {
                 int repeat = speed;
-                while (repeat > 0) {
-                    repeat--;
+                while (repeat-- > 0) {
                     y += rate;
 
                     // 2D cirlce points.
@@ -1216,10 +1384,10 @@ public final class XParticle {
     public static BukkitTask dnaReplication(JavaPlugin plugin, double radius, double rate, int speed, double extension,
                                             int height, int hydrogenBondDist, ParticleDisplay display) {
         // We'll use the common nucleotide colors.
-        ParticleDisplay adenine = ParticleDisplay.paintDust(null, 0, 0, 255, 1); // Blue
-        ParticleDisplay thymine = ParticleDisplay.paintDust(null, 0, 255, 255, 1); // Yellow
-        ParticleDisplay guanine = ParticleDisplay.paintDust(null, 0, 255, 0, 1); // Green
-        ParticleDisplay cytosine = ParticleDisplay.paintDust(null, 255, 0, 0, 1); // Red
+        ParticleDisplay adenine = ParticleDisplay.colored(null, java.awt.Color.BLUE, 1); // Blue
+        ParticleDisplay thymine = ParticleDisplay.colored(null, java.awt.Color.YELLOW, 1); // Yellow
+        ParticleDisplay guanine = ParticleDisplay.colored(null, java.awt.Color.GREEN, 1); // Green
+        ParticleDisplay cytosine = ParticleDisplay.colored(null, java.awt.Color.RED, 1); // Red
 
         return new BukkitRunnable() {
             double y = 0;
@@ -1228,10 +1396,9 @@ public final class XParticle {
             @Override
             public void run() {
                 int repeat = speed;
-                while (repeat != 0) {
+                while (repeat-- != 0) {
                     y += rate;
                     nucleotideDist++;
-                    repeat--;
 
                     double x = radius * Math.cos(extension * y);
                     double z = radius * Math.sin(extension * y);
@@ -1306,6 +1473,7 @@ public final class XParticle {
     /**
      * Spawns a line from a location to another.
      * Tutorial: https://www.spigotmc.org/threads/176695/
+     * This method is a modified version to get the best performance.
      *
      * @param start the starting point of the line.
      * @param end   the ending point of the line.
@@ -1314,13 +1482,14 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void line(Location start, Location end, double rate, ParticleDisplay display) {
-        Vector distance = end.toVector().subtract(start.toVector());
-        double length = distance.length();
-        distance.normalize();
+        double x = end.getX() - start.getX();
+        double y = end.getY() - start.getY();
+        double z = end.getZ() - start.getZ();
+        double length = Math.sqrt(NumberConversions.square(x) + NumberConversions.square(y) + NumberConversions.square(z));
 
-        double x = distance.getX();
-        double y = distance.getY();
-        double z = distance.getZ();
+        x /= length;
+        y /= length;
+        z /= length;
 
         ParticleDisplay clone = display.clone();
         clone.location = start;
@@ -1525,6 +1694,7 @@ public final class XParticle {
      * @param sizeRate    the size
      * @param cubes       the dimension of the hypercube starting from 3D. E.g. {@code dimension 1 -> 4D tersseract}
      * @see #structuredCube(Location, Location, double, ParticleDisplay)
+     * @see #tesseract(JavaPlugin, double, double, double, long, ParticleDisplay)
      * @since 1.0.0
      */
     public static void hypercube(Location startOrigin, Location endOrigin, double rate, double sizeRate, int cubes, ParticleDisplay display) {
@@ -1587,6 +1757,246 @@ public final class XParticle {
     }
 
     /**
+     * Animated 4D tesseract using matrix motion.
+     * Since this is a 4D shape the usage should be highly limited.
+     * A failed prototype: https://imgur.com/eziNk7x
+     * Final Version: https://imgur.com/Vb2HDQN
+     * <p>
+     * https://en.wikipedia.org/wiki/Tesseract
+     * https://en.wikipedia.org/wiki/Rotation_matrix
+     *
+     * @param plugin the timer handler.
+     * @param size   the size of the tesseract. Recommended is 4
+     * @param rate   the rate of the tesseract points. Recommended is 0.3
+     * @param speed  the speed of the tesseract matrix motion. Recommended is 0.01
+     * @param ticks  the amount of ticks to keep the animation.
+     * @see #hypercube(Location, Location, double, double, int, ParticleDisplay)
+     * @since 4.0.0
+     */
+    public static BukkitTask tesseract(JavaPlugin plugin, double size, double rate, double speed, long ticks, ParticleDisplay display) {
+        // We can multiply these later to change the size.
+        // This array doesn't really need to be a constant as it's initialized once.
+        double[][] positions = {
+                {-1, -1, -1, 1}, {1, -1, -1, 1},
+                {1, 1, -1, 1}, {-1, 1, -1, 1},
+                {-1, -1, 1, 1}, {1, -1, 1, 1},
+                {1, 1, 1, 1}, {-1, 1, 1, 1},
+
+                {-1, -1, -1, -1}, {1, -1, -1, -1},
+                {1, 1, -1, -1}, {-1, 1, -1, -1},
+                {-1, -1, 1, -1}, {1, -1, 1, -1},
+                {1, 1, 1, -1}, {-1, 1, 1, -1},
+        };
+
+//        BiFunction<Double, Double, Double> reverseMatrix = (a, b) -> {
+//            if (a < 0) a -= b;
+//            else a += b;
+//            return -a;
+//        };
+//
+//        List<double[]> original = new ArrayList<>(Arrays.asList(positions));
+//        List<double[]> points = new ArrayList<>(original);
+//        List<double[]> rev = new ArrayList<>(original);
+        List<int[]> connections = new ArrayList<>();
+//
+//        double dist = 0;
+//        Collections.reverse(rev);
+//        List<double[]> reversed = new ArrayList<>();
+//        for (int i = 0; i < 4; i += 2) {
+//            reversed.add(rev.get(i + 1));
+//            reversed.add(rev.get(i));
+//        }
+//        reversed.forEach(x -> points.add(new double[]{
+//                reverseMatrix.apply(x[0], dist), reverseMatrix.apply(x[1], dist),
+//                reverseMatrix.apply(x[2], dist), reverseMatrix.apply(x[3], dist)}));
+
+        // Connect the generated 4D points together.
+        // This can later be modified to support multi-dimension hypercubes.
+        int level = 1;
+        for (int h = 0; h <= level; h++) {
+            int start = 8 * h;
+            for (int i = start; i < start + 4; i++) {
+                connections.add(new int[]{i, ((i + 1) % 4) + start});
+                connections.add(new int[]{i + 4, (((i + 1) % 4) + 4) + start});
+                connections.add(new int[]{i, i + 4});
+            }
+        }
+        for (int i = 0; i < (level + 1) * 4; i++) connections.add(new int[]{i, i + 8});
+
+        return new BukkitRunnable() {
+            double angle = 0;
+            long repeat = 0;
+
+            @Override
+            public void run() {
+                double cos = Math.cos(angle);
+                double sin = Math.sin(angle);
+
+                // https://en.wikipedia.org/wiki/Rotation_matrix
+                double[][] rotationXY = {
+                        {cos, -sin, 0, 0},
+                        {sin, cos, 0, 0},
+                        {0, 0, 1, 0},
+                        {0, 0, 0, 1}
+                };
+
+                // What does it mean to rotate a shape in the w (4th) axis?
+                double[][] rotationZW = {
+                        {1, 0, 0, 0},
+                        {0, 1, 0, 0},
+                        {0, 0, cos, -sin},
+                        {0, 0, sin, cos}
+                };
+
+                double[][] projected3D = new double[positions.length][4];
+                for (int i = 0; i < positions.length; i++) {
+                    // To get the prototype version simply rotate the
+                    // cube by using the display.rotate method in one of the axis.
+                    double[] point = positions[i];
+                    double[] rotated = matrix(rotationXY, point);
+                    rotated = matrix(rotationZW, rotated);
+
+                    int distance = 2;
+                    double w = 1 / (distance - rotated[3]);
+                    double[][] projection = {
+                            {w, 0, 0, 0},
+                            {0, w, 0, 0},
+                            {0, 0, w, 0}
+                    };
+
+                    double[] projected = matrix(projection, rotated);
+                    for (int proj = 0; proj < projected.length; proj++) projected[proj] *= size;
+                    projected3D[i] = projected;
+
+                    display.spawn(projected[0], projected[1], projected[2]);
+                }
+
+                for (int[] connection : connections) {
+                    // Get the points of our tesseract and connect the two points using our line method.
+                    double[] pointA = projected3D[connection[0]];
+                    double[] pointB = projected3D[connection[1]];
+                    Location start = display.cloneLocation(pointA[0], pointA[1], pointA[2]);
+                    Location end = display.cloneLocation(pointB[0], pointB[1], pointB[2]);
+                    line(start, end, rate, display);
+                }
+
+                if (++repeat > ticks) cancel();
+                else angle += speed;
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+    }
+
+    /**
+     * A method to translate matrix motion for 4D.
+     * https://en.wikipedia.org/wiki/Rotation_matrix
+     *
+     * @since 4.0.0
+     */
+    private static double[] matrix(double[][] a, double[] m) {
+        double[][] b = new double[4][1];
+        b[0][0] = m[0];
+        b[1][0] = m[1];
+        b[2][0] = m[2];
+        b[3][0] = m[3];
+
+        int colsA = a[0].length;
+        int rowsA = a.length;
+        int colsB = b[0].length;
+        int rowsB = b.length;
+
+        double[][] result = new double[rowsA][rowsB];
+        for (int i = 0; i < rowsA; i++) {
+            for (int j = 0; j < colsB; j++) {
+                float sum = 0;
+                for (int k = 0; k < colsA; k++) {
+                    sum += a[i][k] * b[k][j];
+                }
+                result[i][j] = sum;
+            }
+        }
+
+        double[] v = new double[4];
+        v[0] = result[0][0];
+        v[1] = result[1][0];
+        v[2] = result[2][0];
+        if (result.length > 3) v[3] = result[3][0];
+        return v;
+    }
+
+    /**
+     * Spawns a mandelbrot set.
+     * https://en.wikipedia.org/wiki/Mandelbrot_set
+     *
+     * @param size  the size of the mandelbrot. Recommended is 5
+     * @param zoom  the zooming length of the mandelbrot (Does not show the julia set.) Recommended is 1
+     * @param rate  the rate of the shape points. Recommended is 0.1
+     * @param x0    the amount of x to move the shape. Recommended is 3
+     * @param y0    the amount of y to move the shape. Recommended is 0
+     * @param color the color set of the mandelbrot. This can change the shape. Recommended is 1000
+     * @since 4.0.0
+     */
+    public static void mandelbrot(double size, double zoom, double rate, double x0, double y0, int color, ParticleDisplay display) {
+        for (double y = -size; y < size; y += rate) {
+            for (double x = -size; x < size; x += rate) {
+                double zy = 0;
+                double zx = 0;
+                double cX = (x - x0) / zoom;
+                double cY = (y - y0) / zoom;
+
+                int iteration = color; // Max iterations
+                while (zx * zx + zy * zy <= 4 && iteration > 0) {
+                    double xtemp = zx * zx - zy * zy + cX;
+                    zy = 2 * zx * zy + cY; // Changing 2 to 1 or -1 can give interesting results.
+                    zx = xtemp;
+                    iteration--;
+                }
+
+                if (iteration != 0) continue;
+                //Color color = new Color(iteration | (iteration << 8));
+                display.spawn(x, y, 0);
+            }
+        }
+    }
+
+    /**
+     * Spawns a julia set.
+     * https://en.wikipedia.org/wiki/Julia_set
+     *
+     * @param size        the size of the image.
+     * @param zoom        the zoom ratio to the set.
+     * @param colorScheme the color scheme for the julia set.
+     * @param moveX       the amount to move in the x axis.
+     * @param moveY       the amount to move in the y axis.
+     * @see #mandelbrot(double, double, double, double, double, int, ParticleDisplay)
+     * @since 4.0.0
+     */
+    public static void julia(double size, double zoom, int colorScheme, double moveX, double moveY, ParticleDisplay display) {
+        display.particle = Particle.REDSTONE;
+
+        double cx = -0.7;
+        double cy = 0.27015;
+
+        for (double x = -size; x < size; x += 0.1) {
+            for (double y = -size; y < size; y += 0.1) {
+                double zx = 1.5 * (size - size / 2) / (0.5 * zoom * size) + moveX;
+                double zy = (y - size / 2) / (0.5 * zoom * size) + moveY;
+
+                int i = colorScheme;
+                while (zx * zx + zy * zy < 4 && i > 0) {
+                    double xtemp = zx * zx - zy * zy + cx;//Math.pow((zx * zx + zy * zy), (n / 2)) * (Math.cos(n * Math.atan2(zy, zx))) + cx;
+                    zy = 2 * zx * zy + cy; //Math.pow((zx * zx + zy * zy), (n / 2)) * Math.sin(n * Math.atan2(zy, zx)) + cy;
+                    zx = xtemp;
+                    i--;
+                }
+                java.awt.Color color = new java.awt.Color((i << 21) + (i << 10) + i * 8);
+
+                display.data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), 0.8f};
+                display.spawn(x, y, 0);
+            }
+        }
+    }
+
+    /**
      * Spawn 3D spiked circles.
      * Note that the animation is intended to be used with prototype mode enabled.
      * Animations without prototype doesn't really look good. You might want to increase the speed.
@@ -1621,8 +2031,7 @@ public final class XParticle {
                 @Override
                 public void run() {
                     int repeat = speed;
-                    while (repeat != 0) {
-                        repeat--;
+                    while (repeat-- != 0) {
                         theta += rateDiv;
 
                         // We're going to spawn little circles to create our spikes.
@@ -1649,6 +2058,44 @@ public final class XParticle {
             }.runTaskTimerAsynchronously(plugin, 0L, 1L);
         }
     }
+
+    /**
+     * Spawns an eye-shaped circle.
+     *
+     * @param radius    the radius of the eye.
+     * @param radius2   the other radius of the eye. Usually the same as the first radius.
+     * @param rate      the rate of the eye points.
+     * @param extension the extension of the eye. Recommended is 0.2
+     * @since 4.0.0
+     */
+    public static void eye(double radius, double radius2, double rate, double extension, ParticleDisplay display) {
+        double rateDiv = Math.PI / rate;
+        double limit = Math.PI / extension;
+        double x = 0;
+
+        for (double i = 0; i < limit; i += rateDiv) {
+            double y = radius * Math.sin(extension * i);
+            double y2 = radius2 * Math.sin(extension * -i);
+            display.spawn(x, y, 0);
+            display.spawn(x, y2, 0);
+            x += 0.1;
+        }
+    }
+
+    /**
+     * Spawns an illuminati shape.
+     *
+     * @param size      the size of the illuminati shape.
+     * @param extension the extension of the illuminati eye.
+     * @since 4.0.0
+     */
+    public static void illuminati(double size, double extension, ParticleDisplay display) {
+        polygon(3, 1, size, 1 / (size * 30), 0, display);
+        // It'd be really hard to automatically adjust the extension based on the size.
+        eye(size / 4, size / 4, 30, extension, display.cloneWithLocation(0.3, 0, size / 1.8).rotate(Math.PI / 2, Math.PI / 2, 0));
+        circle(size / 5, size * 5, display.cloneWithLocation(0.3, 0, 0));
+    }
+
 
     /**
      * Spawns a connected 2D polygon.
@@ -1699,6 +2146,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundX(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
@@ -1716,6 +2164,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundY(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
@@ -1733,12 +2182,30 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Vector rotateAroundZ(Vector vector, double angle) {
+        if (angle == 0) return vector;
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
 
         double x = vector.getX() * cos - vector.getY() * sin;
         double y = vector.getX() * sin + vector.getY() * cos;
         return vector.setX(x).setY(y);
+    }
+
+    /**
+     * Rotates a vector around the 3 axis with the given angles.
+     *
+     * @param vector the vector to rotate.
+     * @param x      the x rotation in radians.
+     * @param y      the y rotation in radians.
+     * @param z      the z rotation in radians.
+     * @return the rotated vector.
+     * @since 4.1.0
+     */
+    public static Vector rotateAround(Vector vector, double x, double y, double z) {
+        rotateAroundX(vector, x);
+        rotateAroundY(vector, y);
+        rotateAroundZ(vector, z);
+        return vector;
     }
 
     /**
@@ -1799,32 +2266,27 @@ public final class XParticle {
      */
     public static void explosionWave(JavaPlugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
         new BukkitRunnable() {
-            double t = Math.PI / 4;
-            double addition = Math.PI * 0.1;
+            final double addition = Math.PI * 0.1;
+            final double rateDiv = Math.PI / rate;
+            double times = Math.PI / 4;
 
             public void run() {
-                t += addition;
-                for (double theta = 0; theta <= PII; theta = theta + Math.PI / rate) {
-                    double x = t * Math.cos(theta);
-                    double y = 2 * Math.exp(-0.1 * t) * Math.sin(t) + 1.5;
-                    double z = t * Math.sin(theta);
-
-                    Location loc = display.location.clone().add(x, y, z);
-                    loc.getWorld().spawnParticle(display.particle, loc, display.count, display.offsetx, display.offsety, display.offsetz, display.extra);
+                times += addition;
+                for (double theta = 0; theta <= PII; theta += rateDiv) {
+                    double x = times * Math.cos(theta);
+                    double y = 2 * Math.exp(-0.1 * times) * Math.sin(times) + 1.5;
+                    double z = times * Math.sin(theta);
+                    display.spawn(x, y, z);
 
                     theta = theta + Math.PI / 64;
-                    x = t * Math.cos(theta);
-                    y = 2 * Math.exp(-0.1 * t) * Math.sin(t) + 1.5;
-                    z = t * Math.sin(theta);
-
-                    loc = display.location.clone().add(x, y, z);
-                    loc.getWorld().spawnParticle(secDisplay.particle, loc, secDisplay.count,
-                            secDisplay.offsetx, secDisplay.offsety, secDisplay.offsetz, secDisplay.extra);
+                    x = times * Math.cos(theta);
+                    //y = 2 * Math.exp(-0.1 * times) * Math.sin(times) + 1.5;
+                    z = times * Math.sin(theta);
+                    secDisplay.spawn(x, y, z);
                 }
 
-                if (t > 20) cancel();
+                if (times > 20) cancel();
             }
-
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
 
@@ -1890,7 +2352,7 @@ public final class XParticle {
      * @return the rendered particle locations.
      * @since 1.0.0
      */
-    public static CompletableFuture<Map<Location, Color>> renderImage(Path path, int resizedWidth, int resizedHeight, double compact) {
+    public static CompletableFuture<Map<double[], Color>> renderImage(Path path, int resizedWidth, int resizedHeight, double compact) {
         return getScaledImage(path, resizedWidth, resizedHeight).thenCompose((image) -> renderImage(image, resizedWidth, resizedHeight, compact));
     }
 
@@ -1905,20 +2367,23 @@ public final class XParticle {
      * @return a rendered map of an image.
      * @since 1.0.0
      */
-    public static CompletableFuture<Map<Location, Color>> renderImage(BufferedImage image, int resizedWidth, int resizedHeight, double compact) {
+    @SuppressWarnings("unused")
+    public static CompletableFuture<Map<double[], Color>> renderImage(BufferedImage image, int resizedWidth, int resizedHeight, double compact) {
         return CompletableFuture.supplyAsync(() -> {
             if (image == null) return null;
 
-            double centerX = image.getWidth() / 2D;
-            double centerY = image.getHeight() / 2D;
+            int width = image.getWidth();
+            int height = image.getHeight();
+            double centerX = width / 2D;
+            double centerY = height / 2D;
 
-            Map<Location, Color> rendered = new HashMap<>();
-            for (int y = 0; y < image.getHeight(); y++) {
-                for (int x = 0; x < image.getWidth(); x++) {
+            Map<double[], Color> rendered = new HashMap<>();
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
                     int pixel = image.getRGB(x, y);
 
                     // Transparency
-                    if ((pixel >> 24) == 0x00) continue;
+                    if ((pixel >> 24) == 0x0) continue;
                     // 0 - 255
                     //if ((pixel & 0xff000000) >>> 24 == 0) continue;
                     // 0.0 - 1.0
@@ -1929,8 +2394,9 @@ public final class XParticle {
                     int g = color.getGreen();
                     int b = color.getBlue();
 
+                    double[] coords = {(x - centerX) * compact, (y - centerY) * compact};
                     Color bukkitColor = Color.fromRGB(r, g, b);
-                    rendered.put(new Location(null, (x - centerX) * compact, (y - centerY) * compact, 0), bukkitColor);
+                    rendered.put(coords, bukkitColor);
                 }
             }
             return rendered;
@@ -1951,7 +2417,7 @@ public final class XParticle {
      * @return the async bukkit task displaying the image.
      * @since 1.0.0
      */
-    public static BukkitTask displayRenderedImage(JavaPlugin plugin, Map<Location, Color> render, Callable<Location> location,
+    public static BukkitTask displayRenderedImage(JavaPlugin plugin, Map<double[], Color> render, Callable<Location> location,
                                                   int repeat, long period, int quality, int speed, float size) {
         return new BukkitRunnable() {
             int times = repeat;
@@ -1978,14 +2444,14 @@ public final class XParticle {
      * @param size     the size of the particle. Recommended amount is 0.8
      * @since 1.0.0
      */
-    public static void displayRenderedImage(Map<Location, Color> render, Location location, int quality, int speed, float size) {
-        for (Map.Entry<Location, Color> pixel : render.entrySet()) {
+    public static void displayRenderedImage(Map<double[], Color> render, Location location, int quality, int speed, float size) {
+        World world = location.getWorld();
+        for (Map.Entry<double[], Color> pixel : render.entrySet()) {
             Particle.DustOptions data = new Particle.DustOptions(pixel.getValue(), size);
-            Location pixelLoc = pixel.getKey();
+            double[] pixelLoc = pixel.getKey();
 
-            Location loc = new Location(location.getWorld(), location.getX() - pixelLoc.getX(),
-                    location.getY() - pixelLoc.getY(), location.getZ() - pixelLoc.getZ());
-            loc.getWorld().spawnParticle(Particle.REDSTONE, loc, quality, 0, 0, 0, speed, data);
+            Location loc = new Location(world, location.getX() - pixelLoc[0], location.getY() - pixelLoc[1], location.getZ());
+            world.spawnParticle(Particle.REDSTONE, loc, quality, 0, 0, 0, speed, data);
         }
     }
 
