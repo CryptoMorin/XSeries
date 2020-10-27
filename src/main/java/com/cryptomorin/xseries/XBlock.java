@@ -181,17 +181,15 @@ public final class XBlock {
 
     public static BlockFace getDirection(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof Directional)) return BlockFace.SELF;
-            Directional direction = (Directional) block.getBlockData();
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Directional)) return BlockFace.SELF;
+            org.bukkit.block.data.Directional direction = (org.bukkit.block.data.Directional) block.getBlockData();
             return direction.getFacing();
         }
 
         BlockState state = block.getState();
         MaterialData data = state.getData();
-        if (data instanceof org.bukkit.material.Directional) {
-            return ((org.bukkit.material.Directional) data).getFacing();
-        }
-        return null;
+        if (data instanceof org.bukkit.material.Directional) return ((org.bukkit.material.Directional) data).getFacing();
+        return BlockFace.SELF;
     }
 
     public static boolean setDirection(Block block, BlockFace facing) {

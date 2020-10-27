@@ -52,11 +52,12 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 3.1.1
+ * @version 4.0.0
  * @see XParticle
  */
-public class ParticleDisplay {
+public class ParticleDisplay implements Cloneable {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+
     @Nonnull
     public Particle particle;
     @Nullable
@@ -83,9 +84,8 @@ public class ParticleDisplay {
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
      */
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count, double offsetx, double offsety,
-                           double offsetz,
-                           double extra) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
+                           double offsetx, double offsety, double offsetz, double extra) {
         this.particle = particle;
         this.location = location;
         this.locationCaller = locationCaller;
@@ -254,12 +254,11 @@ public class ParticleDisplay {
      */
     @Nonnull
     public static Location rotate(@Nonnull Location location, double x, double y, double z, @Nullable Vector rotation) {
-        if (rotation != null) {
-            Vector rotate = new Vector(x, y, z);
-            XParticle.rotateAround(rotate, rotation.getX(), rotation.getY(), rotation.getZ());
-            return cloneLocation(location).add(rotate);
-        }
-        return cloneLocation(location).add(x, y, z);
+        if (rotation == null) return cloneLocation(location).add(x, y, z);
+
+        Vector rotate = new Vector(x, y, z);
+        XParticle.rotateAround(rotate, rotation.getX(), rotation.getY(), rotation.getZ());
+        return cloneLocation(location).add(rotate);
     }
 
     /**
@@ -310,7 +309,7 @@ public class ParticleDisplay {
      */
     @Nonnull
     public ParticleDisplay withColor(@Nonnull Color color, float size) {
-        data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), size};
+        this.data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), size};
         return this;
     }
 
@@ -351,7 +350,7 @@ public class ParticleDisplay {
             return locationCaller == null ? location : locationCaller.call();
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return location;
         }
     }
 
@@ -384,8 +383,7 @@ public class ParticleDisplay {
      */
     @Nullable
     public Location cloneLocation(double x, double y, double z) {
-        if (location == null) return null;
-        return cloneLocation(location).add(x, y, z);
+        return location == null ? null : cloneLocation(location).add(x, y, z);
     }
 
     /**
@@ -418,7 +416,7 @@ public class ParticleDisplay {
     @Nonnull
     public ParticleDisplay clone() {
         ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
-        if (rotation != null) display.rotation = rotation.clone();
+        if (rotation != null) display.rotation = new Vector(rotation.getX(), rotation.getY(), rotation.getZ());
         display.data = data;
         return display;
     }
@@ -448,8 +446,7 @@ public class ParticleDisplay {
      */
     @Nonnull
     public ParticleDisplay rotate(double x, double y, double z) {
-        rotate(new Vector(x, y, z));
-        return this;
+        return rotate(new Vector(x, y, z));
     }
 
     /**
@@ -496,33 +493,10 @@ public class ParticleDisplay {
     /**
      * Spawns the particle at the current location.
      *
-     * @see #spawn(boolean)
      * @since 2.0.1
      */
     public void spawn() {
-        spawn(getLocation(), false);
-    }
-
-    /**
-     * Spawns the particle at the current location.
-     *
-     * @param rotate if the rotation axis should be applied before spawning the particle.
-     * @see #spawn(Location, boolean)
-     * @since 3.0.0
-     */
-    public void spawn(boolean rotate) {
-        spawn(getLocation(), rotate);
-    }
-
-    /**
-     * Spawns the particle at the given location.
-     *
-     * @param location the new location to spawn the particle at, ignoring the current one.
-     * @see #spawn(Location, boolean)
-     * @since 1.0.0
-     */
-    public void spawn(@Nonnull Location location) {
-        spawn(location, false);
+        spawn(getLocation());
     }
 
     /**
@@ -532,9 +506,10 @@ public class ParticleDisplay {
      * @param location the xyz to add.
      * @since 1.0.0
      */
-    public void spawn(@Nonnull Vector location) {
+    @Nonnull
+    public Location spawn(@Nonnull Vector location) {
         Objects.requireNonNull(location, "Cannot add xyz of null vector to ParticleDisplay");
-        spawn(location.getX(), location.getY(), location.getZ());
+        return spawn(location.getX(), location.getY(), location.getZ());
     }
 
     /**
@@ -544,9 +519,7 @@ public class ParticleDisplay {
      */
     @Nonnull
     public Location spawn(double x, double y, double z) {
-        Location loc = rotate(getLocation(), x, y, z, rotation);
-        spawn(loc, false);
-        return loc;
+        return spawn(rotate(getLocation(), x, y, z, rotation));
     }
 
     /**
@@ -557,8 +530,8 @@ public class ParticleDisplay {
      * @see #spawn(double, double, double)
      * @since 2.1.0
      */
-    public void spawn(@Nonnull Location loc, boolean rotate) {
-        if (rotate) loc = rotate(getLocation(), loc.getX(), loc.getY(), loc.getZ(), rotation);
+    @Nonnull
+    public Location spawn(@Nonnull Location loc) {
         if (data != null) {
             if (data instanceof float[]) {
                 float[] datas = (float[]) data;
@@ -573,5 +546,6 @@ public class ParticleDisplay {
         } else {
             loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
         }
+        return loc;
     }
 }
