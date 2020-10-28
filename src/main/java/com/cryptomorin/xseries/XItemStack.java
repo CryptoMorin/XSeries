@@ -111,15 +111,6 @@ public final class XItemStack {
             config.set(entry, enchant.getValue());
         }
 
-        // Enchanted Books
-        if (meta instanceof EnchantmentStorageMeta) {
-            EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
-            for (Map.Entry<Enchantment, Integer> enchant : book.getStoredEnchants().entrySet()) {
-                String entry = "stored-enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
-                config.set(entry, enchant.getValue());
-            }
-        }
-
         // Flags
         if (!meta.getItemFlags().isEmpty()) {
             List<String> flags = new ArrayList<>();
@@ -140,8 +131,14 @@ public final class XItemStack {
                 config.set(path + "slot", modifier.getSlot().name());
             }
         }
-
-        if (meta instanceof SkullMeta) {
+        // Enchanted Books
+        if (meta instanceof EnchantmentStorageMeta) {
+            EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
+            for (Map.Entry<Enchantment, Integer> enchant : book.getStoredEnchants().entrySet()) {
+                String entry = "stored-enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
+                config.set(entry, enchant.getValue());
+            }
+        } else if (meta instanceof SkullMeta) {
             config.set("skull", SkullUtils.getSkinValue(meta));
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
