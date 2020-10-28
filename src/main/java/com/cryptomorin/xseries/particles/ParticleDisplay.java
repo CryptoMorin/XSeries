@@ -52,7 +52,7 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -230,10 +230,10 @@ public class ParticleDisplay implements Cloneable {
         float[] rgbs = null;
         String color = config.getString("color");
         if (color != null) {
-            String[] colors = StringUtils.split(StringUtils.deleteWhitespace(rotation), ',');
+            String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
             if (colors.length >= 3) rgbs = new float[]
                     {NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
-                            (colors.length > 3 ? NumberUtils.toFloat(colors[0]) : 1.0f)};
+                            (colors.length > 3 ? NumberUtils.toFloat(colors[3]) : 1.0f)};
         }
 
         Vector rotate = new Vector(x, y, z);
