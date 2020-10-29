@@ -101,7 +101,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 4.1.1
+ * @version 4.1.2
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -239,7 +239,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void circle(double radius, double rate, ParticleDisplay display) {
-        circle(radius, rate, 1, rate, 0, display);
+        circle(radius, radius, 1, rate, 0, display);
     }
 
     /**
@@ -273,7 +273,7 @@ public final class XParticle {
         // cos and sin methods only accept radians.
         // Converting degrees to radians is not resource intensive. It's a really simple operation.
         // However we can skip the conversion by using radians in the first place.
-        double rateDiv = Math.PI / rate;
+        double rateDiv = Math.PI / Math.abs(rate);
 
         // If no limit is specified do a full loop.
         if (limit == 0) limit = PII;
@@ -386,7 +386,7 @@ public final class XParticle {
     }
 
     /**
-     * Spawns a filled cirlce using circles.
+     * Spawns a filled circle using circles.
      *
      * @param radius     the radius of the circle.
      * @param rate       the rate of the circle points.
@@ -1121,9 +1121,9 @@ public final class XParticle {
      * @param originEnd end location of spikes.
      * @since 1.0.0
      */
-    public static void spread(JavaPlugin plugin, int amount, int rate, Location start, Location originEnd,
+    public static BukkitTask spread(JavaPlugin plugin, int amount, int rate, Location start, Location originEnd,
                               double offsetx, double offsety, double offsetz, ParticleDisplay display) {
-        new BukkitRunnable() {
+        return new BukkitRunnable() {
             int count = amount;
 
             @Override
@@ -1179,8 +1179,8 @@ public final class XParticle {
      * @see #atom(int, double, double, ParticleDisplay, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void atomic(JavaPlugin plugin, int orbits, double radius, double rate, ParticleDisplay orbit) {
-        new BukkitRunnable() {
+    public static BukkitTask atomic(JavaPlugin plugin, int orbits, double radius, double rate, ParticleDisplay orbit) {
+        return new BukkitRunnable() {
             final double rateDiv = Math.PI / rate;
             final double dist = Math.PI / orbits;
             double theta = 0;
@@ -1482,6 +1482,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void line(Location start, Location end, double rate, ParticleDisplay display) {
+        rate = Math.abs(rate);
         double x = end.getX() - start.getX();
         double y = end.getY() - start.getY();
         double z = end.getZ() - start.getZ();
@@ -2264,8 +2265,8 @@ public final class XParticle {
      * @param rate the distance between each cos/sin lines.
      * @since 1.0.0
      */
-    public static void explosionWave(JavaPlugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
-        new BukkitRunnable() {
+    public static BukkitTask explosionWave(JavaPlugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
+        return new BukkitRunnable() {
             final double addition = Math.PI * 0.1;
             final double rateDiv = Math.PI / rate;
             double times = Math.PI / 4;
