@@ -31,6 +31,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Banner;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
@@ -131,8 +132,26 @@ public final class XItemStack {
                 config.set(path + "slot", modifier.getSlot().name());
             }
         }
-        // Enchanted Books
-        if (meta instanceof EnchantmentStorageMeta) {
+        if (meta instanceof BlockStateMeta) {
+            BlockStateMeta bsm = (BlockStateMeta) item.getItemMeta();
+            BlockState state = bsm.getBlockState();
+
+            //shulker support
+            if (XMaterial.supports(11) && state instanceof ShulkerBox) {
+                ShulkerBox box = (ShulkerBox) state;
+                int i = 0;
+
+                if (!box.getInventory().isEmpty()) {
+                    for (ItemStack itemInBox : box.getInventory().getContents()) {
+                        if (itemInBox != null) {
+                            config.set("shulker." + i + ".material", "");
+                            serialize(itemInBox, config.getConfigurationSection("shulker." + i));
+                            i++;
+                        }
+                    }
+                }
+            }
+        } else if (meta instanceof EnchantmentStorageMeta) {
             EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
             for (Map.Entry<Enchantment, Integer> enchant : book.getStoredEnchants().entrySet()) {
                 String entry = "stored-enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
@@ -298,6 +317,22 @@ public final class XItemStack {
                 spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
                 spawner.update(true);
                 bsm.setBlockState(spawner);
+            } else if (XMaterial.supports(11) && state instanceof ShulkerBox) {
+
+                ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
+
+                if (shulkerSection != null) {
+                    List<ItemStack> itemList = new ArrayList<>();
+                    for (String key : shulkerSection.getKeys(false)) {
+                        ConfigurationSection it =  config.getConfigurationSection("shulker." + key);
+                        ItemStack boxItem = deserialize(it);
+                        itemList.add(boxItem);
+                    }
+                    ShulkerBox box = (ShulkerBox) state;
+                    for (ItemStack boxItem : itemList) box.getInventory().addItem(boxItem);
+                    box.update(true);
+                    bsm.setBlockState(box);
+                }
             } else if (state instanceof Banner) {
                 Banner banner = (Banner) state;
                 ConfigurationSection patterns = config.getConfigurationSection("patterns");
