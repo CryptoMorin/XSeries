@@ -25,6 +25,7 @@ import com.google.common.base.Enums;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 
@@ -43,85 +44,85 @@ import java.util.concurrent.CompletableFuture;
  * @see Biome
  */
 public enum XBiome {
-    BADLANDS(BiomeType.OVERWORLD, "MESA"),
-    BADLANDS_PLATEAU(BiomeType.OVERWORLD, "MESA_CLEAR_ROCK", "MESA_PLATEAU"),
-    BEACH(BiomeType.OVERWORLD, "BEACHES"),
-    BIRCH_FOREST(BiomeType.OVERWORLD, "BIRCH_FOREST"),
-    BIRCH_FOREST_HILLS(BiomeType.OVERWORLD, "BIRCH_FOREST_HILLS"),
-    COLD_OCEAN(BiomeType.OVERWORLD, "COLD_OCEAN"),
-    DARK_FOREST(BiomeType.OVERWORLD, "ROOFED_FOREST"),
-    DARK_FOREST_HILLS(BiomeType.OVERWORLD, "MUTATED_ROOFED_FOREST", "ROOFED_FOREST_MOUNTAINS"),
-    DEEP_COLD_OCEAN(BiomeType.OVERWORLD, "COLD_DEEP_OCEAN"),
-    DEEP_FROZEN_OCEAN(BiomeType.OVERWORLD, "FROZEN_DEEP_OCEAN"),
-    DEEP_LUKEWARM_OCEAN(BiomeType.OVERWORLD, "LUKEWARM_DEEP_OCEAN"),
-    DEEP_OCEAN(BiomeType.OVERWORLD, "DEEP_OCEAN"),
-    DEEP_WARM_OCEAN(BiomeType.OVERWORLD, "WARM_DEEP_OCEAN"),
-    DESERT(BiomeType.OVERWORLD, "DESERT"),
-    DESERT_HILLS(BiomeType.OVERWORLD, "DESERT_HILLS"),
-    DESERT_LAKES(BiomeType.OVERWORLD, "MUTATED_DESERT", "DESERT_MOUNTAINS"),
-    END_BARRENS(BiomeType.END, "SKY_ISLAND_BARREN"),
-    END_HIGHLANDS(BiomeType.END, "SKY_ISLAND_HIGH"),
-    END_MIDLANDS(BiomeType.END, "SKY_ISLAND_MEDIUM"),
-    ERODED_BADLANDS(BiomeType.OVERWORLD, "MUTATED_MESA", "MESA_BRYCE"),
-    FLOWER_FOREST(BiomeType.OVERWORLD, "MUTATED_FOREST"),
-    FOREST(BiomeType.OVERWORLD, "FOREST"),
-    FROZEN_OCEAN(BiomeType.OVERWORLD, "FROZEN_OCEAN"),
-    FROZEN_RIVER(BiomeType.OVERWORLD, "FROZEN_RIVER"),
-    GIANT_SPRUCE_TAIGA(BiomeType.OVERWORLD, "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
-    GIANT_SPRUCE_TAIGA_HILLS(BiomeType.OVERWORLD, "MUTATED_REDWOOD_TAIGA_HILLS", "MEGA_SPRUCE_TAIGA_HILLS"),
-    GIANT_TREE_TAIGA(BiomeType.OVERWORLD, "REDWOOD_TAIGA", "MEGA_TAIGA"),
-    GIANT_TREE_TAIGA_HILLS(BiomeType.OVERWORLD, "REDWOOD_TAIGA_HILLS", "MEGA_TAIGA_HILLS"),
-    GRAVELLY_MOUNTAINS(BiomeType.OVERWORLD, "MUTATED_EXTREME_HILLS", "EXTREME_HILLS_MOUNTAINS"),
-    ICE_SPIKES(BiomeType.OVERWORLD, "MUTATED_ICE_FLATS", "ICE_PLAINS_SPIKES"),
-    JUNGLE(BiomeType.OVERWORLD, "JUNGLE"),
-    JUNGLE_EDGE(BiomeType.OVERWORLD, "JUNGLE_EDGE"),
-    JUNGLE_HILLS(BiomeType.OVERWORLD, "JUNGLE_HILLS"),
-    LUKEWARM_OCEAN(BiomeType.OVERWORLD, "LUKEWARM_OCEAN"),
-    MODIFIED_BADLANDS_PLATEAU(BiomeType.OVERWORLD, "MUTATED_MESA_CLEAR_ROCK", "MESA_PLATEAU"),
-    MODIFIED_GRAVELLY_MOUNTAINS(BiomeType.OVERWORLD, "MUTATED_EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_MOUNTAINS"),
-    MODIFIED_JUNGLE(BiomeType.OVERWORLD, "MUTATED_JUNGLE", "JUNGLE_MOUNTAINS"),
-    MODIFIED_JUNGLE_EDGE(BiomeType.OVERWORLD, "MUTATED_JUNGLE_EDGE", "JUNGLE_EDGE_MOUNTAINS"),
-    MODIFIED_WOODED_BADLANDS_PLATEAU(BiomeType.OVERWORLD, "MUTATED_MESA_ROCK", "MESA_PLATEAU_FOREST_MOUNTAINS"),
-    MOUNTAINS(BiomeType.OVERWORLD, "EXTREME_HILLS"),
-    MOUNTAIN_EDGE(BiomeType.OVERWORLD, "SMALLER_EXTREME_HILLS"),
-    MUSHROOM_FIELDS(BiomeType.OVERWORLD, "MUSHROOM_ISLAND"),
-    MUSHROOM_FIELD_SHORE(BiomeType.OVERWORLD, "MUSHROOM_ISLAND_SHORE", "MUSHROOM_SHORE"),
-    SOUL_SAND_VALLEY(BiomeType.NETHER),
-    CRIMSON_FOREST(BiomeType.NETHER),
-    WARPED_FOREST(BiomeType.NETHER),
-    BASALT_DELTAS(BiomeType.NETHER),
-    NETHER_WASTES(BiomeType.NETHER, "NETHER", "HELL"),
-    OCEAN(BiomeType.OVERWORLD, "OCEAN"),
-    PLAINS(BiomeType.OVERWORLD, "PLAINS"),
-    RIVER(BiomeType.OVERWORLD, "RIVER"),
-    SAVANNA(BiomeType.OVERWORLD, "SAVANNA"),
-    SAVANNA_PLATEAU(BiomeType.OVERWORLD, "SAVANNA_ROCK", "SAVANNA_PLATEAU"),
-    SHATTERED_SAVANNA(BiomeType.OVERWORLD, "MUTATED_SAVANNA", "SAVANNA_MOUNTAINS"),
-    SHATTERED_SAVANNA_PLATEAU(BiomeType.OVERWORLD, "MUTATED_SAVANNA_ROCK", "SAVANNA_PLATEAU_MOUNTAINS"),
-    SMALL_END_ISLANDS(BiomeType.END, "SKY_ISLAND_LOW"),
-    SNOWY_BEACH(BiomeType.OVERWORLD, "COLD_BEACH"),
-    SNOWY_MOUNTAINS(BiomeType.OVERWORLD, "ICE_MOUNTAINS"),
-    SNOWY_TAIGA(BiomeType.OVERWORLD, "TAIGA_COLD", "COLD_TAIGA"),
-    SNOWY_TAIGA_HILLS(BiomeType.OVERWORLD, "TAIGA_COLD_HILLS", "COLD_TAIGA_HILLS"),
-    SNOWY_TAIGA_MOUNTAINS(BiomeType.OVERWORLD, "MUTATED_TAIGA_COLD", "COLD_TAIGA_MOUNTAINS"),
-    SNOWY_TUNDRA(BiomeType.OVERWORLD, "ICE_FLATS", "ICE_PLAINS"),
-    STONE_SHORE(BiomeType.OVERWORLD, "STONE_BEACH"),
-    SUNFLOWER_PLAINS(BiomeType.OVERWORLD, "MUTATED_PLAINS"),
-    SWAMP(BiomeType.OVERWORLD, "SWAMPLAND"),
-    SWAMP_HILLS(BiomeType.OVERWORLD, "MUTATED_SWAMPLAND", "SWAMPLAND_MOUNTAINS"),
-    TAIGA(BiomeType.OVERWORLD, "TAIGA"),
-    TAIGA_HILLS(BiomeType.OVERWORLD, "TAIGA_HILLS"),
-    TAIGA_MOUNTAINS(BiomeType.OVERWORLD, "MUTATED_TAIGA"),
-    TALL_BIRCH_FOREST(BiomeType.OVERWORLD, "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS"),
-    TALL_BIRCH_HILLS(BiomeType.OVERWORLD, "MUTATED_BIRCH_FOREST_HILLS", "MESA_PLATEAU_FOREST_MOUNTAINS"),
-    THE_END(BiomeType.END, "SKY"),
-    THE_VOID(BiomeType.OVERWORLD, "VOID"),
-    WARM_OCEAN(BiomeType.OVERWORLD, "WARM_OCEAN"),
-    WOODED_BADLANDS_PLATEAU(BiomeType.OVERWORLD, "MESA_ROCK", "MESA_PLATEAU_FOREST"),
-    WOODED_HILLS(BiomeType.OVERWORLD, "FOREST_HILLS"),
-    WOODED_MOUNTAINS(BiomeType.OVERWORLD, "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
-    BAMBOO_JUNGLE(BiomeType.OVERWORLD),
-    BAMBOO_JUNGLE_HILLS(BiomeType.OVERWORLD);
+    BADLANDS(World.Environment.NORMAL, "MESA"),
+    BADLANDS_PLATEAU(World.Environment.NORMAL, "MESA_CLEAR_ROCK", "MESA_PLATEAU"),
+    BEACH(World.Environment.NORMAL, "BEACHES"),
+    BIRCH_FOREST(World.Environment.NORMAL, "BIRCH_FOREST"),
+    BIRCH_FOREST_HILLS(World.Environment.NORMAL, "BIRCH_FOREST_HILLS"),
+    COLD_OCEAN(World.Environment.NORMAL, "COLD_OCEAN"),
+    DARK_FOREST(World.Environment.NORMAL, "ROOFED_FOREST"),
+    DARK_FOREST_HILLS(World.Environment.NORMAL, "MUTATED_ROOFED_FOREST", "ROOFED_FOREST_MOUNTAINS"),
+    DEEP_COLD_OCEAN(World.Environment.NORMAL, "COLD_DEEP_OCEAN"),
+    DEEP_FROZEN_OCEAN(World.Environment.NORMAL, "FROZEN_DEEP_OCEAN"),
+    DEEP_LUKEWARM_OCEAN(World.Environment.NORMAL, "LUKEWARM_DEEP_OCEAN"),
+    DEEP_OCEAN(World.Environment.NORMAL, "DEEP_OCEAN"),
+    DEEP_WARM_OCEAN(World.Environment.NORMAL, "WARM_DEEP_OCEAN"),
+    DESERT(World.Environment.NORMAL, "DESERT"),
+    DESERT_HILLS(World.Environment.NORMAL, "DESERT_HILLS"),
+    DESERT_LAKES(World.Environment.NORMAL, "MUTATED_DESERT", "DESERT_MOUNTAINS"),
+    END_BARRENS(World.Environment.THE_END, "SKY_ISLAND_BARREN"),
+    END_HIGHLANDS(World.Environment.THE_END, "SKY_ISLAND_HIGH"),
+    END_MIDLANDS(World.Environment.THE_END, "SKY_ISLAND_MEDIUM"),
+    ERODED_BADLANDS(World.Environment.NORMAL, "MUTATED_MESA", "MESA_BRYCE"),
+    FLOWER_FOREST(World.Environment.NORMAL, "MUTATED_FOREST"),
+    FOREST(World.Environment.NORMAL, "FOREST"),
+    FROZEN_OCEAN(World.Environment.NORMAL, "FROZEN_OCEAN"),
+    FROZEN_RIVER(World.Environment.NORMAL, "FROZEN_RIVER"),
+    GIANT_SPRUCE_TAIGA(World.Environment.NORMAL, "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
+    GIANT_SPRUCE_TAIGA_HILLS(World.Environment.NORMAL, "MUTATED_REDWOOD_TAIGA_HILLS", "MEGA_SPRUCE_TAIGA_HILLS"),
+    GIANT_TREE_TAIGA(World.Environment.NORMAL, "REDWOOD_TAIGA", "MEGA_TAIGA"),
+    GIANT_TREE_TAIGA_HILLS(World.Environment.NORMAL, "REDWOOD_TAIGA_HILLS", "MEGA_TAIGA_HILLS"),
+    GRAVELLY_MOUNTAINS(World.Environment.NORMAL, "MUTATED_EXTREME_HILLS", "EXTREME_HILLS_MOUNTAINS"),
+    ICE_SPIKES(World.Environment.NORMAL, "MUTATED_ICE_FLATS", "ICE_PLAINS_SPIKES"),
+    JUNGLE(World.Environment.NORMAL, "JUNGLE"),
+    JUNGLE_EDGE(World.Environment.NORMAL, "JUNGLE_EDGE"),
+    JUNGLE_HILLS(World.Environment.NORMAL, "JUNGLE_HILLS"),
+    LUKEWARM_OCEAN(World.Environment.NORMAL, "LUKEWARM_OCEAN"),
+    MODIFIED_BADLANDS_PLATEAU(World.Environment.NORMAL, "MUTATED_MESA_CLEAR_ROCK", "MESA_PLATEAU"),
+    MODIFIED_GRAVELLY_MOUNTAINS(World.Environment.NORMAL, "MUTATED_EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_MOUNTAINS"),
+    MODIFIED_JUNGLE(World.Environment.NORMAL, "MUTATED_JUNGLE", "JUNGLE_MOUNTAINS"),
+    MODIFIED_JUNGLE_EDGE(World.Environment.NORMAL, "MUTATED_JUNGLE_EDGE", "JUNGLE_EDGE_MOUNTAINS"),
+    MODIFIED_WOODED_BADLANDS_PLATEAU(World.Environment.NORMAL, "MUTATED_MESA_ROCK", "MESA_PLATEAU_FOREST_MOUNTAINS"),
+    MOUNTAINS(World.Environment.NORMAL, "EXTREME_HILLS"),
+    MOUNTAIN_EDGE(World.Environment.NORMAL, "SMALLER_EXTREME_HILLS"),
+    MUSHROOM_FIELDS(World.Environment.NORMAL, "MUSHROOM_ISLAND"),
+    MUSHROOM_FIELD_SHORE(World.Environment.NORMAL, "MUSHROOM_ISLAND_SHORE", "MUSHROOM_SHORE"),
+    SOUL_SAND_VALLEY(World.Environment.NETHER),
+    CRIMSON_FOREST(World.Environment.NETHER),
+    WARPED_FOREST(World.Environment.NETHER),
+    BASALT_DELTAS(World.Environment.NETHER),
+    NETHER_WASTES(World.Environment.NETHER, "NETHER", "HELL"),
+    OCEAN(World.Environment.NORMAL, "OCEAN"),
+    PLAINS(World.Environment.NORMAL, "PLAINS"),
+    RIVER(World.Environment.NORMAL, "RIVER"),
+    SAVANNA(World.Environment.NORMAL, "SAVANNA"),
+    SAVANNA_PLATEAU(World.Environment.NORMAL, "SAVANNA_ROCK", "SAVANNA_PLATEAU"),
+    SHATTERED_SAVANNA(World.Environment.NORMAL, "MUTATED_SAVANNA", "SAVANNA_MOUNTAINS"),
+    SHATTERED_SAVANNA_PLATEAU(World.Environment.NORMAL, "MUTATED_SAVANNA_ROCK", "SAVANNA_PLATEAU_MOUNTAINS"),
+    SMALL_END_ISLANDS(World.Environment.THE_END, "SKY_ISLAND_LOW"),
+    SNOWY_BEACH(World.Environment.NORMAL, "COLD_BEACH"),
+    SNOWY_MOUNTAINS(World.Environment.NORMAL, "ICE_MOUNTAINS"),
+    SNOWY_TAIGA(World.Environment.NORMAL, "TAIGA_COLD", "COLD_TAIGA"),
+    SNOWY_TAIGA_HILLS(World.Environment.NORMAL, "TAIGA_COLD_HILLS", "COLD_TAIGA_HILLS"),
+    SNOWY_TAIGA_MOUNTAINS(World.Environment.NORMAL, "MUTATED_TAIGA_COLD", "COLD_TAIGA_MOUNTAINS"),
+    SNOWY_TUNDRA(World.Environment.NORMAL, "ICE_FLATS", "ICE_PLAINS"),
+    STONE_SHORE(World.Environment.NORMAL, "STONE_BEACH"),
+    SUNFLOWER_PLAINS(World.Environment.NORMAL, "MUTATED_PLAINS"),
+    SWAMP(World.Environment.NORMAL, "SWAMPLAND"),
+    SWAMP_HILLS(World.Environment.NORMAL, "MUTATED_SWAMPLAND", "SWAMPLAND_MOUNTAINS"),
+    TAIGA(World.Environment.NORMAL, "TAIGA"),
+    TAIGA_HILLS(World.Environment.NORMAL, "TAIGA_HILLS"),
+    TAIGA_MOUNTAINS(World.Environment.NORMAL, "MUTATED_TAIGA"),
+    TALL_BIRCH_FOREST(World.Environment.NORMAL, "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS"),
+    TALL_BIRCH_HILLS(World.Environment.NORMAL, "MUTATED_BIRCH_FOREST_HILLS", "MESA_PLATEAU_FOREST_MOUNTAINS"),
+    THE_END(World.Environment.THE_END, "SKY"),
+    THE_VOID(World.Environment.NORMAL, "VOID"),
+    WARM_OCEAN(World.Environment.NORMAL, "WARM_OCEAN"),
+    WOODED_BADLANDS_PLATEAU(World.Environment.NORMAL, "MESA_ROCK", "MESA_PLATEAU_FOREST"),
+    WOODED_HILLS(World.Environment.NORMAL, "FOREST_HILLS"),
+    WOODED_MOUNTAINS(World.Environment.NORMAL, "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
+    BAMBOO_JUNGLE(World.Environment.NORMAL),
+    BAMBOO_JUNGLE_HILLS(World.Environment.NORMAL);
 
     /**
      * A cached unmodifiable list of {@link XBiome#values()} to avoid allocating memory for
@@ -134,9 +135,9 @@ public enum XBiome {
     @Nullable
     private final Biome biome;
     @Nonnull
-    private final BiomeType biomeType;
+    private final World.Environment biomeType;
 
-    XBiome(@Nonnull BiomeType biometype, @Nonnull String... legacies) {
+    XBiome(@Nonnull World.Environment biometype, @Nonnull String... legacies) {
         this.biomeType = biometype;
         Data.NAMES.put(this.name(), this);
         for (String legacy : legacies) Data.NAMES.put(legacy, this);
@@ -152,7 +153,7 @@ public enum XBiome {
     }
 
     @Nonnull
-    public BiomeType getBiomeType() {
+    public World.Environment getBiomeType() {
         return biomeType;
     }
 
@@ -176,8 +177,7 @@ public enum XBiome {
         for (int i = 0; i < len; i++) {
             char ch = name.charAt(i);
 
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
-                appendUnderline = true;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
             else {
                 if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
                     if (appendUnderline) {
@@ -298,9 +298,5 @@ public enum XBiome {
      */
     private static final class Data {
         private static final Map<String, XBiome> NAMES = new HashMap<>();
-    }
-
-    private enum BiomeType {
-        OVERWORLD, NETHER, END
     }
 }
