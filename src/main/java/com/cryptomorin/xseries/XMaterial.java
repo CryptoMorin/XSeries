@@ -1642,13 +1642,13 @@ public enum XMaterial {
      * @see #matchXMaterial(ItemStack)
      * @since 2.0.0
      * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
-     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} yourself.
+     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} cache yourself.
+     * This method obviously doesn't work for 1.13+ and will not be supported. This is only here for debugging purposes.
      */
     @Nonnull
     @Deprecated
     public static Optional<XMaterial> matchXMaterial(int id, byte data) {
         if (id < 0 || id > MAX_ID || data < 0) return Optional.empty();
-
         for (XMaterial materials : VALUES) {
             if (materials.data == data && materials.getId() == id) return Optional.of(materials);
         }
