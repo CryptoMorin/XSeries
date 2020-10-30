@@ -190,16 +190,20 @@ public final class XItemStack {
             int i = 0;
 
             for (FireworkEffect fw : firework.getEffects()) {
+                config.set("firework." + i + ".type", fw.getType().name());
                 ConfigurationSection fwc = config.getConfigurationSection("firework." + i);
-                fwc.set("type", fw.getType().name());
+                fwc.set("flicker", fw.hasFlicker());
+                fwc.set("trail", fw.hasTrail());
 
-                List<String> colors = new ArrayList<>();
-                for (Color color : fw.getColors()) colors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
-                fwc.set("colors", colors);
+                List<String> baseColors = new ArrayList<>();
+                List<String> fadeColors = new ArrayList<>();
 
-                colors.clear();
-                for (Color color : fw.getFadeColors()) colors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
-                fwc.set("fade-colors", colors);
+                for (Color color : fw.getColors()) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                fwc.set("base-colors", baseColors);
+
+                for (Color color : fw.getFadeColors()) fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                fwc.set("fade-colors", fadeColors);
+                i++;
             }
             //} else if (meta instanceof MapMeta) {
         } else if (XMaterial.supports(14)) {
