@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 3.0.1
+ * @version 4.0.0
  * @see Biome
  */
 public enum XBiome {
@@ -131,14 +131,14 @@ public enum XBiome {
      * @since 1.0.0
      */
     public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-    private static final boolean supports = XMaterial.supports(16);
+    private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16);
     @Nullable
     private final Biome biome;
     @Nonnull
-    private final World.Environment biomeType;
+    private final World.Environment environment;
 
-    XBiome(@Nonnull World.Environment biometype, @Nonnull String... legacies) {
-        this.biomeType = biometype;
+    XBiome(@Nonnull World.Environment environment, @Nonnull String... legacies) {
+        this.environment = environment;
         Data.NAMES.put(this.name(), this);
         for (String legacy : legacies) Data.NAMES.put(legacy, this);
 
@@ -150,11 +150,6 @@ public enum XBiome {
             }
         }
         this.biome = biome;
-    }
-
-    @Nonnull
-    public World.Environment getBiomeType() {
-        return biomeType;
     }
 
     /**
@@ -219,6 +214,17 @@ public enum XBiome {
     }
 
     /**
+     * Gets the enviroment (world type) which this biome originally belongs to.
+     *
+     * @return the enviroment that this biome belongs to.
+     * @since 4.0.0
+     */
+    @Nonnull
+    public World.Environment getEnvironment() {
+        return environment;
+    }
+
+    /**
      * Parses the XBiome as a {@link Biome} based on the server version.
      *
      * @return the vanilla biome.
@@ -252,7 +258,7 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (supports ? 256 : 1); y += 4) {
+                for (int y = 0; y < (HORIZONTAL_SUPPORT ? 256 : 1); y += 4) {
                     for (int z = 0; z < 16; z++) {
                         Block block = chunk.getBlock(x, y, z);
                         if (block.getBiome() != biome) block.setBiome(biome);
@@ -287,7 +293,7 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (supports ? 256 : 1); y += 4) {
+                for (int y = 0; y < (HORIZONTAL_SUPPORT ? 256 : 1); y += 4) {
                     for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
                         Block block = new Location(start.getWorld(), x, y, z).getBlock();
                         if (block.getBiome() != biome) block.setBiome(biome);

@@ -137,18 +137,14 @@ public final class XItemStack {
             BlockStateMeta bsm = (BlockStateMeta) item.getItemMeta();
             BlockState state = bsm.getBlockState();
 
-            //shulker support
             if (XMaterial.supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
-                int i = 0;
-
                 if (!box.getInventory().isEmpty()) {
+                    int i = 0;
+                    ConfigurationSection shulker = config.createSection("shulker");
                     for (ItemStack itemInBox : box.getInventory().getContents()) {
-                        if (itemInBox != null) {
-                            config.set("shulker." + i + ".material", "");
-                            serialize(itemInBox, config.getConfigurationSection("shulker." + i));
-                            i++;
-                        }
+                        if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
+                        i++;
                     }
                 }
             } else if (state instanceof CreatureSpawner) {
@@ -325,22 +321,18 @@ public final class XItemStack {
                 spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
                 spawner.update(true);
                 bsm.setBlockState(spawner);
-
             } else if (XMaterial.supports(11) && state instanceof ShulkerBox) {
-                    ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
-
-                    if (shulkerSection != null) {
-                        List<ItemStack> itemList = new ArrayList<>();
-                        for (String key : shulkerSection.getKeys(false)) {
-                            ConfigurationSection it =  config.getConfigurationSection("shulker." + key);
-                            ItemStack boxItem = deserialize(it);
-                            itemList.add(boxItem);
-                        }
-                        ShulkerBox box = (ShulkerBox) state;
-                        for (ItemStack boxItem : itemList) box.getInventory().addItem(boxItem);
-                        box.update(true);
-                        bsm.setBlockState(box);
+                ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
+                if (shulkerSection != null) {
+                    ShulkerBox box = (ShulkerBox) state;
+                    for (String key : shulkerSection.getKeys(false)) {
+                        ItemStack boxItem = deserialize(shulkerSection.getConfigurationSection(key));
+                        int slot = NumberUtils.toInt(key, 0);
+                        box.getInventory().setItem(slot, boxItem);
                     }
+                    box.update(true);
+                    bsm.setBlockState(box);
+                }
             } else if (state instanceof Banner) {
                 Banner banner = (Banner) state;
                 ConfigurationSection patterns = config.getConfigurationSection("patterns");
