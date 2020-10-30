@@ -1107,7 +1107,7 @@ public enum XMaterial {
      * Sugar Cane is a known material in pre-1.13
      * Use XBlock when comparing block types.
      */
-    SUGAR_CANE("SUGAR_CANE_BLOCK"),
+    SUGAR_CANE("SUGAR_CANE_BLOCK", "REEDS"),
     SUNFLOWER("DOUBLE_PLANT"),
     SUSPICIOUS_STEW(0, 14, "MUSHROOM_STEW", null),
     SWEET_BERRIES(14),
