@@ -175,9 +175,7 @@ public enum XBiome {
 
         for (int i = 0; i < len; i++) {
             char ch = name.charAt(i);
-
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
-                appendUnderline = true;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
             else {
                 if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
                     if (appendUnderline) {
@@ -250,9 +248,14 @@ public enum XBiome {
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
             for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    Block block = chunk.getBlock(x, 0, z);
-                    if (block.getBiome() != biome) block.setBiome(biome);
+                // y loop for 1.16+ support (vertical biomes).
+                // As of now increasing it by 4 seems to work.
+                // This should be the minimal size of the vertical biomes.
+                for (int y = 0; y < (supports ? 256 : 1); y += 4) {
+                    for (int z = 0; z < 16; z++) {
+                        Block block = chunk.getBlock(x, y, z);
+                        if (block.getBiome() != biome) block.setBiome(biome);
+                    }
                 }
             }
         }).exceptionally((result) -> {
@@ -280,9 +283,14 @@ public enum XBiome {
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
             for (int x = start.getBlockX(); x < end.getBlockX(); x++) {
-                for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
-                    Block block = new Location(start.getWorld(), x, 0, z).getBlock();
-                    if (block.getBiome() != biome) block.setBiome(biome);
+                // y loop for 1.16+ support (vertical biomes).
+                // As of now increasing it by 4 seems to work.
+                // This should be the minimal size of the vertical biomes.
+                for (int y = 0; y < (supports ? 256 : 1); y += 4) {
+                    for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
+                        Block block = new Location(start.getWorld(), x, y, z).getBlock();
+                        if (block.getBiome() != biome) block.setBiome(biome);
+                    }
                 }
             }
         }).exceptionally((result) -> {
