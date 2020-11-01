@@ -44,6 +44,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -171,17 +172,27 @@ public final class XItemStack {
             Color color = leather.getColor();
             config.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
         } else if (meta instanceof PotionMeta) {
-            PotionMeta potion = (PotionMeta) meta;
-            List<String> effects = new ArrayList<>();
-            for (PotionEffect effect : potion.getCustomEffects())
-                effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+            if (XMaterial.supports(9)) {
 
-            config.set("effects", effects);
-            PotionData potionData = potion.getBasePotionData();
-            config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
+                PotionMeta potion = (PotionMeta) meta;
+                List<String> effects = new ArrayList<>();
+                for (PotionEffect effect : potion.getCustomEffects())
+                    effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
 
-            if (potion.hasColor()) {
-                config.set("color", potion.getColor().asRGB());
+                config.set("custom-effects", effects);
+                PotionData potionData = potion.getBasePotionData();
+                config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
+
+                if (potion.hasColor()) config.set("color", potion.getColor().asRGB());
+
+            } else {
+
+                //check for water bottles in 1.8
+                if (item.getDurability() != 0) {
+                    Potion potion = Potion.fromItemStack(item);
+                    config.set("level", potion.getLevel());
+                    config.set("base-effect", potion.getType().name() + ", " + potion.hasExtendedDuration() + ", " + potion.isSplash());
+                }
             }
         } else if (meta instanceof FireworkMeta) {
             FireworkMeta firework = (FireworkMeta) meta;
@@ -292,25 +303,41 @@ public final class XItemStack {
                 leather.setColor(parseColor(colorStr));
             }
         } else if (meta instanceof PotionMeta) {
-            PotionMeta potion = (PotionMeta) meta;
-            for (String effects : config.getStringList("effects")) {
-                PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
-                potion.addCustomEffect(effect, true);
-            }
+            if (XMaterial.supports(9)) {
+                PotionMeta potion = (PotionMeta) meta;
 
-            String baseEffect = config.getString("base-effect");
-            if (!Strings.isNullOrEmpty(baseEffect)) {
-                String[] split = StringUtils.split(baseEffect, ',');
-                PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.UNCRAFTABLE);
-                boolean extended = split.length != 1 && Boolean.parseBoolean(split[1].trim());
-                boolean upgraded = split.length > 2 && Boolean.parseBoolean(split[2].trim());
+                for (String effects : config.getStringList("custom-effects")) {
+                    PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
+                    potion.addCustomEffect(effect, true);
+                }
 
-                PotionData potionData = new PotionData(type, extended, upgraded);
-                potion.setBasePotionData(potionData);
-            }
+                String baseEffect = config.getString("base-effect");
+                if (!Strings.isNullOrEmpty(baseEffect)) {
+                    String[] split = StringUtils.split(baseEffect, ',');
+                    PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.UNCRAFTABLE);
+                    boolean extended = split.length != 1 && Boolean.parseBoolean(split[1].trim());
+                    boolean upgraded = split.length > 2 && Boolean.parseBoolean(split[2].trim());
+                    PotionData potionData = new PotionData(type, extended, upgraded);
+                    potion.setBasePotionData(potionData);
+                }
 
-            if (config.contains("color")) {
-                potion.setColor(Color.fromRGB(config.getInt("color")));
+                if (config.contains("color")) {
+                    potion.setColor(Color.fromRGB(config.getInt("color")));
+                }
+            } else {
+
+                if (config.contains("level")) {
+                    int level = config.getInt("level");
+                    String baseEffect = config.getString("base-effect");
+                    if (!Strings.isNullOrEmpty(baseEffect)) {
+                        String[] split = StringUtils.split(baseEffect, ',');
+                        PotionType type = Enums.getIfPresent(PotionType.class, split[0].trim().toUpperCase(Locale.ENGLISH)).or(PotionType.SLOWNESS);
+                        boolean extended = split.length != 1 && Boolean.parseBoolean(split[1].trim());
+                        boolean splash = split.length > 2 && Boolean.parseBoolean(split[2].trim());
+
+                        item = (new Potion(type, level, splash, extended)).toItemStack(1);
+                    }
+                }
             }
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
