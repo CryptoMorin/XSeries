@@ -1122,7 +1122,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static BukkitTask spread(JavaPlugin plugin, int amount, int rate, Location start, Location originEnd,
-                              double offsetx, double offsety, double offsetz, ParticleDisplay display) {
+                                    double offsetx, double offsety, double offsetz, ParticleDisplay display) {
         return new BukkitRunnable() {
             int count = amount;
 

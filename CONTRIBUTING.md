@@ -3,7 +3,7 @@ Even if you changed a single line that has a good impact on the performance, it'
 
 Some changes may need a discussion about quality and usage.
 Make sure to explain your changes clearly when creating a pull request.
-Most of the pull requests are merged directly into the master branch.
+All the pull requests are merged directly into the master branch.
 
 This project imports the full Spigot JAR from an unofficial repo as SkullUtils uses `com.mojang.authlib`
 It's also used for JavaX nullability annotations.
@@ -23,6 +23,6 @@ Using extra methods from Spigot is a plus as long as it supports Bukkit, but do 
 * Each utility should be independent except the ones that are not intended.
 Functions such as the common ISFLAT boolean check should not depend on XMaterial's isNewVersion() except
 XBlock which is intended, since it already uses XMaterial for materials. Same for XParticle and ParticleDisplay.
-* Do not attempt to support older versions than 1.8 even if it can be fixed with a single line.
-* Do not use one liner if statements **if** it doesn't fit the screen.
+* Do not attempt to support versions older than 1.8 even if it can be fixed with a single line.
+* Do not use one liner if statements if it doesn't fit the screen.
 * Try to avoid streams. Mostly for frequently used methods.

@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 8.2.0
+ * @version 9.0.0
  * @see Material
  * @see ItemStack
  */
@@ -105,9 +105,9 @@ public enum XMaterial {
     ATTACHED_PUMPKIN_STEM(7, "PUMPKIN_STEM"),
     AZURE_BLUET(3, "RED_ROSE"),
     BAKED_POTATO,
-    BAMBOO(0, 14, "SUGAR_CANE", null),
+    BAMBOO(0, 14),
     BAMBOO_SAPLING(14),
-    BARREL(0, 14, "CHEST", null),
+    BARREL(0, 14),
     BARRIER,
     BASALT(16),
     BAT_SPAWN_EGG(65, "MONSTER_EGG"),
@@ -152,14 +152,14 @@ public enum XMaterial {
     BLACK_CONCRETE(15, "CONCRETE"),
     BLACK_CONCRETE_POWDER(15, "CONCRETE_POWDER"),
     BLACK_DYE(0, 14, "INK_SACK", "INK_SAC"),
-    BLACK_GLAZED_TERRACOTTA(15, 12, "STAINED_CLAY", null),
+    BLACK_GLAZED_TERRACOTTA(15, 12),
     BLACK_SHULKER_BOX,
     BLACK_STAINED_GLASS(15, "STAINED_GLASS"),
     BLACK_STAINED_GLASS_PANE(15, "STAINED_GLASS_PANE"),
     BLACK_TERRACOTTA(15, "STAINED_CLAY"),
     BLACK_WALL_BANNER("WALL_BANNER"),
     BLACK_WOOL(15, "WOOL"),
-    BLAST_FURNACE(0, 14, "FURNACE", null),
+    BLAST_FURNACE(0, 14),
     BLAZE_POWDER,
     BLAZE_ROD,
     BLAZE_SPAWN_EGG(61, "MONSTER_EGG"),
@@ -169,8 +169,8 @@ public enum XMaterial {
     BLUE_CONCRETE(11, "CONCRETE"),
     BLUE_CONCRETE_POWDER(11, "CONCRETE_POWDER"),
     BLUE_DYE(4, "INK_SACK", "LAPIS_LAZULI"),
-    BLUE_GLAZED_TERRACOTTA(11, 12, "STAINED_CLAY", null),
-    BLUE_ICE(0, 13, "PACKED_ICE", null),
+    BLUE_GLAZED_TERRACOTTA(11, 12),
+    BLUE_ICE(0, 13),
     BLUE_ORCHID(1, "RED_ROSE"),
     BLUE_SHULKER_BOX,
     BLUE_STAINED_GLASS(11, "STAINED_GLASS"),
@@ -202,7 +202,7 @@ public enum XMaterial {
     BROWN_CONCRETE(12, "CONCRETE"),
     BROWN_CONCRETE_POWDER(12, "CONCRETE_POWDER"),
     BROWN_DYE(3, "INK_SACK", "DYE", "COCOA_BEANS"),
-    BROWN_GLAZED_TERRACOTTA(12, 12, "STAINED_CLAY", null),
+    BROWN_GLAZED_TERRACOTTA(12, 12),
     BROWN_MUSHROOM,
     BROWN_MUSHROOM_BLOCK("BROWN_MUSHROOM", "HUGE_MUSHROOM_1"),
     BROWN_SHULKER_BOX,
@@ -223,8 +223,8 @@ public enum XMaterial {
     CARROT("CARROT_ITEM"),
     CARROTS("CARROT"),
     CARROT_ON_A_STICK("CARROT_STICK"),
-    CARTOGRAPHY_TABLE(0, 14, "CRAFTING_TABLE", null),
-    CARVED_PUMPKIN(1, 13, "PUMPKIN", null),
+    CARTOGRAPHY_TABLE(0, 14),
+    CARVED_PUMPKIN(1, 13),
     CAT_SPAWN_EGG,
     CAULDRON("CAULDRON", "CAULDRON_ITEM"),
     /**
@@ -270,8 +270,8 @@ public enum XMaterial {
     COCOA(15),
     COCOA_BEANS(3, "INK_SACK"),
     COD("RAW_FISH"),
-    COD_BUCKET(0, 13, "BUCKET", "WATER_BUCKET", null),
-    COD_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    COD_BUCKET(0, 13),
+    COD_SPAWN_EGG(0, 13),
     COMMAND_BLOCK("COMMAND"),
     COMMAND_BLOCK_MINECART("COMMAND_MINECART"),
     /**
@@ -283,7 +283,7 @@ public enum XMaterial {
      */
     COMPARATOR("REDSTONE_COMPARATOR_OFF", "REDSTONE_COMPARATOR_ON", "REDSTONE_COMPARATOR"),
     COMPASS,
-    COMPOSTER(0, 14, "CAULDRON", null),
+    COMPOSTER(0, 14),
     CONDUIT(0, 13, "BEACON"),
     COOKED_BEEF,
     COOKED_CHICKEN,
@@ -293,7 +293,7 @@ public enum XMaterial {
     COOKED_RABBIT,
     COOKED_SALMON(1, "COOKED_FISH"),
     COOKIE,
-    CORNFLOWER(4, 14, "BLUE_DYE", null),
+    CORNFLOWER(4, 14),
     COW_SPAWN_EGG(92, "MONSTER_EGG"),
     CRACKED_NETHER_BRICKS(2, "NETHER_BRICKS"),
     CRACKED_POLISHED_BLACKSTONE_BRICKS(0, 16, "POLISHED_BLACKSTONE_BRICKS"),
@@ -331,7 +331,7 @@ public enum XMaterial {
     CYAN_CONCRETE(9, "CONCRETE"),
     CYAN_CONCRETE_POWDER(9, "CONCRETE_POWDER"),
     CYAN_DYE(6, "INK_SACK"),
-    CYAN_GLAZED_TERRACOTTA(9, 12, "STAINED_CLAY", null),
+    CYAN_GLAZED_TERRACOTTA(9, 12),
     CYAN_SHULKER_BOX,
     CYAN_STAINED_GLASS(9, "STAINED_GLASS"),
     CYAN_STAINED_GLASS_PANE(9, "STAINED_GLASS_PANE"),
@@ -381,7 +381,7 @@ public enum XMaterial {
     DEAD_TUBE_CORAL_BLOCK(13),
     DEAD_TUBE_CORAL_FAN(13),
     DEAD_TUBE_CORAL_WALL_FAN(13),
-    DEBUG_STICK(0, 13, "STICK", null),
+    DEBUG_STICK(0, 13),
     DETECTOR_RAIL,
     DIAMOND,
     DIAMOND_AXE,
@@ -402,7 +402,7 @@ public enum XMaterial {
     DIORITE_WALL,
     DIRT,
     DISPENSER,
-    DOLPHIN_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    DOLPHIN_SPAWN_EGG(0, 13),
     DONKEY_SPAWN_EGG(32, "MONSTER_EGG"),
     DRAGON_BREATH("DRAGONS_BREATH"),
     DRAGON_EGG,
@@ -411,7 +411,7 @@ public enum XMaterial {
     DRIED_KELP(13),
     DRIED_KELP_BLOCK(13),
     DROPPER,
-    DROWNED_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    DROWNED_SPAWN_EGG(0, 13),
     EGG,
     ELDER_GUARDIAN_SPAWN_EGG(4, "MONSTER_EGG"),
     ELYTRA,
@@ -430,7 +430,7 @@ public enum XMaterial {
     END_GATEWAY(0, 9),
     END_PORTAL("ENDER_PORTAL"),
     END_PORTAL_FRAME("ENDER_PORTAL_FRAME"),
-    END_ROD(0, 9, "BLAZE_ROD", null),
+    END_ROD(0, 9),
     END_STONE("ENDER_STONE"),
     END_STONE_BRICKS("END_BRICKS"),
     END_STONE_BRICK_SLAB(6, "STEP"),
@@ -457,7 +457,7 @@ public enum XMaterial {
     FIRE_CORAL_FAN(13),
     FIRE_CORAL_WALL_FAN,
     FISHING_ROD,
-    FLETCHING_TABLE(0, 14, "CRAFTING_TABLE", null),
+    FLETCHING_TABLE(0, 14),
     FLINT,
     FLINT_AND_STEEL,
     FLOWER_BANNER_PATTERN,
@@ -466,7 +466,7 @@ public enum XMaterial {
     /**
      * This special material cannot be obtained as an item.
      */
-    FROSTED_ICE(0, 9, "PACKED_ICE", null),
+    FROSTED_ICE(0, 9),
     FURNACE("BURNING_FURNACE"),
     FURNACE_MINECART("POWERED_MINECART"),
     GHAST_SPAWN_EGG(56, "MONSTER_EGG"),
@@ -509,7 +509,7 @@ public enum XMaterial {
     GRAY_CONCRETE(7, "CONCRETE"),
     GRAY_CONCRETE_POWDER(7, "CONCRETE_POWDER"),
     GRAY_DYE(8, "INK_SACK"),
-    GRAY_GLAZED_TERRACOTTA(7, 12, "STAINED_CLAY", null),
+    GRAY_GLAZED_TERRACOTTA(7, 12),
     GRAY_SHULKER_BOX,
     GRAY_STAINED_GLASS(7, "STAINED_GLASS"),
     GRAY_STAINED_GLASS_PANE(7, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -522,14 +522,14 @@ public enum XMaterial {
     GREEN_CONCRETE(13, "CONCRETE"),
     GREEN_CONCRETE_POWDER(13, "CONCRETE_POWDER"),
     GREEN_DYE(2, "INK_SACK", "CACTUS_GREEN"),
-    GREEN_GLAZED_TERRACOTTA(13, 12, "STAINED_CLAY", null),
+    GREEN_GLAZED_TERRACOTTA(13, 12),
     GREEN_SHULKER_BOX,
     GREEN_STAINED_GLASS(13, "STAINED_GLASS"),
     GREEN_STAINED_GLASS_PANE(13, "THIN_GLASS", "STAINED_GLASS_PANE"),
     GREEN_TERRACOTTA(13, "STAINED_CLAY"),
     GREEN_WALL_BANNER(2, "WALL_BANNER"),
     GREEN_WOOL(13, "WOOL"),
-    GRINDSTONE(0, 14, "ANVIL", null),
+    GRINDSTONE(0, 14),
     GUARDIAN_SPAWN_EGG(68, "MONSTER_EGG"),
     GUNPOWDER("SULPHUR"),
     HAY_BLOCK,
@@ -538,8 +538,8 @@ public enum XMaterial {
     HOGLIN_SPAWN_EGG(0, 16, "MONSTER_EGG"),
     HONEYCOMB(15),
     HONEYCOMB_BLOCK(15),
-    HONEY_BLOCK(0, 15, "SLIME_BLOCK", null),
-    HONEY_BOTTLE(0, 15, "GLASS_BOTTLE", null),
+    HONEY_BLOCK(0, 15),
+    HONEY_BOTTLE(0, 15),
     HOPPER,
     HOPPER_MINECART,
     HORN_CORAL(13),
@@ -580,7 +580,7 @@ public enum XMaterial {
     IRON_TRAPDOOR,
     ITEM_FRAME,
     JACK_O_LANTERN,
-    JIGSAW(0, 14, "COMMAND_BLOCK", "STRUCTURE_BLOCK", null),
+    JIGSAW(0, 14),
     JUKEBOX,
     JUNGLE_BOAT("BOAT_JUNGLE"),
     JUNGLE_BUTTON("WOOD_BUTTON"),
@@ -602,7 +602,7 @@ public enum XMaterial {
     KELP_PLANT(13),
     KNOWLEDGE_BOOK(0, 12, "BOOK"),
     LADDER,
-    LANTERN(0, 14, "SEA_LANTERN", null),
+    LANTERN(0, 14),
     LAPIS_BLOCK,
     LAPIS_LAZULI(4, "INK_SACK"),
     LAPIS_ORE,
@@ -614,9 +614,9 @@ public enum XMaterial {
     LEATHER_BOOTS,
     LEATHER_CHESTPLATE,
     LEATHER_HELMET,
-    LEATHER_HORSE_ARMOR(0, 14, "IRON_HORSE_ARMOR", null),
+    LEATHER_HORSE_ARMOR(0, 14, "IRON_HORSE_ARMOR"),
     LEATHER_LEGGINGS,
-    LECTERN(0, 14, "BOOKSHELF", null),
+    LECTERN(0, 14),
     LEVER,
     LIGHT_BLUE_BANNER(12, "STANDING_BANNER", "BANNER"),
     LIGHT_BLUE_BED(3, "BED_BLOCK", "BED"),
@@ -624,7 +624,7 @@ public enum XMaterial {
     LIGHT_BLUE_CONCRETE(3, "CONCRETE"),
     LIGHT_BLUE_CONCRETE_POWDER(3, "CONCRETE_POWDER"),
     LIGHT_BLUE_DYE(12, "INK_SACK"),
-    LIGHT_BLUE_GLAZED_TERRACOTTA(3, 12, "STAINED_CLAY", null),
+    LIGHT_BLUE_GLAZED_TERRACOTTA(3, 12),
     LIGHT_BLUE_SHULKER_BOX,
     LIGHT_BLUE_STAINED_GLASS(3, "STAINED_GLASS"),
     LIGHT_BLUE_STAINED_GLASS_PANE(3, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -650,7 +650,7 @@ public enum XMaterial {
     LIGHT_GRAY_WOOL(8, "WOOL"),
     LIGHT_WEIGHTED_PRESSURE_PLATE("GOLD_PLATE"),
     LILAC(1, "DOUBLE_PLANT"),
-    LILY_OF_THE_VALLEY(15, 14, "WHITE_DYE", null),
+    LILY_OF_THE_VALLEY(15, 14),
     LILY_PAD("WATER_LILY"),
     LIME_BANNER(10, "STANDING_BANNER", "BANNER"),
     LIME_BED(5, "BED_BLOCK", "BED"),
@@ -658,7 +658,7 @@ public enum XMaterial {
     LIME_CONCRETE(5, "CONCRETE"),
     LIME_CONCRETE_POWDER(5, "CONCRETE_POWDER"),
     LIME_DYE(10, "INK_SACK"),
-    LIME_GLAZED_TERRACOTTA(5, 12, "STAINED_CLAY", null),
+    LIME_GLAZED_TERRACOTTA(5, 12),
     LIME_SHULKER_BOX,
     LIME_STAINED_GLASS(5, "STAINED_GLASS"),
     LIME_STAINED_GLASS_PANE(5, "STAINED_GLASS_PANE"),
@@ -675,7 +675,7 @@ public enum XMaterial {
     MAGENTA_CONCRETE(2, "CONCRETE"),
     MAGENTA_CONCRETE_POWDER(2, "CONCRETE_POWDER"),
     MAGENTA_DYE(13, "INK_SACK"),
-    MAGENTA_GLAZED_TERRACOTTA(2, 12, "STAINED_CLAY", null),
+    MAGENTA_GLAZED_TERRACOTTA(2, 12),
     MAGENTA_SHULKER_BOX,
     MAGENTA_STAINED_GLASS(2, "STAINED_GLASS"),
     MAGENTA_STAINED_GLASS_PANE(2, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -787,7 +787,7 @@ public enum XMaterial {
     ORANGE_CONCRETE(1, "CONCRETE"),
     ORANGE_CONCRETE_POWDER(1, "CONCRETE_POWDER"),
     ORANGE_DYE(14, "INK_SACK"),
-    ORANGE_GLAZED_TERRACOTTA(1, 12, "STAINED_CLAY", null),
+    ORANGE_GLAZED_TERRACOTTA(1, 12),
     ORANGE_SHULKER_BOX,
     ORANGE_STAINED_GLASS(1, "STAINED_GLASS"),
     ORANGE_STAINED_GLASS_PANE(1, "STAINED_GLASS_PANE"),
@@ -804,7 +804,7 @@ public enum XMaterial {
     PEONY(5, "DOUBLE_PLANT"),
     PETRIFIED_OAK_SLAB("WOOD_STEP"),
     PHANTOM_MEMBRANE(13),
-    PHANTOM_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    PHANTOM_SPAWN_EGG(0, 13),
     PIGLIN_BANNER_PATTERN(16),
     PIGLIN_BRUTE_SPAWN_EGG(16),
     PIGLIN_SPAWN_EGG(57, "MONSTER_EGG"),
@@ -816,7 +816,7 @@ public enum XMaterial {
     PINK_CONCRETE(6, "CONCRETE"),
     PINK_CONCRETE_POWDER(6, "CONCRETE_POWDER"),
     PINK_DYE(9, "INK_SACK"),
-    PINK_GLAZED_TERRACOTTA(6, 12, "STAINED_CLAY", null),
+    PINK_GLAZED_TERRACOTTA(6, 12),
     PINK_SHULKER_BOX,
     PINK_STAINED_GLASS(6, "STAINED_GLASS"),
     PINK_STAINED_GLASS_PANE(6, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -897,8 +897,8 @@ public enum XMaterial {
     PRISMARINE_STAIRS(13),
     PRISMARINE_WALL,
     PUFFERFISH(3, "RAW_FISH"),
-    PUFFERFISH_BUCKET(0, 13, "BUCKET", "WATER_BUCKET", null),
-    PUFFERFISH_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    PUFFERFISH_BUCKET(0, 13),
+    PUFFERFISH_SPAWN_EGG(0, 13),
     PUMPKIN,
     PUMPKIN_PIE,
     PUMPKIN_SEEDS,
@@ -909,7 +909,7 @@ public enum XMaterial {
     PURPLE_CONCRETE(10, "CONCRETE"),
     PURPLE_CONCRETE_POWDER(10, "CONCRETE_POWDER"),
     PURPLE_DYE(5, "INK_SACK"),
-    PURPLE_GLAZED_TERRACOTTA(10, 12, "STAINED_CLAY", null),
+    PURPLE_GLAZED_TERRACOTTA(10, 12),
     PURPLE_SHULKER_BOX,
     PURPLE_STAINED_GLASS(10, "STAINED_GLASS"),
     PURPLE_STAINED_GLASS_PANE(10, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -960,7 +960,7 @@ public enum XMaterial {
     RED_CONCRETE(14, "CONCRETE"),
     RED_CONCRETE_POWDER(14, "CONCRETE_POWDER"),
     RED_DYE(1, "INK_SACK", "ROSE_RED"),
-    RED_GLAZED_TERRACOTTA(14, 12, "STAINED_CLAY", null),
+    RED_GLAZED_TERRACOTTA(14, 12),
     RED_MUSHROOM,
     RED_MUSHROOM_BLOCK("RED_MUSHROOM", "HUGE_MUSHROOM_2"),
     RED_NETHER_BRICKS("RED_NETHER_BRICK"),
@@ -986,16 +986,16 @@ public enum XMaterial {
     ROTTEN_FLESH,
     SADDLE,
     SALMON(1, "RAW_FISH"),
-    SALMON_BUCKET(0, 13, "BUCKET", "WATER_BUCKET", null),
-    SALMON_SPAWN_EGG(0, 13, "MONSTER_EGG", null),
+    SALMON_BUCKET(0, 13),
+    SALMON_SPAWN_EGG(0, 13),
     SAND,
     SANDSTONE,
     SANDSTONE_SLAB(1, "DOUBLE_STEP", "STEP", "STONE_SLAB"),
     SANDSTONE_STAIRS,
     SANDSTONE_WALL,
-    SCAFFOLDING(0, 14, "SLIME_BLOCK", null),
+    SCAFFOLDING(0, 14),
     SCUTE(13),
-    SEAGRASS(0, 13, "GRASS", null),
+    SEAGRASS(0, 13),
     SEA_LANTERN,
     SEA_PICKLE(13),
     SHEARS,
@@ -1015,8 +1015,8 @@ public enum XMaterial {
     SLIME_BLOCK,
     SLIME_SPAWN_EGG(55, "MONSTER_EGG"),
     SMITHING_TABLE,
-    SMOKER(0, 14, "FURNACE", null),
-    SMOOTH_QUARTZ(0, 13, "QUARTZ", null),
+    SMOKER(0, 14),
+    SMOOTH_QUARTZ(0, 13),
     SMOOTH_QUARTZ_SLAB(7, "STEP"),
     SMOOTH_QUARTZ_STAIRS,
     SMOOTH_RED_SANDSTONE(2, "RED_SANDSTONE"),
@@ -1038,7 +1038,7 @@ public enum XMaterial {
     SOUL_TORCH(16),
     SOUL_WALL_TORCH(16),
     SPAWNER("MOB_SPAWNER"),
-    SPECTRAL_ARROW(0, 9, "ARROW", null),
+    SPECTRAL_ARROW(0, 9),
     SPIDER_EYE,
     SPIDER_SPAWN_EGG(52, "MONSTER_EGG"),
     SPLASH_POTION,
@@ -1101,7 +1101,7 @@ public enum XMaterial {
      * Originally developers used barrier blocks for its purpose.
      * So technically this isn't really considered as a suggested material.
      */
-    STRUCTURE_VOID(10, null, "BARRIER"),
+    STRUCTURE_VOID(10, "BARRIER"),
     SUGAR,
     /**
      * Sugar Cane is a known material in pre-1.13
@@ -1109,19 +1109,19 @@ public enum XMaterial {
      */
     SUGAR_CANE("SUGAR_CANE_BLOCK"),
     SUNFLOWER("DOUBLE_PLANT"),
-    SUSPICIOUS_STEW(0, 14, "MUSHROOM_STEW", null),
+    SUSPICIOUS_STEW(0, 14),
     SWEET_BERRIES(14),
-    SWEET_BERRY_BUSH(0, 14, "GRASS", null),
+    SWEET_BERRY_BUSH(0, 14),
     TALL_GRASS(2, "DOUBLE_PLANT"),
-    TALL_SEAGRASS(2, 13, "TALL_GRASS", null),
+    TALL_SEAGRASS(2, 13),
     TARGET(16),
     TERRACOTTA("STAINED_CLAY"),
-    TIPPED_ARROW(0, 9, "ARROW", null),
+    TIPPED_ARROW(0, 9),
     TNT,
     TNT_MINECART("EXPLOSIVE_MINECART"),
     TORCH,
     TOTEM_OF_UNDYING("TOTEM"),
-    TRADER_LLAMA_SPAWN_EGG(103, 14, "MONSTER_EGG", null),
+    TRADER_LLAMA_SPAWN_EGG(103, 14),
     TRAPPED_CHEST,
     TRIDENT(13),
     TRIPWIRE,
@@ -1133,9 +1133,9 @@ public enum XMaterial {
     TUBE_CORAL_BLOCK(13),
     TUBE_CORAL_FAN(13),
     TUBE_CORAL_WALL_FAN,
-    TURTLE_EGG(0, 13, "EGG", null),
-    TURTLE_HELMET(0, 13, "IRON_HELMET", null),
-    TURTLE_SPAWN_EGG(0, 13, "CHICKEN_SPAWN_EGG", null),
+    TURTLE_EGG(0, 13),
+    TURTLE_HELMET(0, 13),
+    TURTLE_SPAWN_EGG(0, 13),
     TWISTING_VINES(16),
     TWISTING_VINES_PLANT(16),
     VEX_SPAWN_EGG(35, "MONSTER_EGG"),
@@ -1149,7 +1149,7 @@ public enum XMaterial {
      */
     VOID_AIR("AIR"),
     WALL_TORCH("TORCH"),
-    WANDERING_TRADER_SPAWN_EGG(0, 14, "VILLAGER_SPAWN_EGG", null),
+    WANDERING_TRADER_SPAWN_EGG(0, 14),
     WARPED_BUTTON(16),
     WARPED_DOOR(16),
     WARPED_FENCE(16),
@@ -1201,7 +1201,7 @@ public enum XMaterial {
     WHITE_WALL_BANNER(15, "WALL_BANNER"),
     WHITE_WOOL("WOOL"),
     WITCH_SPAWN_EGG(66, "MONSTER_EGG"),
-    WITHER_ROSE(0, 14, "BLACK_DYE", null),
+    WITHER_ROSE(0, 14),
     WITHER_SKELETON_SKULL(1, "SKULL", "SKULL_ITEM"),
     WITHER_SKELETON_SPAWN_EGG(5, "MONSTER_EGG"),
     WITHER_SKELETON_WALL_SKULL(1, "SKULL", "SKULL_ITEM"),
@@ -1251,17 +1251,6 @@ public enum XMaterial {
     private static final Map<String, XMaterial> NAMES = new HashMap<>();
 
     /**
-     * <b>XMaterial Paradox (Duplication Check)</b>
-     * <p>
-     * A map of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
-     * Values are the new material names. This map also contains illegal elements. Check the static initializer for more info.
-     * <br>
-     * Duplicates are normally only checked by keys, not values.
-     *
-     * @since 3.0.0
-     */
-    private static final Map<XMaterial, XMaterial> DUPLICATED = new EnumMap<>(XMaterial.class);
-    /**
      * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
      * For strings that match a certain XMaterial. Mostly cached for configs.
      *
@@ -1269,15 +1258,6 @@ public enum XMaterial {
      */
     private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
-            .build();
-    /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * For XMaterials that are already parsed once.
-     *
-     * @since 3.0.0
-     */
-    private static final Cache<XMaterial, Optional<Material>> PARSED_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(30, TimeUnit.MINUTES)
             .build();
 
     /**
@@ -1299,19 +1279,6 @@ public enum XMaterial {
                 }
             });
     /**
-     * The current version of the server in the a form of a major version.
-     * If the static initialization for this fails, you know something's wrong with the server software.
-     *
-     * @since 1.0.0
-     */
-    private static final int VERSION = Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2));
-    /**
-     * Cached result if the server version is after the v1.13 flattening update.
-     *
-     * @since 3.0.0
-     */
-    private static final boolean ISFLAT = supports(13);
-    /**
      * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
      * https://minecraftitemids.com/types/spawn-egg
      *
@@ -1332,36 +1299,46 @@ public enum XMaterial {
      * @since 8.1.0
      */
     private static final short MAX_ID = 2267;
-
-    static {
-        DUPLICATED.put(MELON, MELON_SLICE);
-        DUPLICATED.put(CARROT, CARROTS);
-        DUPLICATED.put(POTATO, POTATOES);
-        DUPLICATED.put(BEETROOT, BEETROOTS);
-        DUPLICATED.put(GRASS, GRASS_BLOCK);
-        DUPLICATED.put(BROWN_MUSHROOM, BROWN_MUSHROOM_BLOCK);
-        DUPLICATED.put(BRICK, BRICKS);
-        DUPLICATED.put(NETHER_BRICK, NETHER_BRICKS);
-
-        // Illegal Elements
-        // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
-        // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
-        // We'll trick XMaterial into thinking this needs to be parsed
-        // using the old methods.
-        // Some of these materials have their enum name added to the legacy list as well.
-        DUPLICATED.put(DARK_OAK_DOOR, DARK_OAK_DOOR);
-        DUPLICATED.put(ACACIA_DOOR, ACACIA_DOOR);
-        DUPLICATED.put(BIRCH_DOOR, BIRCH_DOOR);
-        DUPLICATED.put(JUNGLE_DOOR, JUNGLE_DOOR);
-        DUPLICATED.put(SPRUCE_DOOR, SPRUCE_DOOR);
-
-        DUPLICATED.put(CAULDRON, CAULDRON);
-        DUPLICATED.put(BREWING_STAND, BREWING_STAND);
-        DUPLICATED.put(FLOWER_POT, FLOWER_POT);
-    }
+    /**
+     * <b>XMaterial Paradox (Duplication Check)</b>
+     * <p>
+     * A map of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
+     * Values are the new material names. This map also contains illegal elements. Check the static initializer for more info.
+     * <br>
+     * Duplicates are normally only checked by keys, not values.
+     *
+     * @since 3.0.0
+     */
+    private static final Set<String> DUPLICATED;
 
     static {
         for (XMaterial material : VALUES) NAMES.put(material.name(), material);
+    }
+
+    static {
+        if (Data.ISFLAT) {
+            // It's not needed at all if it's the newer version. We can save some memory.
+            DUPLICATED = null;
+        } else {
+            // MELON_SLICE, CARROTS, POTATOES, BEETROOTS, GRASS_BLOCK, BROWN_MUSHROOM_BLOW, BRICKS, NETHER_BRICKS
+            List<XMaterial> duplications = Arrays.asList(MELON, CARROT, POTATO, BEETROOT, GRASS, BROWN_MUSHROOM, BRICK, NETHER_BRICK,
+                    // Illegal Elements
+                    // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
+                    // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
+                    // We'll trick XMaterial into thinking this needs to be parsed
+                    // using the old methods.
+                    // Some of these materials have their enum name added to the legacy list as well.
+                    DARK_OAK_DOOR, ACACIA_DOOR, BIRCH_DOOR, JUNGLE_DOOR, SPRUCE_DOOR,
+                    CAULDRON, BREWING_STAND, FLOWER_POT);
+
+            Set<String> duplicatedNames = new HashSet<>(50);
+            for (XMaterial dupe : duplications) {
+                duplicatedNames.add(dupe.name());
+                duplicatedNames.addAll(Arrays.asList(dupe.legacy));
+            }
+
+            DUPLICATED = duplicatedNames;
+        }
     }
 
     /**
@@ -1374,6 +1351,7 @@ public enum XMaterial {
     /**
      * The version that this material was added in, otherwise 0 if the version is not recorded.
      *
+     * @see #getMaterialVersion()
      * @since 7.0.0
      */
     private final byte version;
@@ -1384,11 +1362,28 @@ public enum XMaterial {
      */
     @Nonnull
     private final String[] legacy;
+    /**
+     * The cached Bukkit parsed material.
+     *
+     * @see #parseMaterial()
+     * @since 9.0.0
+     */
+    @Nullable
+    private final Material material;
 
     XMaterial(int data, int version, @Nonnull String... legacy) {
         this.data = (byte) data;
         this.version = (byte) version;
         this.legacy = legacy;
+
+        Material mat = null;
+        if ((!Data.ISFLAT && this.isDuplicated()) || (mat = Material.getMaterial(this.name())) == null) {
+            for (int i = legacy.length - 1; i >= 0; i--) {
+                mat = Material.getMaterial(legacy[i]);
+                if (mat != null) break;
+            }
+        }
+        this.material = mat;
     }
 
     XMaterial(int data, @Nonnull String... legacy) {
@@ -1421,7 +1416,7 @@ public enum XMaterial {
      * @since 1.0.0
      */
     public static boolean isNewVersion() {
-        return ISFLAT;
+        return Data.ISFLAT;
     }
 
     /**
@@ -1462,7 +1457,7 @@ public enum XMaterial {
      * @since 2.0.0
      */
     public static int getVersion() {
-        return VERSION;
+        return Data.VERSION;
     }
 
     /**
@@ -1564,7 +1559,7 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
+        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         return matchDefinedXMaterial(material, data)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported material: " + material + " (" + data + ')'));
@@ -1588,7 +1583,7 @@ public enum XMaterial {
         Boolean duplicated = null;
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (data <= 0 && (ISFLAT || !(duplicated = isDuplicated(name)))) {
+        if (data <= 0 && (Data.ISFLAT || !(duplicated = isDuplicated(name)))) {
             Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
@@ -1603,7 +1598,7 @@ public enum XMaterial {
             return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
-        if (!ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
+        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
             // A solution for XMaterial Paradox.
             // Manually parses the duplicated materials to find the exact material based on the server version.
             // If ends with "S" -> Plural Form Material
@@ -1621,15 +1616,11 @@ public enum XMaterial {
      *
      * @param name the name of the material to check.
      * @return true if there's a duplicated material for this material, otherwise false.
-     * @see #isDuplicated()
      * @since 2.0.0
      */
     private static boolean isDuplicated(@Nonnull String name) {
         // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
-        for (XMaterial duplicated : DUPLICATED.keySet()) {
-            if (duplicated.name().equals(name) || duplicated.anyMatchLegacy(name)) return true;
-        }
-        return false;
+        return DUPLICATED.contains(name);
     }
 
     /**
@@ -1675,7 +1666,8 @@ public enum XMaterial {
         for (int i = 0; i < len; i++) {
             char ch = name.charAt(i);
 
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
+                appendUnderline = true;
             else {
                 boolean number = false;
                 // Old materials have numbers in them.
@@ -1702,7 +1694,7 @@ public enum XMaterial {
      * @since 2.0.0
      */
     public static boolean supports(int version) {
-        return VERSION >= version;
+        return Data.VERSION >= version;
     }
 
     /**
@@ -1735,6 +1727,10 @@ public enum XMaterial {
         if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
 
         return version;
+    }
+
+    public String[] getLegacy() {
+        return this.legacy;
     }
 
     /**
@@ -1829,7 +1825,7 @@ public enum XMaterial {
         Objects.requireNonNull(material, () -> "Unsupported material: " + this.name());
 
         item.setType(material);
-        if (!ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
+        if (!Data.ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
         return item;
     }
 
@@ -1844,7 +1840,6 @@ public enum XMaterial {
     private boolean anyMatchLegacy(@Nonnull String name) {
         for (int i = this.legacy.length - 1; i >= 0; i--) {
             String legacy = this.legacy[i];
-            if (legacy == null) return false; // Left-side suggestion list
             if (name.equals(legacy)) return true;
         }
         return false;
@@ -1883,19 +1878,8 @@ public enum XMaterial {
         if (this.data != 0 || this.version >= 13) return -1;
         Material material = this.parseMaterial();
         if (material == null) return -1;
-        if (ISFLAT && !material.isLegacy()) return -1;
+        if (Data.ISFLAT && !material.isLegacy()) return -1;
         return material.getId();
-    }
-
-    /**
-     * Checks if the material has any duplicates.
-     *
-     * @return true if there is a duplicated name for this material, otherwise false.
-     * @see #isDuplicated(String)
-     * @since 2.0.0
-     */
-    private boolean isDuplicated() {
-        return DUPLICATED.containsKey(this);
     }
 
     /**
@@ -1913,110 +1897,30 @@ public enum XMaterial {
     }
 
     /**
-     * Get a list of materials names that was previously used by older versions.
-     * Note that this array may contain null, which is an indicator for the suggestion list.
-     *
-     * @return a list of legacy material names and the first element as the version the material was added in if new.
-     * @since 1.0.0
-     */
-    @Nonnull
-    public String[] getLegacy() {
-        return legacy;
-    }
-
-    /**
      * Parses an item from this XMaterial.
      * Uses data values on older versions.
      *
-     * @return an ItemStack with the same material (and data value if in older versions.)
-     * @see #parseItem(boolean)
-     * @see #setType(ItemStack)
-     * @since 1.0.0
-     */
-    @Nullable
-    public ItemStack parseItem() {
-        return parseItem(false);
-    }
-
-    /**
-     * Parses an item from this XMaterial.
-     * Uses data values on older versions.
-     *
-     * @param suggest if true {@link #parseMaterial(boolean)} true will be used.
      * @return an ItemStack with the same material (and data value if in older versions.)
      * @see #setType(ItemStack)
      * @since 2.0.0
      */
     @Nullable
     @SuppressWarnings("deprecation")
-    public ItemStack parseItem(boolean suggest) {
-        Material material = this.parseMaterial(suggest);
+    public ItemStack parseItem() {
+        Material material = this.parseMaterial();
         if (material == null) return null;
-        return ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        return Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 
     /**
      * Parses the material of this XMaterial.
      *
      * @return the material related to this XMaterial based on the server version.
-     * @see #parseMaterial(boolean)
      * @since 1.0.0
      */
     @Nullable
     public Material parseMaterial() {
-        return parseMaterial(false);
-    }
-
-    /**
-     * Parses the material of this XMaterial and accepts suggestions.
-     *
-     * @param suggest use a suggested material (from older materials) if the material is added in a later version of Minecraft.
-     * @return the material related to this XMaterial based on the server version.
-     * @since 2.0.0
-     */
-    @SuppressWarnings("OptionalAssignedToNull")
-    @Nullable
-    public Material parseMaterial(boolean suggest) {
-        Optional<Material> cache = PARSED_CACHE.getIfPresent(this);
-        if (cache != null) return cache.orElse(null);
-        Material mat;
-
-        if (!ISFLAT && this.isDuplicated()) mat = requestOldMaterial(suggest);
-        else {
-            mat = Material.getMaterial(this.name());
-            if (mat == null) mat = requestOldMaterial(suggest);
-        }
-
-        PARSED_CACHE.put(this, Optional.ofNullable(mat));
-        return mat;
-    }
-
-    /**
-     * Parses a material for older versions of Minecraft.
-     * Accepts suggestions if specified.
-     *
-     * @param suggest if true suggested materials will be considered for old versions.
-     * @return a parsed material suitable for the current Minecraft version.
-     * @see #parseMaterial(boolean)
-     * @since 2.0.0
-     */
-    @Nullable
-    private Material requestOldMaterial(boolean suggest) {
-        for (int i = this.legacy.length - 1; i >= 0; i--) {
-            String legacy = this.legacy[i];
-
-            // According to the suggestion list format, all the other names continuing
-            // from here are considered as a "suggestion"
-            // The null string is an indicator for suggestion list on the left side.
-            if (legacy == null) {
-                if (suggest) continue;
-                break;
-            }
-
-            Material material = Material.getMaterial(legacy);
-            if (material != null) return material;
-        }
-        return null;
+        return this.material;
     }
 
     /**
@@ -2030,26 +1934,7 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
-        return ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
-    }
-
-    /**
-     * Gets the suggested material names that can be used
-     * if the material is not supported in the current version.
-     *
-     * @return a list of suggested material names.
-     * @see #parseMaterial(boolean)
-     * @since 2.0.0
-     */
-    @Nonnull
-    public List<String> getSuggestions() {
-        if (this.legacy.length == 0 || this.version == 0) return new ArrayList<>();
-        List<String> suggestions = new ArrayList<>(this.legacy.length);
-        for (String legacy : this.legacy) {
-            if (legacy == null) break;
-            suggestions.add(legacy);
-        }
-        return suggestions;
+        return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
     }
 
     /**
@@ -2063,8 +1948,7 @@ public enum XMaterial {
      * @since 2.0.0
      */
     public boolean isSupported() {
-        if (this.version != 0) return supports(this.version);
-        return Material.getMaterial(this.name()) != null || requestOldMaterial(false) != null;
+        return this.material != null;
     }
 
     /**
@@ -2076,5 +1960,42 @@ public enum XMaterial {
      */
     public byte getMaterialVersion() {
         return version;
+    }
+
+    /**
+     * This method is needed due to Java enum initialization limitations.
+     * Switch and if statements cannot be used either.
+     * This method is really inefficient yes, but it's only used for initialization.
+     * <p>
+     * Yes there are many other ways like comparing the hardcoded ordinal or using a boolean in the enum constructor,
+     * but it's not really a big deal.
+     */
+    private boolean isDuplicated() {
+        String name = this.name();
+        return name.equals("MELON") || name.equals("CARROT") || name.equals("POTATO") || name.equals("BEETROOT") || name.equals("GRASS") ||
+                name.equals("BROWN_MUSHROOM") || name.equals("BRICK") || name.equals("NETHER_BRICK")
+                || name.equals("DARK_OAK_DOOR") || name.equals("ACACIA_DOOR") || name.equals("BIRCH_DOOR") || name.equals("JUNGLE_DOOR") || name.equals("SPRUCE_DOOR")
+                || name.equals("CAULDRON") || name.equals("BREWING_STAND") || name.equals("FLOWER_POT");
+    }
+
+    /**
+     * Used for datas that need to be accessed during enum initilization.
+     *
+     * @since 9.0.0
+     */
+    private static final class Data {
+        /**
+         * The current version of the server in the a form of a major version.
+         * If the static initialization for this fails, you know something's wrong with the server software.
+         *
+         * @since 1.0.0
+         */
+        private static final int VERSION = Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2));
+        /**
+         * Cached result if the server version is after the v1.13 flattening update.
+         *
+         * @since 3.0.0
+         */
+        private static final boolean ISFLAT = supports(13);
     }
 }

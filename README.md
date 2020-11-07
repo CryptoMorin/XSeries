@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
-XSeries is a set of utility classes mainly designed to provide cross-version support for Minecraft Bukkit servers,
+Library mainly designed to provide cross-version support for Minecraft Bukkit servers,
 but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
 Some utilities are completely unrelated to cross-version support such as NoteBlockMusic.
 
@@ -65,6 +65,20 @@ To shade the library, add the following under your maven plugins:
                 <shadedPattern>my.plugin.utils</shadedPattern>
             </relocation>
         </relocations>
+        <!-- Here you can remove the classes you don't use. -->
+        <!-- These are some examples. -->
+        <!-- The "unused" package and SkullCacheListener are excluded by default. -->
+        <!-- Some utilities such a XItemStack depend on more than 3 other classes, so watch out. -->
+        <filters>
+            <filter>
+                <artifact>*:*</artifact>
+                <excludes>
+                    <exclude>com/cryptomorin/xseries/XBiome*</exclude>
+                    <exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
+                    <exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
+                </excludes>
+            </filter>
+        </filters>
     </configuration>
     <executions>
         <execution>
