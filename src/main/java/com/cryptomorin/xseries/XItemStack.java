@@ -63,7 +63,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.0.1.2
+ * @version 4.0.1.3
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -140,13 +140,11 @@ public final class XItemStack {
 
             if (XMaterial.supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
-                if (!box.getInventory().isEmpty()) {
-                    int i = 0;
-                    ConfigurationSection shulker = config.createSection("shulker");
-                    for (ItemStack itemInBox : box.getInventory().getContents()) {
-                        if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
-                        i++;
-                    }
+                ConfigurationSection shulker = config.createSection("shulker");
+                int i = 0;
+                for (ItemStack itemInBox : box.getInventory().getContents()) {
+                    if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
+                    i++;
                 }
             } else if (state instanceof CreatureSpawner) {
                 CreatureSpawner cs = (CreatureSpawner) state;
@@ -442,7 +440,7 @@ public final class XItemStack {
         if (!Strings.isNullOrEmpty(name)) {
             String translated = ChatColor.translateAlternateColorCodes('&', name);
             meta.setDisplayName(translated);
-        }
+        } else if (name != null && name.isEmpty()) meta.setDisplayName(" "); // For GUI easy access configuration purposes
 
         // Unbreakable
         if (XMaterial.supports(11)) meta.setUnbreakable(config.getBoolean("unbreakable"));
