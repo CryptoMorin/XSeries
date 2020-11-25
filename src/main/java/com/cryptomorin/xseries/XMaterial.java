@@ -1975,7 +1975,7 @@ public enum XMaterial {
         return name.equals("MELON") || name.equals("CARROT") || name.equals("POTATO") || name.equals("BEETROOT") || name.equals("GRASS") ||
                 name.equals("BROWN_MUSHROOM") || name.equals("BRICK") || name.equals("NETHER_BRICK")
                 || name.equals("DARK_OAK_DOOR") || name.equals("ACACIA_DOOR") || name.equals("BIRCH_DOOR") || name.equals("JUNGLE_DOOR") || name.equals("SPRUCE_DOOR")
-                || name.equals("CAULDRON") || name.equals("BREWING_STAND") || name.equals("FLOWER_POT");
+                || name.equals("CAULDRON") || name.equals("BREWING_STAND") || name.equals("FLOWER_POT") || name.equals("MAP");
     }
 
     /**
