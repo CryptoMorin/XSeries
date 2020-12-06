@@ -10,7 +10,7 @@ assignees: CryptoMorin
 A clear and concise description of what the bug is.
 You must be using the latest version of the utility.
 Your code that used the utility class.
-Any available stacktrace (must be full) related to this issue.\
+Any available stacktrace (must be full) related to this issue in [Pastebin](https://pastebin.com/). Do not include any logs that are unrelated to the library.\ 
 **Note:** Issues caused by plugins such ProtocolSupport or ViaVersion should be reported to the plugin developers, not here. 
 
 **Version**

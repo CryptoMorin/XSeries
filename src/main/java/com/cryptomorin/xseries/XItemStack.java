@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.*;
@@ -63,7 +64,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.0.1.3
+ * @version 4.1.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -121,16 +122,19 @@ public final class XItemStack {
         }
 
         // Attributes - https://minecraft.gamepedia.com/Attribute
-        if (XMaterial.supports(9) && meta.hasAttributeModifiers()) {
-            for (Map.Entry<Attribute, AttributeModifier> attribute : meta.getAttributeModifiers().entries()) {
-                String path = "attributes." + attribute.getKey().name() + '.';
-                AttributeModifier modifier = attribute.getValue();
+        if (XMaterial.supports(13)) {
+            Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
+            if (attributes != null) {
+                for (Map.Entry<Attribute, AttributeModifier> attribute : attributes.entries()) {
+                    String path = "attributes." + attribute.getKey().name() + '.';
+                    AttributeModifier modifier = attribute.getValue();
 
-                config.set(path + "id", modifier.getUniqueId().toString());
-                config.set(path + "name", modifier.getName());
-                config.set(path + "amount", modifier.getAmount());
-                config.set(path + "operation", modifier.getOperation().name());
-                config.set(path + "slot", modifier.getSlot().name());
+                    config.set(path + "id", modifier.getUniqueId().toString());
+                    config.set(path + "name", modifier.getName());
+                    config.set(path + "amount", modifier.getAmount());
+                    config.set(path + "operation", modifier.getOperation().name());
+                    config.set(path + "slot", modifier.getSlot().name());
+                }
             }
         }
 
@@ -530,7 +534,7 @@ public final class XItemStack {
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
-        if (XMaterial.supports(9)) {
+        if (XMaterial.supports(13)) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {

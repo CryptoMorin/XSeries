@@ -27,11 +27,13 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -52,11 +54,12 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 4.0.1
+ * @version 5.0.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+    private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
     @Nonnull
     public Particle particle;
@@ -184,62 +187,72 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Builds particle settings from a configuration section.
      *
-     * @param location the location for this particle settings.
+     * @param location the location to display this particle.
      * @param config   the config section for the settings.
      * @return a parsed ParticleDisplay.
      * @since 1.0.0
      */
-    @Nonnull
     public static ParticleDisplay fromConfig(@Nullable Location location, @Nonnull ConfigurationSection config) {
+        ParticleDisplay display = new ParticleDisplay(DEFAULT_PARTICLE, location);
+        return edit(display, config);
+    }
+
+    /**
+     * Builds particle settings from a configuration section.
+     *
+     * @param display the particle display settings to update.
+     * @param config  the config section for the settings.
+     * @return an edited ParticleDisplay.
+     * @since 5.0.0
+     */
+    @Nonnull
+    public static ParticleDisplay edit(@Nonnull ParticleDisplay display, @Nonnull ConfigurationSection config) {
+        Objects.requireNonNull(display, "Cannot edit a null particle display");
         Objects.requireNonNull(config, "Cannot parse ParticleDisplay from a null config section");
-        Particle particle = XParticle.getParticle(config.getString("particle"));
-        if (particle == null) particle = Particle.FLAME;
+
+        String particleName = config.getString("particle");
+        Particle particle = particleName == null ? null : XParticle.getParticle(particleName);
         int count = config.getInt("count");
         double extra = config.getDouble("extra");
-        double offsetx = 0, offsety = 0, offsetz = 0;
+
+        if (particle != null) display.particle = particle;
+        if (count != 0) display.withCount(count);
+        if (extra != 0) display.extra = extra;
 
         String offset = config.getString("offset");
         if (offset != null) {
             String[] offsets = StringUtils.split(StringUtils.deleteWhitespace(offset), ',');
-            if (offsets.length > 0) {
-                offsetx = NumberUtils.toDouble(offsets[0]);
-                if (offsets.length > 1) {
-                    offsety = NumberUtils.toDouble(offsets[1]);
-                    if (offsets.length > 2) {
-                        offsetz = NumberUtils.toDouble(offsets[2]);
-                    }
-                }
+            if (offsets.length >= 3) {
+                double offsetx = NumberUtils.toDouble(offsets[0]);
+                double offsety = NumberUtils.toDouble(offsets[1]);
+                double offsetz = NumberUtils.toDouble(offsets[2]);
+                display.offset(offsetx, offsety, offsetz);
             }
         }
 
-        double x = 0, y = 0, z = 0;
         String rotation = config.getString("rotation");
         if (rotation != null) {
             String[] rotations = StringUtils.split(StringUtils.deleteWhitespace(rotation), ',');
-            if (rotations.length > 0) {
-                x = NumberUtils.toDouble(rotations[0]);
-                if (rotations.length > 1) {
-                    y = NumberUtils.toDouble(rotations[1]);
-                    if (rotations.length > 2) {
-                        z = NumberUtils.toDouble(rotations[2]);
-                    }
-                }
+            if (rotations.length >= 3) {
+                double x = NumberUtils.toDouble(rotations[0]);
+                double y = NumberUtils.toDouble(rotations[1]);
+                double z = NumberUtils.toDouble(rotations[2]);
+                display.rotation = new Vector(x, y, z);
             }
         }
 
-        float[] rgbs = null;
         String color = config.getString("color");
         if (color != null) {
             String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
-            if (colors.length >= 3) rgbs = new float[]
-                    {NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
-                            (colors.length > 3 ? NumberUtils.toFloat(colors[3]) : 1.0f)};
+            if (colors.length >= 3) {
+                display.data = new float[]{
+                        // Color
+                        NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
+                        // Size
+                        (colors.length > 3 ? NumberUtils.toFloat(colors[3]) : 1.0f)};
+            }
         }
 
-        Vector rotate = new Vector(x, y, z);
-        ParticleDisplay display = new ParticleDisplay(particle, null, location, count, offsetx, offsety, offsetz, extra);
-        display.rotation = rotate;
-        display.data = rgbs;
         return display;
     }
 
@@ -270,6 +283,12 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     private static Location cloneLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+    }
+
+    @Override
+    public String toString() {
+        return "ParticleDisplay:[Particle=" + particle + ", Count=" + count + ", Offset:{" + offsetx + ", " + offsety + ", " + offsetz + "}, Extra=" + extra
+                + ", Data=" + (data == null ? "null" : data instanceof float[] ? Arrays.toString((float[]) data) : data);
     }
 
     /**
@@ -532,19 +551,36 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public Location spawn(@Nonnull Location loc) {
+        return spawn(loc, (Player[]) null);
+    }
+
+    /**
+     * Displays the particle in the specified location.
+     * This method does not support rotations if used directly.
+     *
+     * @param loc     the location to display the particle at.
+     * @param players if this particle should only be sent to specific players.
+     * @see #spawn(double, double, double)
+     * @since 5.0.0
+     */
+    @Nonnull
+    public Location spawn(@Nonnull Location loc, @Nullable Player... players) {
         if (data != null) {
             if (data instanceof float[]) {
                 float[] datas = (float[]) data;
                 if (ISFLAT) {
                     Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
                             .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
-                    loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+                    else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
                 } else {
-                    loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
+                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
+                    else for (Player player : players) player.spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
                 }
             }
         } else {
-            loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
+            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
+            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
         }
         return loc;
     }
