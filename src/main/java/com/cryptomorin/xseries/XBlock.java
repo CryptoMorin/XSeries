@@ -44,7 +44,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.1.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -431,17 +431,20 @@ public final class XBlock {
         String type = block.getType().name();
         BlockState state = block.getState();
         MaterialData data = state.getData();
+        byte dataValue;
 
         if (data instanceof Wood) {
             TreeSpecies species = ((Wood) data).getSpecies();
-            return XMaterial.matchXMaterial(species.name() + block.getType().name())
-                    .orElseThrow(() -> new IllegalArgumentException("Unsupported material from tree species " + species.name() + ": " + block.getType().name()));
+            dataValue = species.getData();
+        } else if (data instanceof Colorable) {
+            DyeColor color = ((Colorable) data).getColor();
+            dataValue = color.getDyeData();
+        } else {
+            dataValue = data.getData();
         }
-        if (data instanceof Colorable) {
-            Colorable color = (Colorable) data;
-            return XMaterial.matchXMaterial(color.getColor().name() + '_' + type).orElseThrow(() -> new IllegalArgumentException("Unsupported colored material"));
-        }
-        return XMaterial.matchXMaterial(block.getType());
+
+        return XMaterial.matchDefinedXMaterial(type, dataValue)
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported material for block " + dataValue + ": " + block.getType().name()));
     }
 
     /**

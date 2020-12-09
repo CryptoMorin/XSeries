@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 9.0.0
+ * @version 10.0.0
  * @see Material
  * @see ItemStack
  */
@@ -117,7 +117,6 @@ public enum XMaterial {
     BEEHIVE(15),
     /**
      * Beetroot is a known material in pre-1.13
-     * Use XBlock when comparing block types.
      */
     BEETROOT("BEETROOT_BLOCK"),
     BEETROOTS("BEETROOT"),
@@ -192,7 +191,7 @@ public enum XMaterial {
     BREAD,
     BREWING_STAND("BREWING_STAND", "BREWING_STAND_ITEM"),
     BRICK("CLAY_BRICK"),
-    BRICKS("BRICK"),
+    BRICKS("BRICKS", "BRICK"),
     BRICK_SLAB(4, "STEP"),
     BRICK_STAIRS,
     BRICK_WALL,
@@ -446,6 +445,7 @@ public enum XMaterial {
      * For some reasons filled map items are really special.
      * Their data value starts from 0 and every time a player
      * creates a new map that maps data value increases.
+     * https://github.com/CryptoMorin/XSeries/issues/91
      */
     FILLED_MAP("MAP"),
     FIRE,
@@ -549,12 +549,12 @@ public enum XMaterial {
     HORSE_SPAWN_EGG(100, "MONSTER_EGG"),
     HUSK_SPAWN_EGG(23, "MONSTER_EGG"),
     ICE,
-    INFESTED_CHISELED_STONE_BRICKS(5, "MONSTER_EGGS", "SMOOTH_BRICK"),
+    INFESTED_CHISELED_STONE_BRICKS(5, "MONSTER_EGGS"),
     INFESTED_COBBLESTONE(1, "MONSTER_EGGS"),
-    INFESTED_CRACKED_STONE_BRICKS(4, "MONSTER_EGGS", "SMOOTH_BRICK"),
+    INFESTED_CRACKED_STONE_BRICKS(4, "MONSTER_EGGS"),
     INFESTED_MOSSY_STONE_BRICKS(3, "MONSTER_EGGS"),
     INFESTED_STONE("MONSTER_EGGS"),
-    INFESTED_STONE_BRICKS(2, "MONSTER_EGGS", "SMOOTH_BRICK"),
+    INFESTED_STONE_BRICKS(2, "MONSTER_EGGS"),
     /**
      * We will only add "INK_SAC" for {@link #BLACK_DYE} since it's
      * the only material (linked with this material) that is added
@@ -1105,7 +1105,6 @@ public enum XMaterial {
     SUGAR,
     /**
      * Sugar Cane is a known material in pre-1.13
-     * Use XBlock when comparing block types.
      */
     SUGAR_CANE("SUGAR_CANE_BLOCK"),
     SUNFLOWER("DOUBLE_PLANT"),
@@ -1173,7 +1172,6 @@ public enum XMaterial {
      * In 1.13- WATER will turn into STATIONARY_WATER after it finished spreading.
      * After 1.13+ this uses
      * https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/Levelled.html water flowing system.
-     * Use XBlock for this instead.
      */
     WATER("STATIONARY_WATER"),
     WATER_BUCKET,
@@ -1182,7 +1180,6 @@ public enum XMaterial {
     WET_SPONGE(1, "SPONGE"),
     /**
      * Wheat is a known material in pre-1.13
-     * Use XBlock when comparing block types.
      */
     WHEAT("CROPS"),
     WHEAT_SEEDS("SEEDS"),
@@ -1302,10 +1299,11 @@ public enum XMaterial {
     /**
      * <b>XMaterial Paradox (Duplication Check)</b>
      * <p>
-     * A map of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
+     * A set of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
      * Values are the new material names. This map also contains illegal elements. Check the static initializer for more info.
-     * <br>
-     * Duplicates are normally only checked by keys, not values.
+     * <p>
+     * Duplications are not useful at all in versions above the flattening update {@link Data#ISFLAT}
+     * This set is only used for matching materials, for parsing refer to {@link #isDuplicated()}
      *
      * @since 3.0.0
      */
@@ -1320,24 +1318,13 @@ public enum XMaterial {
             // It's not needed at all if it's the newer version. We can save some memory.
             DUPLICATED = null;
         } else {
-            // MELON_SLICE, CARROTS, POTATOES, BEETROOTS, GRASS_BLOCK, BROWN_MUSHROOM_BLOW, BRICKS, NETHER_BRICKS
-            List<XMaterial> duplications = Arrays.asList(MELON, CARROT, POTATO, BEETROOT, GRASS, BROWN_MUSHROOM, BRICK, NETHER_BRICK,
-                    // Illegal Elements
-                    // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
-                    // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
-                    // We'll trick XMaterial into thinking this needs to be parsed
-                    // using the old methods.
-                    // Some of these materials have their enum name added to the legacy list as well.
-                    DARK_OAK_DOOR, ACACIA_DOOR, BIRCH_DOOR, JUNGLE_DOOR, SPRUCE_DOOR,
-                    CAULDRON, BREWING_STAND, FLOWER_POT);
-
-            Set<String> duplicatedNames = new HashSet<>(50);
-            for (XMaterial dupe : duplications) {
-                duplicatedNames.add(dupe.name());
-                duplicatedNames.addAll(Arrays.asList(dupe.legacy));
-            }
-
-            DUPLICATED = duplicatedNames;
+            // MELON_SLICE, CARROTS, POTATOES, BEETROOTS, GRASS_BLOCK, BRICKS, NETHER_BRICKS, BROWN_MUSHROOM
+            // Using the constructor to add elements will decide to allocate more size which we don't need.
+            DUPLICATED = new HashSet<>(4);
+            DUPLICATED.add(GRASS.name());
+            DUPLICATED.add(MELON.name());
+            DUPLICATED.add(BRICK.name());
+            DUPLICATED.add(NETHER_BRICK.name());
         }
     }
 
@@ -1420,7 +1407,7 @@ public enum XMaterial {
     }
 
     /**
-     * This is just an extra method that method that can be used for many cases.
+     * This is just an extra method that can be used for many cases.
      * It can be used in {@link org.bukkit.event.player.PlayerInteractEvent}
      * or when accessing {@link org.bukkit.entity.Player#getMainHand()},
      * or other compatibility related methods.
@@ -1438,7 +1425,8 @@ public enum XMaterial {
     }
 
     /**
-     * Gets the {@link XMaterial} with this name without throwing an exception.
+     * Gets the XMaterial with this name similar to {@link #valueOf(String)}
+     * without throwing an exception.
      *
      * @param name the name of the material.
      * @return an optional that can be empty.
@@ -1485,9 +1473,11 @@ public enum XMaterial {
     }
 
     /**
-     * Parses the given material name as an XMaterial with unspecified data value.
+     * Parses the given material name as an XMaterial with a given data
+     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
      *
      * @see #matchXMaterialWithData(String)
+     * @see #matchDefinedXMaterial(String, byte)
      * @since 2.0.0
      */
     @Nonnull
@@ -1546,7 +1536,8 @@ public enum XMaterial {
     }
 
     /**
-     * Parses the given item as an XMaterial using its material and data value (durability).
+     * Parses the given item as an XMaterial using its material and data value (durability)
+     * if not a damageable item {@link ItemStack#getDurability()}.
      *
      * @param item the ItemStack to match.
      * @return an XMaterial if matched any.
@@ -1561,8 +1552,11 @@ public enum XMaterial {
         String material = item.getType().name();
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
+        // Check FILLED_MAP enum for more info.
+        //if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
+
         return matchDefinedXMaterial(material, data)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported material: " + material + " (" + data + ')'));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported material from item: " + material + " (" + data + ')'));
     }
 
     /**
@@ -1570,7 +1564,7 @@ public enum XMaterial {
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
      * @param name the formatted name of the material.
-     * @param data the data value of the material.
+     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
      * @return an XMaterial (with the same data value if specified)
      * @see #matchXMaterial(Material)
      * @see #matchXMaterial(int, byte)
@@ -1578,32 +1572,24 @@ public enum XMaterial {
      * @since 3.0.0
      */
     @Nonnull
-    private static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
+    protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
         // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
         Boolean duplicated = null;
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (data <= 0 && (Data.ISFLAT || !(duplicated = isDuplicated(name)))) {
+        if (Data.ISFLAT || (data <= 0 && !(duplicated = isDuplicated(name)))) {
             Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
+        // Usually flat versions wouldn't pass this point, but some special materials do.
 
-        // XMaterial Paradox (Duplication Check)
-        // I've concluded that this is just an infinite loop that keeps
-        // going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
-        // This solution works just fine anyway.
         XMaterial oldXMaterial = requestOldXMaterial(name, data);
         if (oldXMaterial == null) {
             // Special case. Refer to FILLED_MAP for more info.
             return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
-        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) {
-            // A solution for XMaterial Paradox.
-            // Manually parses the duplicated materials to find the exact material based on the server version.
-            // If ends with "S" -> Plural Form Material
-            return getIfPresent(name);
-        }
+        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);
         return Optional.of(oldXMaterial);
     }
 
@@ -1734,15 +1720,24 @@ public enum XMaterial {
     }
 
     /**
+     * XMaterial Paradox (Duplication Check)
+     * I've concluded that this is just an infinite loop that keeps
+     * going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
+     * This solution works just fine anyway.
+     * <p>
      * A solution for XMaterial Paradox.
      * Manually parses the duplicated materials to find the exact material based on the server version.
      * If the name ends with "S" -> Plural Form Material.
+     * Plural methods are only plural if they're also {@link #DUPLICATED}
+     * <p>
+     * The only special exceptions are {@link #BRICKS} and {@link #NETHER_BRICKS}
      *
      * @return true if this material is a plural form material, otherwise false.
      * @since 8.0.0
      */
     private boolean isPlural() {
-        return this.name().charAt(this.name().length() - 1) == 'S';
+        // this.name().charAt(this.name().length() - 1) == 'S'
+        return this == CARROTS || this == POTATOES;
     }
 
     /**
@@ -1839,8 +1834,7 @@ public enum XMaterial {
      */
     private boolean anyMatchLegacy(@Nonnull String name) {
         for (int i = this.legacy.length - 1; i >= 0; i--) {
-            String legacy = this.legacy[i];
-            if (name.equals(legacy)) return true;
+            if (name.equals(this.legacy[i])) return true;
         }
         return false;
     }
@@ -1964,18 +1958,42 @@ public enum XMaterial {
 
     /**
      * This method is needed due to Java enum initialization limitations.
-     * Switch and if statements cannot be used either.
-     * This method is really inefficient yes, but it's only used for initialization.
+     * It's really inefficient yes, but it's only used for initialization.
      * <p>
      * Yes there are many other ways like comparing the hardcoded ordinal or using a boolean in the enum constructor,
      * but it's not really a big deal.
+     * <p>
+     * This method should not be called if the version is after the flattening update {@link Data#ISFLAT}
+     * and is only used for parsing materials, not matching, for matching check {@link #DUPLICATED}
      */
     private boolean isDuplicated() {
-        String name = this.name();
-        return name.equals("MELON") || name.equals("CARROT") || name.equals("POTATO") || name.equals("BEETROOT") || name.equals("GRASS") ||
-                name.equals("BROWN_MUSHROOM") || name.equals("BRICK") || name.equals("NETHER_BRICK")
-                || name.equals("DARK_OAK_DOOR") || name.equals("ACACIA_DOOR") || name.equals("BIRCH_DOOR") || name.equals("JUNGLE_DOOR") || name.equals("SPRUCE_DOOR")
-                || name.equals("CAULDRON") || name.equals("BREWING_STAND") || name.equals("FLOWER_POT");
+        switch (this.name()) {
+            case "MELON":
+            case "CARROT":
+            case "POTATO":
+            case "GRASS":
+            case "BRICK":
+            case "NETHER_BRICK":
+
+                // Illegal Elements
+                // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
+                // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
+                // We'll trick XMaterial into thinking this needs to be parsed
+                // using the old methods.
+                // Some of these materials have their enum name added to the legacy list as well.
+            case "DARK_OAK_DOOR":
+            case "ACACIA_DOOR":
+            case "BIRCH_DOOR":
+            case "JUNGLE_DOOR":
+            case "SPRUCE_DOOR":
+            case "MAP":
+            case "CAULDRON":
+            case "BREWING_STAND":
+            case "FLOWER_POT":
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
