@@ -64,7 +64,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.1.0
+ * @version 4.2.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -91,8 +91,9 @@ public final class XItemStack {
 
         if (meta.hasDisplayName()) config.set("name", ChatColor.stripColor(meta.getDisplayName()));
         if (meta.hasLore()) {
-            List<String> lines = new ArrayList<>();
-            for (String lore : meta.getLore()) lines.add(ChatColor.stripColor(lore));
+            List<String> lores = meta.getLore();
+            List<String> lines = new ArrayList<>(lores.size());
+            for (String lore : lores) lines.add(ChatColor.stripColor(lore));
             config.set("lore", lines);
         }
         if (item.getAmount() > 1) config.set("amount", item.getAmount());
@@ -116,9 +117,10 @@ public final class XItemStack {
 
         // Flags
         if (!meta.getItemFlags().isEmpty()) {
-            List<String> flags = new ArrayList<>();
-            for (ItemFlag flag : meta.getItemFlags()) flags.add(flag.name());
-            config.set("flags", flags);
+            Set<ItemFlag> flags = meta.getItemFlags();
+            List<String> flagNames = new ArrayList<>(flags.size());
+            for (ItemFlag flag : flags) flagNames.add(flag.name());
+            config.set("flags", flagNames);
         }
 
         // Attributes - https://minecraft.gamepedia.com/Attribute
@@ -177,9 +179,11 @@ public final class XItemStack {
             if (XMaterial.supports(9)) {
 
                 PotionMeta potion = (PotionMeta) meta;
-                List<String> effects = new ArrayList<>();
-                for (PotionEffect effect : potion.getCustomEffects())
+                List<PotionEffect> customEffects = potion.getCustomEffects();
+                List<String> effects = new ArrayList<>(customEffects.size());
+                for (PotionEffect effect : customEffects) {
                     effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+                }
 
                 config.set("custom-effects", effects);
                 PotionData potionData = potion.getBasePotionData();
@@ -207,13 +211,16 @@ public final class XItemStack {
                 fwc.set("flicker", fw.hasFlicker());
                 fwc.set("trail", fw.hasTrail());
 
-                List<String> baseColors = new ArrayList<>();
-                List<String> fadeColors = new ArrayList<>();
+                List<Color> fwBaseColors = fw.getColors();
+                List<Color> fwFadeColors = fw.getFadeColors();
 
-                for (Color color : fw.getColors()) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                List<String> baseColors = new ArrayList<>(fwBaseColors.size());
+                List<String> fadeColors = new ArrayList<>(fwFadeColors.size());
+
+                for (Color color : fwBaseColors) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 fwc.set("base-colors", baseColors);
 
-                for (Color color : fw.getFadeColors()) fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                for (Color color : fwFadeColors) fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 fwc.set("fade-colors", fadeColors);
                 i++;
             }
@@ -233,8 +240,10 @@ public final class XItemStack {
                 config.set("pattern-color", tropical.getPatternColor().name());
             } else if (meta instanceof SuspiciousStewMeta) {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                List<String> effects = new ArrayList<>();
-                for (PotionEffect effect : stew.getCustomEffects()) {
+                List<PotionEffect> customEffects = stew.getCustomEffects();
+                List<String> effects = new ArrayList<>(customEffects.size());
+
+                for (PotionEffect effect : customEffects) {
                     effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
                 }
 
@@ -393,16 +402,14 @@ public final class XItemStack {
                     builder.trail(fw.getBoolean("trail"));
                     builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
 
-                    List<Color> colors = new ArrayList<>();
-                    for (String colorStr : fw.getStringList("colors")) {
-                        colors.add(parseColor(colorStr));
-                    }
+                    List<String> fwColors = fw.getStringList("colors");
+                    List<Color> colors = new ArrayList<>(fwColors.size());
+                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
                     builder.withColor(colors);
 
-                    colors.clear();
-                    for (String colorStr : fw.getStringList("fade-colors")) {
-                        colors.add(parseColor(colorStr));
-                    }
+                    fwColors = fw.getStringList("fade-colors");
+                    colors = new ArrayList<>(fwColors.size());
+                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
                     builder.withFade(colors);
 
                     firework.addEffect(builder.build());
@@ -458,7 +465,7 @@ public final class XItemStack {
         // Lore
         List<String> lores = config.getStringList("lore");
         if (!lores.isEmpty()) {
-            List<String> translatedLore = new ArrayList<>();
+            List<String> translatedLore = new ArrayList<>(lores.size());
             String lastColors = "";
 
             for (String lore : lores) {
@@ -483,7 +490,7 @@ public final class XItemStack {
         } else {
             String lore = config.getString("lore");
             if (!Strings.isNullOrEmpty(lore)) {
-                List<String> translatedLore = new ArrayList<>();
+                List<String> translatedLore = new ArrayList<>(10);
                 String lastColors = "";
 
                 for (String singleLore : StringUtils.splitPreserveAllTokens(lore, '\n')) {
@@ -681,14 +688,14 @@ public final class XItemStack {
     }
 
     /**
-     * Gets the item index in the inventory that matches the given item argument.
+     * Gets the item slot in the inventory that matches the given item argument.
      * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
      * reached its {@link ItemStack#getMaxStackSize()} for the inventory.
      *
      * @param inventory  the inventory to match the item from.
      * @param item       the item to match.
      * @param beginIndex the index which to start the search from in the inventory.
-     * @return the index of the matched item, otherwise -1
+     * @return the first matched item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
@@ -716,7 +723,7 @@ public final class XItemStack {
     @Nonnull
     public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
         Objects.requireNonNull(items, "Cannot stack null items");
-        List<ItemStack> stacked = new ArrayList<>();
+        List<ItemStack> stacked = new ArrayList<>(items.size());
 
         for (ItemStack item : items) {
             if (item == null) continue;
@@ -736,11 +743,13 @@ public final class XItemStack {
     }
 
     /**
-     * Gets the first empty slot in the inventory from an index.
+     * Gets the first item slot in the inventory that is empty or matches the given item argument.
+     * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
+     * reached its {@link ItemStack#getMaxStackSize()} for the inventory.
      *
      * @param inventory  the inventory to search from.
-     * @param beginIndex the item index to start our search from in the inventory.
-     * @return first empty item index, otherwise -1
+     * @param beginIndex the item slot to start the search from in the inventory.
+     * @return first empty item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
@@ -751,6 +760,31 @@ public final class XItemStack {
 
         for (; beginIndex < len; beginIndex++) {
             if (items[beginIndex] == null) return beginIndex;
+        }
+        return -1;
+    }
+
+    /**
+     * Gets the first empty slot or partial item in the inventory from an index.
+     *
+     * @param inventory  the inventory to search from.
+     * @param beginIndex the item slot to start the search from in the inventory.
+     * @return first empty or partial item slot, otherwise -1
+     * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
+     * @see #firstEmpty(Inventory, int)
+     * @see #firstPartial(Inventory, ItemStack, int)
+     * @since 4.2.0
+     */
+    public static int firstPartialOrEmpty(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+        if (item != null) {
+            ItemStack[] items = inventory.getStorageContents();
+            int len = items.length;
+            if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+
+            for (; beginIndex < len; beginIndex++) {
+                ItemStack cItem = items[beginIndex];
+                if (cItem == null || (cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item))) return beginIndex;
+            }
         }
         return -1;
     }

@@ -25,11 +25,18 @@ import com.google.common.base.Enums;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
+import org.bukkit.TreeSpecies;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.loot.Lootable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,7 +53,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 3.0.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -105,7 +112,7 @@ public final class XEntity {
         return edit(location.getWorld().spawnEntity(location, type), config);
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "Guava"})
     @Nonnull
     public static Entity edit(@Nonnull Entity entity, @Nonnull ConfigurationSection config) {
         Objects.requireNonNull(entity, "Cannot edit properties of a null entity");
@@ -131,6 +138,39 @@ public final class XEntity {
         if (portalCooldown != -1) entity.setPortalCooldown(portalCooldown);
         // We don't need damage cause.
 
+        if (entity instanceof Lootable) {
+            Lootable lootable = (Lootable) entity;
+            long seed = config.getLong("seed");
+            if (seed != 0) lootable.setSeed(seed);
+
+            // Needs to be implemented.
+//            ConfigurationSection lootTable = config.getConfigurationSection("loot-table");
+//            if (lootTable != null) {
+//                LootTable table = lootable.getLootTable();
+//            }
+        }
+
+        if (entity instanceof Vehicle) {
+            if (entity instanceof Boat) {
+                Boat boat = (Boat) entity;
+                String speciesName = config.getString("tree-species");
+                if (speciesName != null) {
+                    com.google.common.base.Optional<TreeSpecies> species = Enums.getIfPresent(TreeSpecies.class, speciesName);
+                    if (species.isPresent()) boat.setWoodType(species.get());
+                }
+            }
+        }
+
+        if (entity instanceof Boss) {
+            Boss boss = (Boss) entity;
+            ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
+
+            if (bossBarSection != null) {
+                BossBar bossBar = boss.getBossBar();
+                editBossBar(bossBar, bossBarSection);
+            }
+        }
+
         if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) entity;
             double hp = config.getDouble("health", -1);
@@ -139,7 +179,7 @@ public final class XEntity {
                 living.setHealth(hp);
             }
 
-            if (XMaterial.isNewVersion()) living.setAbsorptionAmount(config.getInt("absorption"));
+            if (XMaterial.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
             if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
             if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
@@ -195,7 +235,7 @@ public final class XEntity {
                 }
             }
 
-            if (living instanceof Ageable) {
+            if (living instanceof Ageable) { // and Breedable
                 Ageable ageable = (Ageable) living;
                 if (config.isSet("breed")) ageable.setBreed(config.getBoolean("breed"));
                 if (config.isSet("baby")) {
@@ -207,10 +247,17 @@ public final class XEntity {
                 if (age > 0) ageable.setAge(age);
 
                 if (config.isSet("age-lock")) ageable.setAgeLock(config.getBoolean("age-lock"));
-            }
-            if (living instanceof Tameable) {
-                Tameable tam = (Tameable) living;
-                tam.setTamed(config.getBoolean("tamed"));
+
+                if (living instanceof Animals) {
+                    Animals animals = (Animals) living;
+                    int loveModeTicks = config.getInt("love-mode");
+                    if (loveModeTicks != 0) animals.setLoveModeTicks(loveModeTicks);
+
+                    if (living instanceof Tameable) {
+                        Tameable tam = (Tameable) living;
+                        tam.setTamed(config.getBoolean("tamed"));
+                    }
+                }
             }
             if (living instanceof Sittable) {
                 Sittable sit = (Sittable) living;
@@ -221,26 +268,35 @@ public final class XEntity {
                 String spell = config.getString("spell");
                 if (spell != null) caster.setSpell(Enums.getIfPresent(Spellcaster.Spell.class, spell).or(Spellcaster.Spell.NONE));
             }
-            if (living instanceof ChestedHorse) { // Llamas too
-                ChestedHorse chested = (ChestedHorse) living;
-                chested.setCarryingChest(config.getBoolean("has-chest"));
+            if (living instanceof AbstractHorse) {
+                AbstractHorse horse = (AbstractHorse) living;
+                if (config.isSet("domestication")) horse.setDomestication(config.getInt("domestication"));
+                if (config.isSet("jump-strength")) horse.setJumpStrength(config.getDouble("jump-strength"));
+                if (config.isSet("max-domestication")) horse.setMaxDomestication(config.getInt("max-domestication"));
 
                 ConfigurationSection items = config.getConfigurationSection("items");
                 if (items != null) {
+                    Inventory inventory = horse.getInventory();
                     for (String key : items.getKeys(false)) {
                         ConfigurationSection itemSec = items.getConfigurationSection(key);
                         int slot = itemSec.getInt("slot", -1);
                         if (slot != -1) {
                             ItemStack item = XItemStack.deserialize(itemSec);
-                            if (item != null) chested.getInventory().setItem(slot, item);
+                            if (item != null) inventory.setItem(slot, item);
                         }
                     }
+                }
+
+                if (living instanceof ChestedHorse) { // Llamas too
+                    ChestedHorse chested = (ChestedHorse) living;
+                    boolean hasChest = config.getBoolean("has-chest");
+                    if (hasChest) chested.setCarryingChest(true);
                 }
             }
 
             if (living instanceof Enderman) {
                 Enderman enderman = (Enderman) living;
-                String block = config.getString("block");
+                String block = config.getString("carrying");
 
                 if (block != null) {
                     Optional<XMaterial> mat = XMaterial.matchXMaterial(block);
@@ -249,6 +305,10 @@ public final class XEntity {
                         if (item != null) enderman.setCarriedMaterial(item.getData());
                     }
                 }
+            } else if (living instanceof Sheep) {
+                Sheep sheep = (Sheep) living;
+                boolean sheared = config.getBoolean("sheared");
+                if (sheared) sheep.setSheared(true);
             } else if (living instanceof Rabbit) {
                 Rabbit rabbit = (Rabbit) living;
                 rabbit.setRabbitType(Enums.getIfPresent(Rabbit.Type.class, config.getString("rabbit-type")).or(Rabbit.Type.WHITE));
@@ -272,8 +332,9 @@ public final class XEntity {
                 } else if (XMaterial.supports(11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
-                        llama.setColor(Enums.getIfPresent(Llama.Color.class, config.getString("color")).or(Llama.Color.WHITE));
-                        llama.setStrength(config.getInt("strength"));
+                        if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
+                        com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
+                        if (color.isPresent()) llama.setColor(color.get());
                     } else if (XMaterial.supports(12)) {
 
                         if (living instanceof Parrot) {
@@ -283,10 +344,6 @@ public final class XEntity {
                             if (living instanceof Vex) {
                                 Vex vex = (Vex) living;
                                 vex.setCharging(config.getBoolean("charging"));
-                            } else if (living instanceof Cat) {
-                                Cat cat = (Cat) living;
-                                cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
-                                cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
                             } else if (living instanceof PufferFish) {
                                 PufferFish pufferFish = (PufferFish) living;
                                 pufferFish.setPuffState(config.getInt("puff-state"));
@@ -301,14 +358,17 @@ public final class XEntity {
                             } else if (living instanceof Phantom) {
                                 Phantom phantom = (Phantom) living;
                                 phantom.setSize(config.getInt("size"));
-                            } else if (living instanceof Fox) {
-                                Fox fox = (Fox) living;
-                                fox.setCrouching(config.getBoolean("crouching"));
-                                fox.setSleeping(config.getBoolean("sleeping"));
-                                fox.setFoxType(Enums.getIfPresent(Fox.Type.class, config.getString("type")).or(Fox.Type.RED));
                             } else if (XMaterial.supports(14)) {
-
-                                if (living instanceof Panda) {
+                                if (living instanceof Cat) {
+                                    Cat cat = (Cat) living;
+                                    cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
+                                    cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
+                                } else if (living instanceof Fox) {
+                                    Fox fox = (Fox) living;
+                                    fox.setCrouching(config.getBoolean("crouching"));
+                                    fox.setSleeping(config.getBoolean("sleeping"));
+                                    fox.setFoxType(Enums.getIfPresent(Fox.Type.class, config.getString("type")).or(Fox.Type.RED));
+                                } else if (living instanceof Panda) {
                                     Panda panda = (Panda) living;
                                     panda.setHiddenGene(Enums.getIfPresent(Panda.Gene.class, config.getString("hidden-gene")).or(Panda.Gene.PLAYFUL));
                                     panda.setMainGene(Enums.getIfPresent(Panda.Gene.class, config.getString("main-gene")).or(Panda.Gene.NORMAL));
@@ -361,5 +421,44 @@ public final class XEntity {
         }
 
         return entity;
+    }
+
+    /**
+     * Edits an existing BossBar from the config.
+     *
+     * @param bossBar the created bossbar.
+     * @param section the config section to edit the bossbar from.
+     * @since 3.0.0
+     */
+    @SuppressWarnings("Guava")
+    private static void editBossBar(BossBar bossBar, ConfigurationSection section) {
+        String title = section.getString("title");
+        if (title != null) bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', title));
+
+        String colorStr = section.getString("color");
+        if (colorStr != null) {
+            com.google.common.base.Optional<BarColor> color = Enums.getIfPresent(BarColor.class, colorStr.toUpperCase(Locale.ENGLISH));
+            if (color.isPresent()) bossBar.setColor(color.get());
+        }
+
+        String styleStr = section.getString("style");
+        if (styleStr != null) {
+            com.google.common.base.Optional<BarStyle> style = Enums.getIfPresent(BarStyle.class, styleStr.toUpperCase(Locale.ENGLISH));
+            if (style.isPresent()) bossBar.setStyle(style.get());
+        }
+
+        List<String> flagList = section.getStringList("flags");
+        if (!flagList.isEmpty()) {
+            Set<BarFlag> flags = EnumSet.noneOf(BarFlag.class);
+            for (String flagName : flagList) {
+                BarFlag flag = Enums.getIfPresent(BarFlag.class, flagName.toUpperCase(Locale.ENGLISH)).orNull();
+                if (flag != null) flags.add(flag);
+            }
+
+            for (BarFlag flag : BarFlag.values()) {
+                if (flags.contains(flag)) bossBar.addFlag(flag);
+                else bossBar.removeFlag(flag);
+            }
+        }
     }
 }

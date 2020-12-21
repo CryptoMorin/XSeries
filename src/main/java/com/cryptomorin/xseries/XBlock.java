@@ -44,7 +44,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 2.1.0.1
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -511,8 +511,18 @@ public final class XBlock {
     }
 
     public static boolean isAir(@Nullable Material material) {
-        if (material == Material.AIR) return true;
-        return ISFLAT && (material == Material.CAVE_AIR || material == Material.VOID_AIR);
+        if (ISFLAT) {
+            // material.isAir() doesn't exist for 1.13
+            switch (material) {
+                case AIR:
+                case CAVE_AIR:
+                case VOID_AIR:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        return material == Material.AIR;
     }
 
     public static boolean isPowered(Block block) {

@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * by the server.
  *
  * @author Crypto Morin
- * @version 1.1.0
+ * @version 2.0.0
  */
 public class ReflectionUtils {
     /**
@@ -111,26 +111,38 @@ public class ReflectionUtils {
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
      * @return the async thread handling the packet.
+     * @see #sendPacketSync(Player, Object...)
      * @since 1.0.0
      */
     @Nonnull
     public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                Object handle = GET_HANDLE.invoke(player);
-                Object connection = PLAYER_CONNECTION.invoke(handle);
+        return CompletableFuture.runAsync(() -> sendPacketSync(player, packets))
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+    }
 
-                // Checking if the connection is not null is enough. There is no need to check if the player is online.
-                if (connection != null) {
-                    for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
-                }
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+    /**
+     * Sends a packet to the player synchronously if they're online.
+     *
+     * @param player  the player to send the packet to.
+     * @param packets the packets to send.
+     * @see #sendPacket(Player, Object...)
+     * @since 2.0.0
+     */
+    public static void sendPacketSync(@Nonnull Player player, @Nonnull Object... packets) {
+        try {
+            Object handle = GET_HANDLE.invoke(player);
+            Object connection = PLAYER_CONNECTION.invoke(handle);
+
+            // Checking if the connection is not null is enough. There is no need to check if the player is online.
+            if (connection != null) {
+                for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
             }
-        }).exceptionally(ex -> {
-            ex.printStackTrace();
-            return null;
-        });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 
     /**
