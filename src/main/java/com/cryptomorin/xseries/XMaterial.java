@@ -1521,11 +1521,31 @@ public enum XMaterial {
     }
 
     /**
+     * Parses the given item as an XMaterial using its material and data value
+     *
+     * @throws IllegalArgumentException may be thrown as an unexpected exception.
+     * @see #matchDefinedXMaterial(String, byte)
+     * @see #matchXMaterial(ItemStack)
+     * @see #matchXMaterial(Material)
+     * @since 10.0.0
+     */
+    @Nonnull
+    public static XMaterial matchXMaterial(@Nonnull Block block) {
+        Objects.requireNonNull(block, "Cannot match null material");
+
+        byte data = (byte) (Data.ISFLAT || block.getType().getMaxDurability() > 0 ? 0 : block.getData());
+
+        return matchDefinedXMaterial(block.getType().name(), block.getData())
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported material with no data value: " + block.getType().name()));
+    }
+
+    /**
      * Parses the given material as an XMaterial.
      *
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @see #matchDefinedXMaterial(String, byte)
      * @see #matchXMaterial(ItemStack)
+     * @see #matchXMaterial(Block)
      * @since 2.0.0
      */
     @Nonnull
@@ -1543,6 +1563,7 @@ public enum XMaterial {
      * @return an XMaterial if matched any.
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @see #matchXMaterial(Material)
+     * @see #matchXMaterial(Block)
      * @since 2.0.0
      */
     @Nonnull
@@ -1569,6 +1590,7 @@ public enum XMaterial {
      * @see #matchXMaterial(Material)
      * @see #matchXMaterial(int, byte)
      * @see #matchXMaterial(ItemStack)
+     * @see #matchXMaterial(Block)
      * @since 3.0.0
      */
     @Nonnull
