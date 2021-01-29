@@ -32,6 +32,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
  * A class that provides various different essential features that the API
@@ -41,9 +42,10 @@ import java.util.Collections;
  */
 public class NMSExtras {
     private static final MethodHandle EXP_PACKET;
-    private static final MethodHandle WEATHER_PACKET;
+    private static final MethodHandle ENTITY_PACKET;
     private static final MethodHandle WORLD_HANDLE;
     private static final MethodHandle LIGHTNING_ENTITY;
+    private static final MethodHandle VEC3D;
 
     private static final MethodHandle ANIMATION_PACKET;
     private static final MethodHandle ANIMATION_TYPE;
@@ -57,9 +59,10 @@ public class NMSExtras {
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodHandle expPacket = null;
-        MethodHandle weatherPacket = null;
+        MethodHandle entityPacket = null;
         MethodHandle worldHandle = null;
         MethodHandle lightning = null;
+        MethodHandle vec3D = null;
 
         MethodHandle animationPacket = null;
         MethodHandle animationType = null;
@@ -72,21 +75,39 @@ public class NMSExtras {
 
         try {
             Class<?> nmsEntity = ReflectionUtils.getNMSClass("Entity");
+            Class<?> nmsEntityType = ReflectionUtils.getNMSClass("EntityTypes");
+            Class<?> nmsVec3D = ReflectionUtils.getNMSClass("Vec3D");
             Class<?> world = ReflectionUtils.getNMSClass("World");
 
             // https://wiki.vg/Protocol#Set_Experience
             // exp - lvl - total exp
             expPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
                     int.class, int.class));
+
             // Lightning
-            // TODO Not sure what the method changed to in 16...
-            if (!XMaterial.supports(16)) weatherPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
-                    nmsEntity));
+            if (!XMaterial.supports(16)) {
+                entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
+                        nmsEntity));
+            } else {
+                vec3D = lookup.findConstructor(nmsVec3D, MethodType.methodType(void.class,
+                        double.class, double.class, double.class));
+
+                entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntity"), MethodType.methodType(void.class,
+                        int.class, UUID.class, double.class, double.class, double.class, float.class, float.class, nmsEntityType, int.class, nmsVec3D));
+            }
+
             worldHandle = lookup.findVirtual(ReflectionUtils.getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
                     ReflectionUtils.getNMSClass("WorldServer")));
-            if (!XMaterial.supports(16)) lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
-                    // world, x, y, z, isEffect, isSilent
-                    world, double.class, double.class, double.class, boolean.class, boolean.class));
+
+            if (!XMaterial.supports(16)) {
+                lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
+                        // world, x, y, z, isEffect, isSilent
+                        world, double.class, double.class, double.class, boolean.class, boolean.class));
+            } else {
+                lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
+                        // entitytype, world
+                        nmsEntityType, world));
+            }
 
 
             Class<?> animation = ReflectionUtils.getNMSClass("PacketPlayOutAnimation");
@@ -111,9 +132,10 @@ public class NMSExtras {
         }
 
         EXP_PACKET = expPacket;
-        WEATHER_PACKET = weatherPacket;
+        ENTITY_PACKET = entityPacket;
         WORLD_HANDLE = worldHandle;
         LIGHTNING_ENTITY = lightning;
+        VEC3D = vec3D;
 
         ANIMATION_PACKET = animationPacket;
         ANIMATION_TYPE = animationType;
@@ -152,14 +174,31 @@ public class NMSExtras {
     public static void lightning(Collection<Player> players, Location location, boolean sound) {
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
-            // I don't know what the isEffect and isSilent params are used for.
-            // It doesn't seem to visually change the lightning.
-            Object lightningBolt = LIGHTNING_ENTITY.invoke(world, location.getX(), location.getY(), location.getZ(), false, false);
-            Object packet = WEATHER_PACKET.invoke(lightningBolt);
 
-            for (Player player : players) {
-                if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
-                ReflectionUtils.sendPacket(player, packet);
+            if (!XMaterial.supports(16)) {
+                // I don't know what the isEffect and isSilent params are used for.
+                // It doesn't seem to visually change the lightning.
+                Object lightningBolt = LIGHTNING_ENTITY.invoke(world, location.getX(), location.getY(), location.getZ(), false, false);
+                Object packet = ENTITY_PACKET.invoke(lightningBolt);
+
+                for (Player player : players) {
+                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
+                    ReflectionUtils.sendPacket(player, packet);
+                }
+            } else {
+                Class<?> nmsEntityType = ReflectionUtils.getNMSClass("EntityTypes");
+
+                Object lightningType = nmsEntityType.getClass().getField("LIGHTNING_BOLT").get(nmsEntityType);
+                Object lightningBolt = LIGHTNING_ENTITY.invoke(lightningType, world);
+                Object lightningBoltID = lightningBolt.getClass().getMethod("getId").invoke(lightningBolt);
+                Object lightningBoltUUID = lightningBolt.getClass().getMethod("getUniqueID").invoke(lightningBolt);
+                Object vec3D = VEC3D.invoke(0D, 0D, 0D);
+                Object packet = ENTITY_PACKET.invoke(lightningBoltID, lightningBoltUUID, location.getX(), location.getY(), location.getZ(), 0F, 0F, lightningType, 0, vec3D);
+
+                for (Player player : players) {
+                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
+                    ReflectionUtils.sendPacket(player, packet);
+                }
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
