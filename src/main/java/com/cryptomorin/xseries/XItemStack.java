@@ -106,7 +106,9 @@ public final class XItemStack {
             config.set("damage", item.getDurability());
         }
         config.set("material", item.getType().name());
-        if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
+        if(XMaterial.supports(14)){
+            if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
+        }
         if (meta.isUnbreakable()) config.set("unbreakable", true);
 
         // Enchantments
