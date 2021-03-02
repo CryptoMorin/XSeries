@@ -1575,18 +1575,19 @@ public enum XMaterial {
     protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
         // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
         Boolean duplicated = null;
+        boolean isAMap = name.equalsIgnoreCase("MAP");
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (Data.ISFLAT || (data <= 0 && !(duplicated = isDuplicated(name)))) {
+        if (Data.ISFLAT || (!isAMap && data <= 0 && !(duplicated = isDuplicated(name)))) {
             Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
-        // Usually flat versions wouldn't pass this point, but some special materials do.
 
+        // Usually flat versions wouldn't pass this point, but some special materials do.
         XMaterial oldXMaterial = requestOldXMaterial(name, data);
         if (oldXMaterial == null) {
             // Special case. Refer to FILLED_MAP for more info.
-            return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
+            return (data >= 0 && isAMap) ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
         if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);

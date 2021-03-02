@@ -45,6 +45,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.map.MapView;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.SpawnEgg;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
@@ -88,28 +91,39 @@ public final class XItemStack {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
+        boolean isNewVersion = XMaterial.isNewVersion();
 
-        if (meta.hasDisplayName()) config.set("name", ChatColor.stripColor(meta.getDisplayName()));
-        if (meta.hasLore()) {
-            List<String> lores = meta.getLore();
-            List<String> lines = new ArrayList<>(lores.size());
-            for (String lore : lores) lines.add(ChatColor.stripColor(lore));
-            config.set("lore", lines);
-        }
+        // Material
+        config.set("material", item.getType().name());
+
+        // Amount
         if (item.getAmount() > 1) config.set("amount", item.getAmount());
-        if (XMaterial.isNewVersion()) {
+
+        // Durability - Damage
+        if (isNewVersion) {
             if (meta instanceof Damageable) {
                 Damageable damageable = (Damageable) meta;
                 if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
             }
-        } else if (item.getType().getMaxDurability() > 0) {
+        }else{
             config.set("damage", item.getDurability());
         }
-        config.set("material", item.getType().name());
+
+        // Display Name & Lore
+        if (meta.hasDisplayName())config.set("name", meta.getDisplayName());
+        if (meta.hasLore()) {
+            List<String> lores = meta.getLore();
+            List<String> lines = new ArrayList<>(lores.size());
+            for (String lore : lores) lines.add(lore);
+            config.set("lore", lines);
+        }
+
         if(XMaterial.supports(14)){
             if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
         }
-        if (meta.isUnbreakable()) config.set("unbreakable", true);
+        if(XMaterial.supports(11)){
+            if (meta.isUnbreakable()) config.set("unbreakable", true);
+        }
 
         // Enchantments
         for (Map.Entry<Enchantment, Integer> enchant : meta.getEnchants().entrySet()) {
@@ -169,7 +183,6 @@ public final class XItemStack {
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.createSection("patterns");
-
             for (Pattern pattern : banner.getPatterns()) {
                 patterns.set(pattern.getPattern().name(), pattern.getColor().name());
             }
@@ -226,8 +239,43 @@ public final class XItemStack {
                 fwc.set("fade-colors", fadeColors);
                 i++;
             }
-            //} else if (meta instanceof MapMeta) {
-        } else if (XMaterial.supports(14)) {
+        } else if(meta instanceof BookMeta) {
+            BookMeta book = (BookMeta)meta;
+            ConfigurationSection info = config.createSection("information");
+            info.set("title", book.getTitle());
+            info.set("author", book.getAuthor());
+            if(XMaterial.supports(9)) {
+                BookMeta.Generation generation = book.getGeneration();
+                if (generation != null) {
+                    info.set("generation", book.getGeneration().toString());
+                }
+            }
+            info.set("pages", book.getPages());
+        } else if(meta instanceof MapMeta) {
+            MapMeta map = (MapMeta)meta;
+            ConfigurationSection info = config.createSection("information");
+            info.set("scaling",map.isScaling());
+            if(XMaterial.supports(11)) {
+                if (map.hasLocationName()) info.set("location", map.getLocationName());
+                if (map.hasColor()) {
+                    Color color = map.getColor();
+                    info.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                }
+            }
+            if(XMaterial.supports(14)){
+                if(map.hasMapView()) {
+                    MapView mapView = map.getMapView();
+                    ConfigurationSection view = info.createSection("view");
+                    view.set("scale", mapView.getScale().toString());
+                    view.set("world", mapView.getWorld().getName());
+                    view.set("center-x", mapView.getCenterX());
+                    view.set("center-z", mapView.getCenterZ());
+                    view.set("locked",mapView.isLocked());
+                    view.set("tracking-position",mapView.isTrackingPosition());
+                    view.set("unlimited-tracking",mapView.isUnlimitedTracking());
+                }
+            }
+        }else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -251,6 +299,20 @@ public final class XItemStack {
 
                 config.set("effects", effects);
             }
+        }else if(!isNewVersion) {
+            // Spawn Eggs
+            if (XMaterial.supports(11)){
+                if (meta instanceof SpawnEggMeta) {
+                    SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
+                    config.set("creature", spawnEgg.getSpawnedType().getName());
+                }
+            }else{
+                MaterialData data = item.getData();
+                if(data instanceof SpawnEgg){
+                    SpawnEgg spawnEgg = (SpawnEgg)data;
+                    config.set("creature",spawnEgg.getSpawnedType().getName());
+                }
+            }
         }
     }
 
@@ -265,6 +327,7 @@ public final class XItemStack {
     @Nullable
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
+        boolean isNewVersion = XMaterial.isNewVersion();
 
         // Material
         String material = config.getString("material");
@@ -282,7 +345,7 @@ public final class XItemStack {
         if (amount > 1) item.setAmount(amount);
 
         // Durability - Damage
-        if (XMaterial.isNewVersion()) {
+        if (isNewVersion) {
             if (meta instanceof Damageable) {
                 int damage = config.getInt("damage");
                 if (damage > 0) ((Damageable) meta).setDamage(damage);
@@ -293,7 +356,7 @@ public final class XItemStack {
         }
 
         // Special Items
-        if (matOpt.get() == XMaterial.PLAYER_HEAD) {
+        if (meta instanceof SkullMeta) {
             String skull = config.getString("skull");
             if (skull != null) SkullUtils.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {
@@ -404,7 +467,7 @@ public final class XItemStack {
                     builder.trail(fw.getBoolean("trail"));
                     builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
 
-                    List<String> fwColors = fw.getStringList("colors");
+                    List<String> fwColors = fw.getStringList("base-colors");
                     List<Color> colors = new ArrayList<>(fwColors.size());
                     for (String colorStr : fwColors) colors.add(parseColor(colorStr));
                     builder.withColor(colors);
@@ -417,10 +480,48 @@ public final class XItemStack {
                     firework.addEffect(builder.build());
                 }
             }
-            //} else if (meta instanceof MapMeta) {
-            // TODO This is a little bit too complicated.
-            //MapMeta map = (MapMeta) meta;
-        } else if (XMaterial.supports(14)) {
+        } else if(meta instanceof BookMeta) {
+            BookMeta book = (BookMeta)meta;
+            ConfigurationSection info = config.getConfigurationSection("information");
+            book.setTitle(info.getString("title"));
+            book.setAuthor(info.getString("author"));
+            if(XMaterial.supports(9)) {
+                String generationValue = info.getString("generation");
+                if (generationValue != null) {
+                    BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
+                    book.setGeneration(generation);
+                }
+            }
+            book.setPages(info.getStringList("pages"));
+        } else if(meta instanceof MapMeta){
+            MapMeta map = (MapMeta)meta;
+            ConfigurationSection info = config.getConfigurationSection("information");
+            map.setScaling(info.getBoolean("scaling"));
+            if(XMaterial.supports(11)) {
+                if (info.isSet("location")) map.setLocationName(info.getString("location"));
+                if (info.isSet("color")) {
+                    Color color = parseColor(info.getString("color"));
+                    map.setColor(color);
+                }
+            }
+            if(XMaterial.supports(14)){
+                ConfigurationSection view = info.getConfigurationSection("view");
+                if(view != null) {
+                    World world = Bukkit.getWorld(view.getString("world"));
+                    if (world != null) {
+                        MapView mapView = Bukkit.createMap(world);
+                        mapView.setWorld(world);
+                        mapView.setScale(Enums.getIfPresent(MapView.Scale.class,view.getString("scale")).or(MapView.Scale.NORMAL));
+                        mapView.setCenterX(view.getInt("center-x"));
+                        mapView.setCenterZ(view.getInt("center-z"));
+                        mapView.setLocked(view.getBoolean("locked"));
+                        mapView.setTrackingPosition(view.getBoolean("tracking-position"));
+                        mapView.setUnlimitedTracking(view.getBoolean("unlimited-tracking"));
+                        map.setMapView(mapView);
+                    }
+                }
+            }
+        }else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -444,6 +545,23 @@ public final class XItemStack {
                 for (String effects : config.getStringList("effects")) {
                     PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
                     stew.addCustomEffect(effect, true);
+                }
+            }
+        } else if(!isNewVersion){
+            // Spawn Eggs
+            if (XMaterial.supports(11)){
+                if(meta instanceof SpawnEggMeta){
+                    SpawnEggMeta spawnEgg = (SpawnEggMeta)meta;
+                    EntityType creature = Enums.getIfPresent(EntityType.class, config.getString("creature").toUpperCase(Locale.ENGLISH)).or(EntityType.BAT);
+                    spawnEgg.setSpawnedType(creature);
+                }
+            }else{
+                MaterialData data = item.getData();
+                if(data instanceof SpawnEgg){
+                    SpawnEgg spawnEgg = (SpawnEgg)data;
+                    EntityType creature = Enums.getIfPresent(EntityType.class, config.getString("creature").toUpperCase(Locale.ENGLISH)).or(EntityType.BAT);
+                    spawnEgg.setSpawnedType(creature);
+                    item.setData(data);
                 }
             }
         }
@@ -543,7 +661,7 @@ public final class XItemStack {
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
-        if (XMaterial.supports(13)) {
+        if (isNewVersion) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
