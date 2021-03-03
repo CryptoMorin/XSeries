@@ -242,16 +242,16 @@ public final class XItemStack {
             }
         } else if(meta instanceof BookMeta) {
             BookMeta book = (BookMeta)meta;
-            ConfigurationSection info = config.createSection("information");
-            info.set("title", book.getTitle());
-            info.set("author", book.getAuthor());
+            ConfigurationSection bookSection = config.createSection("book");
+            bookSection.set("title", book.getTitle());
+            bookSection.set("author", book.getAuthor());
             if(XMaterial.supports(9)) {
                 BookMeta.Generation generation = book.getGeneration();
                 if (generation != null) {
-                    info.set("generation", book.getGeneration().toString());
+                    bookSection.set("generation", book.getGeneration().toString());
                 }
             }
-            info.set("pages", book.getPages());
+            bookSection.set("pages", book.getPages());
         } else if(meta instanceof MapMeta) {
             MapMeta map = (MapMeta)meta;
             ConfigurationSection info = config.createSection("information");
@@ -484,17 +484,17 @@ public final class XItemStack {
             }
         } else if(meta instanceof BookMeta) {
             BookMeta book = (BookMeta)meta;
-            ConfigurationSection info = config.getConfigurationSection("information");
-            book.setTitle(info.getString("title"));
-            book.setAuthor(info.getString("author"));
+            ConfigurationSection bookSection = config.getConfigurationSection("book");
+            book.setTitle(bookSection.getString("title"));
+            book.setAuthor(bookSection.getString("author"));
             if(XMaterial.supports(9)) {
-                String generationValue = info.getString("generation");
+                String generationValue = bookSection.getString("generation");
                 if (generationValue != null) {
                     BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
                     book.setGeneration(generation);
                 }
             }
-            book.setPages(info.getStringList("pages"));
+            book.setPages(bookSection.getStringList("pages"));
         } else if(meta instanceof MapMeta){
             MapMeta map = (MapMeta)meta;
             ConfigurationSection info = config.getConfigurationSection("information");
