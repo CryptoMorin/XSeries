@@ -254,23 +254,24 @@ public final class XItemStack {
             bookSection.set("pages", book.getPages());
         } else if(meta instanceof MapMeta) {
             MapMeta map = (MapMeta)meta;
-            ConfigurationSection info = config.createSection("information");
-            info.set("scaling",map.isScaling());
+            ConfigurationSection mapSection = config.createSection("map");
+            mapSection.set("scaling",map.isScaling());
             if(XMaterial.supports(11)) {
-                if (map.hasLocationName()) info.set("location", map.getLocationName());
+                if (map.hasLocationName()) mapSection.set("location", map.getLocationName());
                 if (map.hasColor()) {
                     Color color = map.getColor();
-                    info.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                    mapSection.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 }
             }
             if(XMaterial.supports(14)){
                 if(map.hasMapView()) {
                     MapView mapView = map.getMapView();
-                    ConfigurationSection view = info.createSection("view");
+                    ConfigurationSection view = mapSection.createSection("view");
                     view.set("scale", mapView.getScale().toString());
                     view.set("world", mapView.getWorld().getName());
-                    view.set("center-x", mapView.getCenterX());
-                    view.set("center-z", mapView.getCenterZ());
+                    ConfigurationSection centerSection = view.createSection("center");
+                    centerSection.set("x", mapView.getCenterX());
+                    centerSection.set("z", mapView.getCenterZ());
                     view.set("locked",mapView.isLocked());
                     view.set("tracking-position",mapView.isTrackingPosition());
                     view.set("unlimited-tracking",mapView.isUnlimitedTracking());
@@ -497,25 +498,26 @@ public final class XItemStack {
             book.setPages(bookSection.getStringList("pages"));
         } else if(meta instanceof MapMeta){
             MapMeta map = (MapMeta)meta;
-            ConfigurationSection info = config.getConfigurationSection("information");
-            map.setScaling(info.getBoolean("scaling"));
+            ConfigurationSection mapSection = config.getConfigurationSection("map");
+            map.setScaling(mapSection.getBoolean("scaling"));
             if(XMaterial.supports(11)) {
-                if (info.isSet("location")) map.setLocationName(info.getString("location"));
-                if (info.isSet("color")) {
-                    Color color = parseColor(info.getString("color"));
+                if (mapSection.isSet("location")) map.setLocationName(mapSection.getString("location"));
+                if (mapSection.isSet("color")) {
+                    Color color = parseColor(mapSection.getString("color"));
                     map.setColor(color);
                 }
             }
             if(XMaterial.supports(14)){
-                ConfigurationSection view = info.getConfigurationSection("view");
+                ConfigurationSection view = mapSection.getConfigurationSection("view");
                 if(view != null) {
                     World world = Bukkit.getWorld(view.getString("world"));
                     if (world != null) {
                         MapView mapView = Bukkit.createMap(world);
                         mapView.setWorld(world);
                         mapView.setScale(Enums.getIfPresent(MapView.Scale.class,view.getString("scale")).or(MapView.Scale.NORMAL));
-                        mapView.setCenterX(view.getInt("center-x"));
-                        mapView.setCenterZ(view.getInt("center-z"));
+                        ConfigurationSection centerSection = view.getConfigurationSection("center");
+                        mapView.setCenterX(centerSection.getInt("x"));
+                        mapView.setCenterZ(centerSection.getInt("z"));
                         mapView.setLocked(view.getBoolean("locked"));
                         mapView.setTrackingPosition(view.getBoolean("tracking-position"));
                         mapView.setUnlimitedTracking(view.getBoolean("unlimited-tracking"));
