@@ -232,11 +232,12 @@ public final class XItemStack {
                 List<String> baseColors = new ArrayList<>(fwBaseColors.size());
                 List<String> fadeColors = new ArrayList<>(fwFadeColors.size());
 
+                ConfigurationSection colors = fwc.createSection("colors");
                 for (Color color : fwBaseColors) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
-                fwc.set("base-colors", baseColors);
+                colors.set("base", baseColors);
 
                 for (Color color : fwFadeColors) fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
-                fwc.set("fade-colors", fadeColors);
+                colors.set("fade", fadeColors);
                 i++;
             }
         } else if(meta instanceof BookMeta) {
@@ -467,12 +468,13 @@ public final class XItemStack {
                     builder.trail(fw.getBoolean("trail"));
                     builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
 
-                    List<String> fwColors = fw.getStringList("base-colors");
+                    ConfigurationSection colorsSection = fw.getConfigurationSection("colors");
+                    List<String> fwColors = colorsSection.getStringList("base");
                     List<Color> colors = new ArrayList<>(fwColors.size());
                     for (String colorStr : fwColors) colors.add(parseColor(colorStr));
                     builder.withColor(colors);
 
-                    fwColors = fw.getStringList("fade-colors");
+                    fwColors = colorsSection.getStringList("fade");
                     colors = new ArrayList<>(fwColors.size());
                     for (String colorStr : fwColors) colors.add(parseColor(colorStr));
                     builder.withFade(colors);
