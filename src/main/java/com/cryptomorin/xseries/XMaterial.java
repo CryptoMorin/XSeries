@@ -36,6 +36,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.meta.When;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -1401,9 +1402,11 @@ public enum XMaterial {
      * @see #getVersion()
      * @see #supports(int)
      * @since 1.0.0
+     * @deprecated Use {@link XVersion#isNewVersion()}
      */
+    @Deprecated
     public static boolean isNewVersion() {
-        return Data.ISFLAT;
+        return XVersion.isNewVersion();
     }
 
     /**
@@ -1443,11 +1446,14 @@ public enum XMaterial {
      * @return the current server version minor number.
      * @see #isNewVersion()
      * @since 2.0.0
+     * @deprecated Use {@link XVersion#getVersion()}
      */
+    @Deprecated
     public static int getVersion() {
-        return Data.VERSION;
+        return XVersion.getVersion();
     }
 
+    /**
      * When using newer versions of Minecraft ({@link XVersion#isNewVersion()}), helps
      * to find the old material name with its data value using a cached search for optimization.
      *
@@ -1677,9 +1683,10 @@ public enum XMaterial {
      * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
      * @return true of the version is equal or higher than the current version.
      * @since 2.0.0
+     * @deprecated Use {@link XVersion#supports(int)}
      */
     public static boolean supports(int version) {
-        return Data.VERSION >= version;
+        return XVersion.supports(version);
     }
 
     /**
@@ -1692,26 +1699,12 @@ public enum XMaterial {
      * @see #getVersion()
      * @see #getMaterialVersion()
      * @since 2.0.0
+     * @deprecated Use {@link XVersion#getMajorVersion(String)}
      */
     @Nonnull
+    @Deprecated
     public static String getMajorVersion(@Nonnull String version) {
-        Validate.notEmpty(version, "Cannot get major Minecraft version from null or empty string");
-
-        // getVersion()
-        int index = version.lastIndexOf("MC:");
-        if (index != -1) {
-            version = version.substring(index + 4, version.length() - 1);
-        } else if (version.endsWith("SNAPSHOT")) {
-            // getBukkitVersion()
-            index = version.indexOf('-');
-            version = version.substring(0, index);
-        }
-
-        // 1.13.2, 1.14.4, etc...
-        int lastDot = version.lastIndexOf('.');
-        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
-
-        return version;
+        return XVersion.getMajorVersion(version);
     }
 
     public String[] getLegacy() {
