@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 import javax.annotation.Nonnull;
 
 /**
- * A class that contains versioning methods for Bukkit server.
+ * A class that contains versioning methods for Bukkit servers.
  *
  * @author portlek
  * @version 1.0.0
