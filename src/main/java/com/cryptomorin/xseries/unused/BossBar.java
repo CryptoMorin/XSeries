@@ -22,6 +22,8 @@
 package com.cryptomorin.xseries.unused;
 
 import com.cryptomorin.xseries.ReflectionUtils;
+import com.cryptomorin.xseries.section.BukkitConfigurationSection;
+import com.cryptomorin.xseries.section.XConfigurationSection;
 import com.google.common.base.Enums;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -185,6 +187,10 @@ public class BossBar implements Cloneable {
     }
 
     public static BossBar fromConfig(ConfigurationSection section) {
+        return fromConfig(new BukkitConfigurationSection(section));
+    }
+
+    public static BossBar fromConfig(XConfigurationSection section) {
         return new BossBar(ChatColor.translateAlternateColorCodes('&', section.getString("message")),
                 Enums.getIfPresent(Color.class, section.getString("color")).or(Color.PURPLE),
                 Enums.getIfPresent(Style.class, section.getString("style")).or(Style.PROGRESS),

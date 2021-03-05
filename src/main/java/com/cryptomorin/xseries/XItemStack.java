@@ -21,6 +21,8 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.section.BukkitConfigurationSection;
+import com.cryptomorin.xseries.section.XConfigurationSection;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
@@ -86,8 +88,20 @@ public final class XItemStack {
      * @param config the config section to write this item to.
      * @since 1.0.0
      */
-    @SuppressWarnings("deprecation")
     public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+        serialize(item, new BukkitConfigurationSection(config));
+    }
+
+    /**
+     * Writes an ItemStack object into a config.
+     * The config file will not save after the object is written.
+     *
+     * @param item   the ItemStack to serialize.
+     * @param config the config section to write this item to.
+     * @since 1.0.0
+     */
+    @SuppressWarnings("deprecation")
+    public static void serialize(@Nonnull ItemStack item, @Nonnull XConfigurationSection config) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
@@ -162,7 +176,7 @@ public final class XItemStack {
 
             if (XMaterial.supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
-                ConfigurationSection shulker = config.createSection("shulker");
+                XConfigurationSection shulker = config.createSection("shulker");
                 int i = 0;
                 for (ItemStack itemInBox : box.getInventory().getContents()) {
                     if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
@@ -182,7 +196,7 @@ public final class XItemStack {
             config.set("skull", SkullUtils.getSkinValue(meta));
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
-            ConfigurationSection patterns = config.createSection("patterns");
+            XConfigurationSection patterns = config.createSection("patterns");
             for (Pattern pattern : banner.getPatterns()) {
                 patterns.set(pattern.getPattern().name(), pattern.getColor().name());
             }
@@ -222,7 +236,7 @@ public final class XItemStack {
 
             for (FireworkEffect fw : firework.getEffects()) {
                 config.set("firework." + i + ".type", fw.getType().name());
-                ConfigurationSection fwc = config.getConfigurationSection("firework." + i);
+                XConfigurationSection fwc = config.getConfigurationSection("firework." + i);
                 fwc.set("flicker", fw.hasFlicker());
                 fwc.set("trail", fw.hasTrail());
 
@@ -232,7 +246,7 @@ public final class XItemStack {
                 List<String> baseColors = new ArrayList<>(fwBaseColors.size());
                 List<String> fadeColors = new ArrayList<>(fwFadeColors.size());
 
-                ConfigurationSection colors = fwc.createSection("colors");
+                XConfigurationSection colors = fwc.createSection("colors");
                 for (Color color : fwBaseColors) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 colors.set("base", baseColors);
 
@@ -242,7 +256,7 @@ public final class XItemStack {
             }
         } else if(meta instanceof BookMeta) {
             BookMeta book = (BookMeta)meta;
-            ConfigurationSection bookSection = config.createSection("book");
+            XConfigurationSection bookSection = config.createSection("book");
             bookSection.set("title", book.getTitle());
             bookSection.set("author", book.getAuthor());
             if(XMaterial.supports(9)) {
@@ -254,7 +268,7 @@ public final class XItemStack {
             bookSection.set("pages", book.getPages());
         } else if(meta instanceof MapMeta) {
             MapMeta map = (MapMeta)meta;
-            ConfigurationSection mapSection = config.createSection("map");
+            XConfigurationSection mapSection = config.createSection("map");
             mapSection.set("scaling",map.isScaling());
             if(XMaterial.supports(11)) {
                 if (map.hasLocationName()) mapSection.set("location", map.getLocationName());
@@ -266,10 +280,10 @@ public final class XItemStack {
             if(XMaterial.supports(14)){
                 if(map.hasMapView()) {
                     MapView mapView = map.getMapView();
-                    ConfigurationSection view = mapSection.createSection("view");
+                    XConfigurationSection view = mapSection.createSection("view");
                     view.set("scale", mapView.getScale().toString());
                     view.set("world", mapView.getWorld().getName());
-                    ConfigurationSection centerSection = view.createSection("center");
+                    XConfigurationSection centerSection = view.createSection("center");
                     centerSection.set("x", mapView.getCenterX());
                     centerSection.set("z", mapView.getCenterZ());
                     view.set("locked",mapView.isLocked());
@@ -325,9 +339,21 @@ public final class XItemStack {
      * @return a deserialized ItemStack.
      * @since 1.0.0
      */
-    @SuppressWarnings("deprecation")
     @Nullable
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+        return deserialize(new BukkitConfigurationSection(config));
+    }
+
+    /**
+     * Deserialize an ItemStack from the config.
+     *
+     * @param config the config section to deserialize the ItemStack object from.
+     * @return a deserialized ItemStack.
+     * @since 1.0.0
+     */
+    @SuppressWarnings("deprecation")
+    @Nullable
+    public static ItemStack deserialize(@Nonnull XConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
         boolean isNewVersion = XMaterial.isNewVersion();
 
@@ -363,7 +389,7 @@ public final class XItemStack {
             if (skull != null) SkullUtils.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
-            ConfigurationSection patterns = config.getConfigurationSection("patterns");
+            XConfigurationSection patterns = config.getConfigurationSection("patterns");
 
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
@@ -427,7 +453,7 @@ public final class XItemStack {
                 spawner.update(true);
                 bsm.setBlockState(spawner);
             } else if (XMaterial.supports(11) && state instanceof ShulkerBox) {
-                ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
+                XConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
                 if (shulkerSection != null) {
                     ShulkerBox box = (ShulkerBox) state;
                     for (String key : shulkerSection.getKeys(false)) {
@@ -440,7 +466,7 @@ public final class XItemStack {
                 }
             } else if (state instanceof Banner) {
                 Banner banner = (Banner) state;
-                ConfigurationSection patterns = config.getConfigurationSection("patterns");
+                XConfigurationSection patterns = config.getConfigurationSection("patterns");
 
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
@@ -459,17 +485,17 @@ public final class XItemStack {
             FireworkMeta firework = (FireworkMeta) meta;
             firework.setPower(config.getInt("power"));
 
-            ConfigurationSection fireworkSection = config.getConfigurationSection("firework");
+            XConfigurationSection fireworkSection = config.getConfigurationSection("firework");
             if (fireworkSection != null) {
                 FireworkEffect.Builder builder = FireworkEffect.builder();
                 for (String fws : fireworkSection.getKeys(false)) {
-                    ConfigurationSection fw = config.getConfigurationSection("firework." + fws);
+                    XConfigurationSection fw = config.getConfigurationSection("firework." + fws);
 
                     builder.flicker(fw.getBoolean("flicker"));
                     builder.trail(fw.getBoolean("trail"));
                     builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
 
-                    ConfigurationSection colorsSection = fw.getConfigurationSection("colors");
+                    XConfigurationSection colorsSection = fw.getConfigurationSection("colors");
                     List<String> fwColors = colorsSection.getStringList("base");
                     List<Color> colors = new ArrayList<>(fwColors.size());
                     for (String colorStr : fwColors) colors.add(parseColor(colorStr));
@@ -485,7 +511,7 @@ public final class XItemStack {
             }
         } else if(meta instanceof BookMeta) {
             BookMeta book = (BookMeta)meta;
-            ConfigurationSection bookSection = config.getConfigurationSection("book");
+            XConfigurationSection bookSection = config.getConfigurationSection("book");
             book.setTitle(bookSection.getString("title"));
             book.setAuthor(bookSection.getString("author"));
             if(XMaterial.supports(9)) {
@@ -498,7 +524,7 @@ public final class XItemStack {
             book.setPages(bookSection.getStringList("pages"));
         } else if(meta instanceof MapMeta){
             MapMeta map = (MapMeta)meta;
-            ConfigurationSection mapSection = config.getConfigurationSection("map");
+            XConfigurationSection mapSection = config.getConfigurationSection("map");
             map.setScaling(mapSection.getBoolean("scaling"));
             if(XMaterial.supports(11)) {
                 if (mapSection.isSet("location")) map.setLocationName(mapSection.getString("location"));
@@ -508,14 +534,14 @@ public final class XItemStack {
                 }
             }
             if(XMaterial.supports(14)){
-                ConfigurationSection view = mapSection.getConfigurationSection("view");
+                XConfigurationSection view = mapSection.getConfigurationSection("view");
                 if(view != null) {
                     World world = Bukkit.getWorld(view.getString("world"));
                     if (world != null) {
                         MapView mapView = Bukkit.createMap(world);
                         mapView.setWorld(world);
                         mapView.setScale(Enums.getIfPresent(MapView.Scale.class,view.getString("scale")).or(MapView.Scale.NORMAL));
-                        ConfigurationSection centerSection = view.getConfigurationSection("center");
+                        XConfigurationSection centerSection = view.getConfigurationSection("center");
                         mapView.setCenterX(centerSection.getInt("x"));
                         mapView.setCenterZ(centerSection.getInt("z"));
                         mapView.setLocked(view.getBoolean("locked"));
@@ -633,7 +659,7 @@ public final class XItemStack {
         }
 
         // Enchantments
-        ConfigurationSection enchants = config.getConfigurationSection("enchants");
+        XConfigurationSection enchants = config.getConfigurationSection("enchants");
         if (enchants != null) {
             for (String ench : enchants.getKeys(false)) {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
@@ -642,7 +668,7 @@ public final class XItemStack {
         }
 
         // Enchanted Books
-        ConfigurationSection enchantment = config.getConfigurationSection("stored-enchants");
+        XConfigurationSection enchantment = config.getConfigurationSection("stored-enchants");
         if (enchantment != null) {
             for (String ench : enchantment.getKeys(false)) {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
@@ -666,7 +692,7 @@ public final class XItemStack {
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
         if (isNewVersion) {
-            ConfigurationSection attributes = config.getConfigurationSection("attributes");
+            XConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
                     Attribute attributeInst = Enums.getIfPresent(Attribute.class, attribute.toUpperCase(Locale.ENGLISH)).orNull();

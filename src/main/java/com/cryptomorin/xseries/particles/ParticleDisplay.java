@@ -21,6 +21,8 @@
  */
 package com.cryptomorin.xseries.particles;
 
+import com.cryptomorin.xseries.section.BukkitConfigurationSection;
+import com.cryptomorin.xseries.section.XConfigurationSection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Location;
@@ -193,6 +195,18 @@ public class ParticleDisplay implements Cloneable {
      * @since 1.0.0
      */
     public static ParticleDisplay fromConfig(@Nullable Location location, @Nonnull ConfigurationSection config) {
+        return fromConfig(location, new BukkitConfigurationSection(config));
+    }
+
+    /**
+     * Builds particle settings from a configuration section.
+     *
+     * @param location the location to display this particle.
+     * @param config   the config section for the settings.
+     * @return a parsed ParticleDisplay.
+     * @since 1.0.0
+     */
+    public static ParticleDisplay fromConfig(@Nullable Location location, @Nonnull XConfigurationSection config) {
         ParticleDisplay display = new ParticleDisplay(DEFAULT_PARTICLE, location);
         return edit(display, config);
     }
@@ -207,6 +221,19 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public static ParticleDisplay edit(@Nonnull ParticleDisplay display, @Nonnull ConfigurationSection config) {
+        return edit(display, new BukkitConfigurationSection(config));
+    }
+
+    /**
+     * Builds particle settings from a configuration section.
+     *
+     * @param display the particle display settings to update.
+     * @param config  the config section for the settings.
+     * @return an edited ParticleDisplay.
+     * @since 5.0.0
+     */
+    @Nonnull
+    public static ParticleDisplay edit(@Nonnull ParticleDisplay display, @Nonnull XConfigurationSection config) {
         Objects.requireNonNull(display, "Cannot edit a null particle display");
         Objects.requireNonNull(config, "Cannot parse ParticleDisplay from a null config section");
 

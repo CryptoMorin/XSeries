@@ -22,6 +22,8 @@
 package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.ReflectionUtils;
+import com.cryptomorin.xseries.section.BukkitConfigurationSection;
+import com.cryptomorin.xseries.section.XConfigurationSection;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
@@ -201,6 +203,26 @@ public class Titles {
      * @since 1.0.0
      */
     public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+        sendTitle(player, new BukkitConfigurationSection(config));
+    }
+
+    /**
+     * Parses and sends a title from the config.
+     * The configuration section must at least
+     * contain {@code title} or {@code subtitle}
+     *
+     * <p>
+     * <b>Example:</b>
+     * <blockquote><pre>
+     *     ConfigurationSection titleSection = plugin.getConfig().getConfigurationSection("restart-title");
+     *     Titles.sendTitle(player, titleSection);
+     * </pre></blockquote>
+     *
+     * @param player the player to send the title to.
+     * @param config the configuration section to parse the title properties from.
+     * @since 1.0.0
+     */
+    public static void sendTitle(@Nonnull Player player, @Nonnull XConfigurationSection config) {
         String title = config.getString("title");
         String subtitle = config.getString("subtitle");
 

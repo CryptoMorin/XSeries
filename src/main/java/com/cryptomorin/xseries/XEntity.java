@@ -21,6 +21,8 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.section.BukkitConfigurationSection;
+import com.cryptomorin.xseries.section.XConfigurationSection;
 import com.google.common.base.Enums;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -102,7 +104,13 @@ public final class XEntity {
 
     @Nullable
     public static Entity spawn(@Nonnull Location location, @Nonnull ConfigurationSection config) {
+        return spawn(location, new BukkitConfigurationSection(config));
+    }
+
+    @Nullable
+    public static Entity spawn(@Nonnull Location location, @Nonnull XConfigurationSection config) {
         Objects.requireNonNull(location, "Cannot spawn entity at a null location.");
+        Objects.requireNonNull(location.getWorld(), "Cannot spawn entity at a null world.");
         Objects.requireNonNull(config, "Cannot spawn entity from a null configuration section");
 
         String typeStr = config.getString("type");
@@ -112,9 +120,14 @@ public final class XEntity {
         return edit(location.getWorld().spawnEntity(location, type), config);
     }
 
-    @SuppressWarnings({"deprecation", "Guava"})
     @Nonnull
     public static Entity edit(@Nonnull Entity entity, @Nonnull ConfigurationSection config) {
+        return edit(entity, new BukkitConfigurationSection(config));
+    }
+
+    @SuppressWarnings({"deprecation", "Guava"})
+    @Nonnull
+    public static Entity edit(@Nonnull Entity entity, @Nonnull XConfigurationSection config) {
         Objects.requireNonNull(entity, "Cannot edit properties of a null entity");
         Objects.requireNonNull(config, "Cannot edit an entity from a null configuration section");
 
@@ -163,7 +176,7 @@ public final class XEntity {
 
         if (entity instanceof Boss) {
             Boss boss = (Boss) entity;
-            ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
+            XConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
 
             if (bossBarSection != null) {
                 BossBar bossBar = boss.getBossBar();
@@ -194,41 +207,41 @@ public final class XEntity {
                 living.addPotionEffect(XPotion.parsePotionEffectFromString(effects));
             }
 
-            ConfigurationSection equip = config.getConfigurationSection("equipment");
+            XConfigurationSection equip = config.getConfigurationSection("equipment");
             if (equip != null) {
                 EntityEquipment equipment = living.getEquipment();
 
-                ConfigurationSection helmet = equip.getConfigurationSection("helmet");
+                XConfigurationSection helmet = equip.getConfigurationSection("helmet");
                 if (helmet != null) {
                     equipment.setHelmet(XItemStack.deserialize(helmet.getConfigurationSection("item")));
                     equipment.setHelmetDropChance(helmet.getInt("drop-chance"));
                 }
 
-                ConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
+                XConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
                 if (chestplate != null) {
                     equipment.setChestplate(XItemStack.deserialize(chestplate.getConfigurationSection("item")));
                     equipment.setChestplateDropChance(chestplate.getInt("drop-chance"));
                 }
 
-                ConfigurationSection leggings = equip.getConfigurationSection("leggings");
+                XConfigurationSection leggings = equip.getConfigurationSection("leggings");
                 if (leggings != null) {
                     equipment.setLeggings(XItemStack.deserialize(leggings.getConfigurationSection("item")));
                     equipment.setLeggingsDropChance(leggings.getInt("drop-chance"));
                 }
 
-                ConfigurationSection boots = equip.getConfigurationSection("boots");
+                XConfigurationSection boots = equip.getConfigurationSection("boots");
                 if (boots != null) {
                     equipment.setBoots(XItemStack.deserialize(boots.getConfigurationSection("item")));
                     equipment.setBootsDropChance(boots.getInt("drop-chance"));
                 }
 
-                ConfigurationSection mainHand = equip.getConfigurationSection("main-hand");
+                XConfigurationSection mainHand = equip.getConfigurationSection("main-hand");
                 if (mainHand != null) {
                     equipment.setItemInMainHand(XItemStack.deserialize(mainHand.getConfigurationSection("item")));
                     equipment.setItemInMainHandDropChance(mainHand.getInt("drop-chance"));
                 }
 
-                ConfigurationSection offHand = equip.getConfigurationSection("off-hand");
+                XConfigurationSection offHand = equip.getConfigurationSection("off-hand");
                 if (offHand != null) {
                     equipment.setItemInOffHand(XItemStack.deserialize(offHand.getConfigurationSection("item")));
                     equipment.setItemInOffHandDropChance(offHand.getInt("drop-chance"));
@@ -274,11 +287,11 @@ public final class XEntity {
                 if (config.isSet("jump-strength")) horse.setJumpStrength(config.getDouble("jump-strength"));
                 if (config.isSet("max-domestication")) horse.setMaxDomestication(config.getInt("max-domestication"));
 
-                ConfigurationSection items = config.getConfigurationSection("items");
+                XConfigurationSection items = config.getConfigurationSection("items");
                 if (items != null) {
                     Inventory inventory = horse.getInventory();
                     for (String key : items.getKeys(false)) {
-                        ConfigurationSection itemSec = items.getConfigurationSection(key);
+                        XConfigurationSection itemSec = items.getConfigurationSection(key);
                         int slot = itemSec.getInt("slot", -1);
                         if (slot != -1) {
                             ItemStack item = XItemStack.deserialize(itemSec);
@@ -430,8 +443,19 @@ public final class XEntity {
      * @param section the config section to edit the bossbar from.
      * @since 3.0.0
      */
-    @SuppressWarnings("Guava")
     private static void editBossBar(BossBar bossBar, ConfigurationSection section) {
+        editBossBar(bossBar, new BukkitConfigurationSection(section));
+    }
+
+    /**
+     * Edits an existing BossBar from the config.
+     *
+     * @param bossBar the created bossbar.
+     * @param section the config section to edit the bossbar from.
+     * @since 3.0.0
+     */
+    @SuppressWarnings("Guava")
+    private static void editBossBar(BossBar bossBar, XConfigurationSection section) {
         String title = section.getString("title");
         if (title != null) bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', title));
 
