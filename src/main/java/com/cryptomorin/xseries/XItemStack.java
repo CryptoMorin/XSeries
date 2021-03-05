@@ -91,7 +91,7 @@ public final class XItemStack {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
-        boolean isNewVersion = XMaterial.isNewVersion();
+        boolean isNewVersion = XVersion.isNewVersion();
 
         // Material
         config.set("material", item.getType().name());
@@ -118,10 +118,10 @@ public final class XItemStack {
             config.set("lore", lines);
         }
 
-        if(XMaterial.supports(14)){
+        if(XVersion.supports(14)){
             if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
         }
-        if(XMaterial.supports(11)){
+        if(XVersion.supports(11)){
             if (meta.isUnbreakable()) config.set("unbreakable", true);
         }
 
@@ -140,7 +140,7 @@ public final class XItemStack {
         }
 
         // Attributes - https://minecraft.gamepedia.com/Attribute
-        if (XMaterial.supports(13)) {
+        if (XVersion.supports(13)) {
             Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
             if (attributes != null) {
                 for (Map.Entry<Attribute, AttributeModifier> attribute : attributes.entries()) {
@@ -160,7 +160,7 @@ public final class XItemStack {
             BlockStateMeta bsm = (BlockStateMeta) item.getItemMeta();
             BlockState state = bsm.getBlockState();
 
-            if (XMaterial.supports(11) && state instanceof ShulkerBox) {
+            if (XVersion.supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
                 ConfigurationSection shulker = config.createSection("shulker");
                 int i = 0;
@@ -191,7 +191,7 @@ public final class XItemStack {
             Color color = leather.getColor();
             config.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
         } else if (meta instanceof PotionMeta) {
-            if (XMaterial.supports(9)) {
+            if (XVersion.supports(9)) {
 
                 PotionMeta potion = (PotionMeta) meta;
                 List<PotionEffect> customEffects = potion.getCustomEffects();
@@ -245,7 +245,7 @@ public final class XItemStack {
             ConfigurationSection bookSection = config.createSection("book");
             bookSection.set("title", book.getTitle());
             bookSection.set("author", book.getAuthor());
-            if(XMaterial.supports(9)) {
+            if(XVersion.supports(9)) {
                 BookMeta.Generation generation = book.getGeneration();
                 if (generation != null) {
                     bookSection.set("generation", book.getGeneration().toString());
@@ -256,14 +256,14 @@ public final class XItemStack {
             MapMeta map = (MapMeta)meta;
             ConfigurationSection mapSection = config.createSection("map");
             mapSection.set("scaling",map.isScaling());
-            if(XMaterial.supports(11)) {
+            if(XVersion.supports(11)) {
                 if (map.hasLocationName()) mapSection.set("location", map.getLocationName());
                 if (map.hasColor()) {
                     Color color = map.getColor();
                     mapSection.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 }
             }
-            if(XMaterial.supports(14)){
+            if(XVersion.supports(14)){
                 if(map.hasMapView()) {
                     MapView mapView = map.getMapView();
                     ConfigurationSection view = mapSection.createSection("view");
@@ -277,7 +277,7 @@ public final class XItemStack {
                     view.set("unlimited-tracking",mapView.isUnlimitedTracking());
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        }else if (XVersion.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -303,7 +303,7 @@ public final class XItemStack {
             }
         }else if(!isNewVersion) {
             // Spawn Eggs
-            if (XMaterial.supports(11)){
+            if (XVersion.supports(11)){
                 if (meta instanceof SpawnEggMeta) {
                     SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
                     config.set("creature", spawnEgg.getSpawnedType().getName());
@@ -329,7 +329,7 @@ public final class XItemStack {
     @Nullable
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
-        boolean isNewVersion = XMaterial.isNewVersion();
+        boolean isNewVersion = XVersion.isNewVersion();
 
         // Material
         String material = config.getString("material");
@@ -381,7 +381,7 @@ public final class XItemStack {
                 leather.setColor(parseColor(colorStr));
             }
         } else if (meta instanceof PotionMeta) {
-            if (XMaterial.supports(9)) {
+            if (XVersion.supports(9)) {
                 PotionMeta potion = (PotionMeta) meta;
 
                 for (String effects : config.getStringList("custom-effects")) {
@@ -426,7 +426,7 @@ public final class XItemStack {
                 spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
                 spawner.update(true);
                 bsm.setBlockState(spawner);
-            } else if (XMaterial.supports(11) && state instanceof ShulkerBox) {
+            } else if (XVersion.supports(11) && state instanceof ShulkerBox) {
                 ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
                 if (shulkerSection != null) {
                     ShulkerBox box = (ShulkerBox) state;
@@ -488,7 +488,7 @@ public final class XItemStack {
             ConfigurationSection bookSection = config.getConfigurationSection("book");
             book.setTitle(bookSection.getString("title"));
             book.setAuthor(bookSection.getString("author"));
-            if(XMaterial.supports(9)) {
+            if(XVersion.supports(9)) {
                 String generationValue = bookSection.getString("generation");
                 if (generationValue != null) {
                     BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
@@ -500,14 +500,14 @@ public final class XItemStack {
             MapMeta map = (MapMeta)meta;
             ConfigurationSection mapSection = config.getConfigurationSection("map");
             map.setScaling(mapSection.getBoolean("scaling"));
-            if(XMaterial.supports(11)) {
+            if(XVersion.supports(11)) {
                 if (mapSection.isSet("location")) map.setLocationName(mapSection.getString("location"));
                 if (mapSection.isSet("color")) {
                     Color color = parseColor(mapSection.getString("color"));
                     map.setColor(color);
                 }
             }
-            if(XMaterial.supports(14)){
+            if(XVersion.supports(14)){
                 ConfigurationSection view = mapSection.getConfigurationSection("view");
                 if(view != null) {
                     World world = Bukkit.getWorld(view.getString("world"));
@@ -525,7 +525,7 @@ public final class XItemStack {
                     }
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        }else if (XVersion.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -543,7 +543,7 @@ public final class XItemStack {
                 tropical.setPattern(pattern);
             }
             // Apparently Suspicious Stew was never added in 1.14
-        } else if (XMaterial.supports(15)) {
+        } else if (XVersion.supports(15)) {
             if (meta instanceof SuspiciousStewMeta) {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
                 for (String effects : config.getStringList("effects")) {
@@ -553,7 +553,7 @@ public final class XItemStack {
             }
         } else if(!isNewVersion){
             // Spawn Eggs
-            if (XMaterial.supports(11)){
+            if (XVersion.supports(11)){
                 if(meta instanceof SpawnEggMeta){
                     SpawnEggMeta spawnEgg = (SpawnEggMeta)meta;
                     EntityType creature = Enums.getIfPresent(EntityType.class, config.getString("creature").toUpperCase(Locale.ENGLISH)).or(EntityType.BAT);
@@ -578,10 +578,10 @@ public final class XItemStack {
         } else if (name != null && name.isEmpty()) meta.setDisplayName(" "); // For GUI easy access configuration purposes
 
         // Unbreakable
-        if (XMaterial.supports(11)) meta.setUnbreakable(config.getBoolean("unbreakable"));
+        if (XVersion.supports(11)) meta.setUnbreakable(config.getBoolean("unbreakable"));
 
         // Custom Model Data
-        if (XMaterial.supports(14)) {
+        if (XVersion.supports(14)) {
             int modelData = config.getInt("model-data");
             if (modelData != 0) meta.setCustomModelData(modelData);
         }

@@ -57,7 +57,7 @@ import java.util.UUID;
 public class SkullUtils {
     protected static final MethodHandle GAME_PROFILE;
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
-    private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
+    private static final boolean SUPPORTS_UUID = XVersion.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
     //private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
 

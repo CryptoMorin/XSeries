@@ -61,7 +61,7 @@ public final class XBlock {
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
     ));
     public static final byte CAKE_SLICES = 6;
-    private static final boolean ISFLAT = XMaterial.isNewVersion();
+    private static final boolean ISFLAT = XVersion.isNewVersion();
 
     private XBlock() {
     }

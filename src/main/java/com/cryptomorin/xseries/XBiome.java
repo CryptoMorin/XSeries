@@ -131,7 +131,7 @@ public enum XBiome {
      * @since 1.0.0
      */
     public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-    private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16);
+    private static final boolean HORIZONTAL_SUPPORT = XVersion.supports(16);
     @Nullable
     private final Biome biome;
     @Nonnull

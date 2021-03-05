@@ -85,7 +85,7 @@ public class NMSExtras {
                     int.class, int.class));
 
             // Lightning
-            if (!XMaterial.supports(16)) {
+            if (!XVersion.supports(16)) {
                 entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
                         nmsEntity));
             } else {
@@ -99,7 +99,7 @@ public class NMSExtras {
             worldHandle = lookup.findVirtual(ReflectionUtils.getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
                     ReflectionUtils.getNMSClass("WorldServer")));
 
-            if (!XMaterial.supports(16)) {
+            if (!XVersion.supports(16)) {
                 lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
                         // world, x, y, z, isEffect, isSilent
                         world, double.class, double.class, double.class, boolean.class, boolean.class));
@@ -175,7 +175,7 @@ public class NMSExtras {
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
 
-            if (!XMaterial.supports(16)) {
+            if (!XVersion.supports(16)) {
                 // I don't know what the isEffect and isSilent params are used for.
                 // It doesn't seem to visually change the lightning.
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(world, location.getX(), location.getY(), location.getZ(), false, false);

@@ -69,20 +69,20 @@ public final class XEntity {
     static {
         Set<EntityType> undead = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
                 EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
-        if (XMaterial.supports(10)) {
+        if (XVersion.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
-            if (XMaterial.isNewVersion()) {
+            if (XVersion.isNewVersion()) {
                 undead.add(EntityType.DROWNED);
                 undead.add(EntityType.PHANTOM);
-                if (XMaterial.supports(16)) {
+                if (XVersion.supports(16)) {
                     undead.add(EntityType.ZOGLIN);
                     undead.add(EntityType.PIGLIN);
                     undead.add(EntityType.ZOMBIFIED_PIGLIN);
                 }
             }
         }
-        if (!XMaterial.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
+        if (!XVersion.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
         UNDEAD = Collections.unmodifiableSet(undead);
     }
 
@@ -179,7 +179,7 @@ public final class XEntity {
                 living.setHealth(hp);
             }
 
-            if (XMaterial.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
+            if (XVersion.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
             if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
             if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
@@ -324,23 +324,23 @@ public final class XEntity {
                 creeper.setExplosionRadius(config.getInt("explosion-radius"));
                 creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
                 creeper.setPowered(config.getBoolean("powered"));
-            } else if (XMaterial.supports(10)) {
+            } else if (XVersion.supports(10)) {
 
                 if (living instanceof Husk) {
                     Husk husk = (Husk) living;
                     husk.setConversionTime(config.getInt("conversion-time"));
-                } else if (XMaterial.supports(11)) {
+                } else if (XVersion.supports(11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
                         com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
                         if (color.isPresent()) llama.setColor(color.get());
-                    } else if (XMaterial.supports(12)) {
+                    } else if (XVersion.supports(12)) {
 
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
-                        } else if (XMaterial.isNewVersion()) {
+                        } else if (XVersion.isNewVersion()) {
                             if (living instanceof Vex) {
                                 Vex vex = (Vex) living;
                                 vex.setCharging(config.getBoolean("charging"));
@@ -358,7 +358,7 @@ public final class XEntity {
                             } else if (living instanceof Phantom) {
                                 Phantom phantom = (Phantom) living;
                                 phantom.setSize(config.getInt("size"));
-                            } else if (XMaterial.supports(14)) {
+                            } else if (XVersion.supports(14)) {
                                 if (living instanceof Cat) {
                                     Cat cat = (Cat) living;
                                     cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
@@ -375,7 +375,7 @@ public final class XEntity {
                                 } else if (living instanceof MushroomCow) {
                                     MushroomCow mooshroom = (MushroomCow) living;
                                     mooshroom.setVariant(Enums.getIfPresent(MushroomCow.Variant.class, config.getString("variant")).or(MushroomCow.Variant.RED));
-                                } else if (XMaterial.supports(15)) {
+                                } else if (XVersion.supports(15)) {
                                     if (living instanceof Bee) {
                                         Bee bee = (Bee) living;
                                         // Anger time ticks.
@@ -383,7 +383,7 @@ public final class XEntity {
                                         bee.setHasNectar(config.getBoolean("nectar"));
                                         bee.setHasStung(config.getBoolean("stung"));
                                         bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
-                                    } else if (XMaterial.supports(16)) {
+                                    } else if (XVersion.supports(16)) {
                                         if (living instanceof Hoglin) {
                                             Hoglin hoglin = (Hoglin) living;
                                             hoglin.setConversionTime(config.getInt("conversation") * 20);

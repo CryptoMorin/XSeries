@@ -1302,7 +1302,7 @@ public enum XMaterial {
      * A set of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
      * Values are the new material names. This map also contains illegal elements. Check the static initializer for more info.
      * <p>
-     * Duplications are not useful at all in versions above the flattening update {@link Data#ISFLAT}
+     * Duplications are not useful at all in versions above the flattening update {@link XVersion#isNewVersion()}
      * This set is only used for matching materials, for parsing refer to {@link #isDuplicated()}
      *
      * @since 3.0.0
@@ -1314,7 +1314,7 @@ public enum XMaterial {
     }
 
     static {
-        if (Data.ISFLAT) {
+        if (XVersion.isNewVersion()) {
             // It's not needed at all if it's the newer version. We can save some memory.
             DUPLICATED = null;
         } else {
@@ -1364,7 +1364,7 @@ public enum XMaterial {
         this.legacy = legacy;
 
         Material mat = null;
-        if ((!Data.ISFLAT && this.isDuplicated()) || (mat = Material.getMaterial(this.name())) == null) {
+        if ((!XVersion.isNewVersion() && this.isDuplicated()) || (mat = Material.getMaterial(this.name())) == null) {
             for (int i = legacy.length - 1; i >= 0; i--) {
                 mat = Material.getMaterial(legacy[i]);
                 if (mat != null) break;
@@ -1415,13 +1415,13 @@ public enum XMaterial {
      * An invocation of this method yields exactly the same result as the expression:
      * <p>
      * <blockquote>
-     * !{@link #supports(int)} 9
+     * !{@link XVersion#supports(int)} 9
      * </blockquote>
      *
      * @since 2.0.0
      */
     public static boolean isOneEight() {
-        return !supports(9);
+        return !XVersion.supports(9);
     }
 
     /**
@@ -1448,8 +1448,7 @@ public enum XMaterial {
         return Data.VERSION;
     }
 
-    /**
-     * When using newer versions of Minecraft ({@link #isNewVersion()}), helps
+     * When using newer versions of Minecraft ({@link XVersion#isNewVersion()}), helps
      * to find the old material name with its data value using a cached search for optimization.
      *
      * @see #matchDefinedXMaterial(String, byte)
@@ -1550,7 +1549,7 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
+        byte data = (byte) (XVersion.isNewVersion() || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         // Check FILLED_MAP enum for more info.
         //if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
@@ -1564,7 +1563,7 @@ public enum XMaterial {
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
      * @param name the formatted name of the material.
-     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
+     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link XVersion#isNewVersion()}
      * @return an XMaterial (with the same data value if specified)
      * @see #matchXMaterial(Material)
      * @see #matchXMaterial(int, byte)
@@ -1577,7 +1576,7 @@ public enum XMaterial {
         Boolean duplicated = null;
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (Data.ISFLAT || (data <= 0 && !(duplicated = isDuplicated(name)))) {
+        if (XVersion.isNewVersion() || (data <= 0 && !(duplicated = isDuplicated(name)))) {
             Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
@@ -1589,7 +1588,7 @@ public enum XMaterial {
             return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
-        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);
+        if (!XVersion.isNewVersion() && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);
         return Optional.of(oldXMaterial);
     }
 
@@ -1820,7 +1819,7 @@ public enum XMaterial {
         Objects.requireNonNull(material, () -> "Unsupported material: " + this.name());
 
         item.setType(material);
-        if (!Data.ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
+        if (!XVersion.isNewVersion() && material.getMaxDurability() <= 0) item.setDurability(this.data);
         return item;
     }
 
@@ -1872,7 +1871,7 @@ public enum XMaterial {
         if (this.data != 0 || this.version >= 13) return -1;
         Material material = this.parseMaterial();
         if (material == null) return -1;
-        if (Data.ISFLAT && !material.isLegacy()) return -1;
+        if (XVersion.isNewVersion() && !material.isLegacy()) return -1;
         return material.getId();
     }
 
@@ -1903,7 +1902,7 @@ public enum XMaterial {
     public ItemStack parseItem() {
         Material material = this.parseMaterial();
         if (material == null) return null;
-        return Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        return XVersion.isNewVersion() ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 
     /**
@@ -1928,7 +1927,7 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
-        return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
+        return XVersion.isNewVersion() || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
     }
 
     /**
@@ -1963,7 +1962,7 @@ public enum XMaterial {
      * Yes there are many other ways like comparing the hardcoded ordinal or using a boolean in the enum constructor,
      * but it's not really a big deal.
      * <p>
-     * This method should not be called if the version is after the flattening update {@link Data#ISFLAT}
+     * This method should not be called if the version is after the flattening update {@link XVersion#isNewVersion()}
      * and is only used for parsing materials, not matching, for matching check {@link #DUPLICATED}
      */
     private boolean isDuplicated() {
@@ -1994,26 +1993,5 @@ public enum XMaterial {
             default:
                 return false;
         }
-    }
-
-    /**
-     * Used for datas that need to be accessed during enum initilization.
-     *
-     * @since 9.0.0
-     */
-    private static final class Data {
-        /**
-         * The current version of the server in the a form of a major version.
-         * If the static initialization for this fails, you know something's wrong with the server software.
-         *
-         * @since 1.0.0
-         */
-        private static final int VERSION = Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2));
-        /**
-         * Cached result if the server version is after the v1.13 flattening update.
-         *
-         * @since 3.0.0
-         */
-        private static final boolean ISFLAT = supports(13);
     }
 }
