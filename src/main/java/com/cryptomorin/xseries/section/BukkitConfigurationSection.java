@@ -51,7 +51,6 @@ public final class BukkitConfigurationSection implements XConfigurationSection {
      */
     private interface Exclusions {
         ConfigurationSection createSection(String path);
-
         ConfigurationSection getConfigurationSection(String path);
     }
 }
