@@ -217,7 +217,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.16.3-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -228,7 +228,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.16.1-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -239,7 +239,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.15.2-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -250,7 +250,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.14.4-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -261,7 +261,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.13.2-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -272,7 +272,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.13-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -283,7 +283,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.12.2-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -294,7 +294,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.11.2-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -305,7 +305,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.10.2-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -316,7 +316,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.9.4-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -327,7 +327,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.9-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -338,7 +338,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.8.8-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -349,7 +349,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.8.3-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -360,7 +360,7 @@
                     <groupId>org.spigotmc</groupId>
                     <artifactId>spigot</artifactId>
                     <version>1.9-R0.1-SNAPSHOT</version>
-                    <scope>test</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
