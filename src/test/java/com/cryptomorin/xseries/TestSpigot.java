@@ -54,7 +54,7 @@ abstract class TestSpigot {
             });
             thread.start();
             while (!checkTpsFilled()) {
-                Thread.sleep(1000L);
+                Thread.sleep(5L);
             }
             Thread.sleep(1000L);
             tests.run();
