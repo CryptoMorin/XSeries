@@ -1,4 +1,4 @@
-package com.cryptomorin.xseries.versions;
+package com.cryptomorin.xseries;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;

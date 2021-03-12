@@ -1,11 +1,12 @@
-package com.cryptomorin.xseries.versions;
+package com.cryptomorin.xseries.v1_16R3;
 
-import net.minecraft.server.v1_16_R2.Main;
-import net.minecraft.server.v1_16_R2.MinecraftServer;
+import com.cryptomorin.xseries.RunServer;
+import net.minecraft.server.v1_16_R3.Main;
+import net.minecraft.server.v1_16_R3.MinecraftServer;
 
 import java.lang.reflect.Field;
 
-public abstract class Spigot_1_16R2 extends RunServer {
+public abstract class Spigot_1_16R3 extends RunServer {
 
     private Field recentTps;
 
