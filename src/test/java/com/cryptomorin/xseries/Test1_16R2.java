@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.versions.Spigot_1_16R2;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 final class Test1_16R2 extends Spigot_1_16R2 {
@@ -8,7 +9,7 @@ final class Test1_16R2 extends Spigot_1_16R2 {
     @Test
     void testXMaterial() {
         runServer(() -> {
-            System.out.println(XMaterial.getVersion());
+            Assertions.assertTrue(XMaterial.matchXMaterial("AIR").isPresent());
         });
     }
 }
