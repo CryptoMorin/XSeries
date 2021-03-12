@@ -63,7 +63,9 @@ abstract class TestSpigot {
         while (!checkTpsFilled()) {
             Thread.sleep(1000L);
         }
+        Thread.sleep(1000L);
         tests.run();
+        Thread.sleep(1000L);
         Bukkit.shutdown();
         thread.interrupt();
     }
