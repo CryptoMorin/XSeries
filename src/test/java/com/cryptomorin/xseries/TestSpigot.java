@@ -63,6 +63,7 @@ abstract class TestSpigot {
             Thread.sleep(1000L);
         }
         tests.run();
+        MinecraftServer.getServer().safeShutdown(true);
         thread.interrupt();
     }
 }
