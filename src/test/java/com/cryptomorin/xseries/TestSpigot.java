@@ -17,11 +17,8 @@ abstract class TestSpigot {
         if (recentTps == null) {
             recentTps = MinecraftServer.class.getDeclaredField("recentTps");
         }
-        final MinecraftServer server = MinecraftServer.getServer();
-        if (server == null) {
-            return false;
-        }
-        return ((double[]) TestSpigot.recentTps.get(server))[0] != 0;
+        return MinecraftServer.getServer() != null &&
+                ((double[]) TestSpigot.recentTps.get(MinecraftServer.getServer()))[0] != 0;
     }
 
     protected static void runServer(final Runnable tests) {
