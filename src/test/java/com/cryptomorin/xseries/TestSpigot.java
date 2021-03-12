@@ -38,6 +38,7 @@ abstract class TestSpigot {
             final Path testClassesPath = pathBefore.resolve("test-classes");
             final Path serverProperties = testClassesPath.resolve("server.properties");
             final Path bukkitYml = testClassesPath.resolve("bukkit.yml");
+            final Path spigotYml = testClassesPath.resolve("spigot.yml");
             Files.deleteIfExists(path.resolve("world"));
             Files.deleteIfExists(path.resolve("world_nether"));
             Files.deleteIfExists(path.resolve("world_the_end"));
@@ -47,7 +48,8 @@ abstract class TestSpigot {
                         "nogui",
                         "noconsole",
                         "--config=" + serverProperties.toString(),
-                        "--bukkit-settings=" + bukkitYml.toString()
+                        "--bukkit-settings=" + bukkitYml.toString(),
+                        "--spigot-settings=" + spigotYml.toString()
                 });
             });
             thread.start();
