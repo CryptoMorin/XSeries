@@ -21,12 +21,7 @@ abstract class TestSpigot {
         if (server == null) {
             return false;
         }
-        double[] recentTps = null;
-        recentTps = (double[]) TestSpigot.recentTps.get(server);
-        if (recentTps == null) {
-            return false;
-        }
-        return recentTps[0] != 0;
+        return ((double[]) TestSpigot.recentTps.get(server))[0] != 0;
     }
 
     protected static void runServer(final Runnable tests) {
