@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries;
 
 import net.minecraft.server.v1_16_R3.MinecraftServer;
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.Main;
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +64,7 @@ abstract class TestSpigot {
             Thread.sleep(1000L);
         }
         tests.run();
-        MinecraftServer.getServer().safeShutdown(true);
+        Bukkit.shutdown();
         thread.interrupt();
     }
 }
