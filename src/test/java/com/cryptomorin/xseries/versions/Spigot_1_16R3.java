@@ -17,6 +17,7 @@ public abstract class Spigot_1_16R3 extends RunServer {
         return MinecraftServer.getServer() != null &&
                 ((double[]) recentTps.get(MinecraftServer.getServer()))[0] != 0;
     }
+
     @Override
     protected void main(String[] args) {
         Main.main(parseOptions(args));
