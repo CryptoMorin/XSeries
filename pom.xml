@@ -144,11 +144,19 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
-                    <excludes>
-                        <exclude>com/cryptomorin/xseries/unused/</exclude>
-                        <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
-                    </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -162,6 +170,46 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>1_16R3</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <source>8</source>
+                            <target>8</target>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>default-testCompile</id>
+                                <phase>test-compile</phase>
+                                <goals>
+                                    <goal>testCompile</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>false</skip>
+                                    <testExcludes>
+                                        <exclude>**/**1_16R2.java</exclude>
+                                        <exclude>**/**1_16R1.java</exclude>
+                                    </testExcludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.spigotmc</groupId>
+                    <artifactId>spigot</artifactId>
+                    <version>1.16.5-R0.1-SNAPSHOT</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile>
             <id>1_16R2</id>
             <dependencies>
