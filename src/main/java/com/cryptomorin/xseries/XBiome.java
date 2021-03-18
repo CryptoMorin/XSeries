@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -159,6 +159,7 @@ public enum XBiome {
      * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the biome name to format.
+     *
      * @return an enum name.
      * @since 1.0.0
      */
@@ -190,6 +191,7 @@ public enum XBiome {
      * Parses the XBiome with the given name.
      *
      * @param biome the name of the biome.
+     *
      * @return a matched XBiome.
      * @since 1.0.0
      */
@@ -203,6 +205,7 @@ public enum XBiome {
      * Parses the XBiome with the given bukkit biome.
      *
      * @param biome the Bukkit biome.
+     *
      * @return a matched biome.
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
@@ -241,6 +244,7 @@ public enum XBiome {
      * Note that this doesn't send any update packets to the nearby clients.
      *
      * @param chunk the chunk to change the biome.
+     *
      * @return the async task handling this operation.
      * @since 1.0.0
      */
@@ -278,6 +282,7 @@ public enum XBiome {
      *
      * @param start the start position.
      * @param end   the end position.
+     *
      * @since 1.0.0
      */
     @Nonnull

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,6 +91,7 @@ public class ReflectionUtils {
      * Get a NMS (net.minecraft.server) class.
      *
      * @param name the name of the class.
+     *
      * @return the NMS class or null if not found.
      * @since 1.0.0
      */
@@ -110,6 +111,7 @@ public class ReflectionUtils {
      *
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
+     *
      * @return the async thread handling the packet.
      * @see #sendPacketSync(Player, Object...)
      * @since 1.0.0
@@ -128,6 +130,7 @@ public class ReflectionUtils {
      *
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
+     *
      * @see #sendPacket(Player, Object...)
      * @since 2.0.0
      */
@@ -149,6 +152,7 @@ public class ReflectionUtils {
      * Get a CraftBukkit (org.bukkit.craftbukkit) class.
      *
      * @param name the name of the class to load.
+     *
      * @return the CraftBukkit class or null if not found.
      * @since 1.0.0
      */

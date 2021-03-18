@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,7 +67,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 4.2.0
+ * @version 5.0.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -75,8 +75,7 @@ import java.util.*;
  * @see ItemStack
  */
 public final class XItemStack {
-    private XItemStack() {
-    }
+    private XItemStack() { }
 
     /**
      * Writes an ItemStack object into a config.
@@ -84,6 +83,7 @@ public final class XItemStack {
      *
      * @param item   the ItemStack to serialize.
      * @param config the config section to write this item to.
+     *
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
@@ -105,12 +105,12 @@ public final class XItemStack {
                 Damageable damageable = (Damageable) meta;
                 if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
             }
-        }else{
+        } else {
             config.set("damage", item.getDurability());
         }
 
         // Display Name & Lore
-        if (meta.hasDisplayName())config.set("name", meta.getDisplayName());
+        if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
         if (meta.hasLore()) {
             List<String> lores = meta.getLore();
             List<String> lines = new ArrayList<>(lores.size());
@@ -118,10 +118,10 @@ public final class XItemStack {
             config.set("lore", lines);
         }
 
-        if(XMaterial.supports(14)){
+        if (XMaterial.supports(14)) {
             if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
         }
-        if(XMaterial.supports(11)){
+        if (XMaterial.supports(11)) {
             if (meta.isUnbreakable()) config.set("unbreakable", true);
         }
 
@@ -240,31 +240,31 @@ public final class XItemStack {
                 colors.set("fade", fadeColors);
                 i++;
             }
-        } else if(meta instanceof BookMeta) {
-            BookMeta book = (BookMeta)meta;
+        } else if (meta instanceof BookMeta) {
+            BookMeta book = (BookMeta) meta;
             ConfigurationSection bookSection = config.createSection("book");
             bookSection.set("title", book.getTitle());
             bookSection.set("author", book.getAuthor());
-            if(XMaterial.supports(9)) {
+            if (XMaterial.supports(9)) {
                 BookMeta.Generation generation = book.getGeneration();
                 if (generation != null) {
                     bookSection.set("generation", book.getGeneration().toString());
                 }
             }
             bookSection.set("pages", book.getPages());
-        } else if(meta instanceof MapMeta) {
-            MapMeta map = (MapMeta)meta;
+        } else if (meta instanceof MapMeta) {
+            MapMeta map = (MapMeta) meta;
             ConfigurationSection mapSection = config.createSection("map");
-            mapSection.set("scaling",map.isScaling());
-            if(XMaterial.supports(11)) {
+            mapSection.set("scaling", map.isScaling());
+            if (XMaterial.supports(11)) {
                 if (map.hasLocationName()) mapSection.set("location", map.getLocationName());
                 if (map.hasColor()) {
                     Color color = map.getColor();
                     mapSection.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 }
             }
-            if(XMaterial.supports(14)){
-                if(map.hasMapView()) {
+            if (XMaterial.supports(14)) {
+                if (map.hasMapView()) {
                     MapView mapView = map.getMapView();
                     ConfigurationSection view = mapSection.createSection("view");
                     view.set("scale", mapView.getScale().toString());
@@ -272,12 +272,12 @@ public final class XItemStack {
                     ConfigurationSection centerSection = view.createSection("center");
                     centerSection.set("x", mapView.getCenterX());
                     centerSection.set("z", mapView.getCenterZ());
-                    view.set("locked",mapView.isLocked());
-                    view.set("tracking-position",mapView.isTrackingPosition());
-                    view.set("unlimited-tracking",mapView.isUnlimitedTracking());
+                    view.set("locked", mapView.isLocked());
+                    view.set("tracking-position", mapView.isTrackingPosition());
+                    view.set("unlimited-tracking", mapView.isUnlimitedTracking());
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -301,18 +301,18 @@ public final class XItemStack {
 
                 config.set("effects", effects);
             }
-        }else if(!isNewVersion) {
+        } else if (!isNewVersion) {
             // Spawn Eggs
-            if (XMaterial.supports(11)){
+            if (XMaterial.supports(11)) {
                 if (meta instanceof SpawnEggMeta) {
                     SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
                     config.set("creature", spawnEgg.getSpawnedType().getName());
                 }
-            }else{
+            } else {
                 MaterialData data = item.getData();
-                if(data instanceof SpawnEgg){
-                    SpawnEgg spawnEgg = (SpawnEgg)data;
-                    config.set("creature",spawnEgg.getSpawnedType().getName());
+                if (data instanceof SpawnEgg) {
+                    SpawnEgg spawnEgg = (SpawnEgg) data;
+                    config.set("creature", spawnEgg.getSpawnedType().getName());
                 }
             }
         }
@@ -322,6 +322,7 @@ public final class XItemStack {
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
+     *
      * @return a deserialized ItemStack.
      * @since 1.0.0
      */
@@ -441,6 +442,9 @@ public final class XItemStack {
             } else if (state instanceof Banner) {
                 Banner banner = (Banner) state;
                 ConfigurationSection patterns = config.getConfigurationSection("patterns");
+                if (!XMaterial.supports(14))
+                    banner.setBaseColor(DyeColor.WHITE); // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/block
+                // /CraftBanner.java?until=b3dc236663a55450c69356e660c0c84f0abbb3aa
 
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
@@ -483,12 +487,14 @@ public final class XItemStack {
                     firework.addEffect(builder.build());
                 }
             }
-        } else if(meta instanceof BookMeta) {
-            BookMeta book = (BookMeta)meta;
+        } else if (meta instanceof BookMeta) {
+            BookMeta book = (BookMeta) meta;
             ConfigurationSection bookSection = config.getConfigurationSection("book");
+
             book.setTitle(bookSection.getString("title"));
             book.setAuthor(bookSection.getString("author"));
-            if(XMaterial.supports(9)) {
+
+            if (XMaterial.supports(9)) {
                 String generationValue = bookSection.getString("generation");
                 if (generationValue != null) {
                     BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
@@ -496,36 +502,40 @@ public final class XItemStack {
                 }
             }
             book.setPages(bookSection.getStringList("pages"));
-        } else if(meta instanceof MapMeta){
-            MapMeta map = (MapMeta)meta;
+        } else if (meta instanceof MapMeta) {
+            MapMeta map = (MapMeta) meta;
             ConfigurationSection mapSection = config.getConfigurationSection("map");
+
             map.setScaling(mapSection.getBoolean("scaling"));
-            if(XMaterial.supports(11)) {
+            if (XMaterial.supports(11)) {
                 if (mapSection.isSet("location")) map.setLocationName(mapSection.getString("location"));
                 if (mapSection.isSet("color")) {
                     Color color = parseColor(mapSection.getString("color"));
                     map.setColor(color);
                 }
             }
-            if(XMaterial.supports(14)){
+
+            if (XMaterial.supports(14)) {
                 ConfigurationSection view = mapSection.getConfigurationSection("view");
-                if(view != null) {
+                if (view != null) {
                     World world = Bukkit.getWorld(view.getString("world"));
                     if (world != null) {
                         MapView mapView = Bukkit.createMap(world);
                         mapView.setWorld(world);
-                        mapView.setScale(Enums.getIfPresent(MapView.Scale.class,view.getString("scale")).or(MapView.Scale.NORMAL));
-                        ConfigurationSection centerSection = view.getConfigurationSection("center");
-                        mapView.setCenterX(centerSection.getInt("x"));
-                        mapView.setCenterZ(centerSection.getInt("z"));
+                        mapView.setScale(Enums.getIfPresent(MapView.Scale.class, view.getString("scale")).or(MapView.Scale.NORMAL));
                         mapView.setLocked(view.getBoolean("locked"));
                         mapView.setTrackingPosition(view.getBoolean("tracking-position"));
                         mapView.setUnlimitedTracking(view.getBoolean("unlimited-tracking"));
+
+                        ConfigurationSection centerSection = view.getConfigurationSection("center");
+                        mapView.setCenterX(centerSection.getInt("x"));
+                        mapView.setCenterZ(centerSection.getInt("z"));
+
                         map.setMapView(mapView);
                     }
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -551,18 +561,18 @@ public final class XItemStack {
                     stew.addCustomEffect(effect, true);
                 }
             }
-        } else if(!isNewVersion){
+        } else if (!isNewVersion) {
             // Spawn Eggs
-            if (XMaterial.supports(11)){
-                if(meta instanceof SpawnEggMeta){
-                    SpawnEggMeta spawnEgg = (SpawnEggMeta)meta;
+            if (XMaterial.supports(11)) {
+                if (meta instanceof SpawnEggMeta) {
+                    SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
                     EntityType creature = Enums.getIfPresent(EntityType.class, config.getString("creature").toUpperCase(Locale.ENGLISH)).or(EntityType.BAT);
                     spawnEgg.setSpawnedType(creature);
                 }
-            }else{
+            } else {
                 MaterialData data = item.getData();
-                if(data instanceof SpawnEgg){
-                    SpawnEgg spawnEgg = (SpawnEgg)data;
+                if (data instanceof SpawnEgg) {
+                    SpawnEgg spawnEgg = (SpawnEgg) data;
                     EntityType creature = Enums.getIfPresent(EntityType.class, config.getString("creature").toUpperCase(Locale.ENGLISH)).or(EntityType.BAT);
                     spawnEgg.setSpawnedType(creature);
                     item.setData(data);
@@ -697,6 +707,7 @@ public final class XItemStack {
      * This only works for 1.13 and above.
      *
      * @param str the RGB string.
+     *
      * @return a color based on the RGB.
      * @since 1.1.0
      */
@@ -713,6 +724,7 @@ public final class XItemStack {
      *
      * @param player the player to give the items to.
      * @param items  the items to give.
+     *
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
@@ -727,6 +739,7 @@ public final class XItemStack {
      * @param player the player to give the items to.
      * @param items  the items to give.
      * @param split  same as {@link #addItems(Inventory, boolean, ItemStack...)}
+     *
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
@@ -750,6 +763,7 @@ public final class XItemStack {
      *                  item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
      *                  you're adding stacked tools such as swords that you'd like to split them to other slots.
      * @param items     the items to add.
+     *
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
@@ -759,21 +773,27 @@ public final class XItemStack {
         Objects.requireNonNull(items, "Cannot add null items to inventory");
 
         List<ItemStack> leftOvers = new ArrayList<>(items.length);
-        int lastEmpty = 0;
         int invSize = inventory.getSize();
+        int lastEmpty = 0;
 
         for (ItemStack item : items) {
-            int partialIndex = 0;
+            int lastPartial = 0;
 
             while (true) {
-                int firstPartial = firstPartial(inventory, item, partialIndex);
+                // Check if there is a similar item that can be stacked before using free slots.
+                int firstPartial = lastPartial >= invSize ? -1 : firstPartial(inventory, item, lastPartial);
                 if (firstPartial == -1) {
+                    // Start adding items to left overs if there are no partials and empty slots
+                    // left without doing any redundant calculations.
                     if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty);
                     if (lastEmpty == -1) {
                         leftOvers.add(item);
                         break;
                     }
-                    partialIndex = lastEmpty;
+
+                    // Avoid firstPartial() for checking again for no reason, since if we're already checking
+                    // for free slots, that means there are no partials even left.
+                    lastPartial = invSize + 1;
 
                     int maxSize = split ? item.getMaxStackSize() : inventory.getMaxStackSize();
                     int amount = item.getAmount();
@@ -803,7 +823,7 @@ public final class XItemStack {
                         inventory.setItem(firstPartial, partialItem);
                         item.setAmount(sum - maxAmount);
                     }
-                    partialIndex = firstPartial + 1;
+                    lastPartial = firstPartial + 1;
                 }
             }
         }
@@ -819,6 +839,7 @@ public final class XItemStack {
      * @param inventory  the inventory to match the item from.
      * @param item       the item to match.
      * @param beginIndex the index which to start the search from in the inventory.
+     *
      * @return the first matched item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
@@ -841,6 +862,7 @@ public final class XItemStack {
      * Stacks up the items in the given item collection that are {@link ItemStack#isSimilar(ItemStack)}.
      *
      * @param items the items to stack.
+     *
      * @return stacked up items.
      * @since 4.0.0
      */
@@ -873,6 +895,7 @@ public final class XItemStack {
      *
      * @param inventory  the inventory to search from.
      * @param beginIndex the item slot to start the search from in the inventory.
+     *
      * @return first empty item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
@@ -893,6 +916,7 @@ public final class XItemStack {
      *
      * @param inventory  the inventory to search from.
      * @param beginIndex the item slot to start the search from in the inventory.
+     *
      * @return first empty or partial item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @see #firstEmpty(Inventory, int)

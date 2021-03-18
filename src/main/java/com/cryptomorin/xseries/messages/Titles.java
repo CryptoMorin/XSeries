@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -140,6 +140,7 @@ public class Titles {
      * @param fadeOut  the amount of ticks for the title to fade out.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
@@ -177,6 +178,7 @@ public class Titles {
      * @param player   the player to send the title to.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
@@ -198,6 +200,7 @@ public class Titles {
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
+     *
      * @since 1.0.0
      */
     public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
@@ -219,6 +222,7 @@ public class Titles {
      * Clears the title and subtitle message from the player's screen.
      *
      * @param player the player to clear the title from.
+     *
      * @since 1.0.0
      */
     public static void clearTitle(@Nonnull Player player) {
@@ -246,6 +250,7 @@ public class Titles {
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
+     *
      * @since 1.0.0
      */
     public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {

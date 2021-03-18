@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
@@ -29,9 +30,11 @@ import org.bukkit.entity.Player;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -39,22 +42,29 @@ import java.util.UUID;
  * didn't/doesn't support.
  * <p>
  * All the parameters are non-null.
+ *
+ * @author Crypto Morin
+ * @version 4.0.0
  */
-public class NMSExtras {
+public final class NMSExtras {
     private static final MethodHandle EXP_PACKET;
     private static final MethodHandle ENTITY_PACKET;
     private static final MethodHandle WORLD_HANDLE;
     private static final MethodHandle LIGHTNING_ENTITY;
     private static final MethodHandle VEC3D;
 
-    private static final MethodHandle ANIMATION_PACKET;
-    private static final MethodHandle ANIMATION_TYPE;
-    private static final MethodHandle ANIMATION_ENTITY_ID;
+    private static final MethodHandle ANIMATION_PACKET, ANIMATION_TYPE, ANIMATION_ENTITY_ID;
+
+    private static final MethodHandle PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET, MULTI_BLOCK_CHANGE_INFO, CHUNK_WRAPPER_SET, CHUNK_WRAPPER, SHORTS_OR_INFO, SET_BLOCK_DATA;
 
     private static final MethodHandle BLOCK_POSITION;
     private static final MethodHandle PLAY_BLOCK_ACTION;
     private static final MethodHandle GET_BLOCK_TYPE;
     private static final MethodHandle GET_BLOCK;
+
+    private static final Class<?>
+            MULTI_BLOCK_CHANGE_INFO_CLASS = null, // ReflectionUtils.getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
+            BLOCK_DATA = ReflectionUtils.getNMSClass("IBlockData");
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -73,9 +83,12 @@ public class NMSExtras {
         MethodHandle getBlockType = null;
         MethodHandle getBlock = null;
 
+        MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
+                shortsOrInfo = null, setBlockData = null;
+
         try {
-            Class<?> nmsEntity = ReflectionUtils.getNMSClass("Entity");
             Class<?> nmsEntityType = ReflectionUtils.getNMSClass("EntityTypes");
+            Class<?> nmsEntity = ReflectionUtils.getNMSClass("Entity");
             Class<?> nmsVec3D = ReflectionUtils.getNMSClass("Vec3D");
             Class<?> world = ReflectionUtils.getNMSClass("World");
 
@@ -83,7 +96,6 @@ public class NMSExtras {
             // exp - lvl - total exp
             expPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
                     int.class, int.class));
-
             // Lightning
             if (!XMaterial.supports(16)) {
                 entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
@@ -109,9 +121,38 @@ public class NMSExtras {
                         nmsEntityType, world));
             }
 
+            // Multi Block Change
+            Class<?> playOutMultiBlockChangeClass = ReflectionUtils.getNMSClass("PacketPlayOutMultiBlockChange");
+            Class<?> chunkCoordIntPairClass = ReflectionUtils.getNMSClass("ChunkCoordIntPair");
+            try {
+                playOutMultiBlockChange = lookup.findConstructor(playOutMultiBlockChangeClass, MethodType.methodType(void.class));
+//                multiBlockChangeInfo = lookup.findConstructor(MULTI_BLOCK_CHANGE_INFO_CLASS, MethodType.methodType(void.class, short.class, BLOCK_DATA));
+
+                // a - chunk
+//                Field sectionPositionField = playOutMultiBlockChangeClass.getDeclaredField("a");
+//                sectionPositionField.setAccessible(true);
+//                chunkWrapperSet = lookup.unreflectSetter(sectionPositionField);
+
+                // b - shorts
+//                Field shortsField = playOutMultiBlockChangeClass.getDeclaredField("b");
+//                shortsField.setAccessible(true);
+//                shortsOrInfo = lookup.unreflectSetter(shortsField);
+
+                // c - block data
+//                Field blockDataField = playOutMultiBlockChangeClass.getDeclaredField("c");
+//                blockDataField.setAccessible(true);
+//                setBlockData = lookup.unreflectSetter(blockDataField);
+
+                if (XMaterial.supports(16)) {
+//                    Class<?> sectionPosClass = ReflectionUtils.getNMSClass("SectionPosition");
+//                    chunkWrapper = lookup.findConstructor(sectionPosClass, MethodType.methodType(int.class, int.class, int.class));
+                } else chunkWrapper = lookup.findConstructor(chunkCoordIntPairClass, MethodType.methodType(void.class, int.class, int.class));
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
 
             Class<?> animation = ReflectionUtils.getNMSClass("PacketPlayOutAnimation");
-            animationPacket = lookup.findConstructor(animation, MethodType.methodType(void.class)); // nmsEntity, int.class
+            animationPacket = lookup.findConstructor(animation, MethodType.methodType(void.class));
             Field field = animation.getDeclaredField("a");
             field.setAccessible(true);
             animationEntityId = lookup.unreflectSetter(field);
@@ -145,6 +186,13 @@ public class NMSExtras {
         PLAY_BLOCK_ACTION = playBlockAction;
         GET_BLOCK_TYPE = getBlockType;
         GET_BLOCK = getBlock;
+
+        PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET = playOutMultiBlockChange;
+        MULTI_BLOCK_CHANGE_INFO = multiBlockChangeInfo;
+        CHUNK_WRAPPER = chunkWrapper;
+        CHUNK_WRAPPER_SET = chunkWrapperSet;
+        SHORTS_OR_INFO = shortsOrInfo;
+        SET_BLOCK_DATA = setBlockData;
     }
 
     private NMSExtras() {
@@ -231,9 +279,79 @@ public class NMSExtras {
     }
 
     /**
+     * Not completed yet. I have no idea.
+     */
+    @Deprecated
+    protected static void sendBlockChange(Player player, Chunk chunk, Map<WorldlessBlockWrapper, Object> blocks) {
+        try {
+            Object packet = PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET.invoke();
+
+            if (XMaterial.supports(16)) {
+                Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
+                CHUNK_WRAPPER_SET.invoke(wrapper);
+
+                Object dataArray = Array.newInstance(BLOCK_DATA, blocks.size());
+                Object shortArray = Array.newInstance(short.class, blocks.size());
+
+                int i = 0;
+                for (Map.Entry<WorldlessBlockWrapper, Object> entry : blocks.entrySet()) {
+                    Block loc = entry.getKey().block;
+                    int x = loc.getX() & 15;
+                    int y = loc.getY() & 15;
+                    int z = loc.getZ() & 15;
+                    i++;
+                }
+
+                SHORTS_OR_INFO.invoke(packet, shortArray);
+                SET_BLOCK_DATA.invoke(packet, dataArray);
+            } else {
+                Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
+                CHUNK_WRAPPER_SET.invoke(wrapper);
+
+                Object array = Array.newInstance(MULTI_BLOCK_CHANGE_INFO_CLASS, blocks.size());
+                int i = 0;
+                for (Map.Entry<WorldlessBlockWrapper, Object> entry : blocks.entrySet()) {
+                    Block loc = entry.getKey().block;
+                    int x = loc.getX() & 15;
+                    int z = loc.getZ() & 15;
+                    i++;
+                }
+
+                SHORTS_OR_INFO.invoke(packet, array);
+            }
+
+            ReflectionUtils.sendPacketSync(player, packet);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
+    /**
      * Order of this enum should not be changed.
      */
     public enum Animation {
         SWING_MAIN_ARM, HURT, LEAVE_BED, SWING_OFF_HAND, CRITICAL_EFFECT, MAGIC_CRITICAL_EFFECT;
+    }
+
+    public static class WorldlessBlockWrapper {
+        public final Block block;
+
+        public WorldlessBlockWrapper(Block block) {this.block = block;}
+
+        @Override
+        public int hashCode() {
+            return (block.getY() + block.getZ() * 31) * 31 + block.getX();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Block)) return false;
+
+            Block other = (Block) obj;
+            return block.getX() == other.getX()
+                    && block.getY() == other.getY()
+                    && block.getZ() == other.getZ();
+        }
     }
 }

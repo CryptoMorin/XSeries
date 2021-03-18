@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -335,6 +335,7 @@ public final class ZEnchantment {
      * There are also some aliases available.
      *
      * @param enchant the name of the enchantment.
+     *
      * @return an enchantment.
      * @since 1.0.0
      */
@@ -368,6 +369,7 @@ public final class ZEnchantment {
      *
      * @param item        the item to add the enchantment to.
      * @param enchantment the enchantment string containing the enchantment name and level (optional)
+     *
      * @return an enchanted {@link ItemStack}.
      * @since 1.0.0
      */

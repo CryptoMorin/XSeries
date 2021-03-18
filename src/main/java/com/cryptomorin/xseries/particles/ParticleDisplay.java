@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -117,6 +117,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the display.
      * @param size     the size of the dust.
+     *
      * @return a redstone colored dust.
      * @see #simple(Location, Particle)
      * @since 1.0.0
@@ -135,6 +136,7 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location of the display.
      * @param color    the color of the particle.
      * @param size     the size of the dust.
+     *
      * @return a redstone colored dust.
      * @see #colored(Location, int, int, int, float)
      * @since 3.0.0
@@ -154,6 +156,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the display.
      * @param particle the particle of the display.
+     *
      * @return a simple ParticleDisplay.
      * @since 1.0.0
      */
@@ -173,6 +176,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the particle.
      * @param particle the particle to show.
+     *
      * @return a simple ParticleDisplay.
      * @since 1.0.0
      */
@@ -189,6 +193,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location to display this particle.
      * @param config   the config section for the settings.
+     *
      * @return a parsed ParticleDisplay.
      * @since 1.0.0
      */
@@ -202,6 +207,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param display the particle display settings to update.
      * @param config  the config section for the settings.
+     *
      * @return an edited ParticleDisplay.
      * @since 5.0.0
      */
@@ -262,6 +268,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location to add the rotated axis.
      * @param rotation the xyz rotation radians.
+     *
      * @return a cloned rotated location.
      * @since 3.0.0
      */
@@ -295,6 +302,7 @@ public class ParticleDisplay implements Cloneable {
      * Changes the particle count of the particle settings.
      *
      * @param count the particle count.
+     *
      * @return the same particle display.
      * @since 3.0.0
      */
@@ -308,6 +316,7 @@ public class ParticleDisplay implements Cloneable {
      * In most cases extra is the speed of the particles.
      *
      * @param extra the extra number.
+     *
      * @return the same particle display.
      * @since 3.0.1
      */
@@ -322,6 +331,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param color the RGB color of the particle.
      * @param size  the size of the particle.
+     *
      * @return a colored particle.
      * @see #colored(Location, Color, float)
      * @since 3.0.0
@@ -336,6 +346,7 @@ public class ParticleDisplay implements Cloneable {
      * Saves an instance of an entity to track the location from.
      *
      * @param entity the entity to track the location from.
+     *
      * @return the location tracker entity.
      * @since 3.1.0
      */
@@ -348,6 +359,7 @@ public class ParticleDisplay implements Cloneable {
      * Sets a caller for location changes.
      *
      * @param locationCaller the caller to call to get the new location.
+     *
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
@@ -378,6 +390,7 @@ public class ParticleDisplay implements Cloneable {
      * Only some of the shapes support this method.
      *
      * @param entity the entity to face.
+     *
      * @return the same particle display.
      * @see #rotate(Vector)
      * @since 3.0.0
@@ -396,6 +409,7 @@ public class ParticleDisplay implements Cloneable {
      * @param x the x to add to the location.
      * @param y the y to add to the location.
      * @param z the z to add to the location.
+     *
      * @return the cloned location.
      * @see #clone()
      * @since 1.0.0
@@ -411,6 +425,7 @@ public class ParticleDisplay implements Cloneable {
      * @param x the x to add.
      * @param y the y to add.
      * @param z the z to add.
+     *
      * @return the cloned ParticleDisplay.
      * @see #clone()
      * @since 1.0.0
@@ -444,6 +459,7 @@ public class ParticleDisplay implements Cloneable {
      * Rotates the particle position based on this vector.
      *
      * @param vector the vector to rotate from. The xyz values of this vectors must be radians.
+     *
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
@@ -523,6 +539,7 @@ public class ParticleDisplay implements Cloneable {
      * spawning particles.
      *
      * @param location the xyz to add.
+     *
      * @since 1.0.0
      */
     @Nonnull
@@ -546,6 +563,7 @@ public class ParticleDisplay implements Cloneable {
      * This method does not support rotations if used directly.
      *
      * @param loc the location to display the particle at.
+     *
      * @see #spawn(double, double, double)
      * @since 2.1.0
      */
@@ -560,6 +578,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param loc     the location to display the particle at.
      * @param players if this particle should only be sent to specific players.
+     *
      * @see #spawn(double, double, double)
      * @since 5.0.0
      */

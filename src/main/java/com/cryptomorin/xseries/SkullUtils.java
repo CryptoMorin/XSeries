@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -195,6 +195,7 @@ public class SkullUtils {
      * https://help.minecraft.net/hc/en-us/articles/360034636712
      *
      * @param name the username to check.
+     *
      * @return true if the string matches the Minecraft username rule, otherwise false.
      */
     private static boolean isUsername(@Nonnull String name) {

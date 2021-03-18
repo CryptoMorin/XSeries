@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,7 @@ public final class XEntity {
      * Checks if an entity is an <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
      *
      * @param type the entity type.
+     *
      * @return true if the entity is an undead.
      * @since 2.0.0
      */
@@ -428,6 +429,7 @@ public final class XEntity {
      *
      * @param bossBar the created bossbar.
      * @param section the config section to edit the bossbar from.
+     *
      * @since 3.0.0
      */
     @SuppressWarnings("Guava")
