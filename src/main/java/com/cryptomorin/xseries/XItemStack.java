@@ -111,12 +111,7 @@ public final class XItemStack {
 
         // Display Name & Lore
         if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
-        if (meta.hasLore()) {
-            List<String> lores = meta.getLore();
-            List<String> lines = new ArrayList<>(lores.size());
-            for (String lore : lores) lines.add(lore);
-            config.set("lore", lines);
-        }
+        if (meta.hasLore()) config.set("lore", meta.getLore()); // TODO Add a method to "untranslate" color codes.
 
         if (XMaterial.supports(14)) {
             if (meta.hasCustomModelData()) config.set("custom-model", meta.getCustomModelData());
@@ -242,16 +237,18 @@ public final class XItemStack {
             }
         } else if (meta instanceof BookMeta) {
             BookMeta book = (BookMeta) meta;
-            ConfigurationSection bookSection = config.createSection("book");
-            bookSection.set("title", book.getTitle());
-            bookSection.set("author", book.getAuthor());
+            ConfigurationSection bookInfo = config.createSection("book");
+
+            bookInfo.set("title", book.getTitle());
+            bookInfo.set("author", book.getAuthor());
             if (XMaterial.supports(9)) {
                 BookMeta.Generation generation = book.getGeneration();
                 if (generation != null) {
-                    bookSection.set("generation", book.getGeneration().toString());
+                    bookInfo.set("generation", book.getGeneration().toString());
                 }
             }
-            bookSection.set("pages", book.getPages());
+
+            bookInfo.set("pages", book.getPages());
         } else if (meta instanceof MapMeta) {
             MapMeta map = (MapMeta) meta;
             ConfigurationSection mapSection = config.createSection("map");
@@ -489,19 +486,21 @@ public final class XItemStack {
             }
         } else if (meta instanceof BookMeta) {
             BookMeta book = (BookMeta) meta;
-            ConfigurationSection bookSection = config.getConfigurationSection("book");
+            ConfigurationSection bookInfo = config.getConfigurationSection("book");
 
-            book.setTitle(bookSection.getString("title"));
-            book.setAuthor(bookSection.getString("author"));
+            if (bookInfo != null) {
+                book.setTitle(bookInfo.getString("title"));
+                book.setAuthor(bookInfo.getString("author"));
+                book.setPages(bookInfo.getStringList("pages"));
 
-            if (XMaterial.supports(9)) {
-                String generationValue = bookSection.getString("generation");
-                if (generationValue != null) {
-                    BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
-                    book.setGeneration(generation);
+                if (XMaterial.supports(9)) {
+                    String generationValue = bookInfo.getString("generation");
+                    if (generationValue != null) {
+                        BookMeta.Generation generation = Enums.getIfPresent(BookMeta.Generation.class, generationValue).orNull();
+                        book.setGeneration(generation);
+                    }
                 }
             }
-            book.setPages(bookSection.getStringList("pages"));
         } else if (meta instanceof MapMeta) {
             MapMeta map = (MapMeta) meta;
             ConfigurationSection mapSection = config.getConfigurationSection("map");
