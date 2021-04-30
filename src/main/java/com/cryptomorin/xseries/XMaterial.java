@@ -1266,7 +1266,7 @@ public enum XMaterial {
             .expireAfterAccess(3, TimeUnit.HOURS)
             .build(new CacheLoader<String, Pattern>() {
                 @Override
-                public Pattern load(@Nonnull String str) {
+                public Pattern load(@NotNull String str) {
                     try {
                         return Pattern.compile(str);
                     } catch (PatternSyntaxException ex) {
