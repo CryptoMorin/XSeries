@@ -54,7 +54,7 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 5.0.1
+ * @version 5.0.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -74,7 +74,6 @@ public class ParticleDisplay implements Cloneable {
     public Vector rotation;
     @Nullable
     public Object data;
-    public boolean force;
 
     /**
      * Make a new instance of particle display.
@@ -87,11 +86,9 @@ public class ParticleDisplay implements Cloneable {
      * @param offsety  the y offset.
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
-     * @param force    allows the particle to be seen further away for all player regardless of their particle settings.
-     *                 Can be laggy for them.
      */
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
-                           double offsetx, double offsety, double offsetz, double extra, boolean force) {
+                           double offsetx, double offsety, double offsetz, double extra) {
         this.particle = particle;
         this.location = location;
         this.locationCaller = locationCaller;
@@ -100,12 +97,6 @@ public class ParticleDisplay implements Cloneable {
         this.offsety = offsety;
         this.offsetz = offsetz;
         this.extra = extra;
-        this.force = force;
-    }
-
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
-                           double offsetx, double offsety, double offsetz, double extra) {
-        this(particle, locationCaller, location, count, offsetx, offsety, offsetz, extra, false);
     }
 
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
@@ -229,12 +220,10 @@ public class ParticleDisplay implements Cloneable {
         Particle particle = particleName == null ? null : XParticle.getParticle(particleName);
         int count = config.getInt("count");
         double extra = config.getDouble("extra");
-        boolean force = config.getBoolean("force");
 
         if (particle != null) display.particle = particle;
         if (count != 0) display.withCount(count);
-        if (extra != 0) display.withExtra(extra);
-        if (force) display.withForce(force);
+        if (extra != 0) display.extra = extra;
 
         String offset = config.getString("offset");
         if (offset != null) {
@@ -306,7 +295,7 @@ public class ParticleDisplay implements Cloneable {
     @Override
     public String toString() {
         return "ParticleDisplay:[Particle=" + particle + ", Count=" + count + ", Offset:{" + offsetx + ", " + offsety + ", " + offsetz + "}, Extra=" + extra
-                + "Force=" + force + ", Data=" + (data == null ? "null" : data instanceof float[] ? Arrays.toString((float[]) data) : data);
+                + ", Data=" + (data == null ? "null" : data instanceof float[] ? Arrays.toString((float[]) data) : data);
     }
 
     /**
@@ -334,23 +323,6 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay withExtra(double extra) {
         this.extra = extra;
-        return this;
-    }
-
-    /**
-     * A displayed particle with force can be seen further
-     * away for all player regardless of their particle
-     * settings. Force has no effect if specific players
-     * are added with {@link #spawn(Location, Player...)}.
-     *
-     * @param force the force argument.
-     *
-     * @return the same particle display.
-     * @since 5.0.1
-     */
-    @Nonnull
-    public ParticleDisplay withForce(boolean force) {
-        this.force = force;
         return this;
     }
 
@@ -477,7 +449,7 @@ public class ParticleDisplay implements Cloneable {
     @Override
     @Nonnull
     public ParticleDisplay clone() {
-        ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra, force);
+        ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra);
         if (rotation != null) display.rotation = new Vector(rotation.getX(), rotation.getY(), rotation.getZ());
         display.data = data;
         return display;
@@ -618,15 +590,15 @@ public class ParticleDisplay implements Cloneable {
                 if (ISFLAT) {
                     Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
                             .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
-                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
+                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
                     else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
                 } else {
-                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3], null, force);
+                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
                     else for (Player player : players) player.spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
                 }
             }
         } else {
-            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
+            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
             else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
         }
         return loc;
