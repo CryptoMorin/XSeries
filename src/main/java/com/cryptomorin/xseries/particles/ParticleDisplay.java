@@ -740,10 +740,11 @@ public class ParticleDisplay implements Cloneable {
                 else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
             }
 
-        } else if (data == null || particle.getDataType().isInstance(data)) {
-            // Checks without data or block crack, block dust, falling dust, item crack
-            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, data, force);
-            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, data);
+        } else {
+            // Checks without data or block crack, block dust, falling dust, item crack or if data isn't right type
+            Object datas = particle.getDataType().isInstance(data) ? data : null;
+            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas, force);
+            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
         }
         return loc;
     }
