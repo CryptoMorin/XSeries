@@ -24,10 +24,14 @@ package com.cryptomorin.xseries.particles;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
@@ -54,7 +58,7 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 5.0.1
+ * @version 5.1.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -72,9 +76,9 @@ public class ParticleDisplay implements Cloneable {
     public double extra;
     @Nullable
     public Vector rotation;
-    @Nullable
-    public Object data;
     public boolean force;
+    @Nullable
+    private Object data;
 
     /**
      * Make a new instance of particle display.
@@ -121,8 +125,21 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Get the data object. Currently, it can be instance of float[] with [R, G, B, size],
+     * or instance of {@link BlockData}, {@link MaterialData} for legacy usage or {@link ItemStack}
+     *
+     * @return the data object.
+     * @since 5.1.0
+     */
+    @Nullable
+    public Object getData() {
+        return data;
+    }
+
+    /**
      * Builds a simple ParticleDisplay object with cross-version
      * compatible {@link org.bukkit.Particle.DustOptions} properties.
+     * Only REDSTONE particle type can be colored like this.
      *
      * @param location the location of the display.
      * @param size     the size of the dust.
@@ -141,6 +158,7 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Builds a simple ParticleDisplay object with cross-version
      * compatible {@link org.bukkit.Particle.DustOptions} properties.
+     * Only REDSTONE particle type can be colored like this.
      *
      * @param location the location of the display.
      * @param color    the color of the particle.
@@ -212,12 +230,26 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Builds particle settings from a configuration section.
+     * Builds particle settings from a configuration section. Keys in config can be :
+     * <ul>
+     * <li>particle : the particle type.
+     * <li>count : the count as integer, at least 0.
+     * <li>extra : the particle speed, most of the time.
+     * <li>force : true or false, if the particle has force or not.
+     * <li>offset : the offset where values are separated by commas "dx, dy, dz".
+     * <li>rotation : same than offset but for rotation£.
+     * <li>color : the data representing color "R, G, B, size" where RGB values are integers
+     *             between 0 and 255 and size is a positive (or null) float.
+     * <li>blockdata : the data representing block data. Given by a material name that's a block.
+     * <li>materialdata : same than blockdata, but with legacy datas before 1.12.
+     *                    <strong>Do not use this in 1.13 and above.</strong>
+     * <li>itemstack : the data representing item. Given by a material name that's an item.
+     * </ul>
      *
      * @param display the particle display settings to update.
      * @param config  the config section for the settings.
      *
-     * @return an edited ParticleDisplay.
+     * @return the same ParticleDisplay, but edited.
      * @since 5.0.0
      */
     @Nonnull
@@ -258,7 +290,10 @@ public class ParticleDisplay implements Cloneable {
             }
         }
 
-        String color = config.getString("color");
+        String color = config.getString("color"); // array-like "R, G, B, size"
+        String blockdata = config.getString("blockdata"); // material name
+        String item = config.getString("itemstack"); // material name
+        String materialdata = config.getString("materialdata"); // material name
         if (color != null) {
             String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
             if (colors.length >= 3) {
@@ -268,7 +303,24 @@ public class ParticleDisplay implements Cloneable {
                         // Size
                         (colors.length > 3 ? NumberUtils.toFloat(colors[3]) : 1.0f)};
             }
+        } else if (blockdata != null) {
+            Material material = Material.getMaterial(blockdata);
+            if (material != null && material.isBlock()) {
+                display.data = material.createBlockData();
+            }
+        } else if (item != null) {
+            Material material = Material.getMaterial(item);
+            if (material != null && material.isItem()) {
+                display.data = new ItemStack(material, 1);
+            }
+        } else if (materialdata != null) {
+            Material material = Material.getMaterial(materialdata);
+            if (material != null && material.isBlock()) {
+                display.data = material.getData();
+            }
         }
+
+
 
         return display;
     }
@@ -345,7 +397,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param force the force argument.
      *
-     * @return the same particle display.
+     * @return the same particle display, but modified.
      * @since 5.0.1
      */
     @Nonnull
@@ -356,11 +408,13 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * Adds color properties to the particle settings.
+     * The particle must be {@link Particle#REDSTONE}
+     * to get custom colors.
      *
      * @param color the RGB color of the particle.
      * @param size  the size of the particle.
      *
-     * @return a colored particle.
+     * @return the same particle display, but modified.
      * @see #colored(Location, Color, float)
      * @since 3.0.0
      */
@@ -371,15 +425,68 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Adds data for {@link Particle#BLOCK_CRACK}, {@link Particle#BLOCK_DUST}
+     * and {@link Particle#FALLING_DUST} particles. The displayed particle
+     * will depends on the given block data for its color.
+     * <p>
+     * Only works on minecraft version 1.13 and more, because
+     * {@link BlockData} didn't existe before.
+     *
+     * @param blockData the block data that will change the particle data.
+     *
+     * @return the same particle display, but modified.
+     * @since 5.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withBlock(@Nonnull BlockData blockData) {
+        this.data = blockData;
+        return this;
+    }
+
+    /**
+     * Adds data for {@link Particle#LEGACY_BLOCK_CRACK}, {@link Particle#LEGACY_BLOCK_DUST}
+     * and {@link Particle#LEGACY_FALLING_DUST} particles if the minecraft version is 1.13 or more.
+     * <p>
+     * If version is at most 1.12, old particles {@link Particle#BLOCK_CRACK},
+     * {@link Particle#BLOCK_DUST} and {@link Particle#FALLING_DUST} will support this data.
+     *
+     * @param materialData the material data that will change the particle data.
+     *
+     * @return the same particle display, but modified.
+     * @see #withBlock(BlockData)
+     * @since 5.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withBlock(@Nonnull MaterialData materialData) {
+        this.data = materialData;
+        return this;
+    }
+
+    /**
+     * Adds extra data for {@link Particle#ITEM_CRACK}
+     * particle, depending on the given item stack.
+     *
+     * @param item the item stack that will change the particle data.
+     *
+     * @return the same particle display, but modified.
+     * @since 5.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withItem(@Nonnull ItemStack item) {
+        this.data = item;
+        return this;
+    }
+
+    /**
      * Saves an instance of an entity to track the location from.
      *
      * @param entity the entity to track the location from.
      *
-     * @return the location tracker entity.
+     * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
     @Nonnull
-    public ParticleDisplay withEntity(@Nullable Entity entity) {
+    public ParticleDisplay withEntity(@Nonnull Entity entity) {
         return withLocationCaller(entity::getLocation);
     }
 
@@ -612,22 +719,31 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public Location spawn(@Nonnull Location loc, @Nullable Player... players) {
-        if (data != null) {
-            if (data instanceof float[]) {
-                float[] datas = (float[]) data;
-                if (ISFLAT) {
-                    Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
-                            .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
-                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
-                    else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
-                } else {
-                    if (players == null) loc.getWorld().spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3], null, force);
-                    else for (Player player : players) player.spawnParticle(particle, loc, count, (int) datas[0], (int) datas[1], (int) datas[2], datas[3]);
-                }
+        if (data != null && data instanceof float[]) {
+            float[] datas = (float[]) data;
+            if (ISFLAT && particle.getDataType() == Particle.DustOptions.class) {
+                // ISFLAT only checks if MC version is 1.13 or above -> check if DustOption is needed
+                Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
+                        .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
+                if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
+                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+
+            } else if (isDirectional()) {
+                // With count=0, color on offset e.g. for MOB_SPELL or 1.12 REDSTONE (1.12 means ISFLAT is false)
+                float[] rgb = new float[]{datas[0]/255f, datas[1]/255f, datas[2]/255f};
+                if (players == null) loc.getWorld().spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null, force);
+                else for (Player player : players) player.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3]);
+
+            } else {
+                // Else color can't have any effect, keep default param
+                if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
+                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
             }
-        } else {
-            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
-            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
+
+        } else if (data == null || particle.getDataType().isInstance(data)) {
+            // Checks without data or block crack, block dust, falling dust, item crack
+            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, data, force);
+            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, data);
         }
         return loc;
     }
