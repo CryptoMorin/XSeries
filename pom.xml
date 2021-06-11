@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>7.8.0</version>
+    <version>7.9.1.1</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -142,6 +142,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
+                    <proc>none</proc>
                     <source>8</source>
                     <target>8</target>
                 </configuration>
@@ -164,6 +165,11 @@
                 <version>2.22.2</version>
                 <configuration>
                     <workingDirectory>${project.basedir}/target/tests</workingDirectory>
+                    <excludes>
+                        <exclude>com/cryptomorin/xseries/unused/</exclude>
+                        <exclude>com/cryptomorin/xseries/XMaterialUtil</exclude>
+                        <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

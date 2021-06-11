@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -220,6 +220,7 @@ public class BossBar implements Cloneable {
      *
      * @param property the property to set.
      * @param flag     the flag of this property.
+     *
      * @since 1.0.0
      */
     public void setPropertySilent(Property property, boolean flag) {
@@ -267,6 +268,7 @@ public class BossBar implements Cloneable {
      * Sends the updated BossBar packet to the receivers.
      *
      * @param action the update state.
+     *
      * @since 1.0.0
      */
     public void update(Action action) {

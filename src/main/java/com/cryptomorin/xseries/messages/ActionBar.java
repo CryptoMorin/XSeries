@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -162,6 +162,7 @@ public class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
+     *
      * @see #sendActionBar(JavaPlugin, Player, String, long)
      * @since 1.0.0
      */
@@ -188,6 +189,7 @@ public class ActionBar {
      * Sends an action bar all the online players.
      *
      * @param message the message to send.
+     *
      * @see #sendActionBar(Player, String)
      * @since 1.0.0
      */
@@ -199,6 +201,7 @@ public class ActionBar {
      * Clear the action bar by sending an empty message.
      *
      * @param player the player to send the action bar to.
+     *
      * @see #sendActionBar(Player, String)
      * @since 2.1.1
      */
@@ -227,6 +230,7 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will not be updated.
      * @param callable the condition for the action bar to continue.
+     *
      * @see #sendActionBar(JavaPlugin, Player, String, long)
      * @since 1.0.0
      */
@@ -258,6 +262,7 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will be updated.
      * @param callable the condition for the action bar to continue.
+     *
      * @see #sendActionBarWhile(JavaPlugin, Player, String, Callable)
      * @since 1.0.0
      */
@@ -286,6 +291,7 @@ public class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send.
      * @param duration the duration to keep the action bar in ticks.
+     *
      * @see #sendActionBarWhile(JavaPlugin, Player, String, Callable)
      * @since 1.0.0
      */
