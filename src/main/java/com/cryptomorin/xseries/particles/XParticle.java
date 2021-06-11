@@ -2040,8 +2040,8 @@ public final class XParticle {
                 }
                 java.awt.Color color = new java.awt.Color((i << 21) + (i << 10) + i * 8);
 
-                display.data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), 0.8f};
-                display.spawn(x, y, 0);
+                display.withColor(color, 0.8f)
+                       .spawn(x, y, 0);
             }
         }
     }
