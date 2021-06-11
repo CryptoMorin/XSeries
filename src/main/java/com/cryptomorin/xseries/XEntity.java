@@ -139,16 +139,18 @@ public final class XEntity {
         if (portalCooldown != -1) entity.setPortalCooldown(portalCooldown);
         // We don't need damage cause.
 
-        if (entity instanceof Lootable) {
-            Lootable lootable = (Lootable) entity;
-            long seed = config.getLong("seed");
-            if (seed != 0) lootable.setSeed(seed);
+        if (XMaterial.isNewVersion()) {
+            if (entity instanceof Lootable) {
+                Lootable lootable = (Lootable) entity;
+                long seed = config.getLong("seed");
+                if (seed != 0) lootable.setSeed(seed);
 
-            // Needs to be implemented.
+                // Needs to be implemented.
 //            ConfigurationSection lootTable = config.getConfigurationSection("loot-table");
 //            if (lootTable != null) {
 //                LootTable table = lootable.getLootTable();
 //            }
+            }
         }
 
         if (entity instanceof Vehicle) {

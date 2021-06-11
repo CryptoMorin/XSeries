@@ -92,7 +92,7 @@ public class ParticleDisplay implements Cloneable {
      * @param offsetz  the z offset.
      * @param extra    in most cases extra is the speed of the particles.
      * @param force    allows the particle to be seen further away for all player regardless of their particle settings.
-     *                 Can be laggy for them.
+     *                 Can be laggy for them. This is only supported in 1.13+
      */
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
                            double offsetx, double offsety, double offsetz, double extra, boolean force) {
@@ -112,7 +112,8 @@ public class ParticleDisplay implements Cloneable {
         this(particle, locationCaller, location, count, offsetx, offsety, offsetz, extra, false);
     }
 
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, double offsetx, double offsety, double offsetz) {
+    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count,
+                           double offsetx, double offsety, double offsetz) {
         this(particle, null, location, count, offsetx, offsety, offsetz, 0);
     }
 
@@ -122,18 +123,6 @@ public class ParticleDisplay implements Cloneable {
 
     public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location) {
         this(particle, location, 0);
-    }
-
-    /**
-     * Get the data object. Currently, it can be instance of float[] with [R, G, B, size],
-     * or instance of {@link BlockData}, {@link MaterialData} for legacy usage or {@link ItemStack}
-     *
-     * @return the data object.
-     * @since 5.1.0
-     */
-    @Nullable
-    public Object getData() {
-        return data;
     }
 
     /**
@@ -321,7 +310,6 @@ public class ParticleDisplay implements Cloneable {
         }
 
 
-
         return display;
     }
 
@@ -353,6 +341,19 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     private static Location cloneLocation(@Nonnull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+    }
+
+    /**
+     * Get the data object. Currently, it can be instance of float[] with [R, G, B, size],
+     * or instance of {@link BlockData}, {@link MaterialData} for legacy usage or {@link ItemStack}
+     *
+     * @return the data object.
+     * @since 5.1.0
+     */
+    @SuppressWarnings("deprecation")
+    @Nullable
+    public Object getData() {
+        return data;
     }
 
     @Override
@@ -456,6 +457,7 @@ public class ParticleDisplay implements Cloneable {
      * @see #withBlock(BlockData)
      * @since 5.1.0
      */
+    @SuppressWarnings("deprecation")
     @Nonnull
     public ParticleDisplay withBlock(@Nonnull MaterialData materialData) {
         this.data = materialData;
@@ -584,7 +586,8 @@ public class ParticleDisplay implements Cloneable {
     @Override
     @Nonnull
     public ParticleDisplay clone() {
-        ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra, force);
+        ParticleDisplay display = new ParticleDisplay(particle, locationCaller, (location == null ? null : cloneLocation(location)), count, offsetx, offsety, offsetz, extra,
+                force);
         if (rotation != null) display.rotation = new Vector(rotation.getX(), rotation.getY(), rotation.getZ());
         display.data = data;
         return display;
@@ -730,21 +733,26 @@ public class ParticleDisplay implements Cloneable {
 
             } else if (isDirectional()) {
                 // With count=0, color on offset e.g. for MOB_SPELL or 1.12 REDSTONE (1.12 means ISFLAT is false)
-                float[] rgb = new float[]{datas[0]/255f, datas[1]/255f, datas[2]/255f};
-                if (players == null) loc.getWorld().spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null, force);
-                else for (Player player : players) player.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3]);
+                float[] rgb = {datas[0] / 255f, datas[1] / 255f, datas[2] / 255f};
+                if (players == null) {
+                    if (ISFLAT) loc.getWorld().spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null, force);
+                    else loc.getWorld().spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null);
+                } else for (Player player : players) player.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3]);
 
             } else {
                 // Else color can't have any effect, keep default param
-                if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
-                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
+                if (players == null) {
+                    if (ISFLAT) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
+                    else loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null);
+                } else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
             }
-
         } else {
             // Checks without data or block crack, block dust, falling dust, item crack or if data isn't right type
             Object datas = particle.getDataType().isInstance(data) ? data : null;
-            if (players == null) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas, force);
-            else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
+            if (players == null) {
+                if (ISFLAT) loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas, force);
+                else loc.getWorld().spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
+            } else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
         }
         return loc;
     }

@@ -2041,7 +2041,7 @@ public final class XParticle {
                 java.awt.Color color = new java.awt.Color((i << 21) + (i << 10) + i * 8);
 
                 display.withColor(color, 0.8f)
-                       .spawn(x, y, 0);
+                        .spawn(x, y, 0);
             }
         }
     }

@@ -90,13 +90,6 @@ public class SkullUtils {
         return head;
     }
 
-    @Nonnull
-    public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
-        String base64 = SkullCacheListener.CACHE.get(identifier);
-        SkullMeta meta = (SkullMeta) head;
-        return getSkullByValue(meta, base64);
-    }
-
     @SuppressWarnings("deprecation")
     @Nonnull
     public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull OfflinePlayer identifier) {
@@ -125,7 +118,7 @@ public class SkullUtils {
     }
 
     @Nonnull
-    private static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
+    protected static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
         Validate.notEmpty(value, "Skull value cannot be null or empty");
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
         profile.getProperties().put("textures", new Property("textures", value));
