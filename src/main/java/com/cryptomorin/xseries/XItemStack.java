@@ -67,7 +67,7 @@ import java.util.*;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 5.1.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -772,7 +772,12 @@ public final class XItemStack {
         Objects.requireNonNull(items, "Cannot add null items to inventory");
 
         List<ItemStack> leftOvers = new ArrayList<>(items.length);
-        int invSize = inventory.getSize();
+
+        // No other optimized way to access this using Bukkit API...
+        // We could pass the length to individual methods so they could also use getItem() which
+        // skips parsing all the items in the inventory if not needed, but that's just too much.
+        // Note: This is not the same as Inventory#getSize()
+        int invSize = inventory.getStorageContents().length;
         int lastEmpty = 0;
 
         for (ItemStack item : items) {
@@ -782,8 +787,8 @@ public final class XItemStack {
                 // Check if there is a similar item that can be stacked before using free slots.
                 int firstPartial = lastPartial >= invSize ? -1 : firstPartial(inventory, item, lastPartial);
                 if (firstPartial == -1) {
-                    // Start adding items to left overs if there are no partials and empty slots
-                    // left without doing any redundant calculations.
+                    // Start adding items to left overs if there are no partial and empty slots
+                    // -1 means that there are no empty slots left.
                     if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty);
                     if (lastEmpty == -1) {
                         leftOvers.add(item);
@@ -846,10 +851,10 @@ public final class XItemStack {
     public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
-            int len = items.length;
-            if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+            int invSize = items.length;
+            if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
-            for (; beginIndex < len; beginIndex++) {
+            for (; beginIndex < invSize; beginIndex++) {
                 ItemStack cItem = items[beginIndex];
                 if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)) return beginIndex;
             }
@@ -901,10 +906,10 @@ public final class XItemStack {
      */
     public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
         ItemStack[] items = inventory.getStorageContents();
-        int len = items.length;
-        if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+        int invSize = items.length;
+        if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
-        for (; beginIndex < len; beginIndex++) {
+        for (; beginIndex < invSize; beginIndex++) {
             if (items[beginIndex] == null) return beginIndex;
         }
         return -1;

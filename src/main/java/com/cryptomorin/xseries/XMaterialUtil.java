@@ -11,7 +11,7 @@ import org.bukkit.Material;
  *
  * @author Crypto Morin
  */
-public class XMaterialUtil {
+public final class XMaterialUtil {
     /**
      * Checks if this Material is an obtainable item. "Obtainable items" are simply materials that can be displayed in your GUI.
      * This method is mainly designed to support pre-1.13, servers using 1.13 and above will directly have their materials checked with {@link Material#isItem()}
