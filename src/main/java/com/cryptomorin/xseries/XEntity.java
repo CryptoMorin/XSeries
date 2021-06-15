@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
+import com.google.common.base.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -53,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -401,6 +402,8 @@ public final class XEntity {
                                             Strider strider = (Strider) living;
                                             strider.setShivering(config.getBoolean("shivering"));
                                         }
+
+                                        if (XMaterial.supports(17)) handleSeventeen(entity, config);
                                     }
                                 }
                             }
@@ -424,6 +427,37 @@ public final class XEntity {
         }
 
         return entity;
+    }
+
+    /**
+     * AXOLOTL - GLOW_ITEM_FRAME - GLOW_SQUID - GOAT - MARKER
+     */
+    private static boolean handleSeventeen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Axolotl) {
+            Axolotl axolotl = (Axolotl) entity;
+            String variantStr = config.getString("variant");
+            if (Strings.isNullOrEmpty(variantStr)) {
+                com.google.common.base.Optional<Axolotl.Variant> variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr);
+                if (variant.isPresent()) axolotl.setVariant(variant.get());
+            }
+
+            if (config.isSet("playing-dead")) axolotl.setPlayingDead(config.getBoolean("playing-dead"));
+            return true;
+        }
+
+        if (entity instanceof Goat) {
+            Goat goat = (Goat) entity;
+            if (config.isSet("screaming")) goat.setScreaming(config.getBoolean("screaming"));
+            return true;
+        }
+
+        if (entity instanceof GlowSquid) {
+            GlowSquid glowSquid = (GlowSquid) entity;
+            if (config.isSet("dark-ticks-remaining")) glowSquid.setDarkTicksRemaining(config.getInt("dark-ticks-remaining"));
+            return true;
+        }
+
+        return false;
     }
 
     /**

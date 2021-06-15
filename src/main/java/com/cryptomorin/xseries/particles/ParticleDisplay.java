@@ -58,27 +58,22 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 5.1.0
+ * @version 6.0.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
     private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
-    @Nonnull
-    public Particle particle;
-    @Nullable
-    public Location location;
-    @Nullable
-    public Callable<Location> locationCaller;
+    @Nonnull public Particle particle;
+    @Nullable public Location location;
+    @Nullable public Callable<Location> locationCaller;
     public int count;
     public double offsetx, offsety, offsetz;
     public double extra;
-    @Nullable
-    public Vector rotation;
+    @Nullable public Vector rotation;
     public boolean force;
-    @Nullable
-    private Object data;
+    @Nullable private Object data;
 
     /**
      * Make a new instance of particle display.

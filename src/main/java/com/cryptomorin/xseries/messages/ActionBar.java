@@ -25,7 +25,6 @@ import com.cryptomorin.xseries.ReflectionUtils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -58,11 +57,13 @@ import java.util.concurrent.Callable;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.1.1
+ * @version 3.0.0
  * @see ReflectionUtils
  */
-public class ActionBar {
-    private static final boolean SIXTEEN;
+public final class ActionBar {
+    /**
+     * If the server is running Spigot which has an official ActionBar API.
+     */
     private static final boolean SPIGOT;
     /**
      * ChatComponentText JSON message builder.
@@ -79,25 +80,12 @@ public class ActionBar {
 
     static {
         boolean exists = false;
-        if (Material.getMaterial("KNOWLEDGE_BOOK") != null) {
-            try {
-                Class.forName("org.spigotmc.SpigotConfig");
-                exists = true;
-            } catch (ClassNotFoundException ignored) {
-            }
+        try {
+            Class.forName("org.spigotmc.SpigotConfig");
+            exists = true;
+        } catch (ClassNotFoundException ignored) {
         }
         SPIGOT = exists;
-    }
-
-    static {
-        boolean sixteen;
-        try {
-            Class.forName("org.bukkit.entity.Zoglin");
-            sixteen = true;
-        } catch (ClassNotFoundException ignored) {
-            sixteen = false;
-        }
-        SIXTEEN = sixteen;
     }
 
     static {
@@ -107,33 +95,35 @@ public class ActionBar {
 
         if (!SPIGOT) {
             MethodHandles.Lookup lookup = MethodHandles.lookup();
-            Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("PacketPlayOutChat");
-            Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("IChatBaseComponent");
+            Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutChat");
+            Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
 
             try {
                 // Game Info Message Type
-                Class<?> chatMessageTypeClass = Class.forName(ReflectionUtils.NMS + "ChatMessageType");
+                Class<?> chatMessageTypeClass = Class.forName(
+                        ReflectionUtils.NMS + (ReflectionUtils.supports(17) ? "network.chat" : "") + "ChatMessageType"
+                );
 
                 // Packet Constructor
                 MethodType type;
-                if (SIXTEEN) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
+                if (ReflectionUtils.supports(16)) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
                 else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
 
                 for (Object obj : chatMessageTypeClass.getEnumConstants()) {
                     String name = obj.toString();
-                    if (name.equals("GAME_INFO") || name.equalsIgnoreCase("ACTION_BAR")) {
+                    if (name.equals("GAME_INFO") || name.equals("c") || name.equalsIgnoreCase("ACTION_BAR")) {
                         chatMsgType = obj;
                         break;
                     }
                 }
 
                 // JSON Message Builder
-                Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
+                Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("network.chat", "ChatComponentText");
                 chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
 
                 packet = lookup.findConstructor(packetPlayOutChatClass, type);
             } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException ignored) {
-                try {
+                try { // Doesn't need 1.17 package guards.
                     // Game Info Message Type
                     chatMsgType = (byte) 2;
 
@@ -176,7 +166,7 @@ public class ActionBar {
         try {
             Object component = CHAT_COMPONENT_TEXT.invoke(message);
             Object packet;
-            if (SIXTEEN) packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE, player.getUniqueId());
+            if (ReflectionUtils.supports(16)) packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE, player.getUniqueId());
             else packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
 
             ReflectionUtils.sendPacket(player, packet);
