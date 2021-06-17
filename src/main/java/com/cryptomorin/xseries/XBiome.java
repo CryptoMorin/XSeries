@@ -268,7 +268,7 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (HORIZONTAL_SUPPORT ? 256 : 1); y += 4) {
+                for (int y = 0; y < (HORIZONTAL_SUPPORT ? chunk.getWorld().getMaxHeight() : 1); y += 4) {
                     for (int z = 0; z < 16; z++) {
                         Block block = chunk.getBlock(x, y, z);
                         if (block.getBiome() != biome) block.setBiome(biome);
@@ -304,7 +304,7 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (HORIZONTAL_SUPPORT ? 256 : 1); y += 4) {
+                for (int y = 0; y < (HORIZONTAL_SUPPORT ? start.getWorld().getMaxHeight() : 1); y += 4) {
                     for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
                         Block block = new Location(start.getWorld(), x, y, z).getBlock();
                         if (block.getBiome() != biome) block.setBiome(biome);
