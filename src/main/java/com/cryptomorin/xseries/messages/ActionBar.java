@@ -23,6 +23,7 @@ package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.ReflectionUtils;
 import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -35,7 +36,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -57,12 +57,13 @@ import java.util.concurrent.Callable;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see ReflectionUtils
  */
 public final class ActionBar {
     /**
      * If the server is running Spigot which has an official ActionBar API.
+     * This should technically be available from 1.9
      */
     private static final boolean SPIGOT;
     /**
@@ -81,9 +82,9 @@ public final class ActionBar {
     static {
         boolean exists = false;
         try {
-            Class.forName("org.spigotmc.SpigotConfig");
+            Player.Spigot.class.getDeclaredMethod("sendMessage", ChatMessageType.class, BaseComponent.class);
             exists = true;
-        } catch (ClassNotFoundException ignored) {
+        } catch (NoClassDefFoundError | NoSuchMethodException ignored) {
         }
         SPIGOT = exists;
     }
@@ -94,6 +95,7 @@ public final class ActionBar {
         Object chatMsgType = null;
 
         if (!SPIGOT) {
+            // Supporting 1.17 is not necessary, the package guards are just for readability.
             MethodHandles.Lookup lookup = MethodHandles.lookup();
             Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutChat");
             Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
@@ -105,13 +107,11 @@ public final class ActionBar {
                 );
 
                 // Packet Constructor
-                MethodType type;
-                if (ReflectionUtils.supports(16)) type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass, UUID.class);
-                else type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
+                MethodType type = MethodType.methodType(void.class, iChatBaseComponentClass, chatMessageTypeClass);
 
                 for (Object obj : chatMessageTypeClass.getEnumConstants()) {
                     String name = obj.toString();
-                    if (name.equals("GAME_INFO") || name.equals("c") || name.equalsIgnoreCase("ACTION_BAR")) {
+                    if (name.equals("GAME_INFO") || name.equalsIgnoreCase("ACTION_BAR")) {
                         chatMsgType = obj;
                         break;
                     }
@@ -123,7 +123,7 @@ public final class ActionBar {
 
                 packet = lookup.findConstructor(packetPlayOutChatClass, type);
             } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException ignored) {
-                try { // Doesn't need 1.17 package guards.
+                try {
                     // Game Info Message Type
                     chatMsgType = (byte) 2;
 
@@ -144,8 +144,7 @@ public final class ActionBar {
         PACKET_PLAY_OUT_CHAT = packet;
     }
 
-    private ActionBar() {
-    }
+    private ActionBar() { }
 
     /**
      * Sends an action bar to a player.
@@ -165,10 +164,7 @@ public final class ActionBar {
 
         try {
             Object component = CHAT_COMPONENT_TEXT.invoke(message);
-            Object packet;
-            if (ReflectionUtils.supports(16)) packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE, player.getUniqueId());
-            else packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
-
+            Object packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
             ReflectionUtils.sendPacket(player, packet);
         } catch (Throwable throwable) {
             throwable.printStackTrace();

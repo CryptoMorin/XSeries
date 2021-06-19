@@ -63,7 +63,7 @@ public final class ReflectionUtils {
             VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     /**
      * The raw minor version number.
-     * E.g. {@code v1_17_R1} -> {@code 17}
+     * E.g. {@code v1_17_R1} to {@code 17}
      *
      * @since 4.0.0
      */

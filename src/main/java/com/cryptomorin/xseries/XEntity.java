@@ -54,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 4.0.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -68,8 +68,12 @@ public final class XEntity {
     public static final Set<EntityType> UNDEAD;
 
     static {
-        Set<EntityType> undead = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
-                EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
+        Set<EntityType> undead = EnumSet.of(
+                EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.GIANT,
+                EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
+                EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE
+        );
+
         if (XMaterial.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
@@ -152,6 +156,16 @@ public final class XEntity {
 //                LootTable table = lootable.getLootTable();
 //            }
             }
+
+            if (entity instanceof Boss) {
+                Boss boss = (Boss) entity;
+                ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
+
+                if (bossBarSection != null) {
+                    BossBar bossBar = boss.getBossBar();
+                    editBossBar(bossBar, bossBarSection);
+                }
+            }
         }
 
         if (entity instanceof Vehicle) {
@@ -162,16 +176,6 @@ public final class XEntity {
                     com.google.common.base.Optional<TreeSpecies> species = Enums.getIfPresent(TreeSpecies.class, speciesName);
                     if (species.isPresent()) boat.setWoodType(species.get());
                 }
-            }
-        }
-
-        if (entity instanceof Boss) {
-            Boss boss = (Boss) entity;
-            ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
-
-            if (bossBarSection != null) {
-                BossBar bossBar = boss.getBossBar();
-                editBossBar(bossBar, bossBarSection);
             }
         }
 
@@ -189,7 +193,7 @@ public final class XEntity {
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
             if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
             if (config.isSet("remove-when-far-away")) living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+            if (XMaterial.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("do-damage-ticks"));
@@ -329,23 +333,21 @@ public final class XEntity {
                 creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
                 creeper.setPowered(config.getBoolean("powered"));
             } else if (XMaterial.supports(10)) {
-
-                if (living instanceof Husk) {
-                    Husk husk = (Husk) living;
-                    husk.setConversionTime(config.getInt("conversion-time"));
-                } else if (XMaterial.supports(11)) {
+                if (XMaterial.supports(11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
                         com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
                         if (color.isPresent()) llama.setColor(color.get());
                     } else if (XMaterial.supports(12)) {
-
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
                         } else if (XMaterial.isNewVersion()) {
-                            if (living instanceof Vex) {
+                            if (living instanceof Husk) {
+                                Husk husk = (Husk) living;
+                                husk.setConversionTime(config.getInt("conversion-time"));
+                            } else if (living instanceof Vex) {
                                 Vex vex = (Vex) living;
                                 vex.setCharging(config.getBoolean("charging"));
                             } else if (living instanceof PufferFish) {
