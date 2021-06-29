@@ -301,6 +301,19 @@ public final class XItemStack {
 
                 config.set("effects", effects);
             }
+        }else if(XMaterial.supports(16)){
+            if(meta instanceof CompassMeta){
+                CompassMeta compass = (CompassMeta)meta;
+                ConfigurationSection subSection = config.createSection("lodestone");
+                subSection.set("tracked",compass.isLodestoneTracked());
+                if(compass.hasLodestone()) {
+                    Location location = compass.getLodestone();
+                    subSection.set("location.world",location.getWorld().getName());
+                    subSection.set("location.x",location.getX());
+                    subSection.set("location.y",location.getY());
+                    subSection.set("location.z",location.getZ());
+                }
+            }
         }else if(!isNewVersion) {
             // Spawn Eggs
             if (XMaterial.supports(11)){
@@ -523,6 +536,19 @@ public final class XItemStack {
                         mapView.setUnlimitedTracking(view.getBoolean("unlimited-tracking"));
                         map.setMapView(mapView);
                     }
+                }
+            }
+        }else if(XMaterial.supports(16)){
+            if(meta instanceof CompassMeta){
+                CompassMeta compass = (CompassMeta)meta;
+                compass.setLodestoneTracked(config.getBoolean("tracked"));
+                ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
+                if(lodestone != null){
+                    World world = Bukkit.getWorld(config.getString("world"));
+                    double x = config.getDouble("x");
+                    double y = config.getDouble("y");
+                    double z = config.getDouble("z");
+                    compass.setLodestone(new Location(world,x,y,z));
                 }
             }
         }else if (XMaterial.supports(14)) {
