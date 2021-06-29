@@ -274,7 +274,20 @@ public final class XItemStack {
                     view.set("unlimited-tracking", mapView.isUnlimitedTracking());
                 }
             }
-        } else if (XMaterial.supports(14)) {
+        }else if(XMaterial.supports(16)){
+            if(meta instanceof CompassMeta) {
+                CompassMeta compass = (CompassMeta) meta;
+                ConfigurationSection subSection = config.createSection("lodestone");
+                subSection.set("tracked", compass.isLodestoneTracked());
+                if (compass.hasLodestone()) {
+                    Location location = compass.getLodestone();
+                    subSection.set("location.world", location.getWorld().getName());
+                    subSection.set("location.x", location.getX());
+                    subSection.set("location.y", location.getY());
+                    subSection.set("location.z", location.getZ());
+                }
+            }
+        }else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -297,19 +310,6 @@ public final class XItemStack {
                 }
 
                 config.set("effects", effects);
-            }
-        }else if(XMaterial.supports(16)){
-            if(meta instanceof CompassMeta){
-                CompassMeta compass = (CompassMeta)meta;
-                ConfigurationSection subSection = config.createSection("lodestone");
-                subSection.set("tracked",compass.isLodestoneTracked());
-                if(compass.hasLodestone()) {
-                    Location location = compass.getLodestone();
-                    subSection.set("location.world",location.getWorld().getName());
-                    subSection.set("location.x",location.getX());
-                    subSection.set("location.y",location.getY());
-                    subSection.set("location.z",location.getZ());
-                }
             }
         } else if (!isNewVersion) {
             // Spawn Eggs
@@ -550,17 +550,26 @@ public final class XItemStack {
         }else if(XMaterial.supports(16)){
             if(meta instanceof CompassMeta){
                 CompassMeta compass = (CompassMeta)meta;
-                compass.setLodestoneTracked(config.getBoolean("tracked"));
                 ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
-                if(lodestone != null){
-                    World world = Bukkit.getWorld(config.getString("world"));
-                    double x = config.getDouble("x");
-                    double y = config.getDouble("y");
-                    double z = config.getDouble("z");
+                compass.setLodestoneTracked(config.getBoolean("tracked"));
+                ConfigurationSection lodestoneLocation = lodestone.getConfigurationSection("location");
+                if(lodestoneLocation != null){
+                    World world = Bukkit.getWorld(lodestoneLocation.getString("world"));
+                    double x = lodestoneLocation.getDouble("x");
+                    double y = lodestoneLocation.getDouble("y");
+                    double z = lodestoneLocation.getDouble("z");
                     compass.setLodestone(new Location(world,x,y,z));
                 }
             }
-        } else if (XMaterial.supports(14)) {
+        } else if (XMaterial.supports(15)) {
+            if (meta instanceof SuspiciousStewMeta) {
+                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
+                for (String effects : config.getStringList("effects")) {
+                    PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
+                    stew.addCustomEffect(effect, true);
+                }
+            }
+        }else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -578,15 +587,7 @@ public final class XItemStack {
                 tropical.setPattern(pattern);
             }
             // Apparently Suspicious Stew was never added in 1.14
-        } else if (XMaterial.supports(15)) {
-            if (meta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                for (String effects : config.getStringList("effects")) {
-                    PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
-                    stew.addCustomEffect(effect, true);
-                }
-            }
-        } else if (!isNewVersion) {
+        }else if (!isNewVersion) {
             // Spawn Eggs
             if (XMaterial.supports(11)) {
                 if (meta instanceof SpawnEggMeta) {
