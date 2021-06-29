@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
@@ -29,38 +30,51 @@ import org.bukkit.entity.Player;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
+
+import static com.cryptomorin.xseries.ReflectionUtils.*;
 
 /**
  * A class that provides various different essential features that the API
  * didn't/doesn't support.
  * <p>
  * All the parameters are non-null.
+ *
+ * @author Crypto Morin
+ * @version 5.0.0
  */
-public class NMSExtras {
-    private static final MethodHandle EXP_PACKET;
-    private static final MethodHandle ENTITY_PACKET;
-    private static final MethodHandle WORLD_HANDLE;
-    private static final MethodHandle LIGHTNING_ENTITY;
-    private static final MethodHandle VEC3D;
+public final class NMSExtras {
+    public static final MethodHandle EXP_PACKET;
+    public static final MethodHandle ENTITY_PACKET;
+    public static final MethodHandle WORLD_HANDLE, ENTITY_HANDLE;
+    public static final MethodHandle LIGHTNING_ENTITY;
+    public static final MethodHandle VEC3D;
 
-    private static final MethodHandle ANIMATION_PACKET;
-    private static final MethodHandle ANIMATION_TYPE;
-    private static final MethodHandle ANIMATION_ENTITY_ID;
+    public static final MethodHandle ANIMATION_PACKET, ANIMATION_TYPE, ANIMATION_ENTITY_ID;
 
-    private static final MethodHandle BLOCK_POSITION;
-    private static final MethodHandle PLAY_BLOCK_ACTION;
-    private static final MethodHandle GET_BLOCK_TYPE;
-    private static final MethodHandle GET_BLOCK;
+    public static final MethodHandle PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET, MULTI_BLOCK_CHANGE_INFO, CHUNK_WRAPPER_SET, CHUNK_WRAPPER, SHORTS_OR_INFO, SET_BLOCK_DATA;
+
+    public static final MethodHandle BLOCK_POSITION;
+    public static final MethodHandle PLAY_BLOCK_ACTION;
+    public static final MethodHandle GET_BUKKIT_ENTITY;
+    public static final MethodHandle GET_BLOCK_TYPE;
+    public static final MethodHandle GET_BLOCK;
+
+    public static final Class<?>
+            MULTI_BLOCK_CHANGE_INFO_CLASS = null, // getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
+            BLOCK_DATA = getNMSClass("world.level.block.state", "IBlockData");
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
+
         MethodHandle expPacket = null;
         MethodHandle entityPacket = null;
-        MethodHandle worldHandle = null;
+        MethodHandle worldHandle = null, entityHandle = null;
         MethodHandle lightning = null;
         MethodHandle vec3D = null;
 
@@ -68,65 +82,104 @@ public class NMSExtras {
         MethodHandle animationType = null;
         MethodHandle animationEntityId = null;
 
+        MethodHandle getBukkitEntity = null;
         MethodHandle blockPosition = null;
         MethodHandle playBlockAction = null;
         MethodHandle getBlockType = null;
         MethodHandle getBlock = null;
 
+        MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
+                shortsOrInfo = null, setBlockData = null;
+
         try {
-            Class<?> nmsEntity = ReflectionUtils.getNMSClass("Entity");
-            Class<?> nmsEntityType = ReflectionUtils.getNMSClass("EntityTypes");
-            Class<?> nmsVec3D = ReflectionUtils.getNMSClass("Vec3D");
-            Class<?> world = ReflectionUtils.getNMSClass("World");
+            Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
+            Class<?> nmsEntity = getNMSClass("world.entity", "Entity");
+            Class<?> craftEntity = getCraftClass("entity.CraftEntity");
+            Class<?> nmsVec3D = getNMSClass("world.phys", "Vec3D");
+            Class<?> world = getNMSClass("world.level", "World");
+
+            getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
+            entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
 
             // https://wiki.vg/Protocol#Set_Experience
             // exp - lvl - total exp
-            expPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
+            expPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
                     int.class, int.class));
-
             // Lightning
-            if (!XMaterial.supports(16)) {
-                entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
+            if (!supports(16)) {
+                entityPacket = lookup.findConstructor(getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
                         nmsEntity));
             } else {
                 vec3D = lookup.findConstructor(nmsVec3D, MethodType.methodType(void.class,
                         double.class, double.class, double.class));
 
-                entityPacket = lookup.findConstructor(ReflectionUtils.getNMSClass("PacketPlayOutSpawnEntity"), MethodType.methodType(void.class,
+                entityPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutSpawnEntity"), MethodType.methodType(void.class,
                         int.class, UUID.class, double.class, double.class, double.class, float.class, float.class, nmsEntityType, int.class, nmsVec3D));
             }
 
-            worldHandle = lookup.findVirtual(ReflectionUtils.getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
-                    ReflectionUtils.getNMSClass("WorldServer")));
+            worldHandle = lookup.findVirtual(getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
+                    getNMSClass("server.level", "WorldServer")));
 
-            if (!XMaterial.supports(16)) {
-                lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
+            if (!supports(16)) {
+                lightning = lookup.findConstructor(getNMSClass("world.entity", "EntityLightning"), MethodType.methodType(void.class,
                         // world, x, y, z, isEffect, isSilent
                         world, double.class, double.class, double.class, boolean.class, boolean.class));
             } else {
-                lightning = lookup.findConstructor(ReflectionUtils.getNMSClass("EntityLightning"), MethodType.methodType(void.class,
+                lightning = lookup.findConstructor(getNMSClass("world.entity", "EntityLightning"), MethodType.methodType(void.class,
                         // entitytype, world
                         nmsEntityType, world));
             }
 
+            // Multi Block Change
+            Class<?> playOutMultiBlockChangeClass = getNMSClass("network.protocol.game", "PacketPlayOutMultiBlockChange");
+            Class<?> chunkCoordIntPairClass = getNMSClass("world.level", "ChunkCoordIntPair");
+            try {
+//                playOutMultiBlockChange = lookup.findConstructor(playOutMultiBlockChangeClass, MethodType.methodType(void.class));
+//                multiBlockChangeInfo = lookup.findConstructor(MULTI_BLOCK_CHANGE_INFO_CLASS, MethodType.methodType(void.class, short.class, BLOCK_DATA));
 
-            Class<?> animation = ReflectionUtils.getNMSClass("PacketPlayOutAnimation");
-            animationPacket = lookup.findConstructor(animation, MethodType.methodType(void.class)); // nmsEntity, int.class
-            Field field = animation.getDeclaredField("a");
-            field.setAccessible(true);
-            animationEntityId = lookup.unreflectSetter(field);
-            field = animation.getDeclaredField("b");
-            field.setAccessible(true);
-            animationType = lookup.unreflectSetter(field);
+                // a - chunk
+//                Field sectionPositionField = playOutMultiBlockChangeClass.getDeclaredField("a");
+//                sectionPositionField.setAccessible(true);
+//                chunkWrapperSet = lookup.unreflectSetter(sectionPositionField);
+
+                // b - shorts
+//                Field shortsField = playOutMultiBlockChangeClass.getDeclaredField("b");
+//                shortsField.setAccessible(true);
+//                shortsOrInfo = lookup.unreflectSetter(shortsField);
+
+                // c - block data
+//                Field blockDataField = playOutMultiBlockChangeClass.getDeclaredField("c");
+//                blockDataField.setAccessible(true);
+//                setBlockData = lookup.unreflectSetter(blockDataField);
+
+                if (supports(16)) {
+//                    Class<?> sectionPosClass = getNMSClass("SectionPosition");
+//                    chunkWrapper = lookup.findConstructor(sectionPosClass, MethodType.methodType(int.class, int.class, int.class));
+                } else chunkWrapper = lookup.findConstructor(chunkCoordIntPairClass, MethodType.methodType(void.class, int.class, int.class));
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            Class<?> animation = getNMSClass("network.protocol.game", "PacketPlayOutAnimation");
+            animationPacket = lookup.findConstructor(animation,
+                    supports(17) ? MethodType.methodType(void.class, nmsEntity, int.class) : MethodType.methodType(void.class));
+
+            if (!supports(17)) {
+                Field field = animation.getDeclaredField("a");
+                field.setAccessible(true);
+                animationEntityId = lookup.unreflectSetter(field);
+                field = animation.getDeclaredField("b");
+                field.setAccessible(true);
+                animationType = lookup.unreflectSetter(field);
+            }
 
 
-            Class<?> blockPos = ReflectionUtils.getNMSClass("BlockPosition");
-            Class<?> blockData = ReflectionUtils.getNMSClass("IBlockData");
-            Class<?> block = ReflectionUtils.getNMSClass("Block");
+            Class<?> blockPos = getNMSClass("core", "BlockPosition");
+            Class<?> block = getNMSClass("world.level.block", "Block");
             blockPosition = lookup.findConstructor(blockPos, MethodType.methodType(void.class, double.class, double.class, double.class));
-            getBlockType = lookup.findVirtual(world, "getType", MethodType.methodType(blockData, blockPos));
-            getBlock = lookup.findVirtual(blockData, "getBlock", MethodType.methodType(block));
-            playBlockAction = lookup.findVirtual(world, "playBlockAction", MethodType.methodType(void.class, blockPos, ReflectionUtils.getNMSClass("Block"), int.class, int.class));
+            getBlockType = lookup.findVirtual(world, "getType", MethodType.methodType(BLOCK_DATA, blockPos));
+            getBlock = lookup.findVirtual(BLOCK_DATA, "getBlock", MethodType.methodType(block));
+            playBlockAction = lookup.findVirtual(world, "playBlockAction", MethodType.methodType(void.class, blockPos, block, int.class, int.class));
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException ex) {
             ex.printStackTrace();
         }
@@ -134,6 +187,7 @@ public class NMSExtras {
         EXP_PACKET = expPacket;
         ENTITY_PACKET = entityPacket;
         WORLD_HANDLE = worldHandle;
+        ENTITY_HANDLE = entityHandle;
         LIGHTNING_ENTITY = lightning;
         VEC3D = vec3D;
 
@@ -145,15 +199,22 @@ public class NMSExtras {
         PLAY_BLOCK_ACTION = playBlockAction;
         GET_BLOCK_TYPE = getBlockType;
         GET_BLOCK = getBlock;
+
+        GET_BUKKIT_ENTITY = getBukkitEntity;
+        PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET = playOutMultiBlockChange;
+        MULTI_BLOCK_CHANGE_INFO = multiBlockChangeInfo;
+        CHUNK_WRAPPER = chunkWrapper;
+        CHUNK_WRAPPER_SET = chunkWrapperSet;
+        SHORTS_OR_INFO = shortsOrInfo;
+        SET_BLOCK_DATA = setBlockData;
     }
 
-    private NMSExtras() {
-    }
+    private NMSExtras() { }
 
     public static void setExp(Player player, float bar, int lvl, int exp) {
         try {
             Object packet = EXP_PACKET.invoke(bar, lvl, exp);
-            ReflectionUtils.sendPacket(player, packet);
+            sendPacket(player, packet);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -175,7 +236,7 @@ public class NMSExtras {
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
 
-            if (!XMaterial.supports(16)) {
+            if (!supports(16)) {
                 // I don't know what the isEffect and isSilent params are used for.
                 // It doesn't seem to visually change the lightning.
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(world, location.getX(), location.getY(), location.getZ(), false, false);
@@ -183,12 +244,12 @@ public class NMSExtras {
 
                 for (Player player : players) {
                     if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
-                    ReflectionUtils.sendPacket(player, packet);
+                    sendPacket(player, packet);
                 }
             } else {
-                Class<?> nmsEntityType = ReflectionUtils.getNMSClass("EntityTypes");
+                Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
 
-                Object lightningType = nmsEntityType.getClass().getField("LIGHTNING_BOLT").get(nmsEntityType);
+                Object lightningType = nmsEntityType.getField(supports(17) ? "U" : "LIGHTNING_BOLT").get(nmsEntityType);
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(lightningType, world);
                 Object lightningBoltID = lightningBolt.getClass().getMethod("getId").invoke(lightningBolt);
                 Object lightningBoltUUID = lightningBolt.getClass().getMethod("getUniqueID").invoke(lightningBolt);
@@ -197,7 +258,7 @@ public class NMSExtras {
 
                 for (Player player : players) {
                     if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
-                    ReflectionUtils.sendPacket(player, packet);
+                    sendPacket(player, packet);
                 }
             }
         } catch (Throwable throwable) {
@@ -208,11 +269,15 @@ public class NMSExtras {
     public static void animation(Collection<? extends Player> players, LivingEntity entity, Animation animation) {
         try {
             // https://wiki.vg/Protocol#Entity_Animation_.28clientbound.29
-            Object packet = ANIMATION_PACKET.invoke();
-            ANIMATION_TYPE.invoke(packet, animation.ordinal());
-            ANIMATION_ENTITY_ID.invoke(packet, entity.getEntityId());
+            Object packet;
+            if (supports(17)) packet = ANIMATION_PACKET.invoke(ENTITY_HANDLE.invoke(entity), animation.ordinal());
+            else {
+                packet = ANIMATION_PACKET.invoke();
+                ANIMATION_TYPE.invoke(packet, animation.ordinal());
+                ANIMATION_ENTITY_ID.invoke(packet, entity.getEntityId());
+            }
 
-            for (Player player : players) ReflectionUtils.sendPacket(player, packet);
+            for (Player player : players) sendPacket(player, packet);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -231,9 +296,79 @@ public class NMSExtras {
     }
 
     /**
+     * Not completed yet. I have no idea.
+     */
+    @Deprecated
+    protected static void sendBlockChange(Player player, Chunk chunk, Map<WorldlessBlockWrapper, Object> blocks) {
+        try {
+            Object packet = PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET.invoke();
+
+            if (supports(16)) {
+                Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
+                CHUNK_WRAPPER_SET.invoke(wrapper);
+
+                Object dataArray = Array.newInstance(BLOCK_DATA, blocks.size());
+                Object shortArray = Array.newInstance(short.class, blocks.size());
+
+                int i = 0;
+                for (Map.Entry<WorldlessBlockWrapper, Object> entry : blocks.entrySet()) {
+                    Block loc = entry.getKey().block;
+                    int x = loc.getX() & 15;
+                    int y = loc.getY() & 15;
+                    int z = loc.getZ() & 15;
+                    i++;
+                }
+
+                SHORTS_OR_INFO.invoke(packet, shortArray);
+                SET_BLOCK_DATA.invoke(packet, dataArray);
+            } else {
+                Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
+                CHUNK_WRAPPER_SET.invoke(wrapper);
+
+                Object array = Array.newInstance(MULTI_BLOCK_CHANGE_INFO_CLASS, blocks.size());
+                int i = 0;
+                for (Map.Entry<WorldlessBlockWrapper, Object> entry : blocks.entrySet()) {
+                    Block loc = entry.getKey().block;
+                    int x = loc.getX() & 15;
+                    int z = loc.getZ() & 15;
+                    i++;
+                }
+
+                SHORTS_OR_INFO.invoke(packet, array);
+            }
+
+            sendPacketSync(player, packet);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
+    /**
      * Order of this enum should not be changed.
      */
     public enum Animation {
         SWING_MAIN_ARM, HURT, LEAVE_BED, SWING_OFF_HAND, CRITICAL_EFFECT, MAGIC_CRITICAL_EFFECT;
+    }
+
+    public static class WorldlessBlockWrapper {
+        public final Block block;
+
+        public WorldlessBlockWrapper(Block block) {this.block = block;}
+
+        @Override
+        public int hashCode() {
+            return (block.getY() + block.getZ() * 31) * 31 + block.getX();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Block)) return false;
+
+            Block other = (Block) obj;
+            return block.getX() == other.getX()
+                    && block.getY() == other.getY()
+                    && block.getZ() == other.getZ();
+        }
     }
 }

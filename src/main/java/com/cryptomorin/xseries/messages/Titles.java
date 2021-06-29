@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@ import com.cryptomorin.xseries.ReflectionUtils;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -49,29 +48,17 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 1.0.2
+ * @version 2.0.0
  * @see ReflectionUtils
  */
-public class Titles {
-    /**
-     * Check if the server is runnong on 1.11 or higher.
-     * Since in 1.11 you can change the timings.
-     */
-    private static final boolean SUPPORTED_API = Material.getMaterial("OBSERVER") != null;
-
+public final class Titles {
     /**
      * EnumTitleAction
      * Used for the fade in, stay and fade out feature of titles.
+     * Others: ACTIONBAR, RESET
      */
-    private static final Object TIMES;
-    private static final Object TITLE;
-    private static final Object SUBTITLE;
-    private static final Object CLEAR;
-
-    /**
-     * PacketPlayOutTitle Types: TITLE, SUBTITLE, ACTIONBAR, TIMES, CLEAR, RESET;
-     */
-    private static final MethodHandle PACKET;
+    private static final Object TITLE, SUBTITLE, TIMES, CLEAR;
+    private static final MethodHandle PACKET_PLAY_OUT_TITLE;
     /**
      * ChatComponentText JSON message builder.
      */
@@ -86,7 +73,7 @@ public class Titles {
         Object subtitle = null;
         Object clear = null;
 
-        if (!SUPPORTED_API) {
+        if (!ReflectionUtils.supports(11)) {
             Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
             Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
             Class<?> titleTypes = packet.getDeclaredClasses()[0];
@@ -124,7 +111,7 @@ public class Titles {
         TIMES = times;
         CLEAR = clear;
 
-        PACKET = packetCtor;
+        PACKET_PLAY_OUT_TITLE = packetCtor;
         CHAT_COMPONENT_TEXT = chatComp;
     }
 
@@ -140,6 +127,7 @@ public class Titles {
      * @param fadeOut  the amount of ticks for the title to fade out.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
@@ -148,21 +136,21 @@ public class Titles {
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
-        if (SUPPORTED_API) {
+        if (ReflectionUtils.supports(11)) {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             return;
         }
 
         try {
-            Object timesPacket = PACKET.invoke(TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
+            Object timesPacket = PACKET_PLAY_OUT_TITLE.invoke(TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
             ReflectionUtils.sendPacket(player, timesPacket);
 
             if (title != null) {
-                Object titlePacket = PACKET.invoke(TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
+                Object titlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
                 ReflectionUtils.sendPacket(player, titlePacket);
             }
             if (subtitle != null) {
-                Object subtitlePacket = PACKET.invoke(SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
+                Object subtitlePacket = PACKET_PLAY_OUT_TITLE.invoke(SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
                 ReflectionUtils.sendPacket(player, subtitlePacket);
             }
         } catch (Throwable throwable) {
@@ -177,6 +165,7 @@ public class Titles {
      * @param player   the player to send the title to.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
@@ -198,6 +187,7 @@ public class Titles {
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
+     *
      * @since 1.0.0
      */
     public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
@@ -219,18 +209,19 @@ public class Titles {
      * Clears the title and subtitle message from the player's screen.
      *
      * @param player the player to clear the title from.
+     *
      * @since 1.0.0
      */
     public static void clearTitle(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
-        if (SUPPORTED_API) {
+        if (ReflectionUtils.supports(11)) {
             player.resetTitle();
             return;
         }
 
         Object clearPacket;
         try {
-            clearPacket = PACKET.invoke(CLEAR, null, -1, -1, -1);
+            clearPacket = PACKET_PLAY_OUT_TITLE.invoke(CLEAR, null, -1, -1, -1);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             return;
@@ -246,6 +237,7 @@ public class Titles {
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
+     *
      * @since 1.0.0
      */
     public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
@@ -256,10 +248,12 @@ public class Titles {
                 "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', footer), "%player%", player.getDisplayName());
 
         try {
-            Method chatComponentBuilderMethod = ReflectionUtils.getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class);
+            Method chatComponentBuilderMethod = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent")
+                    .getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
             Object tabFooter = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + footer + "\"}");
-            Object packet = ReflectionUtils.getNMSClass("PacketPlayOutPlayerListHeaderFooter").getConstructor().newInstance();
+            Object packet = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter")
+                    .getConstructor().newInstance();
 
             Field aField;
             Field bField;

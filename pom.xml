@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>7.8.0</version>
+    <version>8.1.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.4-R0.1-SNAPSHOT</version>
+            <version>1.17-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -136,10 +136,17 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
+                    <proc>none</proc>
                     <source>8</source>
                     <target>8</target>
+                    <compilerArgs>
+                        <!-- Fails to build the JAR if one of the excluded classes are being used inside an included class. -->
+                        <arg>-sourcepath</arg>
+                        <arg>doesnotexist</arg>
+                    </compilerArgs>
                     <excludes>
                         <exclude>com/cryptomorin/xseries/unused/</exclude>
+                        <exclude>com/cryptomorin/xseries/XMaterialUtil.java</exclude>
                         <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
                     </excludes>
                 </configuration>

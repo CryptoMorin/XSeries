@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import javax.annotation.Nonnull;
@@ -49,6 +50,13 @@ import java.util.UUID;
 final class SkullCacheListener {
     protected static final Map<UUID, String> CACHE = new HashMap<>();
     private static final String SESSION = "https://sessionserver.mojang.com/session/minecraft/profile/";
+
+    @Nonnull
+    public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
+        String base64 = SkullCacheListener.CACHE.get(identifier);
+        SkullMeta meta = (SkullMeta) head;
+        return SkullUtils.getSkullByValue(meta, base64);
+    }
 
     /**
      * https://api.mojang.com/users/profiles/minecraft/Username gives the ID

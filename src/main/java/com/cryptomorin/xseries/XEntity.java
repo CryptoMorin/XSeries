@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
+import com.google.common.base.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -53,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 4.0.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -67,8 +68,12 @@ public final class XEntity {
     public static final Set<EntityType> UNDEAD;
 
     static {
-        Set<EntityType> undead = EnumSet.of(EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
-                EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE);
+        Set<EntityType> undead = EnumSet.of(
+                EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.GIANT,
+                EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
+                EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE
+        );
+
         if (XMaterial.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
@@ -93,6 +98,7 @@ public final class XEntity {
      * Checks if an entity is an <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
      *
      * @param type the entity type.
+     *
      * @return true if the entity is an undead.
      * @since 2.0.0
      */
@@ -138,16 +144,28 @@ public final class XEntity {
         if (portalCooldown != -1) entity.setPortalCooldown(portalCooldown);
         // We don't need damage cause.
 
-        if (entity instanceof Lootable) {
-            Lootable lootable = (Lootable) entity;
-            long seed = config.getLong("seed");
-            if (seed != 0) lootable.setSeed(seed);
+        if (XMaterial.isNewVersion()) {
+            if (entity instanceof Lootable) {
+                Lootable lootable = (Lootable) entity;
+                long seed = config.getLong("seed");
+                if (seed != 0) lootable.setSeed(seed);
 
-            // Needs to be implemented.
+                // Needs to be implemented.
 //            ConfigurationSection lootTable = config.getConfigurationSection("loot-table");
 //            if (lootTable != null) {
 //                LootTable table = lootable.getLootTable();
 //            }
+            }
+
+            if (entity instanceof Boss) {
+                Boss boss = (Boss) entity;
+                ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
+
+                if (bossBarSection != null) {
+                    BossBar bossBar = boss.getBossBar();
+                    editBossBar(bossBar, bossBarSection);
+                }
+            }
         }
 
         if (entity instanceof Vehicle) {
@@ -158,16 +176,6 @@ public final class XEntity {
                     com.google.common.base.Optional<TreeSpecies> species = Enums.getIfPresent(TreeSpecies.class, speciesName);
                     if (species.isPresent()) boat.setWoodType(species.get());
                 }
-            }
-        }
-
-        if (entity instanceof Boss) {
-            Boss boss = (Boss) entity;
-            ConfigurationSection bossBarSection = config.getConfigurationSection("bossbar");
-
-            if (bossBarSection != null) {
-                BossBar bossBar = boss.getBossBar();
-                editBossBar(bossBar, bossBarSection);
             }
         }
 
@@ -185,7 +193,7 @@ public final class XEntity {
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
             if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
             if (config.isSet("remove-when-far-away")) living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+            if (XMaterial.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("do-damage-ticks"));
@@ -325,23 +333,21 @@ public final class XEntity {
                 creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
                 creeper.setPowered(config.getBoolean("powered"));
             } else if (XMaterial.supports(10)) {
-
-                if (living instanceof Husk) {
-                    Husk husk = (Husk) living;
-                    husk.setConversionTime(config.getInt("conversion-time"));
-                } else if (XMaterial.supports(11)) {
+                if (XMaterial.supports(11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
                         com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
                         if (color.isPresent()) llama.setColor(color.get());
                     } else if (XMaterial.supports(12)) {
-
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
                         } else if (XMaterial.isNewVersion()) {
-                            if (living instanceof Vex) {
+                            if (living instanceof Husk) {
+                                Husk husk = (Husk) living;
+                                husk.setConversionTime(config.getInt("conversion-time"));
+                            } else if (living instanceof Vex) {
                                 Vex vex = (Vex) living;
                                 vex.setCharging(config.getBoolean("charging"));
                             } else if (living instanceof PufferFish) {
@@ -398,6 +404,8 @@ public final class XEntity {
                                             Strider strider = (Strider) living;
                                             strider.setShivering(config.getBoolean("shivering"));
                                         }
+
+                                        if (XMaterial.supports(17)) handleSeventeen(entity, config);
                                     }
                                 }
                             }
@@ -424,10 +432,42 @@ public final class XEntity {
     }
 
     /**
+     * AXOLOTL - GLOW_ITEM_FRAME - GLOW_SQUID - GOAT - MARKER
+     */
+    private static boolean handleSeventeen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Axolotl) {
+            Axolotl axolotl = (Axolotl) entity;
+            String variantStr = config.getString("variant");
+            if (Strings.isNullOrEmpty(variantStr)) {
+                com.google.common.base.Optional<Axolotl.Variant> variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr);
+                if (variant.isPresent()) axolotl.setVariant(variant.get());
+            }
+
+            if (config.isSet("playing-dead")) axolotl.setPlayingDead(config.getBoolean("playing-dead"));
+            return true;
+        }
+
+        if (entity instanceof Goat) {
+            Goat goat = (Goat) entity;
+            if (config.isSet("screaming")) goat.setScreaming(config.getBoolean("screaming"));
+            return true;
+        }
+
+        if (entity instanceof GlowSquid) {
+            GlowSquid glowSquid = (GlowSquid) entity;
+            if (config.isSet("dark-ticks-remaining")) glowSquid.setDarkTicksRemaining(config.getInt("dark-ticks-remaining"));
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Edits an existing BossBar from the config.
      *
      * @param bossBar the created bossbar.
      * @param section the config section to edit the bossbar from.
+     *
      * @since 3.0.0
      */
     @SuppressWarnings("Guava")

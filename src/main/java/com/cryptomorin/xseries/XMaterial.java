@@ -2,7 +2,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 Hex_27
- * Copyright (c) 2020 Crypto Morin
+ * Copyright (c) 2021 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,6 +92,9 @@ public enum XMaterial {
      */
     AIR,
     ALLIUM(2, "RED_ROSE"),
+    AMETHYST_BLOCK,
+    AMETHYST_CLUSTER,
+    AMETHYST_SHARD,
     ANCIENT_DEBRIS(16),
     ANDESITE(5, "STONE"),
     ANDESITE_SLAB,
@@ -103,6 +106,10 @@ public enum XMaterial {
     ARROW,
     ATTACHED_MELON_STEM(7, "MELON_STEM"),
     ATTACHED_PUMPKIN_STEM(7, "PUMPKIN_STEM"),
+    AXOLOTL_BUCKET,
+    AXOLOTL_SPAWN_EGG,
+    AZALEA,
+    AZALEA_LEAVES,
     AZURE_BLUET(3, "RED_ROSE"),
     BAKED_POTATO,
     BAMBOO(0, 14),
@@ -125,6 +132,8 @@ public enum XMaterial {
     BEE_NEST(15),
     BEE_SPAWN_EGG(15),
     BELL(14),
+    BIG_DRIPLEAF,
+    BIG_DRIPLEAF_STEM,
     BIRCH_BOAT("BOAT_BIRCH"),
     BIRCH_BUTTON("WOOD_BUTTON"),
     BIRCH_DOOR("BIRCH_DOOR", "BIRCH_DOOR_ITEM"),
@@ -147,6 +156,8 @@ public enum XMaterial {
     BLACKSTONE_WALL(16),
     BLACK_BANNER("STANDING_BANNER", "BANNER"),
     BLACK_BED(15, "BED_BLOCK", "BED"),
+    BLACK_CANDLE,
+    BLACK_CANDLE_CAKE,
     BLACK_CARPET(15, "CARPET"),
     BLACK_CONCRETE(15, "CONCRETE"),
     BLACK_CONCRETE_POWDER(15, "CONCRETE_POWDER"),
@@ -164,6 +175,8 @@ public enum XMaterial {
     BLAZE_SPAWN_EGG(61, "MONSTER_EGG"),
     BLUE_BANNER(4, "STANDING_BANNER", "BANNER"),
     BLUE_BED(11, "BED_BLOCK", "BED"),
+    BLUE_CANDLE,
+    BLUE_CANDLE_CAKE,
     BLUE_CARPET(11, "CARPET"),
     BLUE_CONCRETE(11, "CONCRETE"),
     BLUE_CONCRETE_POWDER(11, "CONCRETE_POWDER"),
@@ -197,6 +210,8 @@ public enum XMaterial {
     BRICK_WALL,
     BROWN_BANNER(3, "STANDING_BANNER", "BANNER"),
     BROWN_BED(12, "BED_BLOCK", "BED"),
+    BROWN_CANDLE,
+    BROWN_CANDLE_CAKE,
     BROWN_CARPET(12, "CARPET"),
     BROWN_CONCRETE(12, "CONCRETE"),
     BROWN_CONCRETE_POWDER(12, "CONCRETE_POWDER"),
@@ -216,9 +231,14 @@ public enum XMaterial {
     BUBBLE_CORAL_FAN(13),
     BUBBLE_CORAL_WALL_FAN,
     BUCKET,
+    BUDDING_AMETHYST,
+    BUNDLE,
     CACTUS,
     CAKE("CAKE_BLOCK"),
+    CALCITE,
     CAMPFIRE(14),
+    CANDLE,
+    CANDLE_CAKE,
     CARROT("CARROT_ITEM"),
     CARROTS("CARROT"),
     CARROT_ON_A_STICK("CARROT_STICK"),
@@ -233,6 +253,8 @@ public enum XMaterial {
      */
     CAVE_AIR("AIR"),
     CAVE_SPIDER_SPAWN_EGG(59, "MONSTER_EGG"),
+    CAVE_VINES,
+    CAVE_VINES_PLANT,
     CHAIN(16),
     CHAINMAIL_BOOTS,
     CHAINMAIL_CHESTPLATE,
@@ -245,6 +267,7 @@ public enum XMaterial {
     CHICKEN("RAW_CHICKEN"),
     CHICKEN_SPAWN_EGG(93, "MONSTER_EGG"),
     CHIPPED_ANVIL(1, "ANVIL"),
+    CHISELED_DEEPSLATE,
     CHISELED_NETHER_BRICKS(1, "NETHER_BRICKS"),
     CHISELED_POLISHED_BLACKSTONE(0, 16, "POLISHED_BLACKSTONE"),
     CHISELED_QUARTZ_BLOCK(1, "QUARTZ_BLOCK"),
@@ -261,6 +284,10 @@ public enum XMaterial {
     COAL_BLOCK,
     COAL_ORE,
     COARSE_DIRT(1, "DIRT"),
+    COBBLED_DEEPSLATE,
+    COBBLED_DEEPSLATE_SLAB,
+    COBBLED_DEEPSLATE_STAIRS,
+    COBBLED_DEEPSLATE_WALL,
     COBBLESTONE,
     COBBLESTONE_SLAB(3, "STEP"),
     COBBLESTONE_STAIRS,
@@ -292,8 +319,13 @@ public enum XMaterial {
     COOKED_RABBIT,
     COOKED_SALMON(1, "COOKED_FISH"),
     COOKIE,
+    COPPER_BLOCK,
+    COPPER_INGOT,
+    COPPER_ORE,
     CORNFLOWER(4, 14),
     COW_SPAWN_EGG(92, "MONSTER_EGG"),
+    CRACKED_DEEPSLATE_BRICKS,
+    CRACKED_DEEPSLATE_TILES,
     CRACKED_NETHER_BRICKS(2, "NETHER_BRICKS"),
     CRACKED_POLISHED_BLACKSTONE_BRICKS(0, 16, "POLISHED_BLACKSTONE_BRICKS"),
     CRACKED_STONE_BRICKS(2, "SMOOTH_BRICK"),
@@ -320,12 +352,17 @@ public enum XMaterial {
     CRIMSON_WALL_SIGN(0, 16, "WALL_SIGN"),
     CROSSBOW,
     CRYING_OBSIDIAN(16),
+    CUT_COPPER,
+    CUT_COPPER_SLAB,
+    CUT_COPPER_STAIRS,
     CUT_RED_SANDSTONE(13),
     CUT_RED_SANDSTONE_SLAB("STONE_SLAB2"),
     CUT_SANDSTONE(13),
     CUT_SANDSTONE_SLAB("STEP"),
     CYAN_BANNER(6, "STANDING_BANNER", "BANNER"),
     CYAN_BED(9, "BED_BLOCK", "BED"),
+    CYAN_CANDLE,
+    CYAN_CANDLE_CAKE,
     CYAN_CARPET(9, "CARPET"),
     CYAN_CONCRETE(9, "CONCRETE"),
     CYAN_CONCRETE_POWDER(9, "CONCRETE_POWDER"),
@@ -381,6 +418,23 @@ public enum XMaterial {
     DEAD_TUBE_CORAL_FAN(13),
     DEAD_TUBE_CORAL_WALL_FAN(13),
     DEBUG_STICK(0, 13),
+    DEEPSLATE,
+    DEEPSLATE_BRICKS,
+    DEEPSLATE_BRICK_SLAB,
+    DEEPSLATE_BRICK_STAIRS,
+    DEEPSLATE_BRICK_WALL,
+    DEEPSLATE_COAL_ORE,
+    DEEPSLATE_COPPER_ORE,
+    DEEPSLATE_DIAMOND_ORE,
+    DEEPSLATE_EMERALD_ORE,
+    DEEPSLATE_GOLD_ORE,
+    DEEPSLATE_IRON_ORE,
+    DEEPSLATE_LAPIS_ORE,
+    DEEPSLATE_REDSTONE_ORE,
+    DEEPSLATE_TILES,
+    DEEPSLATE_TILE_SLAB,
+    DEEPSLATE_TILE_STAIRS,
+    DEEPSLATE_TILE_WALL,
     DETECTOR_RAIL,
     DIAMOND,
     DIAMOND_AXE,
@@ -400,6 +454,10 @@ public enum XMaterial {
     DIORITE_STAIRS,
     DIORITE_WALL,
     DIRT,
+    /**
+     * Changed in 1.17
+     */
+    DIRT_PATH("GRASS_PATH"),
     DISPENSER,
     DOLPHIN_SPAWN_EGG(0, 13),
     DONKEY_SPAWN_EGG(32, "MONSTER_EGG"),
@@ -409,6 +467,7 @@ public enum XMaterial {
     DRAGON_WALL_HEAD(5, "SKULL", "SKULL_ITEM"),
     DRIED_KELP(13),
     DRIED_KELP_BLOCK(13),
+    DRIPSTONE_BLOCK,
     DROPPER,
     DROWNED_SPAWN_EGG(0, 13),
     EGG,
@@ -437,6 +496,10 @@ public enum XMaterial {
     END_STONE_BRICK_WALL,
     EVOKER_SPAWN_EGG(34, "MONSTER_EGG"),
     EXPERIENCE_BOTTLE("EXP_BOTTLE"),
+    EXPOSED_COPPER,
+    EXPOSED_CUT_COPPER,
+    EXPOSED_CUT_COPPER_SLAB,
+    EXPOSED_CUT_COPPER_STAIRS,
     FARMLAND("SOIL"),
     FEATHER,
     FERMENTED_SPIDER_EYE,
@@ -460,6 +523,8 @@ public enum XMaterial {
     FLETCHING_TABLE(0, 14),
     FLINT,
     FLINT_AND_STEEL,
+    FLOWERING_AZALEA,
+    FLOWERING_AZALEA_LEAVES,
     FLOWER_BANNER_PATTERN,
     FLOWER_POT("FLOWER_POT", "FLOWER_POT_ITEM"),
     FOX_SPAWN_EGG(14),
@@ -479,6 +544,12 @@ public enum XMaterial {
     GLOBE_BANNER_PATTERN,
     GLOWSTONE,
     GLOWSTONE_DUST,
+    GLOW_BERRIES,
+    GLOW_INK_SAC,
+    GLOW_ITEM_FRAME,
+    GLOW_LICHEN,
+    GLOW_SQUID_SPAWN_EGG,
+    GOAT_SPAWN_EGG,
     GOLDEN_APPLE,
     GOLDEN_AXE("GOLD_AXE"),
     GOLDEN_BOOTS("GOLD_BOOTS"),
@@ -501,10 +572,11 @@ public enum XMaterial {
     GRANITE_WALL,
     GRASS(1, "LONG_GRASS"),
     GRASS_BLOCK("GRASS"),
-    GRASS_PATH,
     GRAVEL,
     GRAY_BANNER(8, "STANDING_BANNER", "BANNER"),
     GRAY_BED(7, "BED_BLOCK", "BED"),
+    GRAY_CANDLE,
+    GRAY_CANDLE_CAKE,
     GRAY_CARPET(7, "CARPET"),
     GRAY_CONCRETE(7, "CONCRETE"),
     GRAY_CONCRETE_POWDER(7, "CONCRETE_POWDER"),
@@ -518,6 +590,8 @@ public enum XMaterial {
     GRAY_WOOL(7, "WOOL"),
     GREEN_BANNER(2, "STANDING_BANNER", "BANNER"),
     GREEN_BED(13, "BED_BLOCK", "BED"),
+    GREEN_CANDLE,
+    GREEN_CANDLE_CAKE,
     GREEN_CARPET(13, "CARPET"),
     GREEN_CONCRETE(13, "CONCRETE"),
     GREEN_CONCRETE_POWDER(13, "CONCRETE_POWDER"),
@@ -532,6 +606,7 @@ public enum XMaterial {
     GRINDSTONE(0, 14),
     GUARDIAN_SPAWN_EGG(68, "MONSTER_EGG"),
     GUNPOWDER("SULPHUR"),
+    HANGING_ROOTS,
     HAY_BLOCK,
     HEART_OF_THE_SEA(13),
     HEAVY_WEIGHTED_PRESSURE_PLATE("IRON_PLATE"),
@@ -552,6 +627,7 @@ public enum XMaterial {
     INFESTED_CHISELED_STONE_BRICKS(5, "MONSTER_EGGS"),
     INFESTED_COBBLESTONE(1, "MONSTER_EGGS"),
     INFESTED_CRACKED_STONE_BRICKS(4, "MONSTER_EGGS"),
+    INFESTED_DEEPSLATE,
     INFESTED_MOSSY_STONE_BRICKS(3, "MONSTER_EGGS"),
     INFESTED_STONE("MONSTER_EGGS"),
     INFESTED_STONE_BRICKS(2, "MONSTER_EGGS"),
@@ -606,9 +682,11 @@ public enum XMaterial {
     LAPIS_BLOCK,
     LAPIS_LAZULI(4, "INK_SACK"),
     LAPIS_ORE,
+    LARGE_AMETHYST_BUD,
     LARGE_FERN(3, "DOUBLE_PLANT"),
     LAVA("STATIONARY_LAVA"),
     LAVA_BUCKET,
+    LAVA_CAULDRON,
     LEAD("LEASH"),
     LEATHER,
     LEATHER_BOOTS,
@@ -618,8 +696,12 @@ public enum XMaterial {
     LEATHER_LEGGINGS,
     LECTERN(0, 14),
     LEVER,
+    LIGHT,
+    LIGHTNING_ROD,
     LIGHT_BLUE_BANNER(12, "STANDING_BANNER", "BANNER"),
     LIGHT_BLUE_BED(3, "BED_BLOCK", "BED"),
+    LIGHT_BLUE_CANDLE,
+    LIGHT_BLUE_CANDLE_CAKE,
     LIGHT_BLUE_CARPET(3, "CARPET"),
     LIGHT_BLUE_CONCRETE(3, "CONCRETE"),
     LIGHT_BLUE_CONCRETE_POWDER(3, "CONCRETE_POWDER"),
@@ -633,6 +715,8 @@ public enum XMaterial {
     LIGHT_BLUE_WOOL(3, "WOOL"),
     LIGHT_GRAY_BANNER(7, "STANDING_BANNER", "BANNER"),
     LIGHT_GRAY_BED(8, "BED_BLOCK", "BED"),
+    LIGHT_GRAY_CANDLE,
+    LIGHT_GRAY_CANDLE_CAKE,
     LIGHT_GRAY_CARPET(8, "CARPET"),
     LIGHT_GRAY_CONCRETE(8, "CONCRETE"),
     LIGHT_GRAY_CONCRETE_POWDER(8, "CONCRETE_POWDER"),
@@ -654,6 +738,8 @@ public enum XMaterial {
     LILY_PAD("WATER_LILY"),
     LIME_BANNER(10, "STANDING_BANNER", "BANNER"),
     LIME_BED(5, "BED_BLOCK", "BED"),
+    LIME_CANDLE,
+    LIME_CANDLE_CAKE,
     LIME_CARPET(5, "CARPET"),
     LIME_CONCRETE(5, "CONCRETE"),
     LIME_CONCRETE_POWDER(5, "CONCRETE_POWDER"),
@@ -671,6 +757,8 @@ public enum XMaterial {
     LOOM(14),
     MAGENTA_BANNER(13, "STANDING_BANNER", "BANNER"),
     MAGENTA_BED(2, "BED_BLOCK", "BED"),
+    MAGENTA_CANDLE,
+    MAGENTA_CANDLE_CAKE,
     MAGENTA_CARPET(2, "CARPET"),
     MAGENTA_CONCRETE(2, "CONCRETE"),
     MAGENTA_CONCRETE_POWDER(2, "CONCRETE_POWDER"),
@@ -693,6 +781,7 @@ public enum XMaterial {
      * until I can come up with something to fix it.
      */
     MAP("EMPTY_MAP"),
+    MEDIUM_AMETHYST_BUD,
     MELON("MELON_BLOCK"),
     MELON_SEEDS,
     MELON_SLICE("MELON"),
@@ -709,7 +798,9 @@ public enum XMaterial {
     MOSSY_STONE_BRICK_SLAB(5, "STEP"),
     MOSSY_STONE_BRICK_STAIRS("SMOOTH_STAIRS"),
     MOSSY_STONE_BRICK_WALL,
-    MOVING_PISTON("PISTON_BASE", "PISTON_MOVING_PIECE"),
+    MOSS_BLOCK,
+    MOSS_CARPET,
+    MOVING_PISTON("PISTON_MOVING_PIECE"),
     MULE_SPAWN_EGG(32, "MONSTER_EGG"),
     MUSHROOM_STEM("BROWN_MUSHROOM"),
     MUSHROOM_STEW("MUSHROOM_SOUP"),
@@ -783,6 +874,8 @@ public enum XMaterial {
     OCELOT_SPAWN_EGG(98, "MONSTER_EGG"),
     ORANGE_BANNER(14, "STANDING_BANNER", "BANNER"),
     ORANGE_BED(1, "BED_BLOCK", "BED"),
+    ORANGE_CANDLE,
+    ORANGE_CANDLE_CAKE,
     ORANGE_CARPET(1, "CARPET"),
     ORANGE_CONCRETE(1, "CONCRETE"),
     ORANGE_CONCRETE_POWDER(1, "CONCRETE_POWDER"),
@@ -796,6 +889,10 @@ public enum XMaterial {
     ORANGE_WALL_BANNER(14, "WALL_BANNER"),
     ORANGE_WOOL(1, "WOOL"),
     OXEYE_DAISY(8, "RED_ROSE"),
+    OXIDIZED_COPPER,
+    OXIDIZED_CUT_COPPER,
+    OXIDIZED_CUT_COPPER_SLAB,
+    OXIDIZED_CUT_COPPER_STAIRS,
     PACKED_ICE,
     PAINTING,
     PANDA_SPAWN_EGG(14),
@@ -812,6 +909,8 @@ public enum XMaterial {
     PILLAGER_SPAWN_EGG(14),
     PINK_BANNER(9, "STANDING_BANNER", "BANNER"),
     PINK_BED(6, "BED_BLOCK", "BED"),
+    PINK_CANDLE,
+    PINK_CANDLE_CAKE,
     PINK_CARPET(6, "CARPET"),
     PINK_CONCRETE(6, "CONCRETE"),
     PINK_CONCRETE_POWDER(6, "CONCRETE_POWDER"),
@@ -829,6 +928,7 @@ public enum XMaterial {
     PLAYER_HEAD(3, "SKULL", "SKULL_ITEM"),
     PLAYER_WALL_HEAD(3, "SKULL", "SKULL_ITEM"),
     PODZOL(2, "DIRT"),
+    POINTED_DRIPSTONE,
     POISONOUS_POTATO,
     POLAR_BEAR_SPAWN_EGG(102, "MONSTER_EGG"),
     POLISHED_ANDESITE(6, "STONE"),
@@ -845,6 +945,10 @@ public enum XMaterial {
     POLISHED_BLACKSTONE_SLAB(16),
     POLISHED_BLACKSTONE_STAIRS(16),
     POLISHED_BLACKSTONE_WALL(16),
+    POLISHED_DEEPSLATE,
+    POLISHED_DEEPSLATE_SLAB,
+    POLISHED_DEEPSLATE_STAIRS,
+    POLISHED_DEEPSLATE_WALL,
     POLISHED_DIORITE(4, "STONE"),
     POLISHED_DIORITE_SLAB,
     POLISHED_DIORITE_STAIRS,
@@ -859,6 +963,7 @@ public enum XMaterial {
     POTION,
     POTTED_ACACIA_SAPLING(4, "SAPLING", "FLOWER_POT"),
     POTTED_ALLIUM(2, "RED_ROSE", "FLOWER_POT"),
+    POTTED_AZALEA_BUSH,
     POTTED_AZURE_BLUET(3, "RED_ROSE", "FLOWER_POT"),
     POTTED_BAMBOO,
     POTTED_BIRCH_SAPLING(2, "SAPLING", "FLOWER_POT"),
@@ -872,6 +977,7 @@ public enum XMaterial {
     POTTED_DARK_OAK_SAPLING(5, "SAPLING", "FLOWER_POT"),
     POTTED_DEAD_BUSH("FLOWER_POT"),
     POTTED_FERN(2, "LONG_GRASS", "FLOWER_POT"),
+    POTTED_FLOWERING_AZALEA_BUSH,
     POTTED_JUNGLE_SAPLING(3, "SAPLING", "FLOWER_POT"),
     POTTED_LILY_OF_THE_VALLEY,
     POTTED_OAK_SAPLING("SAPLING", "FLOWER_POT"),
@@ -886,6 +992,9 @@ public enum XMaterial {
     POTTED_WARPED_ROOTS(16),
     POTTED_WHITE_TULIP(6, "RED_ROSE", "FLOWER_POT"),
     POTTED_WITHER_ROSE,
+    POWDER_SNOW,
+    POWDER_SNOW_BUCKET,
+    POWDER_SNOW_CAULDRON,
     POWERED_RAIL,
     PRISMARINE,
     PRISMARINE_BRICKS(2, "PRISMARINE"),
@@ -905,6 +1014,8 @@ public enum XMaterial {
     PUMPKIN_STEM,
     PURPLE_BANNER(5, "STANDING_BANNER", "BANNER"),
     PURPLE_BED(10, "BED_BLOCK", "BED"),
+    PURPLE_CANDLE,
+    PURPLE_CANDLE_CAKE,
     PURPLE_CARPET(10, "CARPET"),
     PURPLE_CONCRETE(10, "CONCRETE"),
     PURPLE_CONCRETE_POWDER(10, "CONCRETE_POWDER"),
@@ -933,6 +1044,12 @@ public enum XMaterial {
     RABBIT_STEW,
     RAIL("RAILS"),
     RAVAGER_SPAWN_EGG(14),
+    RAW_COPPER,
+    RAW_COPPER_BLOCK,
+    RAW_GOLD,
+    RAW_GOLD_BLOCK,
+    RAW_IRON,
+    RAW_IRON_BLOCK,
     REDSTONE,
     REDSTONE_BLOCK,
     /**
@@ -955,7 +1072,9 @@ public enum XMaterial {
     /**
      * Data value 14 or 0
      */
-    RED_BED(0, "BED_BLOCK", "BED"),
+    RED_BED(14, "BED_BLOCK", "BED"),
+    RED_CANDLE,
+    RED_CANDLE_CAKE,
     RED_CARPET(14, "CARPET"),
     RED_CONCRETE(14, "CONCRETE"),
     RED_CONCRETE_POWDER(14, "CONCRETE_POWDER"),
@@ -982,6 +1101,7 @@ public enum XMaterial {
     REPEATER("DIODE_BLOCK_ON", "DIODE_BLOCK_OFF", "DIODE"),
     REPEATING_COMMAND_BLOCK("COMMAND", "COMMAND_REPEATING"),
     RESPAWN_ANCHOR(16),
+    ROOTED_DIRT,
     ROSE_BUSH(4, "DOUBLE_PLANT"),
     ROTTEN_FLESH,
     SADDLE,
@@ -994,6 +1114,7 @@ public enum XMaterial {
     SANDSTONE_STAIRS,
     SANDSTONE_WALL,
     SCAFFOLDING(0, 14),
+    SCULK_SENSOR,
     SCUTE(13),
     SEAGRASS(0, 13),
     SEA_LANTERN,
@@ -1014,8 +1135,11 @@ public enum XMaterial {
     SLIME_BALL,
     SLIME_BLOCK,
     SLIME_SPAWN_EGG(55, "MONSTER_EGG"),
+    SMALL_AMETHYST_BUD,
+    SMALL_DRIPLEAF,
     SMITHING_TABLE,
     SMOKER(0, 14),
+    SMOOTH_BASALT,
     SMOOTH_QUARTZ(0, 13),
     SMOOTH_QUARTZ_SLAB(7, "STEP"),
     SMOOTH_QUARTZ_STAIRS,
@@ -1043,6 +1167,7 @@ public enum XMaterial {
     SPIDER_SPAWN_EGG(52, "MONSTER_EGG"),
     SPLASH_POTION,
     SPONGE,
+    SPORE_BLOSSOM,
     SPRUCE_BOAT("BOAT_SPRUCE"),
     SPRUCE_BUTTON("WOOD_BUTTON"),
     SPRUCE_DOOR("SPRUCE_DOOR", "SPRUCE_DOOR_ITEM"),
@@ -1059,6 +1184,7 @@ public enum XMaterial {
     SPRUCE_TRAPDOOR("TRAP_DOOR"),
     SPRUCE_WALL_SIGN("WALL_SIGN"),
     SPRUCE_WOOD(1, "LOG"),
+    SPYGLASS,
     SQUID_SPAWN_EGG(94, "MONSTER_EGG"),
     STICK,
     STICKY_PISTON("PISTON_BASE", "PISTON_STICKY_BASE"),
@@ -1115,6 +1241,7 @@ public enum XMaterial {
     TALL_SEAGRASS(2, 13),
     TARGET(16),
     TERRACOTTA("STAINED_CLAY"),
+    TINTED_GLASS,
     TIPPED_ARROW(0, 9),
     TNT,
     TNT_MINECART("EXPLOSIVE_MINECART"),
@@ -1132,6 +1259,7 @@ public enum XMaterial {
     TUBE_CORAL_BLOCK(13),
     TUBE_CORAL_FAN(13),
     TUBE_CORAL_WALL_FAN,
+    TUFF,
     TURTLE_EGG(0, 13),
     TURTLE_HELMET(0, 13),
     TURTLE_SPAWN_EGG(0, 13),
@@ -1175,6 +1303,27 @@ public enum XMaterial {
      */
     WATER("STATIONARY_WATER"),
     WATER_BUCKET,
+    WATER_CAULDRON,
+    WAXED_COPPER_BLOCK,
+    WAXED_CUT_COPPER,
+    WAXED_CUT_COPPER_SLAB,
+    WAXED_CUT_COPPER_STAIRS,
+    WAXED_EXPOSED_COPPER,
+    WAXED_EXPOSED_CUT_COPPER,
+    WAXED_EXPOSED_CUT_COPPER_SLAB,
+    WAXED_EXPOSED_CUT_COPPER_STAIRS,
+    WAXED_OXIDIZED_COPPER,
+    WAXED_OXIDIZED_CUT_COPPER,
+    WAXED_OXIDIZED_CUT_COPPER_SLAB,
+    WAXED_OXIDIZED_CUT_COPPER_STAIRS,
+    WAXED_WEATHERED_COPPER,
+    WAXED_WEATHERED_CUT_COPPER,
+    WAXED_WEATHERED_CUT_COPPER_SLAB,
+    WAXED_WEATHERED_CUT_COPPER_STAIRS,
+    WEATHERED_COPPER,
+    WEATHERED_CUT_COPPER,
+    WEATHERED_CUT_COPPER_SLAB,
+    WEATHERED_CUT_COPPER_STAIRS,
     WEEPING_VINES(16),
     WEEPING_VINES_PLANT(16),
     WET_SPONGE(1, "SPONGE"),
@@ -1185,6 +1334,8 @@ public enum XMaterial {
     WHEAT_SEEDS("SEEDS"),
     WHITE_BANNER(15, "STANDING_BANNER", "BANNER"),
     WHITE_BED("BED_BLOCK", "BED"),
+    WHITE_CANDLE,
+    WHITE_CANDLE_CAKE,
     WHITE_CARPET("CARPET"),
     WHITE_CONCRETE("CONCRETE"),
     WHITE_CONCRETE_POWDER("CONCRETE_POWDER"),
@@ -1212,6 +1363,8 @@ public enum XMaterial {
     WRITTEN_BOOK,
     YELLOW_BANNER(11, "STANDING_BANNER", "BANNER"),
     YELLOW_BED(4, "BED_BLOCK", "BED"),
+    YELLOW_CANDLE,
+    YELLOW_CANDLE_CAKE,
     YELLOW_CARPET(4, "CARPET"),
     YELLOW_CONCRETE(4, "CONCRETE"),
     YELLOW_CONCRETE_POWDER(4, "CONCRETE_POWDER"),
@@ -1429,6 +1582,7 @@ public enum XMaterial {
      * without throwing an exception.
      *
      * @param name the name of the material.
+     *
      * @return an optional that can be empty.
      * @since 5.1.0
      */
@@ -1499,6 +1653,7 @@ public enum XMaterial {
      * </pre>
      *
      * @param name the material string that consists of the material name, data and separator character.
+     *
      * @return the parsed XMaterial.
      * @see #matchXMaterial(String)
      * @since 3.0.0
@@ -1540,6 +1695,7 @@ public enum XMaterial {
      * if not a damageable item {@link ItemStack#getDurability()}.
      *
      * @param item the ItemStack to match.
+     *
      * @return an XMaterial if matched any.
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @see #matchXMaterial(Material)
@@ -1565,6 +1721,7 @@ public enum XMaterial {
      *
      * @param name the formatted name of the material.
      * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
+     *
      * @return an XMaterial (with the same data value if specified)
      * @see #matchXMaterial(Material)
      * @see #matchXMaterial(int, byte)
@@ -1575,9 +1732,10 @@ public enum XMaterial {
     protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
         // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
         Boolean duplicated = null;
+        boolean isAMap = name.equalsIgnoreCase("MAP");
 
         // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (Data.ISFLAT || (data <= 0 && !(duplicated = isDuplicated(name)))) {
+        if (Data.ISFLAT || (!isAMap && data <= 0 && !(duplicated = isDuplicated(name)))) {
             Optional<XMaterial> xMaterial = getIfPresent(name);
             if (xMaterial.isPresent()) return xMaterial;
         }
@@ -1586,7 +1744,7 @@ public enum XMaterial {
         XMaterial oldXMaterial = requestOldXMaterial(name, data);
         if (oldXMaterial == null) {
             // Special case. Refer to FILLED_MAP for more info.
-            return data > 0 && name.endsWith("MAP") ? Optional.of(FILLED_MAP) : Optional.empty();
+            return (data >= 0 && isAMap) ? Optional.of(FILLED_MAP) : Optional.empty();
         }
 
         if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);
@@ -1601,6 +1759,7 @@ public enum XMaterial {
      * <p>{@code MELON, CARROT, POTATO, BEETROOT -> true}
      *
      * @param name the name of the material to check.
+     *
      * @return true if there's a duplicated material for this material, otherwise false.
      * @since 2.0.0
      */
@@ -1615,6 +1774,7 @@ public enum XMaterial {
      *
      * @param id   the ID (Magic value) of the material.
      * @param data the data value of the material.
+     *
      * @return a parsed XMaterial with the same ID and data value.
      * @see #matchXMaterial(ItemStack)
      * @since 2.0.0
@@ -1639,6 +1799,7 @@ public enum XMaterial {
      * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the material name to modify.
+     *
      * @return an enum name.
      * @since 2.0.0
      */
@@ -1676,6 +1837,7 @@ public enum XMaterial {
      * Checks if the specified version is the same version or higher than the current server version.
      *
      * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
+     *
      * @return true of the version is equal or higher than the current version.
      * @since 2.0.0
      */
@@ -1688,6 +1850,7 @@ public enum XMaterial {
      * In most cases, you shouldn't be using this method.
      *
      * @param version Supports {@link Bukkit#getVersion()}, {@link Bukkit#getBukkitVersion()} and normal formats such as "1.14"
+     *
      * @return the exact major version.
      * @see #supports(int)
      * @see #getVersion()
@@ -1774,6 +1937,7 @@ public enum XMaterial {
      * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
      *
      * @param materials the material names to check base material on.
+     *
      * @return true if one of the given material names is similar to the base material.
      * @since 3.1.1
      */
@@ -1809,6 +1973,7 @@ public enum XMaterial {
      * Use {@link #parseItem()} instead when creating new ItemStacks.
      *
      * @param item the item to change its type.
+     *
      * @see #parseItem()
      * @since 3.0.0
      */
@@ -1829,6 +1994,7 @@ public enum XMaterial {
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
      * @param name the material name to check.
+     *
      * @return true if it's one of the legacy names, otherwise false.
      * @since 2.0.0
      */
@@ -1921,6 +2087,7 @@ public enum XMaterial {
      * Checks if an item has the same material (and data value on older versions).
      *
      * @param item item to check.
+     *
      * @return true if the material is the same as the item's material (and data value if on older versions), otherwise false.
      * @since 1.0.0
      */
