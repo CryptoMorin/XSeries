@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -46,7 +47,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 5.1.0
  */
 public final class NMSExtras {
     public static final MethodHandle EXP_PACKET;
@@ -54,6 +55,7 @@ public final class NMSExtras {
     public static final MethodHandle WORLD_HANDLE, ENTITY_HANDLE;
     public static final MethodHandle LIGHTNING_ENTITY;
     public static final MethodHandle VEC3D;
+    public static final MethodHandle PACKET_PLAY_OUT_OPEN_SIGN_EDITOR, PACKET_PLAY_OUT_BLOCK_CHANGE;
 
     public static final MethodHandle ANIMATION_PACKET, ANIMATION_TYPE, ANIMATION_ENTITY_ID;
 
@@ -63,7 +65,7 @@ public final class NMSExtras {
     public static final MethodHandle PLAY_BLOCK_ACTION;
     public static final MethodHandle GET_BUKKIT_ENTITY;
     public static final MethodHandle GET_BLOCK_TYPE;
-    public static final MethodHandle GET_BLOCK;
+    public static final MethodHandle GET_BLOCK, GET_IBLOCK_DATA, SANITIZE_LINES, TILE_ENTITY_SIGN, TILE_ENTITY_SIGN__GET_UPDATE_PACKET, TILE_ENTITY_SIGN__SET_LINE;
 
     public static final Class<?>
             MULTI_BLOCK_CHANGE_INFO_CLASS = null, // getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
@@ -77,6 +79,7 @@ public final class NMSExtras {
         MethodHandle worldHandle = null, entityHandle = null;
         MethodHandle lightning = null;
         MethodHandle vec3D = null;
+        MethodHandle signEditorPacket = null, packetPlayOutBlockChange = null;
 
         MethodHandle animationPacket = null;
         MethodHandle animationType = null;
@@ -87,6 +90,9 @@ public final class NMSExtras {
         MethodHandle playBlockAction = null;
         MethodHandle getBlockType = null;
         MethodHandle getBlock = null;
+        MethodHandle getIBlockData = null;
+        MethodHandle sanitizeLines = null;
+        MethodHandle tileEntitySign = null, tileEntitySign_getUpdatePacket = null, tileEntitySign_setLine = null;
 
         MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
                 shortsOrInfo = null, setBlockData = null;
@@ -97,6 +103,13 @@ public final class NMSExtras {
             Class<?> craftEntity = getCraftClass("entity.CraftEntity");
             Class<?> nmsVec3D = getNMSClass("world.phys", "Vec3D");
             Class<?> world = getNMSClass("world.level", "World");
+            Class<?> signOpenPacket = getNMSClass("network.protocol.game", "PacketPlayOutOpenSignEditor");
+            Class<?> packetPlayOutBlockChangeClass = getNMSClass("network.protocol.game", "PacketPlayOutBlockChange");
+            Class<?> CraftMagicNumbers = getCraftClass("util.CraftMagicNumbers");
+            Class<?> CraftSign = getCraftClass("block.CraftSign");
+            Class<?> IChatBaseComponent = getNMSClass("network.chat", "IChatBaseComponent");
+            Class<?> TileEntitySign = getNMSClass("world.level.block.entity", "TileEntitySign");
+            Class<?> PacketPlayOutTileEntityData = getNMSClass("network.protocol.game", "PacketPlayOutTileEntityData");
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
             entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
@@ -180,6 +193,17 @@ public final class NMSExtras {
             getBlockType = lookup.findVirtual(world, "getType", MethodType.methodType(BLOCK_DATA, blockPos));
             getBlock = lookup.findVirtual(BLOCK_DATA, "getBlock", MethodType.methodType(block));
             playBlockAction = lookup.findVirtual(world, "playBlockAction", MethodType.methodType(void.class, blockPos, block, int.class, int.class));
+
+            signEditorPacket = lookup.findConstructor(signOpenPacket, MethodType.methodType(void.class, blockPos));
+            if (supports(17)) {
+                packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
+                getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BLOCK_DATA, Material.class, byte.class));
+                sanitizeLines = lookup.findStatic(CraftSign, "SANITIZE_LINES", MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
+
+                tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
+                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign, "getUpdatePacket", MethodType.methodType(PacketPlayOutTileEntityData));
+                tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
+            }
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException ex) {
             ex.printStackTrace();
         }
@@ -190,6 +214,8 @@ public final class NMSExtras {
         ENTITY_HANDLE = entityHandle;
         LIGHTNING_ENTITY = lightning;
         VEC3D = vec3D;
+        PACKET_PLAY_OUT_OPEN_SIGN_EDITOR = signEditorPacket;
+        PACKET_PLAY_OUT_BLOCK_CHANGE = packetPlayOutBlockChange;
 
         ANIMATION_PACKET = animationPacket;
         ANIMATION_TYPE = animationType;
@@ -199,6 +225,11 @@ public final class NMSExtras {
         PLAY_BLOCK_ACTION = playBlockAction;
         GET_BLOCK_TYPE = getBlockType;
         GET_BLOCK = getBlock;
+        GET_IBLOCK_DATA = getIBlockData;
+        SANITIZE_LINES = sanitizeLines;
+        TILE_ENTITY_SIGN = tileEntitySign;
+        TILE_ENTITY_SIGN__GET_UPDATE_PACKET = tileEntitySign_getUpdatePacket;
+        TILE_ENTITY_SIGN__SET_LINE = tileEntitySign_setLine;
 
         GET_BUKKIT_ENTITY = getBukkitEntity;
         PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET = playOutMultiBlockChange;
@@ -340,6 +371,32 @@ public final class NMSExtras {
             sendPacketSync(player, packet);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+        }
+    }
+
+    /**
+     * Currently only supports 1.17
+     */
+    public static void openSign(Player player, String[] lines) {
+        try {
+            Location loc = player.getLocation();
+            Object position = BLOCK_POSITION.invoke(loc.getBlockX(), 1, loc.getBlockY());
+            Object signBlockData = GET_IBLOCK_DATA.invoke(Material.OAK_SIGN, (byte) 0);
+            Object blockChangePacket = PACKET_PLAY_OUT_BLOCK_CHANGE.invoke(position, signBlockData);
+
+            Object components = SANITIZE_LINES.invoke((Object[]) lines);
+            Object tileSign = TILE_ENTITY_SIGN.invoke(position, signBlockData);
+            for (int i = 0; i < lines.length; i++) {
+                Object component = java.lang.reflect.Array.get(components, i);
+                TILE_ENTITY_SIGN__SET_LINE.invoke(tileSign, i, component, component);
+            }
+            Object signLinesUpdatePacket = TILE_ENTITY_SIGN__GET_UPDATE_PACKET.invoke(tileSign);
+
+            Object signPacket = PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position);
+
+            sendPacket(player, blockChangePacket, signLinesUpdatePacket, signPacket);
+        } catch (Throwable x) {
+            x.printStackTrace();
         }
     }
 

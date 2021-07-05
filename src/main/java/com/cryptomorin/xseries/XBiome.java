@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 5.1.0
  * @see Biome
  */
 public enum XBiome {
@@ -133,7 +133,7 @@ public enum XBiome {
      * @since 1.0.0
      */
     public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-    private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16);
+    private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16), EXTENDED_MINIMUM = XMaterial.supports(17);
     @Nullable
     private final Biome biome;
     @Nonnull
@@ -261,6 +261,8 @@ public enum XBiome {
         if (!chunk.isLoaded()) {
             Validate.isTrue(chunk.load(true), "Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
+        int heightMax = HORIZONTAL_SUPPORT ? chunk.getWorld().getMaxHeight() : 1;
+        int heightMin = EXTENDED_MINIMUM ? chunk.getWorld().getMinHeight() : 0;
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -268,7 +270,7 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (HORIZONTAL_SUPPORT ? chunk.getWorld().getMaxHeight() : 1); y += 4) {
+                for (int y = heightMin; y < heightMax; y += 4) {
                     for (int z = 0; z < 16; z++) {
                         Block block = chunk.getBlock(x, y, z);
                         if (block.getBiome() != biome) block.setBiome(biome);
@@ -296,7 +298,11 @@ public enum XBiome {
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
-        Validate.isTrue(start.getWorld().getUID().equals(end.getWorld().getUID()), "Location worlds mismatch");
+
+        World world = start.getWorld(); // Avoid getting from weak reference in a loop.
+        Validate.isTrue(world.getUID().equals(end.getWorld().getUID()), "Location worlds mismatch");
+        int heightMax = HORIZONTAL_SUPPORT ? world.getMaxHeight() : 1;
+        int heightMin = EXTENDED_MINIMUM ? world.getMinHeight() : 0;
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -304,9 +310,9 @@ public enum XBiome {
                 // y loop for 1.16+ support (vertical biomes).
                 // As of now increasing it by 4 seems to work.
                 // This should be the minimal size of the vertical biomes.
-                for (int y = 0; y < (HORIZONTAL_SUPPORT ? start.getWorld().getMaxHeight() : 1); y += 4) {
+                for (int y = heightMin; y < heightMax; y += 4) {
                     for (int z = start.getBlockZ(); z < end.getBlockZ(); z++) {
-                        Block block = new Location(start.getWorld(), x, y, z).getBlock();
+                        Block block = new Location(world, x, y, z).getBlock();
                         if (block.getBiome() != biome) block.setBiome(biome);
                     }
                 }

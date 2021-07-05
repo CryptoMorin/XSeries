@@ -2095,7 +2095,7 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
-        return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() <= 0;
+        return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() > 0;
     }
 
     /**

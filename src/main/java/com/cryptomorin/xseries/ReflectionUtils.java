@@ -243,4 +243,23 @@ public final class ReflectionUtils {
             return null;
         }
     }
+
+    public static Class<?> getArrayClass(String clazz, boolean nms) {
+        clazz = "[L" + (nms ? NMS : CRAFTBUKKIT) + clazz + ';';
+        try {
+            return Class.forName(clazz);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Class<?> toArrayClass(Class<?> clazz) {
+        try {
+            return Class.forName("[L" + clazz.getName() + ';');
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
 }

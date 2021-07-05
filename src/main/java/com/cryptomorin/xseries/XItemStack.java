@@ -56,6 +56,8 @@ import org.bukkit.potion.PotionType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * <b>XItemStack</b> - YAML Item Serializer<br>
@@ -274,8 +276,8 @@ public final class XItemStack {
                     view.set("unlimited-tracking", mapView.isUnlimitedTracking());
                 }
             }
-        }else if(XMaterial.supports(16)){
-            if(meta instanceof CompassMeta) {
+        } else if (XMaterial.supports(16)) {
+            if (meta instanceof CompassMeta) {
                 CompassMeta compass = (CompassMeta) meta;
                 ConfigurationSection subSection = config.createSection("lodestone");
                 subSection.set("tracked", compass.isLodestoneTracked());
@@ -287,7 +289,7 @@ public final class XItemStack {
                     subSection.set("location.z", location.getZ());
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 int i = 0;
@@ -547,18 +549,18 @@ public final class XItemStack {
                     }
                 }
             }
-        }else if(XMaterial.supports(16)){
-            if(meta instanceof CompassMeta){
-                CompassMeta compass = (CompassMeta)meta;
+        } else if (XMaterial.supports(16)) {
+            if (meta instanceof CompassMeta) {
+                CompassMeta compass = (CompassMeta) meta;
                 ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
                 compass.setLodestoneTracked(config.getBoolean("tracked"));
                 ConfigurationSection lodestoneLocation = lodestone.getConfigurationSection("location");
-                if(lodestoneLocation != null){
+                if (lodestoneLocation != null) {
                     World world = Bukkit.getWorld(lodestoneLocation.getString("world"));
                     double x = lodestoneLocation.getDouble("x");
                     double y = lodestoneLocation.getDouble("y");
                     double z = lodestoneLocation.getDouble("z");
-                    compass.setLodestone(new Location(world,x,y,z));
+                    compass.setLodestone(new Location(world, x, y, z));
                 }
             }
         } else if (XMaterial.supports(15)) {
@@ -569,7 +571,7 @@ public final class XItemStack {
                     stew.addCustomEffect(effect, true);
                 }
             }
-        }else if (XMaterial.supports(14)) {
+        } else if (XMaterial.supports(14)) {
             if (meta instanceof CrossbowMeta) {
                 CrossbowMeta crossbow = (CrossbowMeta) meta;
                 for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
@@ -587,7 +589,7 @@ public final class XItemStack {
                 tropical.setPattern(pattern);
             }
             // Apparently Suspicious Stew was never added in 1.14
-        }else if (!isNewVersion) {
+        } else if (!isNewVersion) {
             // Spawn Eggs
             if (XMaterial.supports(11)) {
                 if (meta instanceof SpawnEggMeta) {
@@ -780,21 +782,27 @@ public final class XItemStack {
         return leftOvers;
     }
 
+    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
+        return addItems(inventory, split, null, items);
+    }
+
     /**
      * Optimized version of {@link Inventory#addItem(ItemStack...)}
      * https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventory.java
      *
-     * @param inventory the inventory to add the items to.
-     * @param split     if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or
-     *                  item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
-     *                  you're adding stacked tools such as swords that you'd like to split them to other slots.
-     * @param items     the items to add.
+     * @param inventory       the inventory to add the items to.
+     * @param split           if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or
+     *                        item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
+     *                        you're adding stacked tools such as swords that you'd like to split them to other slots.
+     * @param modifiableSlots the slots that are allowed to be used for adding the items, otherwise null to allow all slots.
+     * @param items           the items to add.
      *
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
     @Nonnull
-    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
+    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split,
+                                           @Nullable Predicate<Integer> modifiableSlots, @Nonnull ItemStack... items) {
         Objects.requireNonNull(inventory, "Cannot add items to null inventory");
         Objects.requireNonNull(items, "Cannot add null items to inventory");
 
@@ -812,11 +820,11 @@ public final class XItemStack {
 
             while (true) {
                 // Check if there is a similar item that can be stacked before using free slots.
-                int firstPartial = lastPartial >= invSize ? -1 : firstPartial(inventory, item, lastPartial);
+                int firstPartial = lastPartial >= invSize ? -1 : firstPartial(inventory, item, lastPartial, modifiableSlots);
                 if (firstPartial == -1) {
                     // Start adding items to left overs if there are no partial and empty slots
                     // -1 means that there are no empty slots left.
-                    if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty);
+                    if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty, modifiableSlots);
                     if (lastEmpty == -1) {
                         leftOvers.add(item);
                         break;
@@ -862,6 +870,10 @@ public final class XItemStack {
         return leftOvers;
     }
 
+    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+        return firstPartial(inventory, item, beginIndex, null);
+    }
+
     /**
      * Gets the item slot in the inventory that matches the given item argument.
      * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
@@ -870,18 +882,20 @@ public final class XItemStack {
      * @param inventory  the inventory to match the item from.
      * @param item       the item to match.
      * @param beginIndex the index which to start the search from in the inventory.
+     * @param skipSlot   the slots that will be skipped for checking.
      *
      * @return the first matched item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> skipSlot) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int invSize = items.length;
             if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
             for (; beginIndex < invSize; beginIndex++) {
+                if (skipSlot != null && skipSlot.test(beginIndex)) continue;
                 ItemStack cItem = items[beginIndex];
                 if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)) return beginIndex;
             }
@@ -889,8 +903,18 @@ public final class XItemStack {
         return -1;
     }
 
+    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
+        return stack(items, ItemStack::isSimilar);
+    }
+
     /**
-     * Stacks up the items in the given item collection that are {@link ItemStack#isSimilar(ItemStack)}.
+     * Stacks up the items in the given item collection that are pass the similarity check.
+     * This means that if you have a collection that consists of separate items with the same material, you can reduce them using the following:
+     * <pre>{@code
+     *   List<ItemStack> items = Arrays.asList(XMaterial.STONE.parseItem(), XMaterial.STONE.parseItem(), XMaterial.AIR.parseItem());
+     *   items = XItemStack.stack(items, (first, second) -> first.getType == second.getType());
+     *   // items -> [STONE x2, AIR x1]
+     * }</pre>
      *
      * @param items the items to stack.
      *
@@ -898,8 +922,9 @@ public final class XItemStack {
      * @since 4.0.0
      */
     @Nonnull
-    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
+    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items, @Nonnull BiPredicate<ItemStack, ItemStack> similarity) {
         Objects.requireNonNull(items, "Cannot stack null items");
+        Objects.requireNonNull(similarity, "Similarity check cannot be null");
         List<ItemStack> stacked = new ArrayList<>(items.size());
 
         for (ItemStack item : items) {
@@ -907,7 +932,7 @@ public final class XItemStack {
 
             boolean add = true;
             for (ItemStack stack : stacked) {
-                if (stack.isSimilar(item)) {
+                if (similarity.test(item, stack)) {
                     stack.setAmount(stack.getAmount() + item.getAmount());
                     add = false;
                     break;
@@ -919,6 +944,10 @@ public final class XItemStack {
         return stacked;
     }
 
+    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
+        return firstEmpty(inventory, beginIndex, null);
+    }
+
     /**
      * Gets the first item slot in the inventory that is empty or matches the given item argument.
      * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
@@ -926,17 +955,19 @@ public final class XItemStack {
      *
      * @param inventory  the inventory to search from.
      * @param beginIndex the item slot to start the search from in the inventory.
+     * @param skipSlot   the slots that will be skipped for checking.
      *
      * @return first empty item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
+    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> skipSlot) {
         ItemStack[] items = inventory.getStorageContents();
         int invSize = items.length;
         if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
         for (; beginIndex < invSize; beginIndex++) {
+            if (skipSlot != null && skipSlot.test(beginIndex)) continue;
             if (items[beginIndex] == null) return beginIndex;
         }
         return -1;
