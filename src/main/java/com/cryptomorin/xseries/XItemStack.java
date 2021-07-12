@@ -37,6 +37,7 @@ import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Axolotl;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
@@ -274,6 +275,14 @@ public final class XItemStack {
                     view.set("locked", mapView.isLocked());
                     view.set("tracking-position", mapView.isTrackingPosition());
                     view.set("unlimited-tracking", mapView.isUnlimitedTracking());
+                }
+            }
+        } else if (XMaterial.supports(17)) {
+            if(meta instanceof AxolotlBucketMeta){
+                AxolotlBucketMeta bucket = (AxolotlBucketMeta)meta;
+                if(bucket.hasVariant()){
+                    ConfigurationSection subSection = config.createSection("axolotl");
+                    subSection.set("variant",bucket.getVariant().toString());
                 }
             }
         } else if (XMaterial.supports(16)) {
@@ -547,6 +556,15 @@ public final class XItemStack {
 
                         map.setMapView(mapView);
                     }
+                }
+            }
+        }else if (XMaterial.supports(17)) {
+            if(meta instanceof AxolotlBucketMeta){
+                AxolotlBucketMeta bucket = (AxolotlBucketMeta)meta;
+                ConfigurationSection subSection = config.getConfigurationSection("axolotl");
+                if(subSection != null){
+                    Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, subSection.getString("variant").toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
+                    bucket.setVariant(variant);
                 }
             }
         } else if (XMaterial.supports(16)) {
