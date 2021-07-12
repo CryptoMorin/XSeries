@@ -44,7 +44,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 2.1.0.1
+ * @version 2.2.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -211,6 +211,32 @@ public final class XBlock {
             return true;
         }
         return false;
+    }
+
+
+    private static String getMetaString(XMaterial material) {
+        return material.name().substring(0, material.name().indexOf('_'));
+    }
+
+    public static boolean setType(Block block, XMaterial material) {
+        block.setType(material.parseMaterial());
+        if (XMaterial.supports(13)) return false;
+
+        BlockState state = block.getState();
+        MaterialData data = state.getData();
+        boolean update = false;
+
+        if (data instanceof Wood) {
+            Wood wood = (Wood) data;
+            wood.setSpecies(TreeSpecies.valueOf(getMetaString(material)));
+            update = true;
+        } else if (data instanceof Colorable) {
+            ((Colorable) data).setColor(DyeColor.valueOf(getMetaString(material)));
+            update = true;
+        }
+
+        if (update) state.update();
+        return update;
     }
 
     public static int getAge(Block block) {
@@ -402,7 +428,7 @@ public final class XBlock {
         if (ISFLAT) return true;
 
         TreeSpecies type = species == XMaterial.SPRUCE_LOG ? TreeSpecies.REDWOOD :
-                TreeSpecies.valueOf(species.name().substring(0, species.name().indexOf('_')));
+                TreeSpecies.valueOf(getMetaString(species));
 
         BlockState state = block.getState();
         MaterialData data = state.getData();
