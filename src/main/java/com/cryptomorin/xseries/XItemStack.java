@@ -284,10 +284,7 @@ public final class XItemStack {
         } else if (supports(17)) {
             if (meta instanceof AxolotlBucketMeta) {
                 AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                if (bucket.hasVariant()) {
-                    ConfigurationSection subSection = config.createSection("axolotl");
-                    subSection.set("variant", bucket.getVariant().toString());
-                }
+                if (bucket.hasVariant()) config.set("variant", bucket.getVariant().toString());
             }
         } else if (supports(16)) {
             if (meta instanceof CompassMeta) {
@@ -567,9 +564,9 @@ public final class XItemStack {
         } else if (supports(17)) {
             if (meta instanceof AxolotlBucketMeta) {
                 AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                ConfigurationSection subSection = config.getConfigurationSection("axolotl");
-                if (subSection != null) {
-                    Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, subSection.getString("variant").toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
+                String variantStr = config.getString("variant");
+                if (variantStr != null) {
+                    Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
                     bucket.setVariant(variant);
                 }
             }
