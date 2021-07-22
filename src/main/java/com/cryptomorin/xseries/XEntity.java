@@ -77,7 +77,7 @@ public final class XEntity {
         if (XMaterial.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
-            if (XMaterial.isNewVersion()) {
+            if (XMaterial.supports(13)) {
                 undead.add(EntityType.DROWNED);
                 undead.add(EntityType.PHANTOM);
                 if (XMaterial.supports(16)) {
@@ -144,7 +144,7 @@ public final class XEntity {
         if (portalCooldown != -1) entity.setPortalCooldown(portalCooldown);
         // We don't need damage cause.
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.supports(13)) {
             if (entity instanceof Lootable) {
                 Lootable lootable = (Lootable) entity;
                 long seed = config.getLong("seed");
@@ -343,7 +343,7 @@ public final class XEntity {
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
-                        } else if (XMaterial.isNewVersion()) {
+                        } else if (XMaterial.supports(13)) {
                             if (living instanceof Husk) {
                                 Husk husk = (Husk) living;
                                 husk.setConversionTime(config.getInt("conversion-time"));

@@ -94,11 +94,11 @@ public enum XEnchantment {
 
     /**
      * Cached list of {@link XEnchantment#values()} to avoid allocating memory for
-     * calling the method every time. This list is unmodifiable.
      *
      * @since 1.0.0
      */
-    public static final List<XEnchantment> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+    public static final XEnchantment[] VALUES = values();
+
     /**
      * Entity types that {@link #DAMAGE_UNDEAD} enchantment is effective against.
      * This set is unmodifiable.

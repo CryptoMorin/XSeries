@@ -31,7 +31,10 @@ import org.bukkit.block.Block;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -128,11 +131,10 @@ public enum XBiome {
 
     /**
      * A cached unmodifiable list of {@link XBiome#values()} to avoid allocating memory for
-     * calling the method every time.
      *
      * @since 1.0.0
      */
-    public static final List<XBiome> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+    public static final XBiome[] VALUES = values();
     private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16), EXTENDED_MINIMUM = XMaterial.supports(17);
     @Nullable
     private final Biome biome;

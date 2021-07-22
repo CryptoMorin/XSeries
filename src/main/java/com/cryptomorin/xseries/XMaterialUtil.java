@@ -20,7 +20,7 @@ public final class XMaterialUtil {
      * @since 1.13
      */
     public boolean isItem(XMaterial material) {
-        if (XMaterial.isNewVersion()) return material.parseMaterial().isItem();
+        if (XMaterial.supports(13)) return material.parseMaterial().isItem();
         switch (material) { // All the materials that are NOT an item (only 1.12 materials)
             case ATTACHED_MELON_STEM:
             case ATTACHED_PUMPKIN_STEM:
@@ -118,7 +118,7 @@ public final class XMaterialUtil {
      * @since 1.13
      */
     public boolean isInteractable(XMaterial material) {
-        if (XMaterial.isNewVersion()) return material.parseMaterial().isInteractable();
+        if (XMaterial.supports(13)) return material.parseMaterial().isInteractable();
         switch (material) { // 1.12 materials only
             case ACACIA_BUTTON:
             case ACACIA_DOOR:

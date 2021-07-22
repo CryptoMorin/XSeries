@@ -95,11 +95,11 @@ public enum XPotion {
     /**
      * Cached list of {@link XPotion#values()} to avoid allocating memory for
      * calling the method every time.
-     * This list is unmodifiable.
      *
      * @since 1.0.0
      */
-    public static final List<XPotion> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+    public static final XPotion[] VALUES = values();
+
     /**
      * An unmodifiable set of "bad" potion effects.
      *
@@ -107,7 +107,8 @@ public enum XPotion {
      */
     public static final Set<XPotion> DEBUFFS = Collections.unmodifiableSet(EnumSet.of(
             BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
-            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER));
+            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER)
+    );
 
     private final PotionEffectType type;
 

@@ -72,7 +72,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 5.2.0
+ * @version 5.2.0.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -96,7 +96,6 @@ public final class XItemStack {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
         ItemMeta meta = item.getItemMeta();
-        boolean isNewVersion = XMaterial.isNewVersion();
 
         // Material
         config.set("material", item.getType().name());
@@ -105,7 +104,7 @@ public final class XItemStack {
         if (item.getAmount() > 1) config.set("amount", item.getAmount());
 
         // Durability - Damage
-        if (isNewVersion) {
+        if (supports(13)) {
             if (meta instanceof Damageable) {
                 Damageable damageable = (Damageable) meta;
                 if (damageable.hasDamage()) config.set("damage", damageable.getDamage());
@@ -323,7 +322,7 @@ public final class XItemStack {
 
                 config.set("effects", effects);
             }
-        } else if (!isNewVersion) {
+        } else if (!supports(13)) {
             // Spawn Eggs
             if (supports(11)) {
                 if (meta instanceof SpawnEggMeta) {
@@ -352,7 +351,6 @@ public final class XItemStack {
     @Nullable
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
-        boolean isNewVersion = XMaterial.isNewVersion();
 
         // Material
         String material = config.getString("material");
@@ -370,7 +368,7 @@ public final class XItemStack {
         if (amount > 1) item.setAmount(amount);
 
         // Durability - Damage
-        if (isNewVersion) {
+        if (supports(13)) {
             if (meta instanceof Damageable) {
                 int damage = config.getInt("damage");
                 if (damage > 0) ((Damageable) meta).setDamage(damage);
@@ -610,7 +608,7 @@ public final class XItemStack {
                 tropical.setPattern(pattern);
             }
             // Apparently Suspicious Stew was never added in 1.14
-        } else if (!isNewVersion) {
+        } else if (!supports(13)) {
             // Spawn Eggs
             if (supports(11)) {
                 if (meta instanceof SpawnEggMeta) {
@@ -724,7 +722,7 @@ public final class XItemStack {
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
-        if (isNewVersion) {
+        if (supports(13)) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
