@@ -251,7 +251,7 @@ public final class Titles {
             Class<?> packetClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
 
             Object packet;
-            if (ReflectionUtils.VER >= 1.17) {
+            if (ReflectionUtils.VER >= 17) {
                 packet = packetClass.getConstructor(tabFooter.getClass()).newInstance(tabHeader, tabFooter);
             } else {
                 packet = packetClass.getConstructor().newInstance();
