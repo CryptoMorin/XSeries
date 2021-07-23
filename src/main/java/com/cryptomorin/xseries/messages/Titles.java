@@ -127,7 +127,6 @@ public final class Titles {
      * @param fadeOut  the amount of ticks for the title to fade out.
      * @param title    the title message.
      * @param subtitle the subtitle message.
-     *
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
@@ -165,7 +164,6 @@ public final class Titles {
      * @param player   the player to send the title to.
      * @param title    the title message.
      * @param subtitle the subtitle message.
-     *
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
@@ -187,7 +185,6 @@ public final class Titles {
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
-     *
      * @since 1.0.0
      */
     public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
@@ -209,7 +206,6 @@ public final class Titles {
      * Clears the title and subtitle message from the player's screen.
      *
      * @param player the player to clear the title from.
-     *
      * @since 1.0.0
      */
     public static void clearTitle(@Nonnull Player player) {
@@ -237,7 +233,6 @@ public final class Titles {
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
-     *
      * @since 1.0.0
      */
     public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
@@ -252,25 +247,32 @@ public final class Titles {
                     .getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
             Object tabFooter = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + footer + "\"}");
-            Object packet = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter")
-                    .getConstructor().newInstance();
 
-            Field aField;
-            Field bField;
-            try {
-                aField = packet.getClass().getDeclaredField("a");
-                bField = packet.getClass().getDeclaredField("b");
-            } catch (Exception ex) {
-                aField = packet.getClass().getDeclaredField("header");
-                bField = packet.getClass().getDeclaredField("footer");
+            Class<?> packetClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
+
+            Object packet;
+            if (ReflectionUtils.VER >= 1.17) {
+                packet = packetClass.getConstructor(tabFooter.getClass()).newInstance(tabHeader, tabFooter);
+            } else {
+                packet = packetClass.getConstructor().newInstance();
+
+                Field aField;
+                Field bField;
+                try {
+                    aField = packet.getClass().getDeclaredField("a");
+                    bField = packet.getClass().getDeclaredField("b");
+                } catch (Exception ex) {
+                    aField = packet.getClass().getDeclaredField("header");
+                    bField = packet.getClass().getDeclaredField("footer");
+                }
+
+                aField.setAccessible(true);
+                aField.set(packet, tabHeader);
+
+                bField.setAccessible(true);
+                bField.set(packet, tabFooter);
+
             }
-
-            aField.setAccessible(true);
-            aField.set(packet, tabHeader);
-
-            bField.setAccessible(true);
-            bField.set(packet, tabFooter);
-
             ReflectionUtils.sendPacket(player, packet);
         } catch (Exception ex) {
             ex.printStackTrace();
