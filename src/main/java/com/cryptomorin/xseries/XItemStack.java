@@ -72,7 +72,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 5.2.0.1
+ * @version 5.2.0.1.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -898,23 +898,23 @@ public final class XItemStack {
      * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
      * reached its {@link ItemStack#getMaxStackSize()} for the inventory.
      *
-     * @param inventory  the inventory to match the item from.
-     * @param item       the item to match.
-     * @param beginIndex the index which to start the search from in the inventory.
-     * @param skipSlot   the slots that will be skipped for checking.
+     * @param inventory       the inventory to match the item from.
+     * @param item            the item to match.
+     * @param beginIndex      the index which to start the search from in the inventory.
+     * @param modifiableSlots the slots that can be used to share items.
      *
      * @return the first matched item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> skipSlot) {
+    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int invSize = items.length;
             if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
             for (; beginIndex < invSize; beginIndex++) {
-                if (skipSlot != null && skipSlot.test(beginIndex)) continue;
+                if (modifiableSlots != null && !modifiableSlots.test(beginIndex)) continue;
                 ItemStack cItem = items[beginIndex];
                 if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)) return beginIndex;
             }
@@ -972,21 +972,21 @@ public final class XItemStack {
      * The matched item must be {@link ItemStack#isSimilar(ItemStack)} and has not
      * reached its {@link ItemStack#getMaxStackSize()} for the inventory.
      *
-     * @param inventory  the inventory to search from.
-     * @param beginIndex the item slot to start the search from in the inventory.
-     * @param skipSlot   the slots that will be skipped for checking.
+     * @param inventory       the inventory to search from.
+     * @param beginIndex      the item slot to start the search from in the inventory.
+     * @param modifiableSlots the slots that can be used.
      *
      * @return first empty item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> skipSlot) {
+    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         ItemStack[] items = inventory.getStorageContents();
         int invSize = items.length;
         if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
         for (; beginIndex < invSize; beginIndex++) {
-            if (skipSlot != null && skipSlot.test(beginIndex)) continue;
+            if (modifiableSlots != null && !modifiableSlots.test(beginIndex)) continue;
             if (items[beginIndex] == null) return beginIndex;
         }
         return -1;

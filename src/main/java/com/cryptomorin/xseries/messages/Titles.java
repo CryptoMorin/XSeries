@@ -48,7 +48,7 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.0.0
+ * @version 2.0.0.1
  * @see ReflectionUtils
  */
 public final class Titles {
@@ -127,6 +127,7 @@ public final class Titles {
      * @param fadeOut  the amount of ticks for the title to fade out.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
@@ -164,6 +165,7 @@ public final class Titles {
      * @param player   the player to send the title to.
      * @param title    the title message.
      * @param subtitle the subtitle message.
+     *
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
@@ -185,6 +187,7 @@ public final class Titles {
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
+     *
      * @since 1.0.0
      */
     public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
@@ -206,6 +209,7 @@ public final class Titles {
      * Clears the title and subtitle message from the player's screen.
      *
      * @param player the player to clear the title from.
+     *
      * @since 1.0.0
      */
     public static void clearTitle(@Nonnull Player player) {
@@ -233,6 +237,7 @@ public final class Titles {
      * @param player the player to change the tablist for.
      * @param header the header of the tablist.
      * @param footer the footer of the tablist.
+     *
      * @since 1.0.0
      */
     public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
@@ -243,16 +248,16 @@ public final class Titles {
                 "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', footer), "%player%", player.getDisplayName());
 
         try {
-            Method chatComponentBuilderMethod = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent")
-                    .getDeclaredClasses()[0].getMethod("a", String.class);
+            Class<?> IChatBaseComponent = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
+            Class<?> packetClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
+
+            Method chatComponentBuilderMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
             Object tabFooter = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + footer + "\"}");
 
-            Class<?> packetClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
-
             Object packet;
-            if (ReflectionUtils.VER >= 17) {
-                packet = packetClass.getConstructor(tabFooter.getClass()).newInstance(tabHeader, tabFooter);
+            if (ReflectionUtils.supports(17)) {
+                packet = packetClass.getConstructor(IChatBaseComponent, IChatBaseComponent).newInstance(tabHeader, tabFooter);
             } else {
                 packet = packetClass.getConstructor().newInstance();
 

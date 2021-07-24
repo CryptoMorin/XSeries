@@ -58,7 +58,7 @@ import java.util.concurrent.Callable;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 6.0.0.0.1
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -260,6 +260,9 @@ public class ParticleDisplay implements Cloneable {
                 double offsety = NumberUtils.toDouble(offsets[1]);
                 double offsetz = NumberUtils.toDouble(offsets[2]);
                 display.offset(offsetx, offsety, offsetz);
+            } else {
+                double masterOffset = NumberUtils.toDouble(offsets[0]);
+                display.offset(masterOffset, masterOffset, masterOffset);
             }
         }
 
