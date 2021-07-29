@@ -106,8 +106,8 @@ public enum XPotion {
      * @since 1.1.0
      */
     public static final Set<XPotion> DEBUFFS = Collections.unmodifiableSet(EnumSet.of(
-            BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON, SATURATION,
-            SLOW, SLOW_DIGGING, SLOW_FALLING, UNLUCK, WEAKNESS, WITHER)
+            BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON,
+            SLOW, SLOW_DIGGING, UNLUCK, WEAKNESS, WITHER)
     );
 
     private final PotionEffectType type;

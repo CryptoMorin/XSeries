@@ -22,9 +22,6 @@
 package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.ReflectionUtils;
-import com.google.common.base.Strings;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -48,7 +45,7 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.0.0.1
+ * @version 2.0.1
  * @see ReflectionUtils
  */
 public final class Titles {
@@ -233,23 +230,26 @@ public final class Titles {
     /**
      * Changes the tablist header and footer message for a player.
      * This is not fully completed as it's not used a lot.
+     * <p>
+     * Headers and footers cannot be null because the client will simply
+     * ignore the packet.
      *
-     * @param player the player to change the tablist for.
-     * @param header the header of the tablist.
-     * @param footer the footer of the tablist.
+     * @param header  the header of the tablist.
+     * @param footer  the footer of the tablist.
+     * @param players players to send this change to.
      *
+     * @return the packet.
      * @since 1.0.0
      */
-    public static void sendTabList(@Nonnull Player player, @Nullable String header, @Nullable String footer) {
-        Objects.requireNonNull(player, "Cannot update tab for null player");
-        header = Strings.isNullOrEmpty(header) ?
-                "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', header), "%player%", player.getDisplayName());
-        footer = Strings.isNullOrEmpty(footer) ?
-                "" : StringUtils.replace(ChatColor.translateAlternateColorCodes('&', footer), "%player%", player.getDisplayName());
+    @Nonnull
+    public static Object sendTabList(@Nonnull String header, @Nonnull String footer, Player... players) {
+        Objects.requireNonNull(players, "Cannot send tab title to null players");
+        Objects.requireNonNull(header, "Tab title header cannot be null");
+        Objects.requireNonNull(footer, "Tab title footer cannot be null");
 
         try {
             Class<?> IChatBaseComponent = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
-            Class<?> packetClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
+            Class<?> PacketPlayOutPlayerListHeaderFooter = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
 
             Method chatComponentBuilderMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
@@ -257,18 +257,18 @@ public final class Titles {
 
             Object packet;
             if (ReflectionUtils.supports(17)) {
-                packet = packetClass.getConstructor(IChatBaseComponent, IChatBaseComponent).newInstance(tabHeader, tabFooter);
+                packet = PacketPlayOutPlayerListHeaderFooter.getConstructor(IChatBaseComponent, IChatBaseComponent).newInstance(tabHeader, tabFooter);
             } else {
-                packet = packetClass.getConstructor().newInstance();
+                packet = PacketPlayOutPlayerListHeaderFooter.getConstructor().newInstance();
 
                 Field aField;
                 Field bField;
                 try {
-                    aField = packet.getClass().getDeclaredField("a");
-                    bField = packet.getClass().getDeclaredField("b");
+                    aField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("a");
+                    bField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("b");
                 } catch (Exception ex) {
-                    aField = packet.getClass().getDeclaredField("header");
-                    bField = packet.getClass().getDeclaredField("footer");
+                    aField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("header");
+                    bField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("footer");
                 }
 
                 aField.setAccessible(true);
@@ -276,11 +276,12 @@ public final class Titles {
 
                 bField.setAccessible(true);
                 bField.set(packet, tabFooter);
-
             }
-            ReflectionUtils.sendPacket(player, packet);
+
+            for (Player player : players) ReflectionUtils.sendPacket(player, packet);
+            return packet;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 }
