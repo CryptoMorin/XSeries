@@ -56,6 +56,7 @@ import java.util.UUID;
  */
 public class SkullUtils {
     protected static final MethodHandle GAME_PROFILE;
+    protected static final MethodHandle PROFILE_FIELD;
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
     private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
@@ -63,18 +64,20 @@ public class SkullUtils {
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle gameProfile = null;
+        MethodHandle gameProfile = null, profileGetter = null;
 
         try {
             Class<?> craftSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
             Field profileField = craftSkull.getDeclaredField("profile");
             profileField.setAccessible(true);
             gameProfile = lookup.unreflectSetter(profileField);
+            profileGetter = lookup.unreflectGetter(profileField);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
 
         GAME_PROFILE = gameProfile;
+        PROFILE_FIELD = profileGetter;
     }
 
     @SuppressWarnings("deprecation")
@@ -168,10 +171,8 @@ public class SkullUtils {
         GameProfile profile = null;
 
         try {
-            Field profileField = meta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profile = (GameProfile) profileField.get(meta);
-        } catch (SecurityException | NoSuchFieldException | IllegalAccessException ex) {
+            profile = (GameProfile) PROFILE_FIELD.invoke(meta);
+        } catch (Throwable ex) {
             ex.printStackTrace();
         }
 
