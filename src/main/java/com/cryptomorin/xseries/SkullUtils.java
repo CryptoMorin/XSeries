@@ -51,12 +51,13 @@ import java.util.UUID;
  * </ul>
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.1.1
  * @see XMaterial
+ * @see ReflectionUtils
+ * @see SkullCacheListener
  */
 public class SkullUtils {
-    protected static final MethodHandle GAME_PROFILE;
-    protected static final MethodHandle PROFILE_FIELD;
+    protected static final MethodHandle PROFILE_GETTER, PROFILE_SETTER;
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
     private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
@@ -64,20 +65,21 @@ public class SkullUtils {
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle gameProfile = null, profileGetter = null;
+        MethodHandle profileSetter = null, profileGetter = null;
 
         try {
-            Class<?> craftSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
-            Field profileField = craftSkull.getDeclaredField("profile");
-            profileField.setAccessible(true);
-            gameProfile = lookup.unreflectSetter(profileField);
-            profileGetter = lookup.unreflectGetter(profileField);
+            Class<?> CraftMetaSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
+            Field profile = CraftMetaSkull.getDeclaredField("profile");
+            profile.setAccessible(true);
+
+            profileSetter = lookup.unreflectSetter(profile);
+            profileGetter = lookup.unreflectGetter(profile);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
 
-        GAME_PROFILE = gameProfile;
-        PROFILE_FIELD = profileGetter;
+        PROFILE_SETTER = profileSetter;
+        PROFILE_GETTER = profileGetter;
     }
 
     @SuppressWarnings("deprecation")
@@ -127,7 +129,7 @@ public class SkullUtils {
         profile.getProperties().put("textures", new Property("textures", value));
 
         try {
-            GAME_PROFILE.invoke(head, profile);
+            PROFILE_SETTER.invoke(head, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -171,7 +173,7 @@ public class SkullUtils {
         GameProfile profile = null;
 
         try {
-            profile = (GameProfile) PROFILE_FIELD.invoke(meta);
+            profile = (GameProfile) PROFILE_GETTER.invoke(meta);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }

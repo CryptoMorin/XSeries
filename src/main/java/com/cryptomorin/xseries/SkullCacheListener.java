@@ -138,7 +138,7 @@ final class SkullCacheListener {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         try {
-            SkullUtils.GAME_PROFILE.invoke(meta, profile);
+            SkullUtils.PROFILE_SETTER.invoke(meta, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
