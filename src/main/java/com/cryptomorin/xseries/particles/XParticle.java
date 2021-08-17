@@ -101,7 +101,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 4.1.2
+ * @version 5.0.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -133,8 +133,7 @@ public final class XParticle {
      */
     public static final double PII = 2 * Math.PI;
 
-    private XParticle() {
-    }
+    private XParticle() {}
 
     /**
      * An optimized and stable way of getting particles for cross-version support.
@@ -304,7 +303,7 @@ public final class XParticle {
                 double directionX = Math.cos(extension * phi);
                 double directionZ = Math.sin(extension * phi);
 
-                display.offset(directionX, display.offsety, directionZ);
+                display.offset(directionX, display.getOffset().getY(), directionZ);
             }
 
             display.spawn(x, 0, z);
@@ -351,7 +350,7 @@ public final class XParticle {
         return new BukkitRunnable() {
             final double rateDiv = Math.PI / rate;
             final double radiusDiv = Math.PI / radiusRate;
-            final Vector dir = display.location.getDirection().normalize().multiply(extend);
+            final Vector dir = display.getLocation().getDirection().normalize().multiply(extend);
             double dynamicRadius = 0;
 
             @Override
@@ -369,7 +368,7 @@ public final class XParticle {
                 dynamicRadius += radiusDiv;
                 if (dynamicRadius > Math.PI) dynamicRadius = 0;
                 // Next circle center location.
-                display.location.add(dir);
+                display.getLocation().add(dir);
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
@@ -389,9 +388,9 @@ public final class XParticle {
             double x = radius * Math.cos(theta);
             double z = radius * Math.sin(theta);
 
-            display.location.add(x, 0, z);
+            display.getLocation().add(x, 0, z);
             runnable.run();
-            display.location.subtract(x, 0, z);
+            display.getLocation().subtract(x, 0, z);
         }
     }
 
@@ -524,7 +523,7 @@ public final class XParticle {
     public static BukkitTask magicCircles(JavaPlugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
         return new BukkitRunnable() {
             final double radiusDiv = Math.PI / radiusRate;
-            final Vector dir = display.location.getDirection().normalize().multiply(distance);
+            final Vector dir = display.getLocation().getDirection().normalize().multiply(distance);
             double dynamicRadius = radius;
 
             @Override
@@ -539,7 +538,7 @@ public final class XParticle {
                 // We're going to use normal numbers since the circle radius will be always changing
                 // in one axis.
                 dynamicRadius += radiusDiv;
-                display.location.add(dir);
+                display.getLocation().add(dir);
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 1L);
     }
@@ -593,19 +592,13 @@ public final class XParticle {
     /**
      * Spawn an ellipse.
      *
-     * @param radius      the radius of the ellipse.
-     * @param otherRadius the curve of the ellipse.
-     * @param rate        the rate of ellipse points.
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 2.0.0
      */
-    public static void ellipse(double radius, double otherRadius, double rate, ParticleDisplay display) {
-        double rateDiv = Math.PI / rate;
-
+    public static void ellipse(double start, double end, double rate, double radius, double otherRadius, ParticleDisplay display) {
         // The only difference between circles and ellipses are that
         // ellipses use a different radius for one of their axis.
-        for (double theta = 0; theta <= PII; theta += rateDiv) {
+        for (double theta = start; theta <= end; theta += rate) {
             double x = radius * Math.cos(theta);
             double y = otherRadius * Math.sin(theta);
             display.spawn(x, y, 0);
@@ -702,7 +695,7 @@ public final class XParticle {
         for (int i = 0; i < 7; i++) {
             // Get the rainbow color in order.
             int[] rgb = rainbow[i];
-            display = ParticleDisplay.colored(display.location, rgb[0], rgb[1], rgb[2], 1);
+            display = ParticleDisplay.colored(display.getLocation(), rgb[0], rgb[1], rgb[2], 1);
 
             // Display the same color multiple times.
             for (int layer = 0; layer < layers; layer++) {
@@ -731,10 +724,11 @@ public final class XParticle {
      */
     public static void crescent(double radius, double rate, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
+        double end = Math.toRadians(325);
 
         // Crescents are two circles, one with a smaller radius and slightly shifted to the open part of the bigger circle.
         // To align the opening of the bigger circle with the +X axis we'll have to adjust our start and end  radians.
-        for (double theta = Math.toRadians(45); theta <= Math.toRadians(325); theta += rateDiv) {
+        for (double theta = Math.toRadians(45); theta <= end; theta += rateDiv) {
             // Our circle at the bottom.
             double x = Math.cos(theta);
             double z = Math.sin(theta);
@@ -878,13 +872,13 @@ public final class XParticle {
                 double z = Math.toRadians(30 + rotation);
 
                 Vector vector = new Vector(offsetx * Math.PI, offsety * Math.PI, offsetz * Math.PI);
-                if (offsetx != 0) rotateAroundX(vector, x);
-                if (offsety != 0) rotateAroundY(vector, y);
-                if (offsetz != 0) rotateAroundZ(vector, z);
+                if (offsetx != 0) ParticleDisplay.rotateAround(vector, Axis.X, x);
+                if (offsety != 0) ParticleDisplay.rotateAround(vector, Axis.Y, y);
+                if (offsetz != 0) ParticleDisplay.rotateAround(vector, Axis.Z, z);
 
-                for (ParticleDisplay display : displays) display.location.add(vector);
+                for (ParticleDisplay display : displays) display.getLocation().add(vector);
                 runnable.run();
-                for (ParticleDisplay display : displays) display.location.subtract(vector);
+                for (ParticleDisplay display : displays) display.getLocation().subtract(vector);
             }
         }.runTaskTimerAsynchronously(plugin, 0L, update);
     }
@@ -919,9 +913,9 @@ public final class XParticle {
                 double y = multiplier * offsety;
                 double z = multiplier * offsetz;
 
-                for (ParticleDisplay display : displays) display.location.add(x, y, z);
+                for (ParticleDisplay display : displays) display.getLocation().add(x, y, z);
                 runnable.run();
-                for (ParticleDisplay display : displays) display.location.subtract(x, y, z);
+                for (ParticleDisplay display : displays) display.getLocation().subtract(x, y, z);
 
                 if (opposite) {
                     if (multiplier <= 0) opposite = false;
@@ -1015,16 +1009,14 @@ public final class XParticle {
                 double z = Math.toRadians((30 + rotation) * offsetz);
 
                 Vector vector = new Vector(offsetx * Math.PI, offsety * Math.PI, offsetz * Math.PI);
-                rotateAroundX(vector, x);
-                rotateAroundY(vector, y);
-                rotateAroundZ(vector, z);
+                ParticleDisplay.rotateAround(vector, x, y, z);
 
                 for (ParticleDisplay display : displays) {
-                    display.rotation = new Vector(x, y, z);
-                    display.location.add(vector);
+                    display.setRotation(new Vector(x, y, z));
+                    display.getLocation().add(vector);
                 }
                 runnable.run();
-                for (ParticleDisplay display : displays) display.location.subtract(vector);
+                for (ParticleDisplay display : displays) display.getLocation().subtract(vector);
             }
         }.runTaskTimerAsynchronously(plugin, 0L, update);
     }
@@ -1101,7 +1093,7 @@ public final class XParticle {
                     Location start = display.cloneLocation(x, y, z);
                     // We want to get the direction of our center location and the circle point
                     // so we cant spawn spikes on the opposite direction.
-                    Vector endVect = start.clone().subtract(display.location).toVector().multiply(random(minRandomDistance, maxRandomDistance));
+                    Vector endVect = start.clone().subtract(display.getLocation()).toVector().multiply(random(minRandomDistance, maxRandomDistance));
                     Location end = start.clone().add(endVect);
                     line(start, end, 0.1, display);
                 }
@@ -1227,7 +1219,7 @@ public final class XParticle {
                 double z = radius * Math.sin(theta);
 
                 for (double angle = 0; orbital > 0; angle += dist) {
-                    orbit.rotation = new Vector(0, 0, angle);
+                    orbit.setRotation(new Vector(0, 0, angle));
                     orbit.spawn(x, 0, z);
                     orbital--;
                 }
@@ -1389,9 +1381,9 @@ public final class XParticle {
 
             // The two nucleotides on each DNA string.
             // Should be exactly facing each other with the same Y pos.
-            Location nucleotide1 = display.location.clone().add(x, y, z);
+            Location nucleotide1 = display.getLocation().clone().add(x, y, z);
             display.spawn(x, y, z);
-            Location nucleotide2 = display.location.clone().subtract(x, -y, z);
+            Location nucleotide2 = display.getLocation().clone().subtract(x, -y, z);
             display.spawn(-x, y, -z);
 
             // If it's the appropriate distance for two nucleotides to form a hydrogen bond.
@@ -1439,10 +1431,10 @@ public final class XParticle {
 
                     double x = radius * Math.cos(extension * y);
                     double z = radius * Math.sin(extension * y);
-                    Location nucleotide1 = display.location.clone().add(x, y, z);
+                    Location nucleotide1 = display.getLocation().clone().add(x, y, z);
                     //display.spawn(x, y, z);
                     circle(0.1, 10, display.cloneWithLocation(x, y, z));
-                    Location nucleotide2 = display.location.clone().subtract(x, -y, z);
+                    Location nucleotide2 = display.getLocation().clone().subtract(x, -y, z);
                     circle(0.1, 10, display.cloneWithLocation(-x, y, -z));
                     //display.spawn(-x, y, -z);
 
@@ -1533,7 +1525,7 @@ public final class XParticle {
         z /= length;
 
         ParticleDisplay clone = display.clone();
-        clone.location = start;
+        clone.setLocation(start);
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
@@ -1554,7 +1546,7 @@ public final class XParticle {
      * @since 3.0.0
      */
     public static void rectangle(Location start, Location end, double rate, ParticleDisplay display) {
-        display.location = start;
+        display.setLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1626,7 +1618,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void filledCube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.location = start;
+        display.setLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1662,7 +1654,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void cube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.location = start;
+        display.setLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1699,7 +1691,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void structuredCube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.location = start;
+        display.setLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1747,11 +1739,11 @@ public final class XParticle {
     public static void hypercube(Location startOrigin, Location endOrigin, double rate, double sizeRate, int cubes, ParticleDisplay display) {
         List<Location> previousPoints = null;
         for (int i = 0; i < cubes + 1; i++) {
-            List<Location> points = new ArrayList<>();
+            List<Location> points = new ArrayList<>(8);
             Location start = startOrigin.clone().subtract(i * sizeRate, i * sizeRate, i * sizeRate);
             Location end = endOrigin.clone().add(i * sizeRate, i * sizeRate, i * sizeRate);
 
-            display.location = start;
+            display.setLocation(start);
             double maxX = Math.max(start.getX(), end.getX());
             double minX = Math.min(start.getX(), end.getX());
 
@@ -2016,13 +2008,12 @@ public final class XParticle {
      * @param colorScheme the color scheme for the julia set.
      * @param moveX       the amount to move in the x axis.
      * @param moveY       the amount to move in the y axis.
+     * @param display     The particle should be {@link Particle#REDSTONE}
      *
      * @see #mandelbrot(double, double, double, double, double, int, ParticleDisplay)
      * @since 4.0.0
      */
     public static void julia(double size, double zoom, int colorScheme, double moveX, double moveY, ParticleDisplay display) {
-        display.particle = Particle.REDSTONE;
-
         double cx = -0.7;
         double cy = 0.27015;
 
@@ -2096,10 +2087,10 @@ public final class XParticle {
                         vector.setY(coreRadius + height);
 
                         // Rotate the vector for the next spike.
-                        rotateAroundX(vector, spikeAngle);
+                        ParticleDisplay.rotateAround(vector, Axis.X, spikeAngle);
                         for (int j = 0; j < points; j++) {
                             // Rotate the spikes to copy them with equal angles.
-                            rotateAroundY(vector, pointsRate);
+                            ParticleDisplay.rotateAround(vector, Axis.Y, pointsRate);
                             display.spawn(vector);
                         }
 
@@ -2192,81 +2183,6 @@ public final class XParticle {
     }
 
     /**
-     * Rotates vector around the X axis with the specified angle.
-     * Cross-version compatibility.
-     *
-     * @param angle the rotation angle, in radians.
-     *
-     * @return the rotated vector.
-     * @since 1.0.0
-     */
-    public static Vector rotateAroundX(Vector vector, double angle) {
-        if (angle == 0) return vector;
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-
-        double y = vector.getY() * cos - vector.getZ() * sin;
-        double z = vector.getY() * sin + vector.getZ() * cos;
-        return vector.setY(y).setZ(z);
-    }
-
-    /**
-     * Rotates vector around the Y axis with the specified angle.
-     * Cross-version compatibility.
-     *
-     * @param angle the rotation angle, in radians.
-     *
-     * @return the rotated vector.
-     * @since 1.0.0
-     */
-    public static Vector rotateAroundY(Vector vector, double angle) {
-        if (angle == 0) return vector;
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-
-        double x = vector.getX() * cos + vector.getZ() * sin;
-        double z = vector.getX() * -sin + vector.getZ() * cos;
-        return vector.setX(x).setZ(z);
-    }
-
-    /**
-     * Rotates vector around the Z axis with the specified angle.
-     * Cross-version compatibility.
-     *
-     * @param angle the rotation angle, in radians.
-     *
-     * @return the rotated vector.
-     * @since 1.0.0
-     */
-    public static Vector rotateAroundZ(Vector vector, double angle) {
-        if (angle == 0) return vector;
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-
-        double x = vector.getX() * cos - vector.getY() * sin;
-        double y = vector.getX() * sin + vector.getY() * cos;
-        return vector.setX(x).setY(y);
-    }
-
-    /**
-     * Rotates a vector around the 3 axis with the given angles.
-     *
-     * @param vector the vector to rotate.
-     * @param x      the x rotation in radians.
-     * @param y      the y rotation in radians.
-     * @param z      the z rotation in radians.
-     *
-     * @return the rotated vector.
-     * @since 4.1.0
-     */
-    public static Vector rotateAround(Vector vector, double x, double y, double z) {
-        rotateAroundX(vector, x);
-        rotateAroundY(vector, y);
-        rotateAroundZ(vector, z);
-        return vector;
-    }
-
-    /**
      * https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Pentagram_within_circle.svg/800px-Pentagram_within_circle.svg.png
      *
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
@@ -2291,7 +2207,7 @@ public final class XParticle {
     public static void atom(int orbits, double radius, double rate, ParticleDisplay orbit, ParticleDisplay nucleus) {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
-            orbit.rotation = new Vector(0, 0, angle);
+            orbit.setRotation(new Vector(0, 0, angle));
             circle(radius, rate, orbit);
             orbits--;
         }
@@ -2314,7 +2230,7 @@ public final class XParticle {
         polygon(10, 4, size, 0.02, 0.3, display);
         polygon(10, 3, size / (size - 1), 0.5, 0, display);
         circle(size, 40, display);
-        spread(plugin, 30, 2, display.location, display.location.clone().add(0, 10, 0), 5, 5, 5, display);
+        spread(plugin, 30, 2, display.getLocation(), display.getLocation().clone().add(0, 10, 0), 5, 5, 5, display);
     }
 
     /**
