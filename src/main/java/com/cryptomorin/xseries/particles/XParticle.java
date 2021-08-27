@@ -872,9 +872,9 @@ public final class XParticle {
                 double z = Math.toRadians(30 + rotation);
 
                 Vector vector = new Vector(offsetx * Math.PI, offsety * Math.PI, offsetz * Math.PI);
-                if (offsetx != 0) ParticleDisplay.rotateAround(vector, Axis.X, x);
-                if (offsety != 0) ParticleDisplay.rotateAround(vector, Axis.Y, y);
-                if (offsetz != 0) ParticleDisplay.rotateAround(vector, Axis.Z, z);
+                if (offsetx != 0) ParticleDisplay.rotateAround(vector, ParticleDisplay.Axis.X, x);
+                if (offsety != 0) ParticleDisplay.rotateAround(vector, ParticleDisplay.Axis.Y, y);
+                if (offsetz != 0) ParticleDisplay.rotateAround(vector, ParticleDisplay.Axis.Z, z);
 
                 for (ParticleDisplay display : displays) display.getLocation().add(vector);
                 runnable.run();
@@ -2087,10 +2087,10 @@ public final class XParticle {
                         vector.setY(coreRadius + height);
 
                         // Rotate the vector for the next spike.
-                        ParticleDisplay.rotateAround(vector, Axis.X, spikeAngle);
+                        ParticleDisplay.rotateAround(vector, ParticleDisplay.Axis.X, spikeAngle);
                         for (int j = 0; j < points; j++) {
                             // Rotate the spikes to copy them with equal angles.
-                            ParticleDisplay.rotateAround(vector, Axis.Y, pointsRate);
+                            ParticleDisplay.rotateAround(vector, ParticleDisplay.Axis.Y, pointsRate);
                             display.spawn(vector);
                         }
 

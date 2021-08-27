@@ -45,7 +45,7 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.0.1
+ * @version 2.1.0
  * @see ReflectionUtils
  */
 public final class Titles {
@@ -228,6 +228,7 @@ public final class Titles {
     }
 
     /**
+     * Supports pre-1.13 tab method.
      * Changes the tablist header and footer message for a player.
      * This is not fully completed as it's not used a lot.
      * <p>
@@ -238,14 +239,18 @@ public final class Titles {
      * @param footer  the footer of the tablist.
      * @param players players to send this change to.
      *
-     * @return the packet.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Object sendTabList(@Nonnull String header, @Nonnull String footer, Player... players) {
+    public static void sendTabList(@Nonnull String header, @Nonnull String footer, Player... players) {
         Objects.requireNonNull(players, "Cannot send tab title to null players");
         Objects.requireNonNull(header, "Tab title header cannot be null");
         Objects.requireNonNull(footer, "Tab title footer cannot be null");
+
+        if (ReflectionUtils.supports(13)) {
+            // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/entity/Player.java?until=2975358a021fe25d52a8103f7d7aaeceb3abf245&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fentity%2FPlayer.java
+            for (Player player : players) player.setPlayerListHeaderFooter(header, footer);
+            return;
+        }
 
         try {
             Class<?> IChatBaseComponent = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
@@ -255,31 +260,17 @@ public final class Titles {
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
             Object tabFooter = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + footer + "\"}");
 
-            Object packet;
-            if (ReflectionUtils.supports(17)) {
-                packet = PacketPlayOutPlayerListHeaderFooter.getConstructor(IChatBaseComponent, IChatBaseComponent).newInstance(tabHeader, tabFooter);
-            } else {
-                packet = PacketPlayOutPlayerListHeaderFooter.getConstructor().newInstance();
+            Object packet = PacketPlayOutPlayerListHeaderFooter.getConstructor().newInstance();
+            Field headerField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("a"); // Changed to "header" in 1.13
+            Field footerField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("b"); // Changed to "footer" in 1.13
 
-                Field aField;
-                Field bField;
-                try {
-                    aField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("a");
-                    bField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("b");
-                } catch (Exception ex) {
-                    aField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("header");
-                    bField = PacketPlayOutPlayerListHeaderFooter.getDeclaredField("footer");
-                }
+            headerField.setAccessible(true);
+            headerField.set(packet, tabHeader);
 
-                aField.setAccessible(true);
-                aField.set(packet, tabHeader);
-
-                bField.setAccessible(true);
-                bField.set(packet, tabFooter);
-            }
+            footerField.setAccessible(true);
+            footerField.set(packet, tabFooter);
 
             for (Player player : players) ReflectionUtils.sendPacket(player, packet);
-            return packet;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

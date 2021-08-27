@@ -1618,7 +1618,6 @@ public enum XSound {
      */
     public void stopSound(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
-
         Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);
     }
@@ -1712,7 +1711,7 @@ public enum XSound {
         @Nonnull public final XSound sound;
         public final float volume;
         public final float pitch;
-        public final boolean playAtLocation;
+        public boolean playAtLocation;
         @Nullable public Player player;
         @Nullable public Location location;
 
@@ -1727,7 +1726,7 @@ public enum XSound {
 
         public Record forPlayer(@Nullable Player player) {
             this.player = player;
-            return atLocation(player.getLocation());
+            return this;
         }
 
         public Record atLocation(@Nullable Location location) {
@@ -1747,6 +1746,7 @@ public enum XSound {
          * @since 3.0.0
          */
         public void play() {
+            if (player == null && location == null) throw new IllegalStateException("Cannot play sound when there is no location available");
             play(player == null ? location : player.getLocation());
         }
 
@@ -1758,9 +1758,9 @@ public enum XSound {
          * @since 3.0.0
          */
         public void play(@Nonnull Location updatedLocation) {
-            if (player == null && location == null) throw new IllegalStateException("Cannot play sound when there is no location available");
-            if (playAtLocation) location.getWorld().playSound(updatedLocation, sound.parseSound(), volume, pitch);
-            else if (player.isOnline()) player.playSound(updatedLocation, sound.parseSound(), volume, pitch);
+            Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
+            if (playAtLocation || player == null) location.getWorld().playSound(updatedLocation, sound.parseSound(), volume, pitch);
+            else player.playSound(updatedLocation, sound.parseSound(), volume, pitch);
         }
     }
 }

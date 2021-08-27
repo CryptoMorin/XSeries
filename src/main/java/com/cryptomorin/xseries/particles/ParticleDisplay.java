@@ -23,7 +23,10 @@ package com.cryptomorin.xseries.particles;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
@@ -34,7 +37,7 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.Color;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
@@ -298,7 +301,7 @@ public class ParticleDisplay implements Cloneable {
             );
         }
 
-        String color = config.getString("color"); // array-like "R, G, B, size"
+        String color = config.getString("color"); // array-like "R, G, B"
         String blockdata = config.getString("blockdata"); // material name
         String item = config.getString("itemstack"); // material name
         String materialdata = config.getString("materialdata"); // material name
@@ -309,7 +312,7 @@ public class ParticleDisplay implements Cloneable {
                         // Color
                         NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
                         // Size
-                        (colors.length > 3 ? NumberUtils.toFloat(colors[3]) : 1.0f)};
+                        (float) config.getDouble("size", 1.0D)};
             }
         } else if (blockdata != null) {
             Material material = Material.getMaterial(blockdata);
@@ -978,4 +981,11 @@ public class ParticleDisplay implements Cloneable {
 
         return loc;
     }
+
+    /**
+     * As an alternative to {@link org.bukkit.Axis} because it doesn't exist in 1.12
+     *
+     * @since 7.0.0
+     */
+    public enum Axis {X, Y, Z}
 }
