@@ -99,7 +99,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.CryptoMorin:XSeries:v8.4.0'
+    implementation 'com.github.CryptoMorin:XSeries:version'
 }
 ```
 
