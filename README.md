@@ -91,6 +91,18 @@ To shade the library, add the following under your maven plugins:
 </plugin>
 ```
 
+### Gradle
+```
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    
+dependencies {
+    implementation 'com.github.CryptoMorin:XSeries:version'
+    }    
+}
+```
+
 ### Contributing
 
 There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me,
