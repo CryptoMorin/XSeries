@@ -96,10 +96,10 @@ To shade the library, add the following under your maven plugins:
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
-    
+}
+
 dependencies {
-    implementation 'com.github.CryptoMorin:XSeries:version'
-    }    
+    implementation 'com.github.CryptoMorin:XSeries:v8.4.0'
 }
 ```
 
