@@ -445,6 +445,388 @@ public final class XBlock {
         return material == Material.LAVA || material == BlockMaterial.STATIONARY_LAVA.material;
     }
 
+    public static boolean isPressurePlate(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.OAK_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_PRESSURE_PLATE) ||
+                XBlock.isSimilar(block, XMaterial.STONE_PRESSURE_PLATE));
+    }
+
+    public static boolean isDoor(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.IRON_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.OAK_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_DOOR) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_DOOR));
+    }
+
+    public static boolean isTrapDoor(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.IRON_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.OAK_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_TRAPDOOR) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_TRAPDOOR));
+    }
+
+    public static boolean isSlab(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.ANDESITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.BLACKSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.COBBLED_DEEPSLATE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.COBBLESTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.CUT_RED_SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.CUT_SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.DARK_PRISMARINE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.DEEPSLATE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.DEEPSLATE_TILE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.DIORITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.END_STONE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.EXPOSED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.GRANITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.MOSSY_COBBLESTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.MOSSY_STONE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.NETHER_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.OAK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.OXIDIZED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.PETRIFIED_OAK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_ANDESITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_DEEPSLATE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_DIORITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_GRANITE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.PRISMARINE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.PRISMARINE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.PURPUR_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.QUARTZ_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.RED_NETHER_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.RED_SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_QUARTZ_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_RED_SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_SANDSTONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_STONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.STONE_BRICK_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.STONE_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_EXPOSED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_OXIDIZED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB) ||
+                XBlock.isSimilar(block, XMaterial.WEATHERED_CUT_COPPER_SLAB));
+    }
+
+    public static boolean isStair(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.ANDESITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.BLACKSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.COBBLED_DEEPSLATE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.COBBLESTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.DARK_PRISMARINE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.DEEPSLATE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.DEEPSLATE_TILE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.DIORITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.END_STONE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.EXPOSED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.GRANITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.MOSSY_COBBLESTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.MOSSY_STONE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.NETHER_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.OAK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.OXIDIZED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_ANDESITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_DEEPSLATE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_DIORITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_GRANITE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.PRISMARINE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.PRISMARINE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.PURPUR_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.QUARTZ_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.RED_NETHER_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.RED_SANDSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.SANDSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_QUARTZ_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_RED_SANDSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.SMOOTH_SANDSTONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.STONE_BRICK_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.STONE_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_EXPOSED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WAXED_WEATHERED_CUT_COPPER_STAIRS) ||
+                XBlock.isSimilar(block, XMaterial.WEATHERED_CUT_COPPER_STAIRS));
+    }
+
+    public static boolean isButton(Block block){
+        return (XBlock.isSimilar(block, XMaterial.ACACIA_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.BIRCH_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.CRIMSON_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.DARK_OAK_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.JUNGLE_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.OAK_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.POLISHED_BLACKSTONE_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.SPRUCE_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.STONE_BUTTON) ||
+                XBlock.isSimilar(block, XMaterial.WARPED_BUTTON));
+    }
+
+    public static boolean isShulkerBox(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.LIME_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.PINK_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.RED_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_SHULKER_BOX) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_SHULKER_BOX));
+    }
+
+    public static boolean isConcrete(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.LIME_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.PINK_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.RED_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_CONCRETE) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_CONCRETE));
+    }
+
+    public static boolean isConcretePowder(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.LIME_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.PINK_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.RED_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_CONCRETE_POWDER) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_CONCRETE_POWDER));
+    }
+
+    public static boolean isCandle(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.LIME_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.PINK_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.RED_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_CANDLE) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_CANDLE));
+    }
+
+    public static boolean isCandleCake(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.LIME_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.PINK_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.RED_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_CANDLE_CAKE) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_CANDLE_CAKE));
+    }
+
+    public static boolean isInfested(Block block){
+        return (XBlock.isSimilar(block, XMaterial.INFESTED_CHISELED_STONE_BRICKS) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_COBBLESTONE) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_CRACKED_STONE_BRICKS) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_DEEPSLATE) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_MOSSY_STONE_BRICKS) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_STONE) ||
+                XBlock.isSimilar(block, XMaterial.INFESTED_STONE_BRICKS));
+    }
+
+    public static boolean isCarpet(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.LIME_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.PINK_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.RED_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_CARPET) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_CARPET));
+    }
+
+    public static boolean isWool(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.LIME_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.PINK_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.RED_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_WOOL) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_WOOL));
+    }
+
+    public static boolean isGlass(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.LIME_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.PINK_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.RED_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_STAINED_GLASS) ||
+                XBlock.isSimilar(block, XMaterial.TINTED_GLASS));
+    }
+
+    public static boolean isGlassPane(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.LIME_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.PINK_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.RED_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_STAINED_GLASS_PANE) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_STAINED_GLASS_PANE));
+    }
+
+    public static boolean isGlazedTerracotta(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIME_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.PINK_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.RED_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_GLAZED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_GLAZED_TERRACOTTA));
+    }
+
+    public static boolean isTerracotta(Block block){
+        return (XBlock.isSimilar(block, XMaterial.BLACK_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.BLUE_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.BROWN_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.CYAN_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.GRAY_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.GREEN_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_BLUE_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIGHT_GRAY_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.LIME_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.MAGENTA_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.ORANGE_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.PINK_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.PURPLE_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.RED_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.WHITE_TERRACOTTA) ||
+                XBlock.isSimilar(block, XMaterial.YELLOW_TERRACOTTA));
+    }
+
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
