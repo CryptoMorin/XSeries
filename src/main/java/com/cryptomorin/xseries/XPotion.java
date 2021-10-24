@@ -53,7 +53,7 @@ import java.util.*;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 2.0.1
+ * @version 2.0.1.1
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -404,7 +404,7 @@ public enum XPotion {
     }
 
     /**
-     * In most cases your should be using {@link #name()} instead.
+     * In most cases you should be using {@link #name()} instead.
      *
      * @return a friendly readable string name.
      */
@@ -414,7 +414,7 @@ public enum XPotion {
     }
 
     /**
-     * Used for datas that need to be accessed during enum initilization.
+     * Used for data that need to be accessed during enum initialization.
      *
      * @since 2.0.0
      */

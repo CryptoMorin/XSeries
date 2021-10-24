@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.0.0.1
  * @see Sound
  */
 public enum XSound {
@@ -1679,7 +1679,7 @@ public enum XSound {
     }
 
     /**
-     * Used for datas that need to be accessed during enum initilization.
+     * Used for data that need to be accessed during enum initialization.
      *
      * @since 5.0.0
      */
@@ -1741,7 +1741,7 @@ public enum XSound {
         }
 
         /**
-         * Plays the sound with the given options and updating the players location.
+         * Plays the sound with the given options and updating the player's location.
          *
          * @since 3.0.0
          */
@@ -1753,7 +1753,7 @@ public enum XSound {
         /**
          * Plays the sound with the updated location.
          *
-         * @param updatedLocation the upated location.
+         * @param updatedLocation the updated location.
          *
          * @since 3.0.0
          */

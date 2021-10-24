@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 5.1.0
+ * @version 5.1.0.1
  * @see Biome
  */
 public enum XBiome {
@@ -225,9 +225,9 @@ public enum XBiome {
     }
 
     /**
-     * Gets the enviroment (world type) which this biome originally belongs to.
+     * Gets the environment (world type) which this biome originally belongs to.
      *
-     * @return the enviroment that this biome belongs to.
+     * @return the environment that this biome belongs to.
      * @since 4.0.0
      */
     @Nonnull

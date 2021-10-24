@@ -54,14 +54,14 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.0.1
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
  */
 public final class XEntity {
     /**
-     * A list of entity types that are considerd <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
+     * A list of entity types that are considered <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
      *
      * @since 2.0.0
      */

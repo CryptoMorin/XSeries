@@ -49,7 +49,7 @@ import java.util.*;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.1.1
+ * @version 2.1.1.1
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -247,7 +247,7 @@ public enum XEnchantment {
      * @param enchantment the enchantment.
      *
      * @return an enchantment.
-     * @throws IllegalArgumentException may be thrown as an unexpeceted exception.
+     * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
     @Nonnull
@@ -344,7 +344,7 @@ public enum XEnchantment {
     }
 
     /**
-     * In most cases your should be using {@link #name()} instead.
+     * In most cases you should be using {@link #name()} instead.
      *
      * @return a friendly readable string name.
      */
@@ -355,7 +355,7 @@ public enum XEnchantment {
     }
 
     /**
-     * Used for datas that need to be accessed during enum initilization.
+     * Used for data that need to be accessed during enum initialization.
      *
      * @since 2.0.0
      */
