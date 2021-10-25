@@ -72,7 +72,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 5.2.0.1
+ * @version 5.2.0.1.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
