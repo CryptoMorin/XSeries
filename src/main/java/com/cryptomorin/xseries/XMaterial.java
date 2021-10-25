@@ -61,7 +61,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 10.1.0.1
+ * @version 10.1.0
  * @see Material
  * @see ItemStack
  */

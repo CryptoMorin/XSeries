@@ -61,7 +61,7 @@ import java.util.function.Predicate;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 7.0.0.1
+ * @version 7.0.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {

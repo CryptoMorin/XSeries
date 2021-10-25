@@ -54,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.0.1
+ * @version 4.0.0
  * @see XMaterial
  * @see XItemStack
  * @see XPotion

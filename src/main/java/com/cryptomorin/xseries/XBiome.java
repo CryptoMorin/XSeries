@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  *
  * @author Crypto Morin
- * @version 5.1.0.1
+ * @version 5.1.0
  * @see Biome
  */
 public enum XBiome {

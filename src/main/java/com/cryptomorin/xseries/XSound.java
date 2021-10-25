@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 7.0.0.1
+ * @version 7.0.0
  * @see Sound
  */
 public enum XSound {

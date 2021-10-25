@@ -49,7 +49,7 @@ import java.util.*;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.1.1.1
+ * @version 2.1.1
  * @see Enchantment
  */
 public enum XEnchantment {

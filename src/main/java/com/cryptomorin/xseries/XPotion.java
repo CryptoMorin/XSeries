@@ -53,7 +53,7 @@ import java.util.*;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 2.0.1.1
+ * @version 2.0.1
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType

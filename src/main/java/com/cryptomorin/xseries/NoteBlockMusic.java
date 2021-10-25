@@ -45,7 +45,7 @@ import java.util.function.Supplier;
  * This class is independent of XSound.
  *
  * @author Crypto Morin
- * @version 3.0.0.1
+ * @version 3.0.0
  * @see Instrument
  * @see Note
  */
