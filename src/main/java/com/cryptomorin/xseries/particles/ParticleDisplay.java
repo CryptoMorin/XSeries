@@ -174,7 +174,7 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location of the display.
      * @param particle the particle of the display.
      *
-     * @return a simple ParticleDisplay with count 1 and no offset, rotation and etc.
+     * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
      */
     @Nonnull
@@ -202,7 +202,7 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location of the particle.
      * @param particle the particle to show.
      *
-     * @return a simple ParticleDisplay with count 1 and no offset, rotation and etc.
+     * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
      */
     @Nonnull
@@ -239,7 +239,7 @@ public class ParticleDisplay implements Cloneable {
      * <li>color : the data representing color "R, G, B, size" where RGB values are integers
      *             between 0 and 255 and size is a positive (or null) float.
      * <li>blockdata : the data representing block data. Given by a material name that's a block.
-     * <li>materialdata : same than blockdata, but with legacy datas before 1.12.
+     * <li>materialdata : same than blockdata, but with legacy data before 1.12.
      *                    <strong>Do not use this in 1.13 and above.</strong>
      * <li>itemstack : the data representing item. Given by a material name that's an item.
      * </ul>
@@ -336,7 +336,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * We don't want to use {@link Location#clone()} since it doens't copy to constructor and Javas clone method
+     * We don't want to use {@link Location#clone()} since it doesn't copy to constructor and Java's clone method
      * is known to be inefficient and broken.
      *
      * @since 3.0.3
@@ -445,7 +445,7 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * Rotates the given xyz with the given rotation radians and
-     * adds the to the specified location.
+     * adds to the specified location.
      *
      * @param location the location to add the rotated axis.
      *
@@ -552,10 +552,10 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Adds data for {@link Particle#BLOCK_CRACK}, {@link Particle#BLOCK_DUST}
      * and {@link Particle#FALLING_DUST} particles. The displayed particle
-     * will depends on the given block data for its color.
+     * will depend on the given block data for its color.
      * <p>
      * Only works on minecraft version 1.13 and more, because
-     * {@link BlockData} didn't existe before.
+     * {@link BlockData} didn't exist before.
      *
      * @param blockData the block data that will change the particle data.
      *
@@ -679,7 +679,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adjusts the rotation settings to face the entitys direction.
+     * Adjusts the rotation settings to face the entity's direction.
      * Only some of the shapes support this method.
      *
      * @param entity the entity to face.
@@ -771,7 +771,7 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Rotates the particle position based on this vector.
      *
-     * @param vector the vector to rotate from. The xyz values of this vectors must be radians.
+     * @param vector the vector to rotate from. The xyz values of this vector must be radians.
      *
      * @see #rotate(double, double, double)
      * @since 1.0.0
@@ -902,7 +902,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adds xyz to the cloned loaction before spawning particle.
+     * Adds xyz to the cloned location before spawning particle.
      *
      * @since 1.0.0
      */

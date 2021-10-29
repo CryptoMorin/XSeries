@@ -673,7 +673,7 @@ public final class NoteBlockMusic {
      * A <a href="https://en.wikipedia.org/wiki/Sequence_(music)">sequence</a> is a restatement collection
      * of multiple other {@link Sequence}s and {@link Sound} that itself might be a part of another {@link Sequence}
      * <p>
-     * A sequence in a script is shown with: {@code (intruction1, instruction2, ...),restatement,restatementFermata fermata}
+     * A sequence in a script is shown with: {@code (instruction1, instruction2, ...),restatement,restatementFermata fermata}
      *
      * @since 3.0.0
      */

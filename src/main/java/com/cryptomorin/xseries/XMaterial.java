@@ -2140,13 +2140,13 @@ public enum XMaterial {
     }
 
     /**
-     * Used for datas that need to be accessed during enum initilization.
+     * Used for data that need to be accessed during enum initialization.
      *
      * @since 9.0.0
      */
     private static final class Data {
         /**
-         * The current version of the server in the a form of a major version.
+         * The current version of the server in the form of a major version.
          * If the static initialization for this fails, you know something's wrong with the server software.
          *
          * @since 1.0.0
