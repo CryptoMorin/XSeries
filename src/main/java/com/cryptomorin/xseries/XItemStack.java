@@ -36,6 +36,8 @@ import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
 import org.bukkit.entity.EntityType;
@@ -113,6 +115,8 @@ public final class XItemStack {
             config.set("damage", item.getDurability());
         }
 
+        if (meta == null || !item.hasItemMeta()) return;
+
         // Display Name & Lore
         if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
         if (meta.hasLore()) config.set("lore", meta.getLore()); // TODO Add a method to "untranslate" color codes.
@@ -150,14 +154,13 @@ public final class XItemStack {
                     config.set(path + "name", modifier.getName());
                     config.set(path + "amount", modifier.getAmount());
                     config.set(path + "operation", modifier.getOperation().name());
-                    config.set(path + "slot", modifier.getSlot().name());
+                    if (modifier.getSlot() != null) config.set(path + "slot", modifier.getSlot().name());
                 }
             }
         }
 
         if (meta instanceof BlockStateMeta) {
-            BlockStateMeta bsm = (BlockStateMeta) item.getItemMeta();
-            BlockState state = bsm.getBlockState();
+            BlockState state = ((BlockStateMeta) meta).getBlockState();
 
             if (supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
@@ -340,6 +343,19 @@ public final class XItemStack {
     }
 
     /**
+     * Writes an ItemStack properties into a {@code Map}.
+     *
+     * @param item the ItemStack to serialize.
+     * @return a Map containing the serialized ItemStack properties.
+     */
+    public static Map<String, Object> serialize(@Nonnull ItemStack item) {
+        Objects.requireNonNull(item, "Cannot serialize a null item");
+        final ConfigurationSection config = new MemoryConfiguration();
+        serialize(item, config);
+        return configSectionToMap(config);
+    }
+
+    /**
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
@@ -377,6 +393,8 @@ public final class XItemStack {
             int damage = config.getInt("damage");
             if (damage > 0) item.setDurability((short) damage);
         }
+
+        if (meta == null) return item;
 
         // Special Items
         if (meta instanceof SkullMeta) {
@@ -728,17 +746,20 @@ public final class XItemStack {
                 for (String attribute : attributes.getKeys(false)) {
                     Attribute attributeInst = Enums.getIfPresent(Attribute.class, attribute.toUpperCase(Locale.ENGLISH)).orNull();
                     if (attributeInst == null) continue;
+                    ConfigurationSection section = attributes.getConfigurationSection(attribute);
+                    if (section == null) continue;
 
-                    String attribId = attributes.getString("id");
+                    String attribId = section.getString("id");
                     UUID id = attribId != null ? UUID.fromString(attribId) : UUID.randomUUID();
+                    EquipmentSlot slot = section.getString("slot") != null ? Enums.getIfPresent(EquipmentSlot.class, section.getString("slot")).or(EquipmentSlot.HAND) : null;
 
                     AttributeModifier modifier = new AttributeModifier(
                             id,
-                            attributes.getString("name"),
-                            attributes.getInt("amount"),
-                            Enums.getIfPresent(AttributeModifier.Operation.class, attributes.getString("operation"))
+                            section.getString("name"),
+                            section.getInt("amount"),
+                            Enums.getIfPresent(AttributeModifier.Operation.class, section.getString("operation"))
                                     .or(AttributeModifier.Operation.ADD_NUMBER),
-                            Enums.getIfPresent(EquipmentSlot.class, attributes.getString("slot")).or(EquipmentSlot.HAND));
+                            slot);
 
                     meta.addAttributeModifier(attributeInst, modifier);
                 }
@@ -747,6 +768,52 @@ public final class XItemStack {
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Deserialize an ItemStack from a {@code Map}.
+     *
+     * @param serializedItem the map holding the item configurations to deserialize
+     *                       the ItemStack object from.
+     * @return a deserialized ItemStack.
+     */
+    @Nullable
+    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem) {
+        Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+        return deserialize(mapToConfigSection(serializedItem));
+    }
+
+    @Nonnull
+    private static ConfigurationSection mapToConfigSection(@Nonnull Map<?, ?> serializedItem) {
+        final ConfigurationSection config = new MemoryConfiguration();
+
+        for(Map.Entry<?, ?> entry : serializedItem.entrySet()) {
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
+            if (value == null) continue;
+
+            if (value instanceof Map<?, ?>) {
+                value = mapToConfigSection((Map<?, ?>)entry.getValue());
+            }
+            config.set(key, value);
+        }
+        return config;
+    }
+
+    @Nonnull
+    private static Map<String, Object> configSectionToMap(@Nonnull ConfigurationSection config) {
+        final Map<String, Object> map = new LinkedHashMap<>();
+
+        for(String key : config.getKeys(false)) {
+            Object value = config.get(key);
+            if (value == null) continue;
+
+            if (value instanceof ConfigurationSection) {
+                value = configSectionToMap((ConfigurationSection) value);
+            }
+            map.put(key, value);
+        }
+        return map;
     }
 
     /**
