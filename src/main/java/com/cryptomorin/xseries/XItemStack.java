@@ -37,7 +37,6 @@ import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
 import org.bukkit.entity.EntityType;
@@ -371,11 +370,7 @@ public final class XItemStack {
         // Material
         String material = config.getString("material");
         if (material == null) return null;
-        Optional<XMaterial> matOpt = XMaterial.matchXMaterial(material);
-        if (!matOpt.isPresent()) return null;
-
-        // Build
-        ItemStack item = matOpt.get().parseItem();
+        ItemStack item = XMaterial.matchXMaterial(material).map(XMaterial::parseItem).orElse(null);
         if (item == null) return null;
         ItemMeta meta = item.getItemMeta();
 
