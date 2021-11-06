@@ -788,7 +788,7 @@ public final class XItemStack {
             if (value == null) continue;
 
             if (value instanceof Map<?, ?>) {
-                value = mapToConfigSection((Map<?, ?>)entry.getValue());
+                value = mapToConfigSection((Map<?, ?>)value);
             }
             config.set(key, value);
         }
