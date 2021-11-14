@@ -99,7 +99,7 @@ public final class XItemStack {
         ItemMeta meta = item.getItemMeta();
 
         // Material
-        config.set("material", item.getType().name());
+        config.set("material", XMaterial.matchXMaterial(item).name());
 
         // Amount
         if (item.getAmount() > 1) config.set("amount", item.getAmount());
@@ -778,11 +778,17 @@ public final class XItemStack {
         return deserialize(mapToConfigSection(serializedItem));
     }
 
+    /**
+     * Converts a {@code Map<?, ?>} into a {@code ConfigurationSection}.
+     *
+     * @param map the map to convert.
+     * @return a {@code ConfigurationSection} containing the map values.
+     */
     @Nonnull
-    private static ConfigurationSection mapToConfigSection(@Nonnull Map<?, ?> serializedItem) {
+    private static ConfigurationSection mapToConfigSection(@Nonnull Map<?, ?> map) {
         final ConfigurationSection config = new MemoryConfiguration();
 
-        for(Map.Entry<?, ?> entry : serializedItem.entrySet()) {
+        for(Map.Entry<?, ?> entry : map.entrySet()) {
             String key = entry.getKey().toString();
             Object value = entry.getValue();
             if (value == null) continue;
@@ -795,6 +801,12 @@ public final class XItemStack {
         return config;
     }
 
+    /**
+     * Converts a {@code ConfigurationSection} into a {@code Map<String, Object>}.
+     *
+     * @param config the configuration section to convert.
+     * @return a {@code Map<String, Object>} containing the configuration section values.
+     */
     @Nonnull
     private static Map<String, Object> configSectionToMap(@Nonnull ConfigurationSection config) {
         final Map<String, Object> map = new LinkedHashMap<>();
