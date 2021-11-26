@@ -2142,7 +2142,7 @@ public enum XMaterial {
             if (matcher.find()) {
                 return Integer.parseInt(matcher.group(1));
             }
-            return -1;
+            throw new IllegalArgumentException("Failed to parse server version from " + version);
         }
     }
 }
