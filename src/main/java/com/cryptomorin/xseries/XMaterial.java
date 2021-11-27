@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -1827,38 +1828,6 @@ public enum XMaterial {
         return Data.VERSION >= version;
     }
 
-    /**
-     * Gets the exact major version (..., 1.9, 1.10, ..., 1.14)
-     * In most cases, you shouldn't be using this method.
-     *
-     * @param version Supports {@link Bukkit#getVersion()}, {@link Bukkit#getBukkitVersion()} and normal formats such as "1.14"
-     *
-     * @return the exact major version.
-     * @see #supports(int)
-     * @see #getVersion()
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static String getMajorVersion(@Nonnull String version) {
-        Validate.notEmpty(version, "Cannot get major Minecraft version from null or empty string");
-
-        // getVersion()
-        int index = version.lastIndexOf("MC:");
-        if (index != -1) {
-            version = version.substring(index + 4, version.length() - 1);
-        } else if (version.endsWith("SNAPSHOT")) {
-            // getBukkitVersion()
-            index = version.indexOf('-');
-            version = version.substring(0, index);
-        }
-
-        // 1.13.2, 1.14.4, etc...
-        int lastDot = version.lastIndexOf('.');
-        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
-
-        return version;
-    }
-
     public String[] getLegacy() {
         return this.legacy;
     }
@@ -2151,12 +2120,29 @@ public enum XMaterial {
          *
          * @since 1.0.0
          */
-        private static final int VERSION = Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2));
+        private static final int VERSION = parseVersion(Bukkit.getVersion());
         /**
          * Cached result if the server version is after the v1.13 flattening update.
          *
          * @since 3.0.0
          */
         private static final boolean ISFLAT = supports(13);
+
+        /**
+         * Gets the exact major version (..., 9, 10, ..., 14)
+         *
+         * @param version Supports the version as provided by {@link Bukkit#getVersion()}
+         *
+         * @return the exact major version.
+         * @see #VERSION
+         * @since 8.5.0
+         */
+        private static int parseVersion(String version) {
+            Matcher matcher = Pattern.compile("MC: \\d\\.(\\d+)").matcher(version);
+            if (matcher.find()) {
+                return Integer.parseInt(matcher.group(1));
+            }
+            throw new IllegalArgumentException("Failed to parse server version from " + version);
+        }
     }
 }
