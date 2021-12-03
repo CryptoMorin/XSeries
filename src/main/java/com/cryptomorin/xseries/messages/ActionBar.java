@@ -38,6 +38,8 @@ import java.lang.invoke.MethodType;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
+import static com.cryptomorin.xseries.ReflectionUtils.*;
+
 /**
  * A reflection API for action bars in Minecraft.
  * Fully optimized - Supports 1.8.8+ and above.
@@ -97,13 +99,13 @@ public final class ActionBar {
         if (!SPIGOT) {
             // Supporting 1.17 is not necessary, the package guards are just for readability.
             MethodHandles.Lookup lookup = MethodHandles.lookup();
-            Class<?> packetPlayOutChatClass = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutChat");
-            Class<?> iChatBaseComponentClass = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
+            Class<?> packetPlayOutChatClass = getNMSClass("network.protocol.game", "PacketPlayOutChat");
+            Class<?> iChatBaseComponentClass = getNMSClass("network.chat", "IChatBaseComponent");
 
             try {
                 // Game Info Message Type
                 Class<?> chatMessageTypeClass = Class.forName(
-                        ReflectionUtils.NMS + (ReflectionUtils.supports(17) ? "network.chat" : "") + "ChatMessageType"
+                        NMS + v(17, "network.chat").orElse("") + "ChatMessageType"
                 );
 
                 // Packet Constructor
@@ -118,7 +120,7 @@ public final class ActionBar {
                 }
 
                 // JSON Message Builder
-                Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("network.chat", "ChatComponentText");
+                Class<?> chatComponentTextClass = getNMSClass("network.chat", "ChatComponentText");
                 chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
 
                 packet = lookup.findConstructor(packetPlayOutChatClass, type);
@@ -128,7 +130,7 @@ public final class ActionBar {
                     chatMsgType = (byte) 2;
 
                     // JSON Message Builder
-                    Class<?> chatComponentTextClass = ReflectionUtils.getNMSClass("ChatComponentText");
+                    Class<?> chatComponentTextClass = getNMSClass("ChatComponentText");
                     chatComp = lookup.findConstructor(chatComponentTextClass, MethodType.methodType(void.class, String.class));
 
                     // Packet Constructor
@@ -165,7 +167,7 @@ public final class ActionBar {
         try {
             Object component = CHAT_COMPONENT_TEXT.invoke(message);
             Object packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
-            ReflectionUtils.sendPacket(player, packet);
+            sendPacket(player, packet);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

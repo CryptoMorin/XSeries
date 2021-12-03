@@ -1525,7 +1525,7 @@ public final class XParticle {
         z /= length;
 
         ParticleDisplay clone = display.clone();
-        clone.setLocation(start);
+        clone.withLocation(start);
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
@@ -1546,7 +1546,7 @@ public final class XParticle {
      * @since 3.0.0
      */
     public static void rectangle(Location start, Location end, double rate, ParticleDisplay display) {
-        display.setLocation(start);
+        display.withLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1618,7 +1618,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void filledCube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.setLocation(start);
+        display.withLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1654,7 +1654,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void cube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.setLocation(start);
+        display.withLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1691,7 +1691,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static void structuredCube(Location start, Location end, double rate, ParticleDisplay display) {
-        display.setLocation(start);
+        display.withLocation(start);
         double maxX = Math.max(start.getX(), end.getX());
         double minX = Math.min(start.getX(), end.getX());
 
@@ -1743,7 +1743,7 @@ public final class XParticle {
             Location start = startOrigin.clone().subtract(i * sizeRate, i * sizeRate, i * sizeRate);
             Location end = endOrigin.clone().add(i * sizeRate, i * sizeRate, i * sizeRate);
 
-            display.setLocation(start);
+            display.withLocation(start);
             double maxX = Math.max(start.getX(), end.getX());
             double minX = Math.min(start.getX(), end.getX());
 

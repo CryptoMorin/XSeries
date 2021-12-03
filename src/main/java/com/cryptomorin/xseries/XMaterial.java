@@ -62,7 +62,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 10.1.0
+ * @version 10.1.1
  * @see Material
  * @see ItemStack
  */
@@ -156,7 +156,10 @@ public enum XMaterial {
     BLACKSTONE_STAIRS,
     BLACKSTONE_WALL,
     BLACK_BANNER("STANDING_BANNER", "BANNER"),
-    BLACK_BED(15, "BED_BLOCK", "BED"),
+    /**
+     * Version 1.12+ interprets "BED" as BLACK_BED due to enum alphabetic ordering.
+     */
+    BLACK_BED(supports(12) ? 15 : 0, "BED_BLOCK", "BED"),
     BLACK_CANDLE,
     BLACK_CANDLE_CAKE,
     BLACK_CARPET(15, "CARPET"),
@@ -175,7 +178,7 @@ public enum XMaterial {
     BLAZE_ROD,
     BLAZE_SPAWN_EGG(61, "MONSTER_EGG"),
     BLUE_BANNER(4, "STANDING_BANNER", "BANNER"),
-    BLUE_BED(11, "BED_BLOCK", "BED"),
+    BLUE_BED(supports(12) ? 11 : 0, "BED_BLOCK", "BED"),
     BLUE_CANDLE,
     BLUE_CANDLE_CAKE,
     BLUE_CARPET(11, "CARPET"),
@@ -210,7 +213,7 @@ public enum XMaterial {
     BRICK_STAIRS,
     BRICK_WALL,
     BROWN_BANNER(3, "STANDING_BANNER", "BANNER"),
-    BROWN_BED(12, "BED_BLOCK", "BED"),
+    BROWN_BED(supports(12) ? 12 : 0, "BED_BLOCK", "BED"),
     BROWN_CANDLE,
     BROWN_CANDLE_CAKE,
     BROWN_CARPET(12, "CARPET"),
@@ -361,7 +364,7 @@ public enum XMaterial {
     CUT_SANDSTONE,
     CUT_SANDSTONE_SLAB("STEP"),
     CYAN_BANNER(6, "STANDING_BANNER", "BANNER"),
-    CYAN_BED(9, "BED_BLOCK", "BED"),
+    CYAN_BED(supports(12) ? 9 : 0, "BED_BLOCK", "BED"),
     CYAN_CANDLE,
     CYAN_CANDLE_CAKE,
     CYAN_CARPET(9, "CARPET"),
@@ -575,7 +578,7 @@ public enum XMaterial {
     GRASS_BLOCK("GRASS"),
     GRAVEL,
     GRAY_BANNER(8, "STANDING_BANNER", "BANNER"),
-    GRAY_BED(7, "BED_BLOCK", "BED"),
+    GRAY_BED(supports(12) ? 7 : 0, "BED_BLOCK", "BED"),
     GRAY_CANDLE,
     GRAY_CANDLE_CAKE,
     GRAY_CARPET(7, "CARPET"),
@@ -590,7 +593,7 @@ public enum XMaterial {
     GRAY_WALL_BANNER(8, "WALL_BANNER"),
     GRAY_WOOL(7, "WOOL"),
     GREEN_BANNER(2, "STANDING_BANNER", "BANNER"),
-    GREEN_BED(13, "BED_BLOCK", "BED"),
+    GREEN_BED(supports(12) ? 13 : 0, "BED_BLOCK", "BED"),
     GREEN_CANDLE,
     GREEN_CANDLE_CAKE,
     GREEN_CARPET(13, "CARPET"),
@@ -700,7 +703,7 @@ public enum XMaterial {
     LIGHT,
     LIGHTNING_ROD,
     LIGHT_BLUE_BANNER(12, "STANDING_BANNER", "BANNER"),
-    LIGHT_BLUE_BED(3, "BED_BLOCK", "BED"),
+    LIGHT_BLUE_BED(supports(12) ? 3 : 0, "BED_BLOCK", "BED"),
     LIGHT_BLUE_CANDLE,
     LIGHT_BLUE_CANDLE_CAKE,
     LIGHT_BLUE_CARPET(3, "CARPET"),
@@ -715,7 +718,7 @@ public enum XMaterial {
     LIGHT_BLUE_WALL_BANNER(12, "WALL_BANNER", "STANDING_BANNER", "BANNER"),
     LIGHT_BLUE_WOOL(3, "WOOL"),
     LIGHT_GRAY_BANNER(7, "STANDING_BANNER", "BANNER"),
-    LIGHT_GRAY_BED(8, "BED_BLOCK", "BED"),
+    LIGHT_GRAY_BED(supports(12) ? 8 : 0, "BED_BLOCK", "BED"),
     LIGHT_GRAY_CANDLE,
     LIGHT_GRAY_CANDLE_CAKE,
     LIGHT_GRAY_CARPET(8, "CARPET"),
@@ -738,7 +741,7 @@ public enum XMaterial {
     LILY_OF_THE_VALLEY,
     LILY_PAD("WATER_LILY"),
     LIME_BANNER(10, "STANDING_BANNER", "BANNER"),
-    LIME_BED(5, "BED_BLOCK", "BED"),
+    LIME_BED(supports(12) ? 5 : 0, "BED_BLOCK", "BED"),
     LIME_CANDLE,
     LIME_CANDLE_CAKE,
     LIME_CARPET(5, "CARPET"),
@@ -757,7 +760,7 @@ public enum XMaterial {
     LODESTONE,
     LOOM,
     MAGENTA_BANNER(13, "STANDING_BANNER", "BANNER"),
-    MAGENTA_BED(2, "BED_BLOCK", "BED"),
+    MAGENTA_BED(supports(12) ? 2 : 0, "BED_BLOCK", "BED"),
     MAGENTA_CANDLE,
     MAGENTA_CANDLE_CAKE,
     MAGENTA_CARPET(2, "CARPET"),
@@ -813,6 +816,7 @@ public enum XMaterial {
     MUSIC_DISC_FAR("RECORD_6"),
     MUSIC_DISC_MALL("RECORD_7"),
     MUSIC_DISC_MELLOHI("RECORD_8"),
+    MUSIC_DISC_OTHERSIDE,
     MUSIC_DISC_PIGSTEP,
     MUSIC_DISC_STAL("RECORD_9"),
     MUSIC_DISC_STRAD("RECORD_10"),
@@ -874,7 +878,7 @@ public enum XMaterial {
     OBSIDIAN,
     OCELOT_SPAWN_EGG(98, "MONSTER_EGG"),
     ORANGE_BANNER(14, "STANDING_BANNER", "BANNER"),
-    ORANGE_BED(1, "BED_BLOCK", "BED"),
+    ORANGE_BED(supports(12) ? 1 : 0, "BED_BLOCK", "BED"),
     ORANGE_CANDLE,
     ORANGE_CANDLE_CAKE,
     ORANGE_CARPET(1, "CARPET"),
@@ -909,7 +913,7 @@ public enum XMaterial {
     PIG_SPAWN_EGG(90, "MONSTER_EGG"),
     PILLAGER_SPAWN_EGG,
     PINK_BANNER(9, "STANDING_BANNER", "BANNER"),
-    PINK_BED(6, "BED_BLOCK", "BED"),
+    PINK_BED(supports(12) ? 6 : 0, "BED_BLOCK", "BED"),
     PINK_CANDLE,
     PINK_CANDLE_CAKE,
     PINK_CARPET(6, "CARPET"),
@@ -1014,7 +1018,7 @@ public enum XMaterial {
     PUMPKIN_SEEDS,
     PUMPKIN_STEM,
     PURPLE_BANNER(5, "STANDING_BANNER", "BANNER"),
-    PURPLE_BED(10, "BED_BLOCK", "BED"),
+    PURPLE_BED(supports(12) ? 10 : 0, "BED_BLOCK", "BED"),
     PURPLE_CANDLE,
     PURPLE_CANDLE_CAKE,
     PURPLE_CARPET(10, "CARPET"),
@@ -1073,7 +1077,7 @@ public enum XMaterial {
     /**
      * Data value 14 or 0
      */
-    RED_BED(14, "BED_BLOCK", "BED"),
+    RED_BED(supports(12) ? 14 : 0, "BED_BLOCK", "BED"),
     RED_CANDLE,
     RED_CANDLE_CAKE,
     RED_CARPET(14, "CARPET"),
@@ -1363,7 +1367,7 @@ public enum XMaterial {
     WRITABLE_BOOK("BOOK_AND_QUILL"),
     WRITTEN_BOOK,
     YELLOW_BANNER(11, "STANDING_BANNER", "BANNER"),
-    YELLOW_BED(4, "BED_BLOCK", "BED"),
+    YELLOW_BED(supports(12) ? 4 : 0, "BED_BLOCK", "BED"),
     YELLOW_CANDLE,
     YELLOW_CANDLE_CAKE,
     YELLOW_CARPET(4, "CARPET"),
@@ -1410,7 +1414,6 @@ public enum XMaterial {
     private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
-
     /**
      * This is used for {@link #isOneOf(Collection)}
      *
@@ -2120,7 +2123,7 @@ public enum XMaterial {
          *
          * @since 1.0.0
          */
-        private static final int VERSION = parseVersion(Bukkit.getVersion());
+        private static final int VERSION = parseVersion();
         /**
          * Cached result if the server version is after the v1.13 flattening update.
          *
@@ -2129,20 +2132,22 @@ public enum XMaterial {
         private static final boolean ISFLAT = supports(13);
 
         /**
-         * Gets the exact major version (..., 9, 10, ..., 14)
+         * Gets the exact minor version (8, 9, ..., 17, 18)
+         * It's necessary to use this alternative method instead of <b>static initialization block</b>
+         * since you can't throw exceptions in them directly.
+         * <p>
+         * Performance doesn't matter here as the method is only called once.
          *
-         * @param version Supports the version as provided by {@link Bukkit#getVersion()}
-         *
-         * @return the exact major version.
+         * @return the exact minor version.
          * @see #VERSION
          * @since 8.5.0
          */
-        private static int parseVersion(String version) {
+        private static int parseVersion() {
+            String version = Bukkit.getVersion();
             Matcher matcher = Pattern.compile("MC: \\d\\.(\\d+)").matcher(version);
-            if (matcher.find()) {
-                return Integer.parseInt(matcher.group(1));
-            }
-            throw new IllegalArgumentException("Failed to parse server version from " + version);
+
+            if (matcher.find()) return Integer.parseInt(matcher.group(1));
+            throw new IllegalArgumentException("Failed to parse server version from: " + version);
         }
     }
 }

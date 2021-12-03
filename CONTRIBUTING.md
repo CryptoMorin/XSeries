@@ -8,8 +8,10 @@ All the pull requests are merged directly into the master branch.
 This project imports the full Spigot JAR from an unofficial repo as SkullUtils uses `com.mojang.authlib`
 It's also used for JavaX nullability annotations.
 
-Do not make PRs relating to adding support when a new version of Minecraft comes out. I'll be finishing the update within the first week of Spigot release. Multiple developers 
-working on the same thing will be just a waste of time and resources.
+Do not make any PRs/issues regarding adding support for new Minecraft versions. I'll be usually finishing the update within the first week of Spigot release. 
+Having multiple developers work on the same issue will be just a waste of time and resources.
+You should also not make any PRs before support is added when a new Minecraft version comes out even 
+if it's unrelated to adding support for that version since your changes are likely to conflict with the update.
 
 ### Rules
 * Only Java 8 should be used. All the functions in the latest version of Java 8 can be used.

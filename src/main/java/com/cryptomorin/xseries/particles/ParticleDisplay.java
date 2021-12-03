@@ -61,7 +61,7 @@ import java.util.function.Predicate;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.1.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -78,53 +78,13 @@ public class ParticleDisplay implements Cloneable {
     public int count;
     public double extra;
     public boolean force;
-    @Nonnull private Particle particle;
+    @Nonnull private Particle particle = DEFAULT_PARTICLE;
     @Nullable private Location location;
     @Nullable private Callable<Location> locationCaller;
-    @Nullable private Vector rotation, offset;
+    @Nullable private Vector rotation, offset = new Vector();
     @Nonnull private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
     @Nullable private Object data;
     @Nullable private Predicate<Location> onSpawn;
-
-    /**
-     * Make a new instance of particle display.
-     * The position of each particle will be randomized positively and negatively by the offset parameters on each axis.
-     *
-     * @param particle the particle to spawn.
-     * @param location the location to spawn the particle at.
-     * @param count    the count of particles to spawn.
-     * @param offset   the particle offset.
-     * @param extra    in most cases extra is the speed of the particles.
-     * @param force    allows the particle to be seen further away for all player regardless of their particle settings.
-     *                 Can be laggy for them. This is only supported in 1.13+
-     */
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
-                           @Nonnull Vector offset, double extra, boolean force) {
-        this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
-        this.location = location;
-        this.locationCaller = locationCaller;
-        this.count = count;
-        this.offset = Objects.requireNonNull(offset, "Offset cannot be null");
-        this.extra = extra;
-        this.force = force;
-    }
-
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Callable<Location> locationCaller, @Nullable Location location, int count,
-                           @Nonnull Vector offset, double extra) {
-        this(particle, locationCaller, location, count, offset, extra, false);
-    }
-
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count, Vector offset) {
-        this(particle, null, location, count, offset, 0);
-    }
-
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location, int count) {
-        this(particle, location, count, new Vector());
-    }
-
-    public ParticleDisplay(@Nonnull Particle particle, @Nullable Location location) {
-        this(particle, location, 0);
-    }
 
     /**
      * Builds a simple ParticleDisplay object with cross-version
@@ -140,9 +100,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
-        ParticleDisplay dust = new ParticleDisplay(Particle.REDSTONE, null, location, 1, new Vector(), 0);
-        dust.data = new float[]{r, g, b, size};
-        return dust;
+        return ParticleDisplay.simple(location, Particle.REDSTONE).withColor(r, g, b, size);
     }
 
     /**
@@ -180,7 +138,10 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
-        return new ParticleDisplay(particle, null, location, 1, new Vector(), 0);
+        ParticleDisplay display = new ParticleDisplay();
+        display.particle = particle;
+        display.location = location;
+        return display;
     }
 
     /**
@@ -216,15 +177,13 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Builds particle settings from a configuration section.
      *
-     * @param location the location to display this particle.
-     * @param config   the config section for the settings.
+     * @param config the config section for the settings.
      *
      * @return a parsed ParticleDisplay from the config.
      * @since 1.0.0
      */
-    public static ParticleDisplay fromConfig(@Nullable Location location, @Nonnull ConfigurationSection config) {
-        ParticleDisplay display = new ParticleDisplay(DEFAULT_PARTICLE, location);
-        return edit(display, config);
+    public static ParticleDisplay fromConfig(@Nonnull ConfigurationSection config) {
+        return edit(new ParticleDisplay(), config);
     }
 
     /**
@@ -257,14 +216,11 @@ public class ParticleDisplay implements Cloneable {
 
         String particleName = config.getString("particle");
         Particle particle = particleName == null ? null : XParticle.getParticle(particleName);
-        int count = config.getInt("count");
-        double extra = config.getDouble("extra");
-        boolean force = config.getBoolean("force");
 
         if (particle != null) display.particle = particle;
-        if (count != 0) display.withCount(count);
-        if (extra != 0) display.withExtra(extra);
-        if (force) display.withForce(force);
+        if (config.isSet("count")) display.withCount(config.getInt("count"));
+        if (config.isSet("extra")) display.withExtra(config.getDouble("extra"));
+        if (config.isSet("force")) display.forceSpawn(config.getBoolean("force"));
 
         String offset = config.getString("offset");
         if (offset != null) {
@@ -302,17 +258,41 @@ public class ParticleDisplay implements Cloneable {
         }
 
         String color = config.getString("color"); // array-like "R, G, B"
-        String blockdata = config.getString("blockdata"); // material name
-        String item = config.getString("itemstack"); // material name
+        String blockdata = config.getString("blockdata");       // material name
+        String item = config.getString("itemstack");            // material name
         String materialdata = config.getString("materialdata"); // material name
+
+        float size = 1.0f;
+        if (display.data instanceof float[]) {
+            float[] datas = (float[]) display.data;
+            if (datas.length >= 4) {
+                if (config.isSet("size")) datas[3] = size = (float) config.getDouble("size");
+                else size = datas[3];
+            }
+        }
+
         if (color != null) {
             String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
-            if (colors.length >= 3) {
+            if (colors.length == 1 || colors.length == 3) {
+                Color parsedColor = Color.white;
+                if (colors.length == 1) {
+                    try {
+                        parsedColor = Color.decode(colors[0]);
+                    } catch (NumberFormatException ex) {
+                        /* I don't think it's worth it.
+                        try {
+                            parsedColor = (Color) Color.class.getField(colors[0].toUpperCase(Locale.ENGLISH)).get(null);
+                        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) { }
+                         */
+                    }
+                } else {
+                    parsedColor = new Color(NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]));
+                }
+
                 display.data = new float[]{
-                        // Color
-                        NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]),
-                        // Size
-                        (float) config.getDouble("size", 1.0D)};
+                        parsedColor.getRed(), parsedColor.getGreen(), parsedColor.getBlue(),
+                        size
+                };
             }
         } else if (blockdata != null) {
             Material material = Material.getMaterial(blockdata);
@@ -330,7 +310,6 @@ public class ParticleDisplay implements Cloneable {
                 display.data = material.getData();
             }
         }
-
 
         return display;
     }
@@ -439,13 +418,13 @@ public class ParticleDisplay implements Cloneable {
     /**
      * @since 7.0.0
      */
-    public void setParticle(@Nonnull Particle particle) {
+    public void withParticle(@Nonnull Particle particle) {
         this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
     }
 
     /**
      * Rotates the given xyz with the given rotation radians and
-     * adds to the specified location.
+     * adds the to the specified location.
      *
      * @param location the location to add the rotated axis.
      *
@@ -480,9 +459,25 @@ public class ParticleDisplay implements Cloneable {
 
     @Override
     public String toString() {
-        return "ParticleDisplay:[Particle=" + particle + ", Count=" + count + ", " +
+        Location location = getLocation();
+        return "ParticleDisplay:[" +
+                "Particle=" + particle + ", " +
+                "Count=" + count + ", " +
                 "Offset:{" + offset.getX() + ", " + offset.getY() + ", " + offset.getZ() + "}, " +
-                "Extra=" + extra + "Force=" + force + ", " +
+
+                (location != null ? (
+                        "Location:{" + location.getWorld().getName() + location.getX() + ", " + location.getY() + ", " + location.getZ() + "} " +
+                                '(' + (locationCaller == null ? "Static" : "Dynamic") + "), "
+                ) : "") +
+
+                (rotation != null ? (
+                        "Rotation:{" + Math.toDegrees(rotation.getX()) + ", " + Math.toRadians(rotation.getY()) + ", " + Math.toDegrees(rotation.getZ()) + "}, "
+                ) : "") +
+
+                (rotationOrder != DEFAULT_ROTATION_ORDER ? ("RotationOrder:" + Arrays.toString(rotationOrder) + ", ") : "") +
+
+                "Extra=" + extra + ", " +
+                "Force=" + force + ", " +
                 "Data=" + (data == null ? "null" : data instanceof float[] ? Arrays.toString((float[]) data) : data);
     }
 
@@ -526,7 +521,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 5.0.1
      */
     @Nonnull
-    public ParticleDisplay withForce(boolean force) {
+    public ParticleDisplay forceSpawn(boolean force) {
         this.force = force;
         return this;
     }
@@ -545,7 +540,15 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withColor(@Nonnull Color color, float size) {
-        this.data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), size};
+        return withColor(color.getRed(), color.getGreen(), color.getBlue(), size);
+    }
+
+    /**
+     * @since 7.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withColor(float red, float green, float blue, float size) {
+        this.data = new float[]{red, green, blue, size};
         return this;
     }
 
@@ -674,8 +677,9 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 7.0.0
      */
-    public void setLocation(@Nullable Location location) {
+    public ParticleDisplay withLocation(@Nullable Location location) {
         this.location = location;
+        return this;
     }
 
     /**
@@ -757,13 +761,14 @@ public class ParticleDisplay implements Cloneable {
     @Override
     @Nonnull
     public ParticleDisplay clone() {
-        ParticleDisplay display = new ParticleDisplay(particle, locationCaller,
-                (location == null ? null : cloneLocation(location)), count, offset.clone(),
-                extra, force);
+        ParticleDisplay display = ParticleDisplay.of(particle)
+                .withLocationCaller(locationCaller)
+                .withCount(count).offset(offset.clone())
+                .forceSpawn(force).onSpawn(onSpawn);
 
+        if (location != null) display.location = cloneLocation(location);
         if (rotation != null) display.rotation = this.rotation.clone();
         display.rotationOrder = this.rotationOrder;
-        display.onSpawn(this.onSpawn);
         display.data = data;
         return display;
     }

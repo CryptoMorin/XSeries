@@ -30,6 +30,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -46,7 +47,7 @@ import java.util.concurrent.CompletableFuture;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 5.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -73,7 +74,7 @@ public final class ReflectionUtils {
      */
     public static final String
             CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + '.',
-            NMS = supports(17) ? "net.minecraft." : "net.minecraft.server." + VERSION + '.';
+            NMS = v(17, "net.minecraft.").orElse("net.minecraft.server." + VERSION + '.');
     /**
      * A nullable public accessible field only available in {@code EntityPlayer}.
      * This can be null if the player is offline.
@@ -103,9 +104,13 @@ public final class ReflectionUtils {
         MethodHandle getHandle = null;
         MethodHandle connection = null;
         try {
-            connection = lookup.findGetter(entityPlayer, supports(17) ? "b" : "playerConnection", playerConnection);
+            connection = lookup.findGetter(entityPlayer,
+                    v(18, "b").orElse("playerConnection"),
+                    playerConnection);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerConnection, "sendPacket", MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
+            sendPacket = lookup.findVirtual(playerConnection,
+                    v(18, "a").orElse("sendPacket"),
+                    MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
         }
@@ -116,6 +121,20 @@ public final class ReflectionUtils {
     }
 
     private ReflectionUtils() {}
+
+    /**
+     * This method is purely for readability.
+     * No performance is gained.
+     *
+     * @since 5.0.0
+     */
+    public static <T> VersionHandler<T> v(int version, T handle) {
+        return new VersionHandler<>(version, handle);
+    }
+
+    public static <T> CallableVersionHandler<T> v(int version, Callable<T> handle) {
+        return new CallableVersionHandler<>(version, handle);
+    }
 
     /**
      * Checks whether the server version is equal or greater than the given version.
@@ -260,6 +279,61 @@ public final class ReflectionUtils {
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
             return null;
+        }
+    }
+
+    public static final class VersionHandler<T> {
+        private int version;
+        private T handle;
+
+        private VersionHandler(int version, T handle) {
+            if (supports(version)) {
+                this.version = version;
+                this.handle = handle;
+            }
+        }
+
+        public VersionHandler<T> v(int version, T handle) {
+            if (version == this.version) throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
+            if (version > this.version && supports(version)) {
+                this.version = version;
+                this.handle = handle;
+            }
+            return this;
+        }
+
+        public T orElse(T handle) {
+            return this.version == 0 ? handle : this.handle;
+        }
+    }
+
+    public static final class CallableVersionHandler<T> {
+        private int version;
+        private Callable<T> handle;
+
+        private CallableVersionHandler(int version, Callable<T> handle) {
+            if (supports(version)) {
+                this.version = version;
+                this.handle = handle;
+            }
+        }
+
+        public CallableVersionHandler<T> v(int version, Callable<T> handle) {
+            if (version == this.version) throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
+            if (version > this.version && supports(version)) {
+                this.version = version;
+                this.handle = handle;
+            }
+            return this;
+        }
+
+        public T orElse(Callable<T> handle) {
+            try {
+                return (this.version == 0 ? handle : this.handle).call();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 }
