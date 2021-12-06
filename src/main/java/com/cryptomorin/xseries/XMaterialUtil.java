@@ -19,7 +19,7 @@ public final class XMaterialUtil {
      * @return true if this material is an item.
      * @since 1.13
      */
-    public boolean isItem(XMaterial material) {
+    public static boolean isItem(XMaterial material) {
         if (XMaterial.supports(13)) return material.parseMaterial().isItem();
         switch (material) { // All the materials that are NOT an item (only 1.12 materials)
             case ATTACHED_MELON_STEM:
@@ -117,7 +117,7 @@ public final class XMaterialUtil {
      * @return true if this material can be interacted with.
      * @since 1.13
      */
-    public boolean isInteractable(XMaterial material) {
+    public static boolean isInteractable(XMaterial material) {
         if (XMaterial.supports(13)) return material.parseMaterial().isInteractable();
         switch (material) { // 1.12 materials only
             case ACACIA_BUTTON:
@@ -281,7 +281,7 @@ public final class XMaterialUtil {
      * @return True if this material is an air block.
      * @since 1.14.4
      */
-    public boolean isAir(XMaterial material) {
+    public static boolean isAir(XMaterial material) {
         switch (material) {
             case AIR:
             case CAVE_AIR:

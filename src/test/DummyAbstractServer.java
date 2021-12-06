@@ -1,7 +1,9 @@
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.bukkit.craftbukkit.Main;
 
 import java.io.File;
+import java.lang.reflect.InvocationHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -10,8 +12,8 @@ import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public abstract class RunServer {
-    private static final OptionParser parser = new OptionParser() {
+public abstract class DummyAbstractServer {
+    private static final OptionParser OPTION_PARSER = new OptionParser() {
         {
             acceptsAll(Arrays.asList("?", "help"), "Show the help");
 
@@ -104,15 +106,10 @@ public abstract class RunServer {
             acceptsAll(Collections.singletonList("forceUpgrade"), "Whether to force a world upgrade");
             acceptsAll(Collections.singletonList("eraseCache"), "Whether to force cache erase during world upgrade");
             acceptsAll(Collections.singletonList("nogui"), "Disables the graphical console");
-
             acceptsAll(Collections.singletonList("nojline"), "Disables jline and emulates the vanilla console");
-
             acceptsAll(Collections.singletonList("noconsole"), "Disables the console");
-
             acceptsAll(Arrays.asList("v", "version"), "Show the CraftBukkit Version");
-
             acceptsAll(Collections.singletonList("demo"), "Demo mode");
-
             acceptsAll(Arrays.asList("S", "spigot-settings"), "File for spigot settings")
                     .withRequiredArg()
                     .ofType(File.class)
@@ -140,19 +137,33 @@ public abstract class RunServer {
             Files.deleteIfExists(path.resolve("world_the_end"));
             Thread thread = new Thread(() -> {
                 System.setProperty("com.mojang.eula.agree", "true");
-                main(new String[]{
+                System.setProperty("IReallyKnowWhatIAmDoingISwear", "true");
+                InvocationHandler implementer = main();
+
+                DummyAbstractServer.print("Implementing dummy server...");
+                // A proxy because we don't want to pollute this class with a bunch of methods we can't implement.
+//                Server instance = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, implementer);
+
+                DummyAbstractServer.print("Starting org.bukkit.craftbukkit.Main...");
+                Main.main(new String[]{ // https://www.spigotmc.org/wiki/start-up-parameters/
                         "nogui",
                         "noconsole",
-                        "-Dcom.mojang.eula.agree=true",
                         "--config=" + serverProperties,
                         "--bukkit-settings=" + bukkitYml,
-                        "--spigot-settings=" + spigotYml
+                        "--spigot-settings=" + spigotYml,
                 });
+
+                DummyAbstractServer.print("Initializing server...");
+                //Bukkit.setServer(instance);
+
+                DummyAbstractServer.print("Done!");
             });
 
+            // I'm still not sure how to make this part more reliable.
             thread.start();
-            Thread.sleep(1000L);
-            Tests.test();
+            thread.join();
+            Thread.sleep(2000L);
+            XSeriesTests.test();
             Executors.newSingleThreadScheduledExecutor(Executors.defaultThreadFactory()).schedule(thread::interrupt, 10, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -161,11 +172,11 @@ public abstract class RunServer {
 
     protected OptionSet parseOptions(String[] args) {
         try {
-            return parser.parse(args);
+            return OPTION_PARSER.parse(args);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected abstract void main(String[] args);
+    protected abstract InvocationHandler main();
 }

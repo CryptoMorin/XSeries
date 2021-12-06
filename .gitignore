@@ -25,6 +25,7 @@ $RECYCLE.BIN/
 ChangeLog.txt
 *.iml
 .idea/
+.gradle/
 target/
 repo/
 out/

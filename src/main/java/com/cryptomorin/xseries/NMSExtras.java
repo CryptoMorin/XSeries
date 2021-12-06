@@ -190,18 +190,19 @@ public final class NMSExtras {
             Class<?> blockPos = getNMSClass("core", "BlockPosition");
             Class<?> block = getNMSClass("world.level.block", "Block");
             blockPosition = lookup.findConstructor(blockPos, MethodType.methodType(void.class, double.class, double.class, double.class));
-            getBlockType = lookup.findVirtual(world, "getType", MethodType.methodType(BLOCK_DATA, blockPos));
-            getBlock = lookup.findVirtual(BLOCK_DATA, "getBlock", MethodType.methodType(block));
-            playBlockAction = lookup.findVirtual(world, "playBlockAction", MethodType.methodType(void.class, blockPos, block, int.class, int.class));
+            getBlockType = lookup.findVirtual(world, v(18, "a_").orElse("getType"), MethodType.methodType(BLOCK_DATA, blockPos));
+            getBlock = lookup.findVirtual(BLOCK_DATA, v(18, "b").orElse("getBlock"), MethodType.methodType(block));
+            playBlockAction = lookup.findVirtual(world, v(18, "a").orElse("playBlockAction"), MethodType.methodType(void.class, blockPos, block, int.class, int.class));
 
             signEditorPacket = lookup.findConstructor(signOpenPacket, MethodType.methodType(void.class, blockPos));
             if (supports(17)) {
                 packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
                 getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BLOCK_DATA, Material.class, byte.class));
-                sanitizeLines = lookup.findStatic(CraftSign, "SANITIZE_LINES", MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
+                sanitizeLines = lookup.findStatic(CraftSign, v(17, "sanitizeLines").orElse("SANITIZE_LINES"),
+                        MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
-                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign, "getUpdatePacket", MethodType.methodType(PacketPlayOutTileEntityData));
+                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign, v(18, "c").orElse("getUpdatePacket"), MethodType.methodType(PacketPlayOutTileEntityData));
                 tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
             }
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException ex) {

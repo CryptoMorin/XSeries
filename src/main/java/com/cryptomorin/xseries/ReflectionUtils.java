@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -47,7 +46,7 @@ import java.util.concurrent.CompletableFuture;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 6.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -60,8 +59,8 @@ public final class ReflectionUtils {
      * <p>
      * Performance is not a concern for these specific statically initialized values.
      */
-    public static final String
-            VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    public static final String VERSION = parseVersion();
+
     /**
      * The raw minor version number.
      * E.g. {@code v1_17_R1} to {@code 17}
@@ -105,8 +104,7 @@ public final class ReflectionUtils {
         MethodHandle connection = null;
         try {
             connection = lookup.findGetter(entityPlayer,
-                    v(18, "b").orElse("playerConnection"),
-                    playerConnection);
+                    v(17, "b").orElse("playerConnection"), playerConnection);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
             sendPacket = lookup.findVirtual(playerConnection,
                     v(18, "a").orElse("sendPacket"),
@@ -121,6 +119,34 @@ public final class ReflectionUtils {
     }
 
     private ReflectionUtils() {}
+
+    /**
+     * Gets the package version used for NMS. This method is preferred over
+     * <code>
+     * Bukkit.getServer().getClass().getPackage()
+     * Bukkit.getVersion()
+     * </code>
+     * because the first solution doesn't work with unit tests and the second version
+     * doesn't have the exact package version.
+     * <p>
+     * Performance doesn't matter here as the method is only called once.
+     *
+     * @return the exact package version.
+     * @see #VERSION
+     * @since 6.0.0
+     */
+    private static String parseVersion() {
+        String found = null;
+        for (Package pack : Package.getPackages()) {
+            if (pack.getName().startsWith("org.bukkit.craftbukkit.v")) { // .v because there are other packages.
+                found = pack.getName().split("\\.")[3];
+                break;
+            }
+        }
+
+        if (found == null) throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
+        return found;
+    }
 
     /**
      * This method is purely for readability.
