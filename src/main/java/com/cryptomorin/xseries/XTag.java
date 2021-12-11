@@ -2201,6 +2201,10 @@ public class XTag<T> {
         return Collections.unmodifiableSet(values);
     }
 
+    public boolean isTagged(T value) {
+        return getValues().contains(value);
+    }
+
     private void addValues(T... values) {
         this.values.addAll(Arrays.asList(values));
     }
