@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class XTag<T> {
 
     static XTag<XMaterial> ACACIA_LOGS;
@@ -172,6 +173,48 @@ public class XTag<T> {
                 XMaterial.JUNGLE_LOG,
                 XMaterial.JUNGLE_WOOD,
                 XMaterial.STRIPPED_JUNGLE_WOOD);
+        OAK_LOGS = new XTag<>(XMaterial.STRIPPED_OAK_LOG,
+                XMaterial.OAK_LOG,
+                XMaterial.OAK_WOOD,
+                XMaterial.STRIPPED_OAK_WOOD);
+        SPRUCE_LOGS = new XTag<>(XMaterial.STRIPPED_SPRUCE_LOG,
+                XMaterial.SPRUCE_LOG,
+                XMaterial.SPRUCE_WOOD,
+                XMaterial.STRIPPED_SPRUCE_WOOD);
+        PORTALS = new XTag<>(XMaterial.END_GATEWAY,
+                XMaterial.END_PORTAL,
+                XMaterial.NETHER_PORTAL);
+        STANDING_SIGNS = new XTag<>(XMaterial.BIRCH_SIGN,
+                XMaterial.WARPED_SIGN,
+                XMaterial.CRIMSON_SIGN,
+                XMaterial.OAK_SIGN,
+                XMaterial.SPRUCE_SIGN,
+                XMaterial.ACACIA_SIGN,
+                XMaterial.DARK_OAK_SIGN,
+                XMaterial.JUNGLE_SIGN);
+        WALL_SIGNS = new XTag<>(XMaterial.BIRCH_WALL_SIGN,
+                XMaterial.WARPED_WALL_SIGN,
+                XMaterial.CRIMSON_WALL_SIGN,
+                XMaterial.OAK_WALL_SIGN,
+                XMaterial.SPRUCE_WALL_SIGN,
+                XMaterial.ACACIA_WALL_SIGN,
+                XMaterial.DARK_OAK_WALL_SIGN,
+                XMaterial.JUNGLE_WALL_SIGN);
+        WOODEN_PRESSURE_PLATES = new XTag<>(XMaterial.ACACIA_PRESSURE_PLATE,
+                XMaterial.DARK_OAK_PRESSURE_PLATE,
+                XMaterial.JUNGLE_PRESSURE_PLATE,
+                XMaterial.BIRCH_PRESSURE_PLATE,
+                XMaterial.WARPED_PRESSURE_PLATE,XMaterial.OAK_PRESSURE_PLATE,
+                XMaterial.SPRUCE_PRESSURE_PLATE,
+                XMaterial.CRIMSON_PRESSURE_PLATE);
+        STONE_PRESSURE_PLATES = new XTag<>(XMaterial.STONE_PRESSURE_PLATE,
+                XMaterial.POLISHED_BLACKSTONE_PRESSURE_PLATE);
+        RAILS = new XTag<>(XMaterial.RAIL,
+                XMaterial.ACTIVATOR_RAIL,
+                XMaterial.DETECTOR_RAIL,
+                XMaterial.POWERED_RAIL);
+        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE,
+                XMaterial.DEEPSLATE_REDSTONE_ORE);
         ANIMALS_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK);
         ANVIL = new XTag<>(XMaterial.ANVIL,
                 XMaterial.CHIPPED_ANVIL,
@@ -337,6 +380,22 @@ public class XTag<T> {
                 XMaterial.WHITE_CARPET,
                 XMaterial.BROWN_CARPET,
                 XMaterial.RED_CARPET);
+        WOOL = new XTag<>(XMaterial.ORANGE_WOOL,
+                XMaterial.LIGHT_BLUE_WOOL,
+                XMaterial.GRAY_WOOL,
+                XMaterial.BLACK_WOOL,
+                XMaterial.MAGENTA_WOOL,
+                XMaterial.PINK_WOOL,
+                XMaterial.BLUE_WOOL,
+                XMaterial.GREEN_WOOL,
+                XMaterial.CYAN_WOOL,
+                XMaterial.PURPLE_WOOL,
+                XMaterial.YELLOW_WOOL,
+                XMaterial.LIME_WOOL,
+                XMaterial.LIGHT_GRAY_WOOL,
+                XMaterial.WHITE_WOOL,
+                XMaterial.BROWN_WOOL,
+                XMaterial.RED_WOOL);
         CAULDRONS = new XTag<>(XMaterial.CAULDRON,
                 XMaterial.LAVA_CAULDRON,
                 XMaterial.POWDER_SNOW_CAULDRON,
@@ -364,9 +423,19 @@ public class XTag<T> {
                 XMaterial.BRAIN_CORAL,
                 XMaterial.HORN_CORAL,
                 XMaterial.BUBBLE_CORAL);
+        WALL_CORALS = new XTag<>(XMaterial.FIRE_CORAL_WALL_FAN,
+                XMaterial.TUBE_CORAL_WALL_FAN,
+                XMaterial.BRAIN_CORAL_WALL_FAN,
+                XMaterial.HORN_CORAL_WALL_FAN,
+                XMaterial.BUBBLE_CORAL_WALL_FAN);
         CRIMSON_STEMS = new XTag<>(XMaterial.CRIMSON_HYPHAE,
                 XMaterial.STRIPPED_CRIMSON_STEM,
-                XMaterial.CRIMSON_STEM);
+                XMaterial.CRIMSON_STEM,
+                XMaterial.STRIPPED_CRIMSON_HYPHAE);
+        WARPED_STEMS = new XTag<>(XMaterial.WARPED_HYPHAE,
+                XMaterial.STRIPPED_WARPED_STEM,
+                XMaterial.WARPED_STEM,
+                XMaterial.STRIPPED_WARPED_HYPHAE);
         CRYSTAL_SOUND_BLOCKS = new XTag<>(XMaterial.AMETHYST_BLOCK,
                 XMaterial.BUDDING_AMETHYST);
         DEEPSLATE_ORE_REPLACEABLES = new XTag<>(XMaterial.TUFF,
@@ -382,22 +451,19 @@ public class XTag<T> {
                 XMaterial.CRIMSON_DOOR,
                 XMaterial.DARK_OAK_DOOR,
                 XMaterial.IRON_DOOR);
-        DRAGON_IMMUNE = new XTag<>(XMaterial.END_GATEWAY,
+        WITHER_IMMUNE = new XTag<>(XMaterial.STRUCTURE_BLOCK,
+                XMaterial.END_GATEWAY,
                 XMaterial.BEDROCK,
-                XMaterial.IRON_BARS,
-                XMaterial.CHAIN_COMMAND_BLOCK,
-                XMaterial.BARRIER,
-                XMaterial.END_PORTAL_FRAME,
-                XMaterial.OBSIDIAN,
-                XMaterial.JIGSAW,
-                XMaterial.RESPAWN_ANCHOR,
-                XMaterial.STRUCTURE_BLOCK,
                 XMaterial.END_PORTAL,
                 XMaterial.COMMAND_BLOCK,
                 XMaterial.REPEATING_COMMAND_BLOCK,
                 XMaterial.MOVING_PISTON,
-                XMaterial.END_STONE,
-                XMaterial.CRYING_OBSIDIAN);
+                XMaterial.CHAIN_COMMAND_BLOCK,
+                XMaterial.BARRIER,
+                XMaterial.END_PORTAL_FRAME,
+                XMaterial.JIGSAW);
+        WITHER_SUMMON_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
+                XMaterial.SOUL_SAND);
         EMERALD_ORES = new XTag<>(XMaterial.EMERALD_ORE,
                 XMaterial.DEEPSLATE_EMERALD_ORE);
         NYLIUM = new XTag<>(XMaterial.CRIMSON_NYLIUM,
@@ -599,8 +665,106 @@ public class XTag<T> {
                 XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.BIRCH_LEAVES,
                 XMaterial.OAK_LEAVES);
-
-
+        STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
+                XMaterial.STONE_STAIRS,
+                XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
+                XMaterial.RED_SANDSTONE_STAIRS,
+                XMaterial.PRISMARINE_STAIRS,
+                XMaterial.GRANITE_STAIRS,
+                XMaterial.WAXED_WEATHERED_CUT_COPPER_STAIRS,
+                XMaterial.POLISHED_DIORITE_STAIRS,
+                XMaterial.WEATHERED_CUT_COPPER_STAIRS,
+                XMaterial.NETHER_BRICK_STAIRS,
+                XMaterial.RED_NETHER_BRICK_STAIRS,
+                XMaterial.PRISMARINE_BRICK_STAIRS,
+                XMaterial.JUNGLE_STAIRS,
+                XMaterial.ACACIA_STAIRS,
+                XMaterial.WAXED_CUT_COPPER_STAIRS,
+                XMaterial.DEEPSLATE_TILE_STAIRS,
+                XMaterial.CRIMSON_STAIRS,
+                XMaterial.POLISHED_ANDESITE_STAIRS,
+                XMaterial.SMOOTH_RED_SANDSTONE_STAIRS,
+                XMaterial.PURPUR_STAIRS,
+                XMaterial.POLISHED_DEEPSLATE_STAIRS,
+                XMaterial.SPRUCE_STAIRS,
+                XMaterial.QUARTZ_STAIRS,
+                XMaterial.MOSSY_COBBLESTONE_STAIRS,
+                XMaterial.BRICK_STAIRS,
+                XMaterial.CUT_COPPER_STAIRS,
+                XMaterial.SANDSTONE_STAIRS,
+                XMaterial.ANDESITE_STAIRS,
+                XMaterial.WAXED_EXPOSED_CUT_COPPER_STAIRS,
+                XMaterial.COBBLED_DEEPSLATE_STAIRS,
+                XMaterial.COBBLESTONE_STAIRS,
+                XMaterial.DEEPSLATE_BRICK_STAIRS,
+                XMaterial.DIORITE_STAIRS,
+                XMaterial.SMOOTH_QUARTZ_STAIRS,
+                XMaterial.OAK_STAIRS,
+                XMaterial.EXPOSED_CUT_COPPER_STAIRS,
+                XMaterial.WARPED_STAIRS,
+                XMaterial.DARK_PRISMARINE_STAIRS,
+                XMaterial.OXIDIZED_CUT_COPPER_STAIRS,
+                XMaterial.POLISHED_BLACKSTONE_STAIRS,
+                XMaterial.BIRCH_STAIRS,
+                XMaterial.POLISHED_GRANITE_STAIRS,
+                XMaterial.MOSSY_STONE_BRICK_STAIRS,
+                XMaterial.DARK_OAK_STAIRS,
+                XMaterial.END_STONE_BRICK_STAIRS,
+                XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
+                XMaterial.SMOOTH_SANDSTONE_STAIRS,
+                XMaterial.BLACKSTONE_STAIRS);
+        SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
+                XMaterial.SOUL_SAND);
+        SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
+                XMaterial.SOUL_SAND);
+        STONE_ORE_REPLACEABLES = new XTag<>(XMaterial.STONE,
+                XMaterial.DIORITE,
+                XMaterial.ANDESITE,
+                XMaterial.GRANITE);
+        STRIDER_WARM_BLOCKS = new XTag<>(XMaterial.LAVA);
+        VALID_SPAWN = new XTag<>(XMaterial.PODZOL,
+                XMaterial.GRASS_BLOCK);
+        STONE_BRICKS = new XTag<>(XMaterial.CHISELED_STONE_BRICKS,
+                XMaterial.CRACKED_STONE_BRICKS,
+                XMaterial.MOSSY_STONE_BRICKS,
+                XMaterial.STONE_BRICKS);
+        SAPLINGS = new XTag<>(XMaterial.ACACIA_SAPLING,
+                XMaterial.JUNGLE_SAPLING,
+                XMaterial.SPRUCE_SAPLING,
+                XMaterial.DARK_OAK_SAPLING,
+                XMaterial.AZALEA,
+                XMaterial.OAK_SAPLING,
+                XMaterial.FLOWERING_AZALEA,
+                XMaterial.BIRCH_SAPLING);
+        WOLVES_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
+                XMaterial.SNOW,
+                XMaterial.SNOW_BLOCK);
+        POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN = new XTag<>(XMaterial.ICE);
+        RABBITS_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
+                XMaterial.SNOW,
+                XMaterial.SNOW_BLOCK,
+                XMaterial.SAND);
+        PIGLIN_FOOD = new XTag<>(XMaterial.COOKED_PORKCHOP,
+                XMaterial.PORKCHOP);
+        PIGLIN_REPELLENTS = new XTag<>(XMaterial.SOUL_WALL_TORCH,
+                XMaterial.SOUL_TORCH,
+                XMaterial.SOUL_CAMPFIRE,
+                XMaterial.SOUL_LANTERN,
+                XMaterial.SOUL_FIRE);
+        REPLACEABLE_PLANTS = new XTag<>(XMaterial.FERN,
+                XMaterial.GLOW_LICHEN,
+                XMaterial.DEAD_BUSH,
+                XMaterial.PEONY,
+                XMaterial.TALL_GRASS,
+                XMaterial.HANGING_ROOTS,
+                XMaterial.VINE,
+                XMaterial.SUNFLOWER,
+                XMaterial.LARGE_FERN,
+                XMaterial.LILAC,
+                XMaterial.ROSE_BUSH,
+                XMaterial.GRASS);
+        SMALL_DRIPLEAF_PLACEABLE = new XTag<>(XMaterial.CLAY,
+                XMaterial.MOSS_BLOCK);
 
 
 
@@ -681,8 +845,55 @@ public class XTag<T> {
                 XMaterial.GOLDEN_HOE,
                 XMaterial.GOLD_INGOT);
         ITEMS_PIGLIN_LOVED.inheritFrom(GOLD_ORES);
-
-
+        SIGNS = new XTag<>();
+        SIGNS.inheritFrom(WALL_SIGNS, STANDING_SIGNS);
+        PRESSURE_PLATES = new XTag<>(XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
+                XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE);
+        PRESSURE_PLATES.inheritFrom(STONE_PRESSURE_PLATES, WOODEN_PRESSURE_PLATES);
+        DRAGON_IMMUNE = new XTag<>(XMaterial.IRON_BARS,
+                XMaterial.OBSIDIAN,
+                XMaterial.RESPAWN_ANCHOR,
+                XMaterial.END_STONE,
+                XMaterial.CRYING_OBSIDIAN);
+        DRAGON_IMMUNE.inheritFrom(WITHER_IMMUNE);
+        WALL_POST_OVERRIDE = new XTag<>(XMaterial.TORCH,
+                XMaterial.TRIPWIRE,
+                XMaterial.REDSTONE_TORCH,
+                XMaterial.SOUL_TORCH);
+        WALL_POST_OVERRIDE.inheritFrom(SIGNS, BANNERS, PRESSURE_PLATES);
+        UNDERWATER_BONEMEALS = new XTag<>(XMaterial.SEAGRASS);
+        UNDERWATER_BONEMEALS.inheritFrom(CORALS,WALL_CORALS);
+        UNSTABLE_BOTTOM_CENTER = new XTag<>();
+        UNSTABLE_BOTTOM_CENTER.inheritFrom(FENCE_GATES);
+        PREVENT_MOB_SPAWNING_INSIDE = new XTag<>();
+        PREVENT_MOB_SPAWNING_INSIDE.inheritFrom(RAILS);
+        PARROTS_SPAWNABLE_ON = new XTag<>(XMaterial.AIR, XMaterial.GRASS_BLOCK);
+        PARROTS_SPAWNABLE_ON.inheritFrom(LEAVES,
+                JUNGLE_LOGS,
+                SPRUCE_LOGS,
+                OAK_LOGS,
+                DARK_OAK_LOGS,
+                ACACIA_LOGS,
+                BIRCH_LOGS,
+                CRIMSON_STEMS,
+                WARPED_STEMS);
+        OCCLUDES_VIBRATION_SIGNALS = new XTag<>();
+        OCCLUDES_VIBRATION_SIGNALS.inheritFrom(WOOL);
+        LOGS_THAT_BURN = new XTag<>();
+        LOGS_THAT_BURN.inheritFrom(ACACIA_LOGS,
+                OAK_LOGS,
+                DARK_OAK_LOGS,
+                SPRUCE_LOGS,
+                JUNGLE_LOGS,
+                BIRCH_LOGS);
+        LOGS = new XTag<>();
+        LOGS.inheritFrom(LOGS_THAT_BURN, CRIMSON_STEMS, WARPED_STEMS);
+        LUSH_GROUND_REPLACEABLE = new XTag<>(XMaterial.GRAVEL,
+                XMaterial.SAND,
+                XMaterial.CLAY);
+        LUSH_GROUND_REPLACEABLE.inheritFrom(CAVE_VINES,
+                DIRT,
+                BASE_STONE_OVERWORLD);
     }
 
     private XTag(T... values) {
