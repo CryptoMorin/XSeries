@@ -742,7 +742,7 @@ public final class XTag<@NonNull T> {
                 XMaterial.POWDER_SNOW);
         SAND = new XTag<>(XMaterial.SAND,
                 XMaterial.RED_SAND);
-        DIRT.addValues(XMaterial.MOSS_BLOCK,
+        DIRT = new XTag<>(XMaterial.MOSS_BLOCK,
                 XMaterial.COARSE_DIRT,
                 XMaterial.PODZOL,
                 XMaterial.DIRT,
@@ -2189,18 +2189,18 @@ public final class XTag<@NonNull T> {
     }
 
     private XTag(@NonNull T... values) {
-        this.values = new HashSet<>();
-        this.addValues(values);
+        this.values =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(values)));
     }
 
-    private final @NonNull Set<@NonNull T> values;
+    private @NonNull Set<@NonNull T> values;
 
     /**
      *
      * @return {@link Set} of all the values represented by the tag
      */
     public @NonNull Set<@NonNull T> getValues() {
-        return Collections.unmodifiableSet(values);
+        return this.values;
     }
 
     public boolean isTagged(@Nullable T value) {
@@ -2208,19 +2208,15 @@ public final class XTag<@NonNull T> {
         if(value == null){
             return false;
         }
-        return getValues().contains(value);
-    }
-
-    private void addValues(@NonNull T... values) {
-        this.values.addAll(Arrays.asList(values));
+        return this.values.contains(value);
     }
 
     private void inheritFrom(@NonNull XTag<@NonNull T>... values) {
-        for (XTag<T> value : values) {
-            for (T valueValue : value.getValues()) {
-                addValues(valueValue);
-            }
+        HashSet<@NonNull T> newValues = new HashSet<>(this.values);
+        for(int i = 0; i < values.length; i++){
+            newValues.addAll(values[i].values);
         }
+        this.values = Collections.unmodifiableSet(newValues);
     }
 
 }
