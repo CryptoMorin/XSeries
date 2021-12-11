@@ -445,6 +445,16 @@ public final class XBlock {
         return material == Material.LAVA || material == BlockMaterial.STATIONARY_LAVA.material;
     }
 
+    public static boolean isDoor(Material material) {
+        if (ISFLAT) return material.createBlockData() instanceof org.bukkit.block.data.type.Door;
+        return material.getData().equals(Door.class);
+    }
+
+    public static boolean isTrapDoor(Material material) {
+        if (ISFLAT) return material.createBlockData() instanceof org.bukkit.block.data.type.TrapDoor;
+        return material.getData().equals(TrapDoor.class);
+    }
+
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
