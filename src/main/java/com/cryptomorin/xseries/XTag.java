@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @SuppressWarnings("unchecked")
 public final class XTag<@NonNull T> {
@@ -2202,7 +2203,11 @@ public final class XTag<@NonNull T> {
         return Collections.unmodifiableSet(values);
     }
 
-    public boolean isTagged(@NonNull T value) {
+    public boolean isTagged(@Nullable T value) {
+        // Just encase some plugins pass thru a null value.
+        if(value == null){
+            return false;
+        }
         return getValues().contains(value);
     }
 
