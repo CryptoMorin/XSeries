@@ -7,590 +7,589 @@ import java.util.Set;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-@SuppressWarnings("unchecked")
 public final class XTag {
 
     /**
      * Tag representing all acacia log and bark variants
      */
-    public static @NonNull XTag ACACIA_LOGS;
+    public final static @NonNull XTag ACACIA_LOGS;
     /**
      * Tag representing all possible blocks available for animals to spawn on
      */
-    public static @NonNull XTag ANIMALS_SPAWNABLE_ON;
+    public final static @NonNull XTag ANIMALS_SPAWNABLE_ON;
     /**
      * Tag representing all variants of anvil
      */
-    public static @NonNull XTag ANVIL;
+    public final static @NonNull XTag ANVIL;
     /**
      * Tag representing all items that can tempt axolotl
      */
-    public static @NonNull XTag AXOLOTL_TEMPT_ITEMS;
+    public final static @NonNull XTag AXOLOTL_TEMPT_ITEMS;
     /**
      * Tag representing all possible blocks for axolotls to spawn on
      */
-    public static @NonNull XTag AXOLOTLS_SPAWNABLE_ON;
+    public final static @NonNull XTag AXOLOTLS_SPAWNABLE_ON;
     /**
      * Tag representing all possible blocks for azalea to grow on
      */
-    public static @NonNull XTag AZALEA_GROWS_ON;
+    public final static @NonNull XTag AZALEA_GROWS_ON;
     /**
      * Tag representing all possible blocks that can be replaced by azalea
      */
-    public static @NonNull XTag AZALEA_ROOT_REPLACEABLE;
+    public final static @NonNull XTag AZALEA_ROOT_REPLACEABLE;
     /**
      * Tag representing all possible blocks bamboo may be planted on
      */
-    public static @NonNull XTag BAMBOO_PLANTABLE_ON;
+    public final static @NonNull XTag BAMBOO_PLANTABLE_ON;
     /**
      * Tag representing all banner blocks
      */
-    public static @NonNull XTag BANNERS;
+    public final static @NonNull XTag BANNERS;
     /**
      * Tag representing the nether base materials
      */
-    public static @NonNull XTag BASE_STONE_NETHER;
+    public final static @NonNull XTag BASE_STONE_NETHER;
     /**
      * Tag representing the overworld base materials
      */
-    public static @NonNull XTag BASE_STONE_OVERWORLD;
+    public final static @NonNull XTag BASE_STONE_OVERWORLD;
     /**
      * Tag representing all possible blocks that can be used as beacon base
      */
-    public static @NonNull XTag BEACON_BASE_BLOCKS;
+    public final static @NonNull XTag BEACON_BASE_BLOCKS;
     /**
      * Tag representing all possible variants of bed
      */
-    public static @NonNull XTag BEDS;
+    public final static @NonNull XTag BEDS;
     /**
      * Tag representing all possible blocks/crops that be grown by bees
      */
-    public static @NonNull XTag BEE_GROWABLES;
+    public final static @NonNull XTag BEE_GROWABLES;
     /**
      * Tag representing all possible blocks big dripleaf may be planted on
      */
-    public static @NonNull XTag BIG_DRIPLEAF_PLACEABLE;
+    public final static @NonNull XTag BIG_DRIPLEAF_PLACEABLE;
     /**
      * Tag representing all birch log and bark variants
      */
-    public static @NonNull XTag BIRCH_LOGS;
+    public final static @NonNull XTag BIRCH_LOGS;
     /**
      * Tag representing all possible variants of buttons
      */
-    public static @NonNull XTag BUTTONS;
+    public final static @NonNull XTag BUTTONS;
     /**
      * Tag representing all possible variants of campfires
      */
-    public static @NonNull XTag CAMPFIRES;
+    public final static @NonNull XTag CAMPFIRES;
     /**
      * Tag representing all possible variants of candle cakes
      */
-    public static @NonNull XTag CANDLE_CAKES;
+    public final static @NonNull XTag CANDLE_CAKES;
     /**
      * Tag representing all possible variants of candles
      */
-    public static @NonNull XTag CANDLES;
+    public final static @NonNull XTag CANDLES;
     /**
      * Tag representing all possible variants of carpets
      */
-    public static @NonNull XTag CARPETS;
+    public final static @NonNull XTag CARPETS;
     /**
      * Tag representing all possible variants of cauldrons
      */
-    public static @NonNull XTag CAULDRONS;
+    public final static @NonNull XTag CAULDRONS;
     /**
      * Tag representing all possible variants of cave vines
      */
-    public static @NonNull XTag CAVE_VINES;
+    public final static @NonNull XTag CAVE_VINES;
     /**
      * Tag representing all climbable blocks
      */
-    public static @NonNull XTag CLIMBABLE;
+    public final static @NonNull XTag CLIMBABLE;
     /**
      * Tag representing all preferred items for harvesting clusters{unused as of 1.18}
      */
-    public static @NonNull XTag CLUSTER_MAX_HARVESTABLES;
+    public final static @NonNull XTag CLUSTER_MAX_HARVESTABLES;
     /**
      * Tag representing all possible variants of coal ores
      */
-    public static @NonNull XTag COAL_ORES;
+    public final static @NonNull XTag COAL_ORES;
     /**
      * Tag representing all possible variants of copper ores
      */
-    public static @NonNull XTag COPPER_ORES;
+    public final static @NonNull XTag COPPER_ORES;
     /**
      * Tag representing all coral plants
      */
-    public static @NonNull XTag CORAL_PLANTS;
+    public final static @NonNull XTag CORAL_PLANTS;
     /**
      * Tag representing all corals
      */
-    public static @NonNull XTag CORALS;
+    public final static @NonNull XTag CORALS;
     /**
      * Tag representing all crimson log and bark variants
      */
-    public static @NonNull XTag CRIMSON_STEMS;
+    public final static @NonNull XTag CRIMSON_STEMS;
     /**
      * Tag representing all crops
      */
-    public static @NonNull XTag CROPS;
+    public final static @NonNull XTag CROPS;
     /**
      * Tag representing all possible blocks that can make crystal sounds
      */
-    public static @NonNull XTag CRYSTAL_SOUND_BLOCKS;
+    public final static @NonNull XTag CRYSTAL_SOUND_BLOCKS;
     /**
      * Tag representing all dark oak log and bark variants
      */
-    public static @NonNull XTag DARK_OAK_LOGS;
+    public final static @NonNull XTag DARK_OAK_LOGS;
     /**
      * Tag representing all possible blocks that may be replaced by deepslate ores
      */
-    public static @NonNull XTag DEEPSLATE_ORE_REPLACEABLES;
+    public final static @NonNull XTag DEEPSLATE_ORE_REPLACEABLES;
     /**
      * Tag representing all possible variants of diamond ores
      */
-    public static @NonNull XTag DIAMOND_ORES;
+    public final static @NonNull XTag DIAMOND_ORES;
     /**
      * Tag representing all dirt
      */
-    public static @NonNull XTag DIRT;
+    public final static @NonNull XTag DIRT;
     /**
      * Tag representing all possible types of doors
      */
-    public static @NonNull XTag DOORS;
+    public final static @NonNull XTag DOORS;
     /**
      * Tag representing all blocks that can't be destroyed by dragons
      */
-    public static @NonNull XTag DRAGON_IMMUNE;
+    public final static @NonNull XTag DRAGON_IMMUNE;
     /**
      * Tag representing all possible blocks that can be replaced by dripstone
      */
-    public static @NonNull XTag DRIPSTONE_REPLACEABLE;
+    public final static @NonNull XTag DRIPSTONE_REPLACEABLE;
     /**
      * Tag representing all variants of emerald ores
      */
-    public static @NonNull XTag EMERALD_ORES;
+    public final static @NonNull XTag EMERALD_ORES;
     /**
      * Tag representing all possible blocks that can be picked up by endermen
      */
-    public static @NonNull XTag ENDERMAN_HOLDABLE;
+    public final static @NonNull XTag ENDERMAN_HOLDABLE;
     /**
      * Tag representing all blocks that cant be replaced by world generation features
      */
-    public static @NonNull XTag FEATURES_CANNOT_REPLACE;
+    public final static @NonNull XTag FEATURES_CANNOT_REPLACE;
     /**
      * Tag representing all possible variants of fence gates
      */
-    public static @NonNull XTag FENCE_GATES;
+    public final static @NonNull XTag FENCE_GATES;
     /**
      * Tag representing all possible variants of fences
      */
-    public static @NonNull XTag FENCES;
+    public final static @NonNull XTag FENCES;
     /**
      * Tag representing all possible variants fire
      */
-    public static @NonNull XTag FIRE;
+    public final static @NonNull XTag FIRE;
     /**
      * Tag representing all possible variants of flower pots
      */
-    public static @NonNull XTag FLOWER_POTS;
+    public final static @NonNull XTag FLOWER_POTS;
     /**
      * Tag representing all possible types of flowers
      */
-    public static @NonNull XTag FLOWERS;
+    public final static @NonNull XTag FLOWERS;
     /**
      * Tag representing all items can be used as food for fox
      */
-    public static @NonNull XTag FOX_FOOD;
+    public final static @NonNull XTag FOX_FOOD;
     /**
      * Tag representing all possible blocks foxes may spawn on
      */
-    public static @NonNull XTag FOXES_SPAWNABLE_ON;
+    public final static @NonNull XTag FOXES_SPAWNABLE_ON;
     /**
      * Tag representing all possible items can be used to avoid freezing
      */
-    public static @NonNull XTag FREEZE_IMMUNE_WEARABLES;
+    public final static @NonNull XTag FREEZE_IMMUNE_WEARABLES;
     /**
      * Tag representing all blocks that geodes will not spawn in
      */
-    public static @NonNull XTag GEODE_INVALID_BLOCKS;
+    public final static @NonNull XTag GEODE_INVALID_BLOCKS;
     /**
      * Tag representing all possible blocks goats may spawn on
      */
-    public static @NonNull XTag GOATS_SPAWNABLE_ON;
+    public final static @NonNull XTag GOATS_SPAWNABLE_ON;
     /**
      * Tag representing all possible variants of gold ores
      */
-    public static @NonNull XTag GOLD_ORES;
+    public final static @NonNull XTag GOLD_ORES;
     /**
      * Tag representing all block types that are guarded by piglins
      */
-    public static @NonNull XTag GUARDED_BY_PIGLINS;
+    public final static @NonNull XTag GUARDED_BY_PIGLINS;
     /**
      * Tag representing all block types that repel hoglins
      */
-    public static @NonNull XTag HOGLIN_REPELLENTS;
+    public final static @NonNull XTag HOGLIN_REPELLENTS;
     /**
      * Tag representing all possible variants of ice
      */
-    public static @NonNull XTag ICE;
+    public final static @NonNull XTag ICE;
     /**
      * Tag representing all items ignored by baby piglins
      */
-    public static @NonNull XTag IGNORED_BY_PIGLIN_BABIES;
+    public final static @NonNull XTag IGNORED_BY_PIGLIN_BABIES;
     /**
      * Tag representing all possible block types that do not drip water/lava
      */
-    public static @NonNull XTag IMPERMEABLE;
+    public final static @NonNull XTag IMPERMEABLE;
     /**
      * Tag representing all block types that can burn for infinitely long in the end
      */
-    public static @NonNull XTag INFINIBURN_END;
+    public final static @NonNull XTag INFINIBURN_END;
     /**
      * Tag representing all block types that can burn for infinitely long in the nether
      */
-    public static @NonNull XTag INFINIBURN_NETHER;
+    public final static @NonNull XTag INFINIBURN_NETHER;
     /**
      * Tag representing all block types that can burn for infinitely long in the overworld
      */
-    public static @NonNull XTag INFINIBURN_OVERWORLD;
+    public final static @NonNull XTag INFINIBURN_OVERWORLD;
     /**
      * Tag representing all block types that play muffled step sounds
      */
-    public static @NonNull XTag INSIDE_STEP_SOUND_BLOCKS;
+    public final static @NonNull XTag INSIDE_STEP_SOUND_BLOCKS;
     /**
      * Tag representing all possible variants of iron ores
      */
-    public static @NonNull XTag IRON_ORES;
+    public final static @NonNull XTag IRON_ORES;
     /**
      * Tag representing all possible variants of arrows
      */
-    public static @NonNull XTag ITEMS_ARROWS;
+    public final static @NonNull XTag ITEMS_ARROWS;
     /**
      * Tag representing all items that can be used as banners
      */
-    public static @NonNull XTag ITEMS_BANNERS;
+    public final static @NonNull XTag ITEMS_BANNERS;
     /**
      * Tag representing all items that can be used to fuel beacon
      */
-    public static @NonNull XTag ITEMS_BEACON_PAYMENT_ITEMS;
+    public final static @NonNull XTag ITEMS_BEACON_PAYMENT_ITEMS;
     /**
      * Tag representing all possible variants of boats
      */
-    public static @NonNull XTag ITEMS_BOATS;
+    public final static @NonNull XTag ITEMS_BOATS;
     /**
      * Tag representing all possible variants of coal
      */
-    public static @NonNull XTag ITEMS_COALS;
+    public final static @NonNull XTag ITEMS_COALS;
     /**
      * Tag representing all possible music discs that can be dropped by creeper
      */
-    public static @NonNull XTag ITEMS_CREEPER_DROP_MUSIC_DISCS;
+    public final static @NonNull XTag ITEMS_CREEPER_DROP_MUSIC_DISCS;
     /**
      * Tag representing all possible types of fish
      */
-    public static @NonNull XTag ITEMS_FISHES;
+    public final static @NonNull XTag ITEMS_FISHES;
     /**
      * Tag representing all furnace materials {empty in spigot as of 1.18}
      */
-    public static @NonNull XTag ITEMS_FURNACE_MATERIALS;
+    public final static @NonNull XTag ITEMS_FURNACE_MATERIALS;
     /**
      * Tag representing all possible book types that can be placed on lecterns
      */
-    public static @NonNull XTag ITEMS_LECTERN_BOOKS;
+    public final static @NonNull XTag ITEMS_LECTERN_BOOKS;
     /**
      * Tag representing all types of music discs
      */
-    public static @NonNull XTag ITEMS_MUSIC_DISCS;
+    public final static @NonNull XTag ITEMS_MUSIC_DISCS;
     /**
      * Tag representing all items loved by piglins
      */
-    public static @NonNull XTag ITEMS_PIGLIN_LOVED;
+    public final static @NonNull XTag ITEMS_PIGLIN_LOVED;
     /**
      * Tag representing all stone tool materials
      */
-    public static @NonNull XTag ITEMS_STONE_TOOL_MATERIALS;
+    public final static @NonNull XTag ITEMS_STONE_TOOL_MATERIALS;
     /**
      * Tag representing all possible types of wall banners
      */
-    public static @NonNull XTag WALL_BANNERS;
+    public final static @NonNull XTag WALL_BANNERS;
     /**
      * Tag representing all jungle log and bark variants
      */
-    public static @NonNull XTag JUNGLE_LOGS;
+    public final static @NonNull XTag JUNGLE_LOGS;
     /**
      * Tag representing all possible variants of lapis ores
      */
-    public static @NonNull XTag LAPIS_ORES;
+    public final static @NonNull XTag LAPIS_ORES;
     /**
      * Tag representing all blocks that can't be replaced by lava pools
      */
-    public static @NonNull XTag LAVA_POOL_STONE_CANNOT_REPLACE;
+    public final static @NonNull XTag LAVA_POOL_STONE_CANNOT_REPLACE;
     /**
      * Tag representing all types of leaves
      */
-    public static @NonNull XTag LEAVES;
+    public final static @NonNull XTag LEAVES;
     /**
      * Tag representing all wood and bark variants
      */
-    public static @NonNull XTag LOGS;
+    public final static @NonNull XTag LOGS;
     /**
      * Tag representing all wood and bark variants that can catch fire
      */
-    public static @NonNull XTag LOGS_THAT_BURN;
+    public final static @NonNull XTag LOGS_THAT_BURN;
     /**
      * Tag representing all possible blocks that can be replaced by lush ground
      */
-    public static @NonNull XTag LUSH_GROUND_REPLACEABLE;
+    public final static @NonNull XTag LUSH_GROUND_REPLACEABLE;
     /**
      * Tag representing all block types mineable with axe
      */
-    public static @NonNull XTag MINEABLE_AXE;
+    public final static @NonNull XTag MINEABLE_AXE;
     /**
      * Tag representing all block types mineable with hoe
      */
-    public static @NonNull XTag MINEABLE_HOE;
+    public final static @NonNull XTag MINEABLE_HOE;
     /**
      * Tag representing all block types mineable with pickaxe
      */
-    public static @NonNull XTag MINEABLE_PICKAXE;
+    public final static @NonNull XTag MINEABLE_PICKAXE;
     /**
      * Tag representing all block types mineable with shovel
      */
-    public static @NonNull XTag MINEABLE_SHOVEL;
+    public final static @NonNull XTag MINEABLE_SHOVEL;
     /**
      * Tag representing all possible block types mooshrooms can spawn on
      */
-    public static @NonNull XTag MOOSHROOMS_SPAWNABLE_ON;
+    public final static @NonNull XTag MOOSHROOMS_SPAWNABLE_ON;
     /**
      * Tag representing all block types that can be replaced by moss
      */
-    public static @NonNull XTag MOSS_REPLACEABLE;
-    public static @NonNull XTag MUSHROOM_GROW_BLOCK;
+    public final static @NonNull XTag MOSS_REPLACEABLE;
+    public final static @NonNull XTag MUSHROOM_GROW_BLOCK;
     /**
      * Tag representing all block types that need minimum of diamond tool to drop items
      */
-    public static @NonNull XTag NEEDS_DIAMOND_TOOL;
+    public final static @NonNull XTag NEEDS_DIAMOND_TOOL;
     /**
      * Tag representing all block types that need minimum of iron tool to drop items
      */
-    public static @NonNull XTag NEEDS_IRON_TOOL;
+    public final static @NonNull XTag NEEDS_IRON_TOOL;
     /**
      * Tag representing all block types that need minimum of stone tool to drop items
      */
-    public static @NonNull XTag NEEDS_STONE_TOOL;
+    public final static @NonNull XTag NEEDS_STONE_TOOL;
     /**
      * Tag representing all non-flammable wood and bark variants
      */
-    public static @NonNull XTag NON_FLAMMABLE_WOOD;
+    public final static @NonNull XTag NON_FLAMMABLE_WOOD;
     /**
      * Tag representing all nylium blocks
      */
-    public static @NonNull XTag NYLIUM;
+    public final static @NonNull XTag NYLIUM;
     /**
      * Tag representing all oak wood and bark variants
      */
-    public static @NonNull XTag OAK_LOGS;
+    public final static @NonNull XTag OAK_LOGS;
     /**
      * Tag representing all possible blocks that can block vibration signals
      */
-    public static @NonNull XTag OCCLUDES_VIBRATION_SIGNALS;
+    public final static @NonNull XTag OCCLUDES_VIBRATION_SIGNALS;
     /**
      * Tag representing all possible block types parrots may spawn on
      */
-    public static @NonNull XTag PARROTS_SPAWNABLE_ON;
+    public final static @NonNull XTag PARROTS_SPAWNABLE_ON;
     /**
      * Tag representing all items that can be used as piglin food
      */
-    public static @NonNull XTag PIGLIN_FOOD;
+    public final static @NonNull XTag PIGLIN_FOOD;
     /**
      * Tag representing all block types that repel piglins
      */
-    public static @NonNull XTag PIGLIN_REPELLENTS;
+    public final static @NonNull XTag PIGLIN_REPELLENTS;
     /**
      * Tag representing all types of planks
      */
-    public static @NonNull XTag PLANKS;
+    public final static @NonNull XTag PLANKS;
     /**
      * Tag representing all possible blocks polar bears may spawn on
      */
-    public static @NonNull XTag POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN;
+    public final static @NonNull XTag POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN;
     /**
      * Tag representing all possible block types that be used as portals
      */
-    public static @NonNull XTag PORTALS;
+    public final static @NonNull XTag PORTALS;
     /**
      * Tag representing all possible variants of pressure plates
      */
-    public static @NonNull XTag PRESSURE_PLATES;
+    public final static @NonNull XTag PRESSURE_PLATES;
     /**
      * Tag representing all block types that prevent inside mob spawning
      */
-    public static @NonNull XTag PREVENT_MOB_SPAWNING_INSIDE;
+    public final static @NonNull XTag PREVENT_MOB_SPAWNING_INSIDE;
     /**
      * Tag representing all possible block types that rabbits may spawn on
      */
-    public static @NonNull XTag RABBITS_SPAWNABLE_ON;
+    public final static @NonNull XTag RABBITS_SPAWNABLE_ON;
     /**
      * Tag representing all possible types of rails
      */
-    public static @NonNull XTag RAILS;
+    public final static @NonNull XTag RAILS;
     /**
      * Tag representing all possible variants of redstone ores
      */
-    public static @NonNull XTag REDSTONE_ORES;
+    public final static @NonNull XTag REDSTONE_ORES;
     /**
      * Tag representing all plant blocks that may be replaced
      */
-    public static @NonNull XTag REPLACEABLE_PLANTS;
+    public final static @NonNull XTag REPLACEABLE_PLANTS;
     /**
      * Tag representing all possible types of sand
      */
-    public static @NonNull XTag SAND;
+    public final static @NonNull XTag SAND;
     /**
      * Tag representing all possible types of saplings
      */
-    public static @NonNull XTag SAPLINGS;
+    public final static @NonNull XTag SAPLINGS;
     /**
      * Tag representing all possible variants of shulker boxes
      */
-    public static @NonNull XTag SHULKER_BOXES;
+    public final static @NonNull XTag SHULKER_BOXES;
     /**
      * Tag representing all possible variants of signs
      */
-    public static @NonNull XTag SIGNS;
+    public final static @NonNull XTag SIGNS;
     /**
      * Tag representing all possible block types small dripleaf may be placed upon
      */
-    public static @NonNull XTag SMALL_DRIPLEAF_PLACEABLE;
+    public final static @NonNull XTag SMALL_DRIPLEAF_PLACEABLE;
     /**
      * Tag representing all flowers small in size {1 block tall}
      */
-    public static @NonNull XTag SMALL_FLOWERS;
+    public final static @NonNull XTag SMALL_FLOWERS;
     /**
      * Tag representing all possible variants of snow
      */
-    public static @NonNull XTag SNOW;
+    public final static @NonNull XTag SNOW;
     /**
      * Tag representing all possible blocks that can be lit up with sould fire
      */
-    public static @NonNull XTag SOUL_FIRE_BASE_BLOCKS;
+    public final static @NonNull XTag SOUL_FIRE_BASE_BLOCKS;
     /**
      * Tag representing all possible blocks that activate soul speed enchantment
      */
-    public static @NonNull XTag SOUL_SPEED_BLOCKS;
+    public final static @NonNull XTag SOUL_SPEED_BLOCKS;
     /**
      * Tag representing all spruce wood and log variants
      */
-    public static @NonNull XTag SPRUCE_LOGS;
+    public final static @NonNull XTag SPRUCE_LOGS;
     /**
      * Tag representing all possible types of stairs
      */
-    public static @NonNull XTag STAIRS;
+    public final static @NonNull XTag STAIRS;
     /**
      * Tag representing all possible types of standing signs
      */
-    public static @NonNull XTag STANDING_SIGNS;
+    public final static @NonNull XTag STANDING_SIGNS;
     /**
      * Tag representing all possible variants of stone bricks
      */
-    public static @NonNull XTag STONE_BRICKS;
+    public final static @NonNull XTag STONE_BRICKS;
     /**
      * Tag representing all possible blocks that can be replaced by regular stone ores
      */
-    public static @NonNull XTag STONE_ORE_REPLACEABLES;
+    public final static @NonNull XTag STONE_ORE_REPLACEABLES;
     /**
      * Tag representing all pressure plates made of some type of stone
      */
-    public static @NonNull XTag STONE_PRESSURE_PLATES;
+    public final static @NonNull XTag STONE_PRESSURE_PLATES;
     /**
      * Tag representing all block types that make strider warm
      */
-    public static @NonNull XTag STRIDER_WARM_BLOCKS;
+    public final static @NonNull XTag STRIDER_WARM_BLOCKS;
     /**
      * Tag representing all flowers that are tall {2 blocks}
      */
-    public static @NonNull XTag TALL_FLOWERS;
+    public final static @NonNull XTag TALL_FLOWERS;
     /**
      * Tag representing all possible variants of terracotta
      */
-    public static @NonNull XTag TERRACOTTA;
+    public final static @NonNull XTag TERRACOTTA;
     /**
      * Tag representing all possible types of trapdoors
      */
-    public static @NonNull XTag TRAPDOORS;
+    public final static @NonNull XTag TRAPDOORS;
     /**
      * Tag representing all block types that can be bonemealed underwater
      */
-    public static @NonNull XTag UNDERWATER_BONEMEALS;
+    public final static @NonNull XTag UNDERWATER_BONEMEALS;
     /**
      * Tag representing all blocks that have unstable bottom when placed in centre of 2 blocks
      */
-    public static @NonNull XTag UNSTABLE_BOTTOM_CENTER;
+    public final static @NonNull XTag UNSTABLE_BOTTOM_CENTER;
     /**
      * Tag representing all valid mob spawn positions
      */
-    public static @NonNull XTag VALID_SPAWN;
+    public final static @NonNull XTag VALID_SPAWN;
     /**
      * Tag representing all wall corals
      */
-    public static @NonNull XTag WALL_CORALS;
+    public final static @NonNull XTag WALL_CORALS;
     /**
      * Tag representing all possible block types that can override a wall post creation
      */
-    public static @NonNull XTag WALL_POST_OVERRIDE;
+    public final static @NonNull XTag WALL_POST_OVERRIDE;
     /**
      * Tag representing all wall signs
      */
-    public static @NonNull XTag WALL_SIGNS;
+    public final static @NonNull XTag WALL_SIGNS;
     /**
      * Tag representing all different types of walls
      */
-    public static @NonNull XTag WALLS;
+    public final static @NonNull XTag WALLS;
     /**
      * Tag representing all warped stems
      */
-    public static @NonNull XTag WARPED_STEMS;
+    public final static @NonNull XTag WARPED_STEMS;
     /**
      * Tag representing all block types that can't be destroyed by withers
      */
-    public static @NonNull XTag WITHER_IMMUNE;
+    public final static @NonNull XTag WITHER_IMMUNE;
     /**
      * Tag representing all possible block types that may be used as wither summon base
      */
-    public static @NonNull XTag WITHER_SUMMON_BASE_BLOCKS;
+    public final static @NonNull XTag WITHER_SUMMON_BASE_BLOCKS;
     /**
      * Tag representing all possible block types that wolves may spawn on
      */
-    public static @NonNull XTag WOLVES_SPAWNABLE_ON;
+    public final static @NonNull XTag WOLVES_SPAWNABLE_ON;
     /**
      * Tag representing all possible types of wooden buttons
      */
-    public static @NonNull XTag WOODEN_BUTTONS;
+    public final static @NonNull XTag WOODEN_BUTTONS;
     /**
      * Tag representing all possible types of wooden doors
      */
-    public static @NonNull XTag WOODEN_DOORS;
+    public final static @NonNull XTag WOODEN_DOORS;
     /**
      * Tag representing all possible types of wooden fences
      */
-    public static @NonNull XTag WOODEN_FENCES;
+    public final static @NonNull XTag WOODEN_FENCES;
     /**
      * Tag representing all possible types of wooden pressure plates
      */
-    public static @NonNull XTag WOODEN_PRESSURE_PLATES;
+    public final static @NonNull XTag WOODEN_PRESSURE_PLATES;
     /**
      * Tag representing all possible types of wooden slabs
      */
-    public static @NonNull XTag WOODEN_SLABS;
+    public final static @NonNull XTag WOODEN_SLABS;
     /**
      * Tag representing all possible types of wooden trapdoors
      */
-    public static @NonNull XTag WOODEN_TRAPDOORS;
+    public final static @NonNull XTag WOODEN_TRAPDOORS;
     /**
      * Tag representing all possible types of wool
      */
-    public static @NonNull XTag WOOL;
+    public final static @NonNull XTag WOOL;
 
 
     static {
