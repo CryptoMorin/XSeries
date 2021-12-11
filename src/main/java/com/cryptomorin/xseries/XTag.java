@@ -7,7 +7,7 @@ import java.util.Set;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 @SuppressWarnings("unchecked")
-public class XTag<@NonNull T> {
+public final class XTag<@NonNull T> {
 
     /**
      * Tag representing all acacia log and bark variants
