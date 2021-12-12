@@ -2220,7 +2220,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.PROTECTION_FIRE,
                 XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE
+                XEnchantment.PROTECTION_PROJECTILE,
                 XEnchantment.PROTECTION_ENVIRONMENTAL,
                 XEnchantment.OXYGEN,
                 XEnchantment.THORNS,
