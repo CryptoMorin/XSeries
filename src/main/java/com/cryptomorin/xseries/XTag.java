@@ -600,6 +600,10 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
 
     /**
+     * Tag representing all possible enchants that can be applied to all armor pieces (excluding elytras)
+     */
+    public final static @NonNull XTag<XEnchantment> ARMOR_ENCHANTS;
+    /**
      * Tag representing all possible enchants that can be applied to helmets/turtle shells
      */
     public final static @NonNull XTag<XEnchantment> HELEMT_ENCHANTS;
@@ -615,6 +619,43 @@ public final class XTag<@NonNull T extends Enum<T>> {
      * Tag representing all possible enchants that can be applied to boots
      */
     public final static @NonNull XTag<XEnchantment> BOOTS_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to elytras
+     */
+    public final static @NonNull XTag<XEnchantment> ELYTRA_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to swords
+     */
+    public final static @NonNull XTag<XEnchantment> SWORD_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to axes
+     */
+    public final static @NonNull XTag<XEnchantment> AXE_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to hoes
+     */
+    public final static @NonNull XTag<XEnchantment> HOE_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to pickaxes
+     */
+    public final static @NonNull XTag<XEnchantment> PICKAXE_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to shovels
+     */
+    public final static @NonNull XTag<XEnchantment> SHOVEL_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to shears
+     */
+    public final static @NonNull XTag<XEnchantment> SHEARS_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to bows
+     */
+    public final static @NonNull XTag<XEnchantment> BOW_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to crossbows
+     */
+    public final static @NonNull XTag<XEnchantment> CROSSBOW_ENCHANTS;
+
 
     static {
         ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
@@ -2212,51 +2253,93 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 DIRT,
                 BASE_STONE_OVERWORLD);
 
-
+        ARMOR_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
+                XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.MENDING,
+                XEnchantment.PROTECTION_PROJECTILE,
+                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
 
         HELEMT_ENCHANTS = new XTag<>(XEnchantment.WATER_WORKER,
-                XEnchantment.PROTECTION_EXPLOSIONS,
-                XEnchantment.BINDING_CURSE,
-                XEnchantment.VANISHING_CURSE,
-                XEnchantment.PROTECTION_FIRE,
-                XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE,
-                XEnchantment.PROTECTION_ENVIRONMENTAL,
-                XEnchantment.OXYGEN,
-                XEnchantment.THORNS,
-                XEnchantment.DURABILITY);
+                XEnchantment.OXYGEN);
+        HELEMT_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
 
-        CHESTPLATE_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
-                XEnchantment.BINDING_CURSE,
-                XEnchantment.VANISHING_CURSE,
-                XEnchantment.PROTECTION_FIRE,
-                XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE,
-                XEnchantment.PROTECTION_ENVIRONMENTAL,
-                XEnchantment.THORNS,
-                XEnchantment.DURABILITY);
+        CHESTPLATE_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
 
-        LEGGINGS_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
-                XEnchantment.BINDING_CURSE,
-                XEnchantment.VANISHING_CURSE,
-                XEnchantment.PROTECTION_FIRE,
-                XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE,
-                XEnchantment.PROTECTION_ENVIRONMENTAL,
-                XEnchantment.THORNS,
-                XEnchantment.DURABILITY);
+        LEGGINGS_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
 
-        BOOTS_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
-                XEnchantment.BINDING_CURSE,
-                XEnchantment.VANISHING_CURSE,
-                XEnchantment.DEPTH_STRIDER,
+        BOOTS_ENCHANTS = new XTag<>(XEnchantment.DEPTH_STRIDER,
                 XEnchantment.PROTECTION_FALL,
-                XEnchantment.PROTECTION_FIRE,
-                XEnchantment.FROST_WALKER,
+                XEnchantment.FROST_WALKER);
+        BOOTS_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
+
+        ELYTRA_ENCHANTS = new XTag<>(XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
                 XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE,
-                XEnchantment.PROTECTION_ENVIRONMENTAL,
-                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
+
+        SWORD_ENCHANTS = new XTag<>(XEnchantment.DAMAGE_ARTHROPODS,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.FIRE_ASPECT,
+                XEnchantment.KNOCKBACK,
+                XEnchantment.LOOT_BONUS_MOBS,
+                XEnchantment.MENDING,
+                XEnchantment.DAMAGE_ALL,
+                XEnchantment.DAMAGE_UNDEAD,
+                XEnchantment.SWEEPING_EDGE,
+                XEnchantment.DURABILITY);
+
+        AXE_ENCHANTS = new XTag<>(XEnchantment.DAMAGE_ARTHROPODS,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.DIG_SPEED,
+                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.MENDING,
+                XEnchantment.DAMAGE_ALL,
+                XEnchantment.SILK_TOUCH,
+                XEnchantment.DAMAGE_UNDEAD,
+                XEnchantment.DURABILITY);
+
+        HOE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.DIG_SPEED,
+                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.MENDING,
+                XEnchantment.SILK_TOUCH,
+                XEnchantment.DURABILITY);
+
+        PICKAXE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.DIG_SPEED,
+                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.MENDING,
+                XEnchantment.SILK_TOUCH,
+                XEnchantment.DURABILITY);
+
+        SHOVEL_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.DIG_SPEED,
+                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.MENDING,
+                XEnchantment.SILK_TOUCH,
+                XEnchantment.DURABILITY);
+
+        SHEARS_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.DIG_SPEED,
+                XEnchantment.MENDING,
+                XEnchantment.DURABILITY);
+
+        BOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.ARROW_FIRE,
+                XEnchantment.ARROW_INFINITE,
+                XEnchantment.MENDING,
+                XEnchantment.ARROW_KNOCKBACK,
+                XEnchantment.DURABILITY);
+
+        CROSSBOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+                XEnchantment.MENDING,
+                XEnchantment.MULTISHOT,
+                XEnchantment.PIERCING,
+                XEnchantment.QUICK_CHARGE,
                 XEnchantment.DURABILITY);
 
     }
