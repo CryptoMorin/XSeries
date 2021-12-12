@@ -593,6 +593,29 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> WOOL;
 
+    /*
+        -----------------------------------------------
+        Beginning of tags not provided by spigot
+        -----------------------------------------------
+     */
+
+    /**
+     * Tag representing all possible enchants that can be applied to helmets/turtle shells
+     */
+    public final static @NonNull XTag<XEnchantment> HELEMT_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to chestplates
+     */
+    public final static @NonNull XTag<XEnchantment> CHESTPLATE_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to leggings
+     */
+    public final static @NonNull XTag<XEnchantment> LEGGINGS_ENCHANTS;
+    /**
+     * Tag representing all possible enchants that can be applied to boots
+     */
+    public final static @NonNull XTag<XEnchantment> BOOTS_ENCHANTS;
+
     static {
         ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
                 XMaterial.ACACIA_LOG,
@@ -2188,6 +2211,54 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 CAVE_VINES,
                 DIRT,
                 BASE_STONE_OVERWORLD);
+
+
+
+        HELEMT_ENCHANTS = new XTag<>(XEnchantment.WATER_WORKER,
+                XEnchantment.PROTECTION_EXPLOSIONS,
+                XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.MENDING,
+                XEnchantment.PROTECTION_PROJECTILE
+                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.OXYGEN,
+                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
+
+        CHESTPLATE_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
+                XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.MENDING,
+                XEnchantment.PROTECTION_PROJECTILE,
+                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
+
+        LEGGINGS_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
+                XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.MENDING,
+                XEnchantment.PROTECTION_PROJECTILE,
+                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
+
+        BOOTS_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
+                XEnchantment.BINDING_CURSE,
+                XEnchantment.VANISHING_CURSE,
+                XEnchantment.DEPTH_STRIDER,
+                XEnchantment.PROTECTION_FALL,
+                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.FROST_WALKER,
+                XEnchantment.MENDING,
+                XEnchantment.PROTECTION_PROJECTILE,
+                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.THORNS,
+                XEnchantment.DURABILITY);
+
     }
 
     private XTag(@NonNull T... values) {
