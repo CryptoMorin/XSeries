@@ -600,6 +600,55 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
 
     /**
+     * Tag representing all armor pieces made of leather
+     */
+    public final static @NonNull XTag<XMaterial> LEATHER_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces made of iron
+     */
+    public final static @NonNull XTag<XMaterial> IRON_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces made of chains
+     */
+    public final static @NonNull XTag<XMaterial> CHAINMAIL_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces made of gold
+     */
+    public final static @NonNull XTag<XMaterial> GOLDEN_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces made of diamond
+     */
+    public final static @NonNull XTag<XMaterial> DIAMOND_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces made of netherite
+     */
+    public final static @NonNull XTag<XMaterial> NETHERITE_ARMOR_PIECES;
+    /**
+     * Tag representing all armor pieces that add armor bars upon wearing
+     */
+    public final static @NonNull XTag<XMaterial> ARMOR_PIECES;
+    /**
+     * Tag representing all wooden tools and swords
+     */
+    public final static @NonNull XTag<XMaterial> WOODEN_TOOLS;
+    /**
+     * Tag representing all stone tools and swords
+     */
+    public final static @NonNull XTag<XMaterial> STONE_TOOLS;
+    /**
+     * Tag representing all iron tools and swords
+     */
+    public final static @NonNull XTag<XMaterial> IRON_TOOLS;
+    /**
+     * Tag representing all diamond tools and swords
+     */
+    public final static @NonNull XTag<XMaterial> DIAMOND_TOOLS;
+    /**
+     * Tag representing all netherite tools and swords
+     */
+    public final static @NonNull XTag<XMaterial> NETHERITE_TOOLS;
+
+    /**
      * Tag representing all possible enchants that can be applied to all armor pieces (excluding elytras)
      */
     public final static @NonNull XTag<XEnchantment> ARMOR_ENCHANTS;
@@ -1359,6 +1408,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.CRIMSON_BUTTON,
                 XMaterial.WARPED_SIGN);
         MOOSHROOMS_SPAWNABLE_ON = new XTag<>(XMaterial.MYCELIUM);
+
         NEEDS_STONE_TOOL = new XTag<>(XMaterial.OXIDIZED_CUT_COPPER,
                 XMaterial.DEEPSLATE_COPPER_ORE,
                 XMaterial.EXPOSED_CUT_COPPER_SLAB,
@@ -2113,8 +2163,62 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.STRIPPED_WARPED_HYPHAE,
                 XMaterial.BIRCH_LOG);
-
-
+        LEATHER_ARMOR_PIECES = new XTag<>(XMaterial.LEATHER_HELMET,
+                XMaterial.LEATHER_CHESTPLATE,
+                XMaterial.LEATHER_LEGGINGS,
+                XMaterial.LEATHER_BOOTS);
+        IRON_ARMOR_PIECES = new XTag<>(XMaterial.IRON_HELMET,
+                XMaterial.IRON_CHESTPLATE,
+                XMaterial.IRON_LEGGINGS,
+                XMaterial.IRON_BOOTS);
+        CHAINMAIL_ARMOR_PIECES = new XTag<>(XMaterial.CHAINMAIL_HELMET,
+                XMaterial.CHAINMAIL_CHESTPLATE,
+                XMaterial.CHAINMAIL_LEGGINGS,
+                XMaterial.CHAINMAIL_BOOTS);
+        GOLDEN_ARMOR_PIECES = new XTag<>(XMaterial.GOLDEN_HELMET,
+                XMaterial.GOLDEN_CHESTPLATE,
+                XMaterial.GOLDEN_LEGGINGS,
+                XMaterial.GOLDEN_BOOTS);
+        DIAMOND_ARMOR_PIECES = new XTag<>(XMaterial.DIAMOND_HELMET,
+                XMaterial.DIAMOND_CHESTPLATE,
+                XMaterial.DIAMOND_LEGGINGS,
+                XMaterial.DIAMOND_BOOTS);
+        NETHERITE_ARMOR_PIECES = new XTag<>(XMaterial.NETHERITE_HELMET,
+                XMaterial.NETHERITE_CHESTPLATE,
+                XMaterial.NETHERITE_LEGGINGS,
+                XMaterial.NETHERITE_BOOTS);
+        WOODEN_TOOLS = new XTag<>(XMaterial.WOODEN_PICKAXE,
+                XMaterial.WOODEN_AXE,
+                XMaterial.WOODEN_HOE,
+                XMaterial.WOODEN_SHOVEL,
+                XMaterial.WOODEN_SWORD);
+        STONE_TOOLS = new XTag<>(XMaterial.STONE_PICKAXE,
+                XMaterial.STONE_AXE,
+                XMaterial.STONE_HOE,
+                XMaterial.STONE_SHOVEL,
+                XMaterial.STONE_SWORD);
+        IRON_TOOLS = new XTag<>(XMaterial.IRON_PICKAXE,
+                XMaterial.IRON_AXE,
+                XMaterial.IRON_HOE,
+                XMaterial.IRON_SHOVEL,
+                XMaterial.IRON_SWORD);
+        DIAMOND_TOOLS = new XTag<>(XMaterial.DIAMOND_PICKAXE,
+                XMaterial.DIAMOND_AXE,
+                XMaterial.DIAMOND_HOE,
+                XMaterial.DIAMOND_SHOVEL,
+                XMaterial.DIAMOND_SHOVEL);
+        NETHERITE_TOOLS = new XTag<>(XMaterial.NETHERITE_PICKAXE,
+                XMaterial.NETHERITE_AXE,
+                XMaterial.NETHERITE_HOE,
+                XMaterial.NETHERITE_SHOVEL,
+                XMaterial.NETHERITE_SHOVEL);
+        ARMOR_PIECES = new XTag<>(XMaterial.TURTLE_HELMET);
+        ARMOR_PIECES.inheritFrom(LEATHER_ARMOR_PIECES,
+                CHAINMAIL_ARMOR_PIECES,
+                IRON_ARMOR_PIECES,
+                GOLDEN_ARMOR_PIECES,
+                DIAMOND_ARMOR_PIECES,
+                NETHERITE_ARMOR_PIECES);
 
         AZALEA_GROWS_ON = new XTag<>(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW);
         AZALEA_GROWS_ON.inheritFrom(TERRACOTTA, SAND, DIRT);
@@ -2176,7 +2280,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.RAW_GOLD,
                 XMaterial.GLISTERING_MELON_SLICE,
                 XMaterial.GOLDEN_HORSE_ARMOR,
-                XMaterial.GOLDEN_LEGGINGS,
                 XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
                 XMaterial.GOLDEN_SWORD,
                 XMaterial.GOLDEN_AXE,
@@ -2185,15 +2288,13 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.RAW_GOLD_BLOCK,
                 XMaterial.GILDED_BLACKSTONE,
                 XMaterial.CLOCK,
-                XMaterial.GOLDEN_HELMET,
                 XMaterial.GOLDEN_CARROT,
                 XMaterial.GOLDEN_APPLE,
-                XMaterial.GOLDEN_CHESTPLATE,
-                XMaterial.GOLDEN_BOOTS,
                 XMaterial.GOLDEN_SHOVEL,
+                XMaterial.GOLDEN_PICKAXE,
                 XMaterial.GOLDEN_HOE,
                 XMaterial.GOLD_INGOT);
-        ITEMS_PIGLIN_LOVED.inheritFrom(GOLD_ORES);
+        ITEMS_PIGLIN_LOVED.inheritFrom(GOLD_ORES, GOLDEN_ARMOR_PIECES);
         SIGNS = new XTag<>(XMaterial.class,
                 WALL_SIGNS,
                 STANDING_SIGNS);
@@ -2218,15 +2319,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
         PREVENT_MOB_SPAWNING_INSIDE = new XTag<>(XMaterial.class,
                 RAILS);
         PARROTS_SPAWNABLE_ON = new XTag<>(XMaterial.AIR, XMaterial.GRASS_BLOCK);
-        PARROTS_SPAWNABLE_ON.inheritFrom(LEAVES,
-                JUNGLE_LOGS,
-                SPRUCE_LOGS,
-                OAK_LOGS,
-                DARK_OAK_LOGS,
-                ACACIA_LOGS,
-                BIRCH_LOGS,
-                CRIMSON_STEMS,
-                WARPED_STEMS);
         OCCLUDES_VIBRATION_SIGNALS = new XTag<>(XMaterial.class, WOOL);
         LOGS_THAT_BURN = new XTag<>(XMaterial.class, ACACIA_LOGS,
                 OAK_LOGS,
@@ -2238,6 +2330,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 LOGS_THAT_BURN,
                 CRIMSON_STEMS,
                 WARPED_STEMS);
+        PARROTS_SPAWNABLE_ON.inheritFrom(LEAVES, LOGS);
         LUSH_GROUND_REPLACEABLE = new XTag<>(XMaterial.GRAVEL,
                 XMaterial.SAND,
                 XMaterial.CLAY);
