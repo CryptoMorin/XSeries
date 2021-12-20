@@ -402,6 +402,14 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> NON_FLAMMABLE_WOOD;
     /**
+     * Tag representing all non-wooden stairs
+     */
+    public final static @NonNull XTag<XMaterial> NON_WOODEN_STAIRS;
+    /**
+     * Tag representing all non-wooden slabs
+     */
+    public final static @NonNull XTag<XMaterial> NON_WOODEN_SLABS;
+    /**
      * Tag representing all nylium blocks
      */
     public final static @NonNull XTag<XMaterial> NYLIUM;
@@ -1020,7 +1028,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.BIRCH_LEAVES,
                 XMaterial.OAK_LEAVES);
-        STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
+        NON_WOODEN_STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
                 XMaterial.STONE_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
                 XMaterial.RED_SANDSTONE_STAIRS,
@@ -1032,16 +1040,12 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.NETHER_BRICK_STAIRS,
                 XMaterial.RED_NETHER_BRICK_STAIRS,
                 XMaterial.PRISMARINE_BRICK_STAIRS,
-                XMaterial.JUNGLE_STAIRS,
-                XMaterial.ACACIA_STAIRS,
                 XMaterial.WAXED_CUT_COPPER_STAIRS,
                 XMaterial.DEEPSLATE_TILE_STAIRS,
-                XMaterial.CRIMSON_STAIRS,
                 XMaterial.POLISHED_ANDESITE_STAIRS,
                 XMaterial.SMOOTH_RED_SANDSTONE_STAIRS,
                 XMaterial.PURPUR_STAIRS,
                 XMaterial.POLISHED_DEEPSLATE_STAIRS,
-                XMaterial.SPRUCE_STAIRS,
                 XMaterial.QUARTZ_STAIRS,
                 XMaterial.MOSSY_COBBLESTONE_STAIRS,
                 XMaterial.BRICK_STAIRS,
@@ -1054,20 +1058,56 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.DEEPSLATE_BRICK_STAIRS,
                 XMaterial.DIORITE_STAIRS,
                 XMaterial.SMOOTH_QUARTZ_STAIRS,
-                XMaterial.OAK_STAIRS,
                 XMaterial.EXPOSED_CUT_COPPER_STAIRS,
-                XMaterial.WARPED_STAIRS,
                 XMaterial.DARK_PRISMARINE_STAIRS,
                 XMaterial.OXIDIZED_CUT_COPPER_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_STAIRS,
-                XMaterial.BIRCH_STAIRS,
                 XMaterial.POLISHED_GRANITE_STAIRS,
                 XMaterial.MOSSY_STONE_BRICK_STAIRS,
-                XMaterial.DARK_OAK_STAIRS,
                 XMaterial.END_STONE_BRICK_STAIRS,
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
                 XMaterial.SMOOTH_SANDSTONE_STAIRS,
                 XMaterial.BLACKSTONE_STAIRS);
+        STAIRS = new XTag<>(XMaterial.class ,NON_WOODEN_STAIRS, WOODEN_STAIRS);
+        NON_WOODEN_SLABS = new XTag<>(XMaterial.MOSSY_COBBLESTONE_SLAB,
+                XMaterial.EXPOSED_CUT_COPPER_SLAB,
+                XMaterial.SMOOTH_QUARTZ_SLAB,
+                XMaterial.COBBLESTONE_SLAB,
+                XMaterial.POLISHED_BLACKSTONE_SLAB,
+                XMaterial.OXIDIZED_CUT_COPPER_SLAB,
+                XMaterial.POLISHED_ANDESITE_SLAB,
+                XMaterial.RED_SANDSTONE_SLAB,
+                XMaterial.BLACKSTONE_SLAB,
+                XMaterial.STONE_SLAB,
+                XMaterial.SMOOTH_SANDSTONE_SLAB,
+                XMaterial.COBBLED_DEEPSLATE_SLAB,
+                XMaterial.SMOOTH_RED_SANDSTONE_SLAB,
+                XMaterial.POLISHED_DIORITE_SLAB,
+                XMaterial.PRISMARINE_BRICK_SLAB,
+                XMaterial.QUARTZ_SLAB,
+                XMaterial.DIORITE_SLAB,
+                XMaterial.NETHER_BRICK_SLAB,
+                XMaterial.PRISMARINE_SLAB,
+                XMaterial.WAXED_EXPOSED_CUT_COPPER_SLAB,
+                XMaterial.RED_NETHER_BRICK_SLAB,
+                XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB,
+                XMaterial.MOSSY_STONE_BRICK_SLAB,
+                XMaterial.SMOOTH_STONE_SLAB,
+                XMaterial.SANDSTONE_SLAB,
+                XMaterial.WEATHERED_CUT_COPPER_SLAB,
+                XMaterial.DEEPSLATE_BRICK_SLAB,
+                XMaterial.POLISHED_DEEPSLATE_SLAB,
+                XMaterial.GRANITE_SLAB,
+                XMaterial.ANDESITE_SLAB,
+                XMaterial.CUT_COPPER_SLAB,
+                XMaterial.CUT_SANDSTONE_SLAB,
+                XMaterial.END_STONE_BRICK_SLAB,
+                XMaterial.WAXED_OXIDIZED_CUT_COPPER_SLAB,
+                XMaterial.PURPUR_SLAB,
+                XMaterial.STONE_BRICK_SLAB);
+        //TODO: LEFT
+
+        
         SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
         SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
@@ -1594,7 +1634,8 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 EMERALD_ORES,
                 COPPER_ORES,
                 ANVIL,
-                );
+                CONCRETE,
+                NON_WOODEN_STAIRS);
 
         MINEABLE_SHOVEL = new XTag<>(XMaterial.BROWN_CONCRETE_POWDER,
                 XMaterial.RED_CONCRETE_POWDER,
