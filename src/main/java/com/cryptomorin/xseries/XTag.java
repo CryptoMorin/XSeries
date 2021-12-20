@@ -1,12 +1,9 @@
 package com.cryptomorin.xseries;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.*;
 
 @SuppressWarnings("unchecked")
 public final class XTag<@NonNull T extends Enum<T>> {
@@ -14,7 +11,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all acacia log and bark variants
      */
-    public final static @NonNull XTag<XMaterial> ACACIA_LOGS;
+    public static @NonNull XTag<XMaterial> ACACIA_LOGS;
     /**
      * Tag representing all possible blocks available for animals to spawn on
      */
@@ -46,7 +43,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all banner blocks
      */
-    public final static @NonNull XTag<XMaterial> BANNERS;
+    public static @NonNull XTag<XMaterial> BANNERS;
     /**
      * Tag representing the nether base materials
      */
@@ -62,7 +59,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of bed
      */
-    public final static @NonNull XTag<XMaterial> BEDS;
+    public static @NonNull XTag<XMaterial> BEDS;
     /**
      * Tag representing all possible blocks/crops that be grown by bees
      */
@@ -74,7 +71,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all birch log and bark variants
      */
-    public final static @NonNull XTag<XMaterial> BIRCH_LOGS;
+    public static @NonNull XTag<XMaterial> BIRCH_LOGS;
     /**
      * Tag representing all possible variants of buttons
      */
@@ -86,15 +83,15 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of candle cakes
      */
-    public final static @NonNull XTag<XMaterial> CANDLE_CAKES;
+    public static @NonNull XTag<XMaterial> CANDLE_CAKES;
     /**
      * Tag representing all possible variants of candles
      */
-    public final static @NonNull XTag<XMaterial> CANDLES;
+    public static @NonNull XTag<XMaterial> CANDLES;
     /**
      * Tag representing all possible variants of carpets
      */
-    public final static @NonNull XTag<XMaterial> CARPETS;
+    public static @NonNull XTag<XMaterial> CARPETS;
     /**
      * Tag representing all possible variants of cauldrons
      */
@@ -116,9 +113,21 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> COAL_ORES;
     /**
+     * Tag representing all possible variants of concrete
+     */
+    public static @NonNull XTag<XMaterial> CONCRETE;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> CONCRETE_POWDER;
+    /**
      * Tag representing all possible variants of copper ores
      */
     public final static @NonNull XTag<XMaterial> COPPER_ORES;
+    /**
+     * Tag representing all non-walled coral fans
+     */
+    public final static @NonNull XTag<XMaterial> CORAL_FANS;
     /**
      * Tag representing all coral plants
      */
@@ -142,7 +151,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all dark oak log and bark variants
      */
-    public final static @NonNull XTag<XMaterial> DARK_OAK_LOGS;
+    public static @NonNull XTag<XMaterial> DARK_OAK_LOGS;
     /**
      * Tag representing all possible blocks that may be replaced by deepslate ores
      */
@@ -216,6 +225,14 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> GEODE_INVALID_BLOCKS;
     /**
+     * Tag representing all variants of glass
+     */
+    public static @NonNull XTag<XMaterial> GLASS;
+    /**
+     * Tag representing all possible variants of glazed terracotta
+     */
+    public static @NonNull XTag<XMaterial> GLAZED_TERRACOTTA;
+    /**
      * Tag representing all possible blocks goats may spawn on
      */
     public final static @NonNull XTag<XMaterial> GOATS_SPAWNABLE_ON;
@@ -270,7 +287,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all items that can be used as banners
      */
-    public final static @NonNull XTag<XMaterial> ITEMS_BANNERS;
+    public static @NonNull XTag<XMaterial> ITEMS_BANNERS;
     /**
      * Tag representing all items that can be used to fuel beacon
      */
@@ -314,11 +331,11 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible types of wall banners
      */
-    public final static @NonNull XTag<XMaterial> WALL_BANNERS;
+    public static @NonNull XTag<XMaterial> WALL_BANNERS;
     /**
      * Tag representing all jungle log and bark variants
      */
-    public final static @NonNull XTag<XMaterial> JUNGLE_LOGS;
+    public static @NonNull XTag<XMaterial> JUNGLE_LOGS;
     /**
      * Tag representing all possible variants of lapis ores
      */
@@ -391,7 +408,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all oak wood and bark variants
      */
-    public final static @NonNull XTag<XMaterial> OAK_LOGS;
+    public static @NonNull XTag<XMaterial> OAK_LOGS;
     /**
      * Tag representing all possible blocks that can block vibration signals
      */
@@ -411,7 +428,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all types of planks
      */
-    public final static @NonNull XTag<XMaterial> PLANKS;
+    public static @NonNull XTag<XMaterial> PLANKS;
     /**
      * Tag representing all possible blocks polar bears may spawn on
      */
@@ -455,7 +472,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of shulker boxes
      */
-    public final static @NonNull XTag<XMaterial> SHULKER_BOXES;
+    public static @NonNull XTag<XMaterial> SHULKER_BOXES;
     /**
      * Tag representing all possible variants of signs
      */
@@ -483,7 +500,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all spruce wood and log variants
      */
-    public final static @NonNull XTag<XMaterial> SPRUCE_LOGS;
+    public static @NonNull XTag<XMaterial> SPRUCE_LOGS;
     /**
      * Tag representing all possible types of stairs
      */
@@ -491,7 +508,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible types of standing signs
      */
-    public final static @NonNull XTag<XMaterial> STANDING_SIGNS;
+    public static @NonNull XTag<XMaterial> STANDING_SIGNS;
     /**
      * Tag representing all possible variants of stone bricks
      */
@@ -513,9 +530,9 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> TALL_FLOWERS;
     /**
-     * Tag representing all possible variants of terracotta
+     * Tag representing all possible variants of non-glazed terracotta
      */
-    public final static @NonNull XTag<XMaterial> TERRACOTTA;
+    public static @NonNull XTag<XMaterial> TERRACOTTA;
     /**
      * Tag representing all possible types of trapdoors
      */
@@ -543,7 +560,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all wall signs
      */
-    public final static @NonNull XTag<XMaterial> WALL_SIGNS;
+    public static @NonNull XTag<XMaterial> WALL_SIGNS;
     /**
      * Tag representing all different types of walls
      */
@@ -567,39 +584,39 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible types of wooden buttons
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_BUTTONS;
+    public static @NonNull XTag<XMaterial> WOODEN_BUTTONS;
     /**
      * Tag representing all possible types of wooden doors
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_DOORS;
+    public static @NonNull XTag<XMaterial> WOODEN_DOORS;
     /**
      * Tag representing all possible types of wooden fence gates
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_FENCE_GATES;
+    public static @NonNull XTag<XMaterial> WOODEN_FENCE_GATES;
     /**
      * Tag representing all possible types of wooden fences
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_FENCES;
+    public static @NonNull XTag<XMaterial> WOODEN_FENCES;
     /**
      * Tag representing all possible types of wooden pressure plates
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_PRESSURE_PLATES;
+    public static @NonNull XTag<XMaterial> WOODEN_PRESSURE_PLATES;
     /**
      * Tag representing all possible types of wooden slabs
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_SLABS;
+    public static @NonNull XTag<XMaterial> WOODEN_SLABS;
     /**
      * Tag representing all possible types of wooden stairs
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_STAIRS;
+    public static @NonNull XTag<XMaterial> WOODEN_STAIRS;
     /**
      * Tag representing all possible types of wooden trapdoors
      */
-    public final static @NonNull XTag<XMaterial> WOODEN_TRAPDOORS;
+    public static @NonNull XTag<XMaterial> WOODEN_TRAPDOORS;
     /**
      * Tag representing all possible types of wool
      */
-    public final static @NonNull XTag<XMaterial> WOOL;
+    public static @NonNull XTag<XMaterial> WOOL;
 
 
 
@@ -712,113 +729,11 @@ public final class XTag<@NonNull T extends Enum<T>> {
 
 
     static {
-        ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
-                XMaterial.ACACIA_LOG,
-                XMaterial.ACACIA_WOOD,
-                XMaterial.STRIPPED_ACACIA_WOOD);
-        BIRCH_LOGS = new XTag<>(XMaterial.STRIPPED_BIRCH_LOG,
-                XMaterial.BIRCH_LOG,
-                XMaterial.BIRCH_WOOD,
-                XMaterial.STRIPPED_BIRCH_WOOD);
-        DARK_OAK_LOGS = new XTag<>(XMaterial.STRIPPED_DARK_OAK_LOG,
-                XMaterial.DARK_OAK_LOG,
-                XMaterial.DARK_OAK_WOOD,
-                XMaterial.STRIPPED_DARK_OAK_WOOD);
-        JUNGLE_LOGS = new XTag<>(XMaterial.STRIPPED_JUNGLE_LOG,
-                XMaterial.JUNGLE_LOG,
-                XMaterial.JUNGLE_WOOD,
-                XMaterial.STRIPPED_JUNGLE_WOOD);
-        OAK_LOGS = new XTag<>(XMaterial.STRIPPED_OAK_LOG,
-                XMaterial.OAK_LOG,
-                XMaterial.OAK_WOOD,
-                XMaterial.STRIPPED_OAK_WOOD);
-        SPRUCE_LOGS = new XTag<>(XMaterial.STRIPPED_SPRUCE_LOG,
-                XMaterial.SPRUCE_LOG,
-                XMaterial.SPRUCE_WOOD,
-                XMaterial.STRIPPED_SPRUCE_WOOD);
+        initLogs();
+        initColorables();
         PORTALS = new XTag<>(XMaterial.END_GATEWAY,
                 XMaterial.END_PORTAL,
                 XMaterial.NETHER_PORTAL);
-        STANDING_SIGNS = new XTag<>(XMaterial.BIRCH_SIGN,
-                XMaterial.WARPED_SIGN,
-                XMaterial.CRIMSON_SIGN,
-                XMaterial.OAK_SIGN,
-                XMaterial.SPRUCE_SIGN,
-                XMaterial.ACACIA_SIGN,
-                XMaterial.DARK_OAK_SIGN,
-                XMaterial.JUNGLE_SIGN);
-        WALL_SIGNS = new XTag<>(XMaterial.BIRCH_WALL_SIGN,
-                XMaterial.WARPED_WALL_SIGN,
-                XMaterial.CRIMSON_WALL_SIGN,
-                XMaterial.OAK_WALL_SIGN,
-                XMaterial.SPRUCE_WALL_SIGN,
-                XMaterial.ACACIA_WALL_SIGN,
-                XMaterial.DARK_OAK_WALL_SIGN,
-                XMaterial.JUNGLE_WALL_SIGN);
-        WOODEN_PRESSURE_PLATES = new XTag<>(XMaterial.ACACIA_PRESSURE_PLATE,
-                XMaterial.DARK_OAK_PRESSURE_PLATE,
-                XMaterial.JUNGLE_PRESSURE_PLATE,
-                XMaterial.BIRCH_PRESSURE_PLATE,
-                XMaterial.WARPED_PRESSURE_PLATE,
-                XMaterial.OAK_PRESSURE_PLATE,
-                XMaterial.SPRUCE_PRESSURE_PLATE,
-                XMaterial.CRIMSON_PRESSURE_PLATE);
-        WOODEN_DOORS = new XTag<>(XMaterial.ACACIA_DOOR,
-                XMaterial.DARK_OAK_DOOR,
-                XMaterial.JUNGLE_DOOR,
-                XMaterial.BIRCH_DOOR,
-                XMaterial.WARPED_DOOR,
-                XMaterial.OAK_DOOR,
-                XMaterial.SPRUCE_DOOR,
-                XMaterial.CRIMSON_DOOR);
-        WOODEN_FENCE_GATES = new XTag<>(XMaterial.ACACIA_FENCE_GATE,
-                XMaterial.DARK_OAK_FENCE_GATE,
-                XMaterial.JUNGLE_FENCE_GATE,
-                XMaterial.BIRCH_FENCE_GATE,
-                XMaterial.WARPED_FENCE_GATE,
-                XMaterial.OAK_FENCE_GATE,
-                XMaterial.SPRUCE_FENCE_GATE,
-                XMaterial.CRIMSON_FENCE_GATE);
-        WOODEN_FENCES = new XTag<>(XMaterial.ACACIA_FENCE,
-                XMaterial.DARK_OAK_FENCE,
-                XMaterial.JUNGLE_FENCE,
-                XMaterial.BIRCH_FENCE,
-                XMaterial.WARPED_FENCE,
-                XMaterial.OAK_FENCE,
-                XMaterial.SPRUCE_FENCE,
-                XMaterial.CRIMSON_FENCE);
-        WOODEN_SLABS = new XTag<>(XMaterial.ACACIA_SLAB,
-                XMaterial.DARK_OAK_SLAB,
-                XMaterial.JUNGLE_SLAB,
-                XMaterial.BIRCH_SLAB,
-                XMaterial.WARPED_SLAB,
-                XMaterial.OAK_SLAB,
-                XMaterial.SPRUCE_SLAB,
-                XMaterial.CRIMSON_SLAB);
-        WOODEN_STAIRS = new XTag<>(XMaterial.ACACIA_STAIRS,
-                XMaterial.DARK_OAK_STAIRS,
-                XMaterial.JUNGLE_STAIRS,
-                XMaterial.BIRCH_STAIRS,
-                XMaterial.WARPED_STAIRS,
-                XMaterial.OAK_STAIRS,
-                XMaterial.SPRUCE_STAIRS,
-                XMaterial.CRIMSON_STAIRS);
-        WOODEN_TRAPDOORS = new XTag<>(XMaterial.ACACIA_TRAPDOOR,
-                XMaterial.DARK_OAK_TRAPDOOR,
-                XMaterial.JUNGLE_TRAPDOOR,
-                XMaterial.BIRCH_TRAPDOOR,
-                XMaterial.WARPED_TRAPDOOR,
-                XMaterial.OAK_TRAPDOOR,
-                XMaterial.SPRUCE_TRAPDOOR,
-                XMaterial.CRIMSON_TRAPDOOR);
-        PLANKS = new XTag<>(XMaterial.ACACIA_PLANKS,
-                XMaterial.DARK_OAK_PLANKS,
-                XMaterial.JUNGLE_PLANKS,
-                XMaterial.BIRCH_PLANKS,
-                XMaterial.WARPED_PLANKS,
-                XMaterial.OAK_PLANKS,
-                XMaterial.SPRUCE_PLANKS,
-                XMaterial.CRIMSON_PLANKS);
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
                 XMaterial.POLISHED_BLACKSTONE_WALL,
@@ -854,23 +769,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.DAMAGED_ANVIL);
         AXOLOTL_TEMPT_ITEMS = new XTag<>(XMaterial.TROPICAL_FISH_BUCKET);
         AXOLOTLS_SPAWNABLE_ON = new XTag<>(XMaterial.CLAY);
-        TERRACOTTA = new XTag<>(XMaterial.ORANGE_TERRACOTTA,
-                XMaterial.LIGHT_GRAY_TERRACOTTA,
-                XMaterial.LIME_TERRACOTTA,
-                XMaterial.YELLOW_TERRACOTTA,
-                XMaterial.CYAN_TERRACOTTA,
-                XMaterial.GREEN_TERRACOTTA,
-                XMaterial.PURPLE_TERRACOTTA,
-                XMaterial.PINK_TERRACOTTA,
-                XMaterial.BROWN_TERRACOTTA,
-                XMaterial.GRAY_TERRACOTTA,
-                XMaterial.TERRACOTTA,
-                XMaterial.WHITE_TERRACOTTA,
-                XMaterial.MAGENTA_TERRACOTTA,
-                XMaterial.LIGHT_BLUE_TERRACOTTA,
-                XMaterial.RED_TERRACOTTA,
-                XMaterial.BLACK_TERRACOTTA,
-                XMaterial.BLUE_TERRACOTTA);
+
         SNOW = new XTag<>(XMaterial.SNOW_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.POWDER_SNOW);
@@ -894,141 +793,19 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.ANDESITE,
                 XMaterial.GRANITE,
                 XMaterial.STONE);
-        ITEMS_BANNERS = new XTag<>(XMaterial.ORANGE_BANNER,
-                XMaterial.PINK_BANNER,
-                XMaterial.PURPLE_BANNER,
-                XMaterial.GRAY_BANNER,
-                XMaterial.BROWN_BANNER,
-                XMaterial.BLUE_BANNER,
-                XMaterial.BLACK_BANNER,
-                XMaterial.YELLOW_BANNER,
-                XMaterial.WHITE_BANNER,
-                XMaterial.LIME_BANNER,
-                XMaterial.LIGHT_GRAY_BANNER,
-                XMaterial.RED_BANNER,
-                XMaterial.CYAN_BANNER,
-                XMaterial.MAGENTA_BANNER,
-                XMaterial.LIGHT_BLUE_BANNER,
-                XMaterial.GREEN_BANNER);
-        WALL_BANNERS = new XTag<>(XMaterial.ORANGE_WALL_BANNER,
-                XMaterial.PINK_WALL_BANNER,
-                XMaterial.PURPLE_WALL_BANNER,
-                XMaterial.GRAY_WALL_BANNER,
-                XMaterial.BROWN_WALL_BANNER,
-                XMaterial.BLUE_WALL_BANNER,
-                XMaterial.BLACK_WALL_BANNER,
-                XMaterial.YELLOW_WALL_BANNER,
-                XMaterial.WHITE_WALL_BANNER,
-                XMaterial.LIME_WALL_BANNER,
-                XMaterial.LIGHT_GRAY_WALL_BANNER,
-                XMaterial.RED_WALL_BANNER,
-                XMaterial.CYAN_WALL_BANNER,
-                XMaterial.MAGENTA_WALL_BANNER,
-                XMaterial.LIGHT_BLUE_WALL_BANNER,
-                XMaterial.GREEN_WALL_BANNER);
         BEACON_BASE_BLOCKS = new XTag<>(XMaterial.NETHERITE_BLOCK,
                 XMaterial.GOLD_BLOCK,
                 XMaterial.IRON_BLOCK,
                 XMaterial.EMERALD_BLOCK,
                 XMaterial.DIAMOND_BLOCK);
-        BEDS = new XTag<>(XMaterial.LIGHT_GRAY_BED,
-                XMaterial.CYAN_BED,
-                XMaterial.GRAY_BED,
-                XMaterial.WHITE_BED,
-                XMaterial.PURPLE_BED,
-                XMaterial.MAGENTA_BED,
-                XMaterial.LIME_BED,
-                XMaterial.BLUE_BED,
-                XMaterial.GREEN_BED,
-                XMaterial.BLACK_BED,
-                XMaterial.PINK_BED,
-                XMaterial.YELLOW_BED,
-                XMaterial.LIGHT_BLUE_BED,
-                XMaterial.ORANGE_BED,
-                XMaterial.BROWN_BED,
-                XMaterial.RED_BED);
         CROPS = new XTag<>(XMaterial.CARROTS,
                 XMaterial.POTATOES,
                 XMaterial.WHEAT,
                 XMaterial.MELON_STEM,
                 XMaterial.BEETROOTS,
                 XMaterial.PUMPKIN_STEM);
-        WOODEN_BUTTONS = new XTag<>(XMaterial.BIRCH_BUTTON,
-                XMaterial.OAK_BUTTON,
-                XMaterial.ACACIA_BUTTON,
-                XMaterial.CRIMSON_BUTTON,
-                XMaterial.WARPED_BUTTON,
-                XMaterial.SPRUCE_BUTTON,
-                XMaterial.JUNGLE_BUTTON,
-                XMaterial.DARK_OAK_BUTTON);
         CAMPFIRES = new XTag<>(XMaterial.CAMPFIRE,
                 XMaterial.SOUL_CAMPFIRE);
-        CANDLE_CAKES = new XTag<>(XMaterial.CANDLE_CAKE,
-                XMaterial.ORANGE_CANDLE_CAKE,
-                XMaterial.LIGHT_BLUE_CANDLE_CAKE,
-                XMaterial.GRAY_CANDLE_CAKE,
-                XMaterial.BLACK_CANDLE_CAKE,
-                XMaterial.MAGENTA_CANDLE_CAKE,
-                XMaterial.PINK_CANDLE_CAKE,
-                XMaterial.BLUE_CANDLE_CAKE,
-                XMaterial.GREEN_CANDLE_CAKE,
-                XMaterial.CYAN_CANDLE_CAKE,
-                XMaterial.PURPLE_CANDLE_CAKE,
-                XMaterial.YELLOW_CANDLE,
-                XMaterial.LIME_CANDLE_CAKE,
-                XMaterial.LIGHT_GRAY_CANDLE_CAKE,
-                XMaterial.WHITE_CANDLE_CAKE,
-                XMaterial.BROWN_CANDLE_CAKE,
-                XMaterial.RED_CANDLE_CAKE);
-        CANDLES = new XTag<>(XMaterial.CANDLE,
-                XMaterial.ORANGE_CANDLE,
-                XMaterial.LIGHT_BLUE_CANDLE,
-                XMaterial.GRAY_CANDLE,
-                XMaterial.BLACK_CANDLE,
-                XMaterial.MAGENTA_CANDLE,
-                XMaterial.PINK_CANDLE,
-                XMaterial.BLUE_CANDLE,
-                XMaterial.GREEN_CANDLE,
-                XMaterial.CYAN_CANDLE,
-                XMaterial.PURPLE_CANDLE,
-                XMaterial.YELLOW_CANDLE,
-                XMaterial.LIME_CANDLE,
-                XMaterial.LIGHT_GRAY_CANDLE,
-                XMaterial.WHITE_CANDLE,
-                XMaterial.BROWN_CANDLE,
-                XMaterial.RED_CANDLE);
-        CARPETS = new XTag<>(XMaterial.ORANGE_CARPET,
-                XMaterial.LIGHT_BLUE_CARPET,
-                XMaterial.GRAY_CARPET,
-                XMaterial.BLACK_CARPET,
-                XMaterial.MAGENTA_CARPET,
-                XMaterial.PINK_CARPET,
-                XMaterial.BLUE_CARPET,
-                XMaterial.GREEN_CARPET,
-                XMaterial.CYAN_CARPET,
-                XMaterial.PURPLE_CARPET,
-                XMaterial.YELLOW_CARPET,
-                XMaterial.LIME_CARPET,
-                XMaterial.LIGHT_GRAY_CARPET,
-                XMaterial.WHITE_CARPET,
-                XMaterial.BROWN_CARPET,
-                XMaterial.RED_CARPET);
-        WOOL = new XTag<>(XMaterial.ORANGE_WOOL,
-                XMaterial.LIGHT_BLUE_WOOL,
-                XMaterial.GRAY_WOOL,
-                XMaterial.BLACK_WOOL,
-                XMaterial.MAGENTA_WOOL,
-                XMaterial.PINK_WOOL,
-                XMaterial.BLUE_WOOL,
-                XMaterial.GREEN_WOOL,
-                XMaterial.CYAN_WOOL,
-                XMaterial.PURPLE_WOOL,
-                XMaterial.YELLOW_WOOL,
-                XMaterial.LIME_WOOL,
-                XMaterial.LIGHT_GRAY_WOOL,
-                XMaterial.WHITE_WOOL,
-                XMaterial.BROWN_WOOL,
-                XMaterial.RED_WOOL);
         CAULDRONS = new XTag<>(XMaterial.CAULDRON,
                 XMaterial.LAVA_CAULDRON,
                 XMaterial.POWDER_SNOW_CAULDRON,
@@ -1075,15 +852,8 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.DEEPSLATE);
         DIAMOND_ORES = new XTag<>(XMaterial.DIAMOND_ORE,
                 XMaterial.DEEPSLATE_DIAMOND_ORE);
-        DOORS = new XTag<>(XMaterial.OAK_DOOR,
-                XMaterial.BIRCH_DOOR,
-                XMaterial.SPRUCE_DOOR,
-                XMaterial.JUNGLE_DOOR,
-                XMaterial.ACACIA_DOOR,
-                XMaterial.WARPED_DOOR,
-                XMaterial.CRIMSON_DOOR,
-                XMaterial.DARK_OAK_DOOR,
-                XMaterial.IRON_DOOR);
+        DOORS = new XTag<>(XMaterial.IRON_DOOR);
+        DOORS.inheritFrom(WOODEN_DOORS);
         WITHER_IMMUNE = new XTag<>(XMaterial.STRUCTURE_BLOCK,
                 XMaterial.END_GATEWAY,
                 XMaterial.BEDROCK,
@@ -1122,14 +892,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.END_PORTAL_FRAME,
                 XMaterial.BEDROCK,
                 XMaterial.CHEST);
-        FENCE_GATES = new XTag<>(XMaterial.ACACIA_FENCE_GATE,
-                XMaterial.WARPED_FENCE_GATE,
-                XMaterial.SPRUCE_FENCE_GATE,
-                XMaterial.CRIMSON_FENCE_GATE,
-                XMaterial.BIRCH_FENCE_GATE,
-                XMaterial.DARK_OAK_FENCE_GATE,
-                XMaterial.JUNGLE_FENCE_GATE,
-                XMaterial.OAK_FENCE_GATE);
+        FENCE_GATES = new XTag<>(XMaterial.class, WOODEN_FENCE_GATES);
         FENCES = new XTag<>(XMaterial.NETHER_BRICK_FENCE);
         FENCES.inheritFrom(WOODEN_FENCES);
         FIRE = new XTag<>(XMaterial.FIRE,
@@ -1191,46 +954,12 @@ public final class XTag<@NonNull T extends Enum<T>> {
         GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE,
                 XMaterial.DEEPSLATE_GOLD_ORE,
                 XMaterial.NETHER_GOLD_ORE);
-        SHULKER_BOXES = new XTag<>(XMaterial.LIGHT_BLUE_SHULKER_BOX,
-                XMaterial.BROWN_SHULKER_BOX,
-                XMaterial.BLUE_SHULKER_BOX,
-                XMaterial.PINK_SHULKER_BOX,
-                XMaterial.SHULKER_BOX,
-                XMaterial.GRAY_SHULKER_BOX,
-                XMaterial.ORANGE_SHULKER_BOX,
-                XMaterial.RED_SHULKER_BOX,
-                XMaterial.GREEN_SHULKER_BOX,
-                XMaterial.CYAN_SHULKER_BOX,
-                XMaterial.YELLOW_SHULKER_BOX,
-                XMaterial.PURPLE_SHULKER_BOX,
-                XMaterial.LIGHT_GRAY_SHULKER_BOX,
-                XMaterial.MAGENTA_SHULKER_BOX,
-                XMaterial.BLACK_SHULKER_BOX,
-                XMaterial.WHITE_SHULKER_BOX,
-                XMaterial.LIME_SHULKER_BOX);
         HOGLIN_REPELLENTS = new XTag<>(XMaterial.WARPED_FUNGUS,
                 XMaterial.NETHER_PORTAL,
                 XMaterial.POTTED_WARPED_FUNGUS,
                 XMaterial.RESPAWN_ANCHOR);
         IGNORED_BY_PIGLIN_BABIES = new XTag<>(XMaterial.LEATHER);
-        IMPERMEABLE = new XTag<>(XMaterial.BLUE_STAINED_GLASS,
-                XMaterial.BROWN_STAINED_GLASS,
-                XMaterial.GREEN_STAINED_GLASS,
-                XMaterial.YELLOW_STAINED_GLASS,
-                XMaterial.RED_STAINED_GLASS,
-                XMaterial.BLACK_STAINED_GLASS,
-                XMaterial.TINTED_GLASS,
-                XMaterial.CYAN_STAINED_GLASS,
-                XMaterial.MAGENTA_STAINED_GLASS,
-                XMaterial.GRAY_STAINED_GLASS,
-                XMaterial.PURPLE_STAINED_GLASS,
-                XMaterial.GLASS,
-                XMaterial.WHITE_STAINED_GLASS,
-                XMaterial.LIGHT_BLUE_STAINED_GLASS,
-                XMaterial.LIGHT_GRAY_STAINED_GLASS,
-                XMaterial.PINK_STAINED_GLASS,
-                XMaterial.ORANGE_STAINED_GLASS,
-                XMaterial.LIME_STAINED_GLASS);
+        IMPERMEABLE = new XTag<>(XMaterial.class, GLASS);
         INFINIBURN_END = new XTag<>(XMaterial.BEDROCK,
                 XMaterial.NETHERRACK,
                 XMaterial.MAGMA_BLOCK);
@@ -1853,6 +1582,19 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.END_STONE_BRICK_STAIRS,
                 XMaterial.DEAD_TUBE_CORAL_WALL_FAN,
                 XMaterial.POLISHED_GRANITE_SLAB);
+        MINEABLE_PICKAXE.inheritFrom(TERRACOTTA,
+                GLAZED_TERRACOTTA,
+                WALLS,
+                WALL_CORALS,
+                SHULKER_BOXES,
+                RAILS,
+                DIAMOND_ORES,
+                GOLD_ORES,
+                IRON_ORES,
+                EMERALD_ORES,
+                COPPER_ORES,
+                ANVIL,
+                );
 
         MINEABLE_SHOVEL = new XTag<>(XMaterial.BROWN_CONCRETE_POWDER,
                 XMaterial.RED_CONCRETE_POWDER,
@@ -2014,9 +1756,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
         AZALEA_ROOT_REPLACEABLE.inheritFrom(AZALEA_GROWS_ON, CAVE_VINES, BASE_STONE_OVERWORLD);
         BAMBOO_PLANTABLE_ON = new XTag<>(XMaterial.GRAVEL, XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO);
         BAMBOO_PLANTABLE_ON.inheritFrom(DIRT, SAND);
-        BANNERS = new XTag<>(XMaterial.class,
-                ITEMS_BANNERS,
-                WALL_BANNERS);
         BEE_GROWABLES = new XTag<>(XMaterial.SWEET_BERRY_BUSH);
         BEE_GROWABLES.inheritFrom(CROPS, CAVE_VINES);
         BIG_DRIPLEAF_PLACEABLE = new XTag<>(XMaterial.CLAY, XMaterial.FARMLAND);
@@ -2024,12 +1763,12 @@ public final class XTag<@NonNull T extends Enum<T>> {
         BUTTONS = new XTag<>(XMaterial.STONE_BUTTON,
                 XMaterial.POLISHED_BLACKSTONE_BUTTON);
         BUTTONS.inheritFrom(WOODEN_BUTTONS);
-        CORALS = new XTag<>(XMaterial.FIRE_CORAL_FAN,
+        CORAL_FANS = new XTag<>(XMaterial.FIRE_CORAL_FAN,
                 XMaterial.TUBE_CORAL_FAN,
                 XMaterial.BRAIN_CORAL_FAN,
                 XMaterial.HORN_CORAL_FAN,
                 XMaterial.BUBBLE_CORAL_FAN);
-        CORALS.inheritFrom(CORAL_PLANTS);
+        CORALS = new XTag<>(XMaterial.class, CORAL_FANS, CORAL_PLANTS, WALL_CORALS);
         DRIPSTONE_REPLACEABLE = new XTag<>(XMaterial.DIRT);
         DRIPSTONE_REPLACEABLE.inheritFrom(BASE_STONE_OVERWORLD);
         ENDERMAN_HOLDABLE = new XTag<>(XMaterial.TNT,
@@ -2328,6 +2067,89 @@ public final class XTag<@NonNull T extends Enum<T>> {
             newValues.addAll(value.values);
         }
         this.values = Collections.unmodifiableSet(newValues);
+    }
+
+
+    /*
+     * ---------------------------------------
+     */
+
+    private static void initLogs() {
+        ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
+                XMaterial.ACACIA_LOG,
+                XMaterial.ACACIA_WOOD,
+                XMaterial.STRIPPED_ACACIA_WOOD);
+        BIRCH_LOGS = new XTag<>(XMaterial.STRIPPED_BIRCH_LOG,
+                XMaterial.BIRCH_LOG,
+                XMaterial.BIRCH_WOOD,
+                XMaterial.STRIPPED_BIRCH_WOOD);
+        DARK_OAK_LOGS = new XTag<>(XMaterial.STRIPPED_DARK_OAK_LOG,
+                XMaterial.DARK_OAK_LOG,
+                XMaterial.DARK_OAK_WOOD,
+                XMaterial.STRIPPED_DARK_OAK_WOOD);
+        JUNGLE_LOGS = new XTag<>(XMaterial.STRIPPED_JUNGLE_LOG,
+                XMaterial.JUNGLE_LOG,
+                XMaterial.JUNGLE_WOOD,
+                XMaterial.STRIPPED_JUNGLE_WOOD);
+        OAK_LOGS = new XTag<>(XMaterial.STRIPPED_OAK_LOG,
+                XMaterial.OAK_LOG,
+                XMaterial.OAK_WOOD,
+                XMaterial.STRIPPED_OAK_WOOD);
+        SPRUCE_LOGS = new XTag<>(XMaterial.STRIPPED_SPRUCE_LOG,
+                XMaterial.SPRUCE_LOG,
+                XMaterial.SPRUCE_WOOD,
+                XMaterial.STRIPPED_SPRUCE_WOOD);
+    }
+
+    private static void initColorables() {
+        CANDLE_CAKES = new XTag<>(findAllColors("CANDLE_CAKE"));
+        CANDLES = new XTag<>(findAllColors("CANDLE"));
+        TERRACOTTA = new XTag<>(findAllColors("TERRACOTTA"));
+        GLAZED_TERRACOTTA = new XTag<>(findAllColors("GLAZED_TERRACOTTA"));
+        SHULKER_BOXES = new XTag<>(findAllColors("SHULKER_BOX"));
+        CARPETS = new XTag<>(findAllColors("CARPET"));
+        WOOL = new XTag<>(findAllColors("WOOL"));
+        GLASS = new XTag<>(findAllColors("GLASS"));
+        GLASS.inheritFrom(new XTag<>(XMaterial.TINTED_GLASS));
+        ITEMS_BANNERS = new XTag<>(findAllColors("BANNER"));
+        WALL_BANNERS = new XTag<>(findAllColors("WALL_BANNER"));
+        BANNERS = new XTag<>(XMaterial.class, ITEMS_BANNERS, WALL_BANNERS);
+        BEDS = new XTag<>(findAllColors("BED"));
+        CONCRETE = new XTag<>(findAllColors("CONCRETE"));
+        CONCRETE_POWDER = new XTag<>(findAllColors("CONCRETE_POWDER"));
+    }
+
+    private static void initWoodenMaterials() {
+        STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
+        WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
+        WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
+        WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
+        WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
+        WOODEN_FENCES = new XTag<>(findAllWoodTypes("FENCE"));
+        WOODEN_SLABS = new XTag<>(findAllWoodTypes("SLAB"));
+        WOODEN_STAIRS = new XTag<>(findAllWoodTypes("STAIRS"));
+        WOODEN_TRAPDOORS = new XTag<>(findAllWoodTypes("TRAPDOOR"));
+        PLANKS = new XTag<>(findAllWoodTypes("PLANKS"));
+        WOODEN_BUTTONS = new XTag<>(findAllWoodTypes("BUTTON"));
+    }
+
+    private static XMaterial[] findAllColors(String material) {
+        String[] colorPrefixes = new String[]{"ORANGE", "LIGHT_BLUE", "GRAY", "BLACK", "MAGENTA", "PINK", "BLUE", "GREEN", "CYAN", "PURPLE", "YELLOW", "LIME", "LIGHT_GRAY", "WHITE", "BROWN", "RED"};
+        List<XMaterial> list = new ArrayList<>();
+        XMaterial.matchXMaterial(material).ifPresent(list::add);
+        for (String color : colorPrefixes) {
+            XMaterial.matchXMaterial(color + "_" + material).ifPresent(list::add);
+        }
+        return list.toArray(new XMaterial[0]);
+    }
+
+    private static XMaterial[] findAllWoodTypes(String material) {
+        String[] woodPrefixes = new String[]{"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON"};
+        List<XMaterial> list = new ArrayList<>();
+        for (String wood : woodPrefixes) {
+            XMaterial.matchXMaterial(wood + "_" + material).ifPresent(list::add);
+        }
+        return list.toArray(new XMaterial[0]);
     }
 
 }
