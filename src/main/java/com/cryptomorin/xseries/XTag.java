@@ -5,13 +5,29 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("all")
 public final class XTag<@NonNull T extends Enum<T>> {
 
     /**
      * Tag representing all acacia log and bark variants
      */
     public static @NonNull XTag<XMaterial> ACACIA_LOGS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> ALIVE_CORAL_BLOCKS;
+    /**
+     * Tag representing all dead coral non-walled fans
+     */
+    public static @NonNull XTag<XMaterial> ALIVE_CORAL_FANS;
+    /**
+     * Tag representing all non-dead coral plants
+     */
+    public static @NonNull XTag<XMaterial> ALIVE_CORAL_PLANTS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> ALIVE_CORAL_WALL_FANS;
     /**
      * Tag representing all possible blocks available for animals to spawn on
      */
@@ -111,31 +127,23 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of coal ores
      */
-    public final static @NonNull XTag<XMaterial> COAL_ORES;
+    public static @NonNull XTag<XMaterial> COAL_ORES;
     /**
      * Tag representing all possible variants of concrete
      */
     public static @NonNull XTag<XMaterial> CONCRETE;
     /**
-     *
+     * Tag representing all possible variants of concrete_powder
      */
     public static @NonNull XTag<XMaterial> CONCRETE_POWDER;
     /**
      * Tag representing all possible variants of copper ores
      */
-    public final static @NonNull XTag<XMaterial> COPPER_ORES;
-    /**
-     * Tag representing all non-walled coral fans
-     */
-    public final static @NonNull XTag<XMaterial> CORAL_FANS;
-    /**
-     * Tag representing all coral plants
-     */
-    public final static @NonNull XTag<XMaterial> CORAL_PLANTS;
+    public static @NonNull XTag<XMaterial> COPPER_ORES;
     /**
      * Tag representing all corals
      */
-    public final static @NonNull XTag<XMaterial> CORALS;
+    public static @NonNull XTag<XMaterial> CORALS;
     /**
      * Tag representing all crimson log and bark variants
      */
@@ -152,6 +160,22 @@ public final class XTag<@NonNull T extends Enum<T>> {
      * Tag representing all dark oak log and bark variants
      */
     public static @NonNull XTag<XMaterial> DARK_OAK_LOGS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> DEAD_CORAL_BLOCKS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> DEAD_CORAL_FANS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> DEAD_CORAL_PLANTS;
+    /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> DEAD_CORAL_WALL_FANS;
     /**
      * Tag representing all possible blocks that may be replaced by deepslate ores
      */
@@ -201,6 +225,10 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> FIRE;
     /**
+     *
+     */
+    public static @NonNull XTag<XMaterial> FIRE_CORALS;
+    /**
      * Tag representing all possible variants of flower pots
      */
     public final static @NonNull XTag<XMaterial> FLOWER_POTS;
@@ -239,7 +267,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of gold ores
      */
-    public final static @NonNull XTag<XMaterial> GOLD_ORES;
+    public static @NonNull XTag<XMaterial> GOLD_ORES;
     /**
      * Tag representing all block types that are guarded by piglins
      */
@@ -279,7 +307,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of iron ores
      */
-    public final static @NonNull XTag<XMaterial> IRON_ORES;
+    public static @NonNull XTag<XMaterial> IRON_ORES;
     /**
      * Tag representing all possible variants of arrows
      */
@@ -339,7 +367,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of lapis ores
      */
-    public final static @NonNull XTag<XMaterial> LAPIS_ORES;
+    public static @NonNull XTag<XMaterial> LAPIS_ORES;
     /**
      * Tag representing all blocks that can't be replaced by lava pools
      */
@@ -422,6 +450,10 @@ public final class XTag<@NonNull T extends Enum<T>> {
      */
     public final static @NonNull XTag<XMaterial> OCCLUDES_VIBRATION_SIGNALS;
     /**
+     * Tag representing all ores
+     */
+    public static @NonNull XTag<XMaterial> ORES;
+    /**
      * Tag representing all possible block types parrots may spawn on
      */
     public final static @NonNull XTag<XMaterial> PARROTS_SPAWNABLE_ON;
@@ -464,7 +496,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
     /**
      * Tag representing all possible variants of redstone ores
      */
-    public final static @NonNull XTag<XMaterial> REDSTONE_ORES;
+    public static @NonNull XTag<XMaterial> REDSTONE_ORES;
     /**
      * Tag representing all plant blocks that may be replaced
      */
@@ -557,10 +589,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
      * Tag representing all valid mob spawn positions
      */
     public final static @NonNull XTag<XMaterial> VALID_SPAWN;
-    /**
-     * Tag representing all wall corals
-     */
-    public final static @NonNull XTag<XMaterial> WALL_CORALS;
     /**
      * Tag representing all possible block types that can override a wall post creation
      */
@@ -739,6 +767,9 @@ public final class XTag<@NonNull T extends Enum<T>> {
     static {
         initLogs();
         initColorables();
+        initWoodenMaterials();
+        initOres();
+        initCorals();
         PORTALS = new XTag<>(XMaterial.END_GATEWAY,
                 XMaterial.END_PORTAL,
                 XMaterial.NETHER_PORTAL);
@@ -769,8 +800,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.ACTIVATOR_RAIL,
                 XMaterial.DETECTOR_RAIL,
                 XMaterial.POWERED_RAIL);
-        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE,
-                XMaterial.DEEPSLATE_REDSTONE_ORE);
         ANIMALS_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK);
         ANVIL = new XTag<>(XMaterial.ANVIL,
                 XMaterial.CHIPPED_ANVIL,
@@ -832,20 +861,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.NETHERITE_PICKAXE,
                 XMaterial.WOODEN_PICKAXE,
                 XMaterial.IRON_PICKAXE);
-        COAL_ORES = new XTag<>(XMaterial.COAL_ORE,
-                XMaterial.DEEPSLATE_COAL_ORE);
-        COPPER_ORES = new XTag<>(XMaterial.COPPER_ORE,
-                XMaterial.DEEPSLATE_COPPER_ORE);
-        CORAL_PLANTS = new XTag<>(XMaterial.FIRE_CORAL,
-                XMaterial.TUBE_CORAL,
-                XMaterial.BRAIN_CORAL,
-                XMaterial.HORN_CORAL,
-                XMaterial.BUBBLE_CORAL);
-        WALL_CORALS = new XTag<>(XMaterial.FIRE_CORAL_WALL_FAN,
-                XMaterial.TUBE_CORAL_WALL_FAN,
-                XMaterial.BRAIN_CORAL_WALL_FAN,
-                XMaterial.HORN_CORAL_WALL_FAN,
-                XMaterial.BUBBLE_CORAL_WALL_FAN);
         CRIMSON_STEMS = new XTag<>(XMaterial.CRIMSON_HYPHAE,
                 XMaterial.STRIPPED_CRIMSON_STEM,
                 XMaterial.CRIMSON_STEM,
@@ -959,9 +974,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.ICE,
                 XMaterial.PACKED_ICE,
                 XMaterial.BLUE_ICE);
-        GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE,
-                XMaterial.DEEPSLATE_GOLD_ORE,
-                XMaterial.NETHER_GOLD_ORE);
         HOGLIN_REPELLENTS = new XTag<>(XMaterial.WARPED_FUNGUS,
                 XMaterial.NETHER_PORTAL,
                 XMaterial.POTTED_WARPED_FUNGUS,
@@ -976,8 +988,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
         INFINIBURN_OVERWORLD = new XTag<>(XMaterial.NETHERRACK,
                 XMaterial.MAGMA_BLOCK);
         INSIDE_STEP_SOUND_BLOCKS = new XTag<>(XMaterial.SNOW, XMaterial.POWDER_SNOW);
-        IRON_ORES = new XTag<>(XMaterial.IRON_ORE,
-                XMaterial.DEEPSLATE_IRON_ORE);
         ITEMS_ARROWS = new XTag<>(XMaterial.ARROW,
                 XMaterial.SPECTRAL_ARROW,
                 XMaterial.TIPPED_ARROW);
@@ -1018,8 +1028,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
         ITEMS_STONE_TOOL_MATERIALS = new XTag<>(XMaterial.COBBLED_DEEPSLATE,
                 XMaterial.BLACKSTONE,
                 XMaterial.COBBLESTONE);
-        LAPIS_ORES = new XTag<>(XMaterial.LAPIS_ORE,
-                XMaterial.DEEPSLATE_LAPIS_ORE);
         LEAVES = new XTag<>(XMaterial.SPRUCE_LEAVES,
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.DARK_OAK_LEAVES,
@@ -1103,11 +1111,16 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.CUT_SANDSTONE_SLAB,
                 XMaterial.END_STONE_BRICK_SLAB,
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_SLAB,
+                XMaterial.CUT_RED_SANDSTONE_SLAB,
                 XMaterial.PURPUR_SLAB,
-                XMaterial.STONE_BRICK_SLAB);
-        //TODO: LEFT
-
-        
+                XMaterial.STONE_BRICK_SLAB,
+                XMaterial.WAXED_CUT_COPPER_SLAB,
+                XMaterial.DEEPSLATE_TILE_SLAB,
+                XMaterial.DARK_PRISMARINE_SLAB,
+                XMaterial.PETRIFIED_OAK_SLAB,
+                XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
+                XMaterial.BRICK_SLAB,
+                XMaterial.POLISHED_GRANITE_SLAB);
         SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
         SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
@@ -1253,379 +1266,153 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.RESPAWN_ANCHOR,
                 XMaterial.CRYING_OBSIDIAN);
 
-        MINEABLE_PICKAXE = new XTag<>(XMaterial.ORANGE_TERRACOTTA,
-                XMaterial.OXIDIZED_CUT_COPPER,
+        MINEABLE_PICKAXE = new XTag<>(XMaterial.OXIDIZED_CUT_COPPER,
                 XMaterial.GOLD_BLOCK,
                 XMaterial.SMOOTH_SANDSTONE,
-                XMaterial.MOSSY_COBBLESTONE_SLAB,
-                XMaterial.BROWN_SHULKER_BOX,
-                XMaterial.EXPOSED_CUT_COPPER_SLAB,
-                XMaterial.DEAD_HORN_CORAL,
-                XMaterial.ANDESITE_WALL,
                 XMaterial.IRON_DOOR,
-                XMaterial.WHITE_CONCRETE,
-                XMaterial.POWERED_RAIL,
                 XMaterial.COBBLESTONE,
-                XMaterial.DEAD_FIRE_CORAL_FAN,
-                XMaterial.SMOOTH_QUARTZ_SLAB,
                 XMaterial.DRIPSTONE_BLOCK,
-                XMaterial.DEAD_FIRE_CORAL_WALL_FAN,
-                XMaterial.RED_TERRACOTTA,
                 XMaterial.CHISELED_SANDSTONE,
                 XMaterial.INFESTED_STONE_BRICKS,
-                XMaterial.NETHER_BRICK_WALL,
-                XMaterial.MOSSY_COBBLESTONE_STAIRS,
-                XMaterial.BLACK_SHULKER_BOX,
                 XMaterial.QUARTZ_BLOCK,
-                XMaterial.BLUE_TERRACOTTA,
-                XMaterial.DEAD_BUBBLE_CORAL_WALL_FAN,
-                XMaterial.COBBLESTONE_SLAB,
-                XMaterial.GRAY_GLAZED_TERRACOTTA,
-                XMaterial.CUT_COPPER_STAIRS,
-                XMaterial.SANDSTONE_WALL,
-                XMaterial.DEEPSLATE_BRICK_WALL,
                 XMaterial.COPPER_BLOCK,
-                XMaterial.LIME_TERRACOTTA,
-                XMaterial.ORANGE_GLAZED_TERRACOTTA,
                 XMaterial.STONE_BRICKS,
-                XMaterial.DETECTOR_RAIL,
-                XMaterial.POLISHED_BLACKSTONE_SLAB,
-                XMaterial.BLACKSTONE_WALL,
-                XMaterial.TERRACOTTA,
-                XMaterial.DIAMOND_ORE,
-                XMaterial.DEAD_FIRE_CORAL,
                 XMaterial.CHISELED_POLISHED_BLACKSTONE,
-                XMaterial.YELLOW_GLAZED_TERRACOTTA,
                 XMaterial.DISPENSER,
-                XMaterial.MOSSY_STONE_BRICK_STAIRS,
-                XMaterial.EMERALD_ORE,
-                XMaterial.MAGENTA_CONCRETE,
                 XMaterial.DEEPSLATE_BRICKS,
-                XMaterial.ANCIENT_DEBRIS,
-                XMaterial.CAULDRON,
-                XMaterial.DEEPSLATE_EMERALD_ORE,
                 XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE,
-                XMaterial.ANVIL,
-                XMaterial.OXIDIZED_CUT_COPPER_SLAB,
                 XMaterial.OBSIDIAN,
-                XMaterial.DEAD_BUBBLE_CORAL_FAN,
-                XMaterial.RAIL,
-                XMaterial.DEEPSLATE_DIAMOND_ORE,
-                XMaterial.POLISHED_ANDESITE_SLAB,
-                XMaterial.NETHER_GOLD_ORE,
-                XMaterial.DEAD_FIRE_CORAL_BLOCK,
                 XMaterial.EXPOSED_CUT_COPPER,
-                XMaterial.TUBE_CORAL_BLOCK,
-                XMaterial.RED_SANDSTONE_SLAB,
-                XMaterial.DEEPSLATE_TILE_WALL,
-                XMaterial.RED_GLAZED_TERRACOTTA,
                 XMaterial.SMOOTH_QUARTZ,
-                XMaterial.RED_SANDSTONE_WALL,
                 XMaterial.SMOOTH_RED_SANDSTONE,
-                XMaterial.WHITE_GLAZED_TERRACOTTA,
-                XMaterial.STONE_BRICK_WALL,
-                XMaterial.GRAY_CONCRETE,
-                XMaterial.LAVA_CAULDRON,
-                XMaterial.PINK_GLAZED_TERRACOTTA,
-                XMaterial.CYAN_TERRACOTTA,
-                XMaterial.COBBLED_DEEPSLATE_STAIRS,
-                XMaterial.LAPIS_ORE,
                 XMaterial.STONE,
-                XMaterial.DEEPSLATE_COAL_ORE,
                 XMaterial.INFESTED_COBBLESTONE,
-                XMaterial.DIORITE_WALL,
-                XMaterial.ACTIVATOR_RAIL,
-                XMaterial.DARK_PRISMARINE_STAIRS,
                 XMaterial.WAXED_CUT_COPPER,
                 XMaterial.PRISMARINE,
                 XMaterial.PISTON,
-                XMaterial.LIME_CONCRETE,
-                XMaterial.BLACKSTONE_SLAB,
-                XMaterial.STONE_SLAB,
-                XMaterial.SMOOTH_SANDSTONE_SLAB,
                 XMaterial.CUT_COPPER,
-                XMaterial.COBBLED_DEEPSLATE_SLAB,
                 XMaterial.CHISELED_QUARTZ_BLOCK,
-                XMaterial.REDSTONE_ORE,
                 XMaterial.MOSSY_STONE_BRICKS,
-                XMaterial.GREEN_CONCRETE,
-                XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
                 XMaterial.EMERALD_BLOCK,
-                XMaterial.FIRE_CORAL_BLOCK,
-                XMaterial.SMOOTH_RED_SANDSTONE_SLAB,
                 XMaterial.BELL,
-                XMaterial.NETHER_BRICK_STAIRS,
                 XMaterial.AMETHYST_BLOCK,
-                XMaterial.POLISHED_DIORITE_SLAB,
                 XMaterial.GILDED_BLACKSTONE,
-                XMaterial.PRISMARINE_BRICK_SLAB,
-                XMaterial.WAXED_CUT_COPPER_STAIRS,
                 XMaterial.CHISELED_NETHER_BRICKS,
                 XMaterial.WAXED_COPPER_BLOCK,
-                XMaterial.DEEPSLATE_IRON_ORE,
-                XMaterial.PINK_SHULKER_BOX,
                 XMaterial.IRON_BLOCK,
                 XMaterial.BUDDING_AMETHYST,
                 XMaterial.POLISHED_DEEPSLATE,
                 XMaterial.HOPPER,
                 XMaterial.CUT_RED_SANDSTONE,
-                XMaterial.DEAD_HORN_CORAL_FAN,
                 XMaterial.QUARTZ_BRICKS,
-                XMaterial.IRON_ORE,
                 XMaterial.CHISELED_STONE_BRICKS,
-                XMaterial.GREEN_TERRACOTTA,
-                XMaterial.LIGHT_BLUE_CONCRETE,
-                XMaterial.BLACKSTONE_STAIRS,
                 XMaterial.ENDER_CHEST,
                 XMaterial.END_STONE_BRICKS,
                 XMaterial.NETHERRACK,
                 XMaterial.REDSTONE_BLOCK,
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER,
                 XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
-                XMaterial.GRAY_SHULKER_BOX,
-                XMaterial.ORANGE_SHULKER_BOX,
                 XMaterial.WAXED_WEATHERED_CUT_COPPER,
-                XMaterial.YELLOW_SHULKER_BOX,
                 XMaterial.CHAIN,
                 XMaterial.MAGMA_BLOCK,
-                XMaterial.QUARTZ_SLAB,
-                XMaterial.RED_NETHER_BRICK_STAIRS,
-                XMaterial.BLUE_CONCRETE,
-                XMaterial.GRAY_TERRACOTTA,
                 XMaterial.STONE_PRESSURE_PLATE,
                 XMaterial.DARK_PRISMARINE,
-                XMaterial.LIME_GLAZED_TERRACOTTA,
-                XMaterial.DEAD_BUBBLE_CORAL_BLOCK,
-                XMaterial.POLISHED_DEEPSLATE_STAIRS,
-                XMaterial.DIORITE_SLAB,
                 XMaterial.MEDIUM_AMETHYST_BUD,
-                XMaterial.LIGHT_GRAY_TERRACOTTA,
-                XMaterial.PURPLE_GLAZED_TERRACOTTA,
-                XMaterial.SANDSTONE_STAIRS,
-                XMaterial.ORANGE_CONCRETE,
-                XMaterial.LIGHT_BLUE_GLAZED_TERRACOTTA,
-                XMaterial.BROWN_GLAZED_TERRACOTTA,
                 XMaterial.LANTERN,
-                XMaterial.NETHER_BRICK_SLAB,
-                XMaterial.WAXED_EXPOSED_CUT_COPPER_STAIRS,
-                XMaterial.PRISMARINE_SLAB,
-                XMaterial.BRICK_WALL,
-                XMaterial.DEAD_BRAIN_CORAL_FAN,
                 XMaterial.ICE,
                 XMaterial.DIORITE,
-                XMaterial.RED_CONCRETE,
-                XMaterial.EXPOSED_CUT_COPPER_STAIRS,
                 XMaterial.DROPPER,
                 XMaterial.CRACKED_NETHER_BRICKS,
-                XMaterial.WAXED_EXPOSED_CUT_COPPER_SLAB,
                 XMaterial.BREWING_STAND,
                 XMaterial.CHISELED_RED_SANDSTONE,
-                XMaterial.RED_NETHER_BRICK_SLAB,
                 XMaterial.CALCITE,
                 XMaterial.CUT_SANDSTONE,
                 XMaterial.POLISHED_BASALT,
-                XMaterial.DEAD_BRAIN_CORAL_WALL_FAN,
-                XMaterial.LIME_SHULKER_BOX,
-                XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB,
                 XMaterial.DEEPSLATE_TILES,
-                XMaterial.BUBBLE_CORAL_BLOCK,
-                XMaterial.MOSSY_STONE_BRICK_SLAB,
-                XMaterial.SHULKER_BOX,
                 XMaterial.QUARTZ_PILLAR,
                 XMaterial.LODESTONE,
-                XMaterial.GRANITE_STAIRS,
-                XMaterial.COBBLESTONE_WALL,
                 XMaterial.POLISHED_GRANITE,
                 XMaterial.POLISHED_ANDESITE,
                 XMaterial.OBSERVER,
                 XMaterial.CHISELED_DEEPSLATE,
-                XMaterial.HORN_CORAL_BLOCK,
-                XMaterial.COPPER_ORE,
                 XMaterial.RAW_GOLD_BLOCK,
-                XMaterial.SMOOTH_STONE_SLAB,
-                XMaterial.PINK_CONCRETE,
                 XMaterial.CRACKED_POLISHED_BLACKSTONE_BRICKS,
-                XMaterial.DEEPSLATE_TILE_STAIRS,
                 XMaterial.WAXED_EXPOSED_CUT_COPPER,
                 XMaterial.SMALL_AMETHYST_BUD,
                 XMaterial.OXIDIZED_COPPER,
-                XMaterial.YELLOW_CONCRETE,
                 XMaterial.POLISHED_BLACKSTONE,
-                XMaterial.QUARTZ_STAIRS,
                 XMaterial.RAW_IRON_BLOCK,
                 XMaterial.POLISHED_BLACKSTONE_BRICKS,
-                XMaterial.WATER_CAULDRON,
-                XMaterial.BROWN_CONCRETE,
-                XMaterial.DEAD_HORN_CORAL_WALL_FAN,
-                XMaterial.POLISHED_BLACKSTONE_BRICK_WALL,
-                XMaterial.BLUE_SHULKER_BOX,
-                XMaterial.POWDER_SNOW_CAULDRON,
                 XMaterial.INFESTED_DEEPSLATE,
-                XMaterial.SANDSTONE_SLAB,
-                XMaterial.LIGHT_GRAY_GLAZED_TERRACOTTA,
                 XMaterial.RAW_COPPER_BLOCK,
-                XMaterial.CYAN_SHULKER_BOX,
                 XMaterial.BLACKSTONE,
-                XMaterial.WEATHERED_CUT_COPPER_SLAB,
-                XMaterial.DEEPSLATE_BRICK_STAIRS,
                 XMaterial.AMETHYST_CLUSTER,
-                XMaterial.CHIPPED_ANVIL,
-                XMaterial.CYAN_GLAZED_TERRACOTTA,
-                XMaterial.PURPLE_TERRACOTTA,
                 XMaterial.GRINDSTONE,
-                XMaterial.DEAD_BUBBLE_CORAL,
                 XMaterial.WAXED_EXPOSED_COPPER,
-                XMaterial.PINK_TERRACOTTA,
-                XMaterial.BROWN_TERRACOTTA,
-                XMaterial.DEEPSLATE_BRICK_SLAB,
-                XMaterial.OXIDIZED_CUT_COPPER_STAIRS,
-                XMaterial.POLISHED_BLACKSTONE_STAIRS,
                 XMaterial.RED_SANDSTONE,
-                XMaterial.DEAD_TUBE_CORAL,
                 XMaterial.LIGHTNING_ROD,
-                XMaterial.PURPLE_CONCRETE,
                 XMaterial.SOUL_LANTERN,
                 XMaterial.POLISHED_BLACKSTONE_PRESSURE_PLATE,
-                XMaterial.SMOOTH_SANDSTONE_STAIRS,
-                XMaterial.GREEN_GLAZED_TERRACOTTA,
                 XMaterial.IRON_BARS,
                 XMaterial.PURPUR_BLOCK,
-                XMaterial.LIGHT_GRAY_CONCRETE,
                 XMaterial.FURNACE,
-                XMaterial.POLISHED_DEEPSLATE_SLAB,
-                XMaterial.STONE_STAIRS,
-                XMaterial.DEAD_BRAIN_CORAL,
                 XMaterial.CONDUIT,
-                XMaterial.BLACK_CONCRETE,
                 XMaterial.SPAWNER,
                 XMaterial.COAL_BLOCK,
                 XMaterial.BONE_BLOCK,
                 XMaterial.WARPED_NYLIUM,
-                XMaterial.POLISHED_DIORITE_STAIRS,
                 XMaterial.WEATHERED_COPPER,
-                XMaterial.WEATHERED_CUT_COPPER_STAIRS,
                 XMaterial.WEATHERED_CUT_COPPER,
-                XMaterial.MOSSY_COBBLESTONE_WALL,
                 XMaterial.MOSSY_COBBLESTONE,
-                XMaterial.DEAD_TUBE_CORAL_FAN,
-                XMaterial.POLISHED_ANDESITE_STAIRS,
-                XMaterial.GRANITE_SLAB,
                 XMaterial.SMOKER,
                 XMaterial.COBBLED_DEEPSLATE,
                 XMaterial.SMOOTH_BASALT,
                 XMaterial.STONE_BUTTON,
-                XMaterial.MAGENTA_GLAZED_TERRACOTTA,
-                XMaterial.SMOOTH_RED_SANDSTONE_STAIRS,
-                XMaterial.PURPUR_STAIRS,
-                XMaterial.MAGENTA_SHULKER_BOX,
                 XMaterial.NETHER_BRICKS,
                 XMaterial.BRICKS,
-                XMaterial.CYAN_CONCRETE,
-                XMaterial.END_STONE_BRICK_WALL,
                 XMaterial.RED_NETHER_BRICKS,
                 XMaterial.SMOOTH_STONE,
-                XMaterial.BRAIN_CORAL_BLOCK,
                 XMaterial.ANDESITE,
                 XMaterial.BASALT,
-                XMaterial.ANDESITE_SLAB,
-                XMaterial.CUT_COPPER_SLAB,
                 XMaterial.TUFF,
-                XMaterial.DIORITE_STAIRS,
-                XMaterial.CUT_SANDSTONE_SLAB,
-                XMaterial.DEAD_HORN_CORAL_BLOCK,
                 XMaterial.END_STONE,
                 XMaterial.WAXED_OXIDIZED_COPPER,
                 XMaterial.INFESTED_CHISELED_STONE_BRICKS,
-                XMaterial.END_STONE_BRICK_SLAB,
-                XMaterial.NETHER_QUARTZ_ORE,
-                XMaterial.LIGHT_GRAY_SHULKER_BOX,
                 XMaterial.PRISMARINE_BRICKS,
                 XMaterial.CRYING_OBSIDIAN,
                 XMaterial.CRACKED_DEEPSLATE_TILES,
-                XMaterial.WHITE_SHULKER_BOX,
                 XMaterial.INFESTED_STONE,
-                XMaterial.DEEPSLATE_COPPER_ORE,
                 XMaterial.IRON_TRAPDOOR,
-                XMaterial.STONE_BRICK_STAIRS,
-                XMaterial.WAXED_OXIDIZED_CUT_COPPER_SLAB,
-                XMaterial.GRANITE_WALL,
                 XMaterial.INFESTED_MOSSY_STONE_BRICKS,
-                XMaterial.RED_SHULKER_BOX,
-                XMaterial.YELLOW_TERRACOTTA,
-                XMaterial.CUT_RED_SANDSTONE_SLAB,
                 XMaterial.RESPAWN_ANCHOR,
-                XMaterial.WAXED_WEATHERED_CUT_COPPER_STAIRS,
-                XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.BLUE_ICE,
-                XMaterial.COBBLED_DEEPSLATE_WALL,
                 XMaterial.POLISHED_DIORITE,
                 XMaterial.NETHER_BRICK_FENCE,
-                XMaterial.PURPUR_SLAB,
                 XMaterial.INFESTED_CRACKED_STONE_BRICKS,
-                XMaterial.LIGHT_BLUE_SHULKER_BOX,
                 XMaterial.SANDSTONE,
-                XMaterial.RED_NETHER_BRICK_WALL,
-                XMaterial.GREEN_SHULKER_BOX,
-                XMaterial.STONE_BRICK_SLAB,
-                XMaterial.DEAD_BRAIN_CORAL_BLOCK,
-                XMaterial.PURPLE_SHULKER_BOX,
                 XMaterial.EXPOSED_COPPER,
-                XMaterial.WAXED_CUT_COPPER_SLAB,
-                XMaterial.WHITE_TERRACOTTA,
-                XMaterial.MAGENTA_TERRACOTTA,
-                XMaterial.POLISHED_BLACKSTONE_WALL,
-                XMaterial.DAMAGED_ANVIL,
                 XMaterial.WAXED_WEATHERED_COPPER,
                 XMaterial.CRACKED_DEEPSLATE_BRICKS,
                 XMaterial.LARGE_AMETHYST_BUD,
-                XMaterial.DEEPSLATE_GOLD_ORE,
                 XMaterial.PISTON_HEAD,
-                XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
-                XMaterial.DEEPSLATE_TILE_SLAB,
                 XMaterial.NETHERITE_BLOCK,
-                XMaterial.MOSSY_STONE_BRICK_WALL,
-                XMaterial.DARK_PRISMARINE_SLAB,
-                XMaterial.RED_SANDSTONE_STAIRS,
                 XMaterial.PURPUR_PILLAR,
-                XMaterial.BLUE_GLAZED_TERRACOTTA,
-                XMaterial.PRISMARINE_STAIRS,
                 XMaterial.GRANITE,
                 XMaterial.STONECUTTER,
-                XMaterial.GOLD_ORE,
-                XMaterial.DEEPSLATE_LAPIS_ORE,
                 XMaterial.BLAST_FURNACE,
-                XMaterial.PRISMARINE_BRICK_STAIRS,
                 XMaterial.ENCHANTING_TABLE,
-                XMaterial.LIGHT_BLUE_TERRACOTTA,
-                XMaterial.COAL_ORE,
                 XMaterial.LAPIS_BLOCK,
-                XMaterial.BLACK_TERRACOTTA,
-                XMaterial.PETRIFIED_OAK_SLAB,
                 XMaterial.PACKED_ICE,
-                XMaterial.BRICK_STAIRS,
                 XMaterial.CRACKED_STONE_BRICKS,
-                XMaterial.ANDESITE_STAIRS,
-                XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
                 XMaterial.DEEPSLATE,
-                XMaterial.BLACK_GLAZED_TERRACOTTA,
                 XMaterial.CRIMSON_NYLIUM,
                 XMaterial.STICKY_PISTON,
-                XMaterial.PRISMARINE_WALL,
-                XMaterial.COBBLESTONE_STAIRS,
-                XMaterial.BRICK_SLAB,
-                XMaterial.SMOOTH_QUARTZ_STAIRS,
-                XMaterial.DEAD_TUBE_CORAL_BLOCK,
                 XMaterial.DIAMOND_BLOCK,
-                XMaterial.POLISHED_GRANITE_STAIRS,
-                XMaterial.POINTED_DRIPSTONE,
-                XMaterial.DEEPSLATE_REDSTONE_ORE,
-                XMaterial.END_STONE_BRICK_STAIRS,
-                XMaterial.DEAD_TUBE_CORAL_WALL_FAN,
-                XMaterial.POLISHED_GRANITE_SLAB);
+                XMaterial.POINTED_DRIPSTONE);
         MINEABLE_PICKAXE.inheritFrom(TERRACOTTA,
                 GLAZED_TERRACOTTA,
                 WALLS,
-                WALL_CORALS,
+                CORALS,
                 SHULKER_BOXES,
                 RAILS,
                 DIAMOND_ORES,
@@ -1635,40 +1422,27 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 COPPER_ORES,
                 ANVIL,
                 CONCRETE,
-                NON_WOODEN_STAIRS);
+                NON_WOODEN_STAIRS,
+                NON_WOODEN_SLABS,
+                CAULDRONS);
 
-        MINEABLE_SHOVEL = new XTag<>(XMaterial.BROWN_CONCRETE_POWDER,
-                XMaterial.RED_CONCRETE_POWDER,
-                XMaterial.PINK_CONCRETE_POWDER,
-                XMaterial.YELLOW_CONCRETE_POWDER,
-                XMaterial.GREEN_CONCRETE_POWDER,
-                XMaterial.WHITE_CONCRETE_POWDER,
-                XMaterial.MAGENTA_CONCRETE_POWDER,
-                XMaterial.FARMLAND,
+        MINEABLE_SHOVEL = new XTag<>(XMaterial.FARMLAND,
                 XMaterial.DIRT_PATH,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK,
-                XMaterial.BLUE_CONCRETE_POWDER,
-                XMaterial.LIGHT_BLUE_CONCRETE_POWDER,
                 XMaterial.RED_SAND,
-                XMaterial.LIGHT_GRAY_CONCRETE_POWDER,
                 XMaterial.COARSE_DIRT,
                 XMaterial.SOUL_SAND,
                 XMaterial.GRAVEL,
-                XMaterial.GRAY_CONCRETE_POWDER,
-                XMaterial.PURPLE_CONCRETE_POWDER,
-                XMaterial.CYAN_CONCRETE_POWDER,
                 XMaterial.SAND,
-                XMaterial.ORANGE_CONCRETE_POWDER,
-                XMaterial.BLACK_CONCRETE_POWDER,
                 XMaterial.PODZOL,
-                XMaterial.LIME_CONCRETE_POWDER,
                 XMaterial.DIRT,
                 XMaterial.CLAY,
                 XMaterial.ROOTED_DIRT,
                 XMaterial.MYCELIUM,
                 XMaterial.SOUL_SOIL,
                 XMaterial.GRASS_BLOCK);
+        MINEABLE_SHOVEL.inheritFrom(CONCRETE_POWDER);
 
         MINEABLE_HOE = new XTag<>(XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.DARK_OAK_LEAVES,
@@ -1804,12 +1578,6 @@ public final class XTag<@NonNull T extends Enum<T>> {
         BUTTONS = new XTag<>(XMaterial.STONE_BUTTON,
                 XMaterial.POLISHED_BLACKSTONE_BUTTON);
         BUTTONS.inheritFrom(WOODEN_BUTTONS);
-        CORAL_FANS = new XTag<>(XMaterial.FIRE_CORAL_FAN,
-                XMaterial.TUBE_CORAL_FAN,
-                XMaterial.BRAIN_CORAL_FAN,
-                XMaterial.HORN_CORAL_FAN,
-                XMaterial.BUBBLE_CORAL_FAN);
-        CORALS = new XTag<>(XMaterial.class, CORAL_FANS, CORAL_PLANTS, WALL_CORALS);
         DRIPSTONE_REPLACEABLE = new XTag<>(XMaterial.DIRT);
         DRIPSTONE_REPLACEABLE.inheritFrom(BASE_STONE_OVERWORLD);
         ENDERMAN_HOLDABLE = new XTag<>(XMaterial.TNT,
@@ -1881,7 +1649,7 @@ public final class XTag<@NonNull T extends Enum<T>> {
                 XMaterial.SOUL_TORCH);
         WALL_POST_OVERRIDE.inheritFrom(SIGNS, BANNERS, PRESSURE_PLATES);
         UNDERWATER_BONEMEALS = new XTag<>(XMaterial.SEAGRASS);
-        UNDERWATER_BONEMEALS.inheritFrom(CORALS,WALL_CORALS);
+        UNDERWATER_BONEMEALS.inheritFrom(CORALS,ALIVE_CORAL_WALL_FANS);
         UNSTABLE_BOTTOM_CENTER = new XTag<>(XMaterial.class,
                 FENCE_GATES);
         PREVENT_MOB_SPAWNING_INSIDE = new XTag<>(XMaterial.class,
@@ -2174,6 +1942,48 @@ public final class XTag<@NonNull T extends Enum<T>> {
         WOODEN_BUTTONS = new XTag<>(findAllWoodTypes("BUTTON"));
     }
 
+    private static void initOres() {
+        COAL_ORES = new XTag<>(XMaterial.COAL_ORE, XMaterial.DEEPSLATE_COAL_ORE);
+        IRON_ORES = new XTag<>(XMaterial.IRON_ORE, XMaterial.DEEPSLATE_IRON_ORE);
+        COPPER_ORES = new XTag<>(XMaterial.COPPER_ORE, XMaterial.DEEPSLATE_COPPER_ORE);
+        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE,
+                XMaterial.DEEPSLATE_REDSTONE_ORE);
+        LAPIS_ORES = new XTag<>(XMaterial.LAPIS_ORE, XMaterial.DEEPSLATE_LAPIS_ORE);
+        GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE,
+                XMaterial.DEEPSLATE_GOLD_ORE,
+                XMaterial.NETHER_GOLD_ORE);
+        ORES = new XTag<>(XMaterial.ANCIENT_DEBRIS, XMaterial.NETHER_QUARTZ_ORE);
+        ORES.inheritFrom(COAL_ORES, IRON_ORES, COPPER_ORES, REDSTONE_ORES, LAPIS_ORES, GOLD_ORES);
+    }
+
+    private static void initCorals() {
+        ALIVE_CORAL_WALL_FANS = new XTag<>(findALlCorals(true, false, true, true));
+        ALIVE_CORAL_FANS = new XTag<>(findALlCorals(true, false, true, false));
+        ALIVE_CORAL_BLOCKS = new XTag<>(findALlCorals(true, true, false, false));
+        ALIVE_CORAL_PLANTS = new XTag<>(findALlCorals(true, false, false, false));
+        DEAD_CORAL_WALL_FANS = new XTag<>(findALlCorals(false, false, true, true));
+        DEAD_CORAL_FANS = new XTag<>(findALlCorals(false, false,true, false));
+        DEAD_CORAL_BLOCKS = new XTag<>(findALlCorals(false, true, false, false));
+        DEAD_CORAL_PLANTS = new XTag<>(findALlCorals(false,false, false, false));
+
+        CORALS = new XTag<>(XMaterial.class, ALIVE_CORAL_WALL_FANS,
+                ALIVE_CORAL_FANS,
+                ALIVE_CORAL_BLOCKS,
+                ALIVE_CORAL_PLANTS,
+                DEAD_CORAL_WALL_FANS,
+                DEAD_CORAL_FANS,
+                DEAD_CORAL_BLOCKS,
+                DEAD_CORAL_PLANTS);
+
+        /*BRAIN_CORALS = filterCorals("BRAIN");
+        BUBBLE_CORALS = filterCorals("BUBBLE");
+        FIRE_CORALS = filterCorals("FIRE");
+        HORN_CORALS = filterCorals("HORN");
+        TUBE_CORALS = filterCorals("TUBE");*/
+
+    }
+
+
     private static XMaterial[] findAllColors(String material) {
         String[] colorPrefixes = new String[]{"ORANGE", "LIGHT_BLUE", "GRAY", "BLACK", "MAGENTA", "PINK", "BLUE", "GREEN", "CYAN", "PURPLE", "YELLOW", "LIME", "LIGHT_GRAY", "WHITE", "BROWN", "RED"};
         List<XMaterial> list = new ArrayList<>();
@@ -2189,6 +1999,32 @@ public final class XTag<@NonNull T extends Enum<T>> {
         List<XMaterial> list = new ArrayList<>();
         for (String wood : woodPrefixes) {
             XMaterial.matchXMaterial(wood + "_" + material).ifPresent(list::add);
+        }
+        return list.toArray(new XMaterial[0]);
+    }
+
+    private static XMaterial[] findALlCorals(boolean alive, boolean block , boolean fan, boolean wall) {
+        String[] materials = new String[]{"FIRE", "TUBE", "BRAIN", "HORN", "BUBBLE"};
+        List<XMaterial> list = new ArrayList<>();
+        for (String material : materials) {
+            StringBuilder builder = new StringBuilder();
+            if (!alive) builder.append("DEAD_");
+            builder.append(material).append("_CORAL");
+            if (block) builder.append("_BLOCK");
+            if(fan) {
+                if (wall) builder.append("_WALL");
+                builder.append("_FAN");
+            }
+
+            XMaterial.matchXMaterial(builder.toString()).ifPresent(list::add);
+        }
+        return list.toArray(new XMaterial[0]);
+    }
+
+    private static XMaterial[] filterCorals(String name) {
+        List<XMaterial> list = new ArrayList<>();
+        for (XMaterial value : CORALS.getValues()) {
+            if (value.name().contains(name)) list.add(value);
         }
         return list.toArray(new XMaterial[0]);
     }
