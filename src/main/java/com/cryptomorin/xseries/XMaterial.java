@@ -2072,6 +2072,21 @@ public enum XMaterial {
     }
 
     /**
+     * Returns a set of all supported materials out of the set provided
+     * <p>
+     *
+     * @param materials {@link Set} of the materials to be filtered
+     *
+     * @return {@link Set} of materials that contains only the supported materials out of the provided {@link Set}
+     */
+
+    public static Set<XMaterial> filterSupported(Set<XMaterial> materials) {
+        Set<XMaterial> clone = new HashSet<>(materials);
+        clone.removeIf(material -> !material.isSupported());
+        return clone;
+    }
+
+    /**
      * This method is needed due to Java enum initialization limitations.
      * It's really inefficient yes, but it's only used for initialization.
      * <p>

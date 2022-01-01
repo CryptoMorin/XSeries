@@ -2,6 +2,7 @@ import com.cryptomorin.xseries.ReflectionUtils;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
 import com.cryptomorin.xseries.XSound;
+import com.cryptomorin.xseries.XTag;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,6 +11,9 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class XSeriesTests {
     private XSeriesTests() {}
@@ -45,6 +49,11 @@ public final class XSeriesTests {
                 withLocation(new Location(null, 1, 1, 1))
                 .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true)
                 .rotationOrder(ParticleDisplay.Axis.X, ParticleDisplay.Axis.Y, ParticleDisplay.Axis.Z);
+
+        print("Testing XTag...");
+        assertTrue(XTag.CORAL_PLANTS.isTagged(XMaterial.TUBE_CORAL));
+        assertTrue(XTag.LOGS_THAT_BURN.isTagged(XMaterial.STRIPPED_ACACIA_LOG));
+        assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
 
         print("Testing reflection...");
         print("Version pack: " + ReflectionUtils.VERSION + " (" + ReflectionUtils.VER + ')');
