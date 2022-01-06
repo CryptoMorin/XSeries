@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -198,9 +198,7 @@ public final class XEntity {
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("do-damage-ticks"));
             if (config.isSet("remaining-air")) living.setRemainingAir(config.getInt("remaining-air"));
-            for (String effects : config.getStringList("effects")) {
-                living.addPotionEffect(XPotion.parsePotionEffectFromString(effects));
-            }
+            XPotion.addEffects(living, config.getStringList("effects"));
 
             ConfigurationSection equip = config.getConfigurationSection("equipment");
             if (equip != null) {

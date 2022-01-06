@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ import java.util.concurrent.CompletableFuture;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 6.0.1
  */
 public final class ReflectionUtils {
     /**
@@ -59,7 +59,34 @@ public final class ReflectionUtils {
      * <p>
      * Performance is not a concern for these specific statically initialized values.
      */
-    public static final String VERSION = parseVersion();
+    public static final String VERSION;
+
+    static {
+        // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
+        // which allows easier testing as well.
+        String found = null;
+        for (Package pack : Package.getPackages()) {
+            String name = pack.getName();
+            if (name.startsWith("org.bukkit.craftbukkit.v") // .v because there are other packages.
+                    // As a protection for forge+bukkit implementation that tend to mix versions.
+                    // The real CraftPlayer should exist in the package.
+                    // Note: Doesn't seem to function properly. Will need to separate the version
+                    // handler for NMS and CraftBukkit for softwares like catmc.
+                    && name.endsWith("entity")) {
+                found = pack.getName().split("\\.")[3];
+
+                // Just a final guard to make sure it finds this important class.
+                try {
+                    Class.forName("org.bukkit.craftbukkit." + found + ".entity.CraftPlayer");
+                    break;
+                } catch (ClassNotFoundException e) {
+                    found = null;
+                }
+            }
+        }
+        if (found == null) throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
+        VERSION = found;
+    }
 
     /**
      * The raw minor version number.
@@ -99,9 +126,8 @@ public final class ReflectionUtils {
         Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle sendPacket = null;
-        MethodHandle getHandle = null;
-        MethodHandle connection = null;
+        MethodHandle sendPacket = null, getHandle = null, connection = null;
+
         try {
             connection = lookup.findGetter(entityPlayer,
                     v(17, "b").orElse("playerConnection"), playerConnection);
@@ -119,34 +145,6 @@ public final class ReflectionUtils {
     }
 
     private ReflectionUtils() {}
-
-    /**
-     * Gets the package version used for NMS. This method is preferred over
-     * <code>
-     * Bukkit.getServer().getClass().getPackage()
-     * Bukkit.getVersion()
-     * </code>
-     * because the first solution doesn't work with unit tests and the second version
-     * doesn't have the exact package version.
-     * <p>
-     * Performance doesn't matter here as the method is only called once.
-     *
-     * @return the exact package version.
-     * @see #VERSION
-     * @since 6.0.0
-     */
-    private static String parseVersion() {
-        String found = null;
-        for (Package pack : Package.getPackages()) {
-            if (pack.getName().startsWith("org.bukkit.craftbukkit.v")) { // .v because there are other packages.
-                found = pack.getName().split("\\.")[3];
-                break;
-            }
-        }
-
-        if (found == null) throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
-        return found;
-    }
 
     /**
      * This method is purely for readability.
@@ -170,7 +168,7 @@ public final class ReflectionUtils {
      * @return true if the version is equal or newer, otherwise false.
      * @since 4.0.0
      */
-    public static boolean supports(int version) { return VER >= version; }
+    public static boolean supports(int version) {return VER >= version;}
 
     /**
      * Get a NMS (net.minecraft.server) class which accepts a package for 1.17 compatibility.

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -241,7 +241,7 @@ public final class NMSExtras {
         SET_BLOCK_DATA = setBlockData;
     }
 
-    private NMSExtras() { }
+    private NMSExtras() {}
 
     public static void setExp(Player player, float bar, int lvl, int exp) {
         try {

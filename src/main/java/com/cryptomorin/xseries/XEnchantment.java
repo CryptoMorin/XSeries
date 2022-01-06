@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ import java.util.*;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.1.1
+ * @version 2.2.0
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -288,7 +288,7 @@ public enum XEnchantment {
 
         Optional<XEnchantment> enchantOpt = matchXEnchantment(split[0]);
         if (!enchantOpt.isPresent()) return item;
-        Enchantment enchant = enchantOpt.get().parseEnchantment();
+        Enchantment enchant = enchantOpt.get().enchantment;
         if (enchant == null) return item;
 
         int lvl = 1;
@@ -311,7 +311,7 @@ public enum XEnchantment {
         ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
 
-        meta.addStoredEnchant(this.parseEnchantment(), level, true);
+        meta.addStoredEnchant(this.enchantment, level, true);
         book.setItemMeta(meta);
         return book;
     }
@@ -323,7 +323,7 @@ public enum XEnchantment {
      * @since 1.0.0
      */
     @Nullable
-    public Enchantment parseEnchantment() {
+    public Enchantment getEnchant() {
         return this.enchantment;
     }
 
@@ -333,14 +333,14 @@ public enum XEnchantment {
      * An invocation of this method yields exactly the same result as the expression:
      * <p>
      * <blockquote>
-     * {@link #parseEnchantment()} != null
+     * {@link #getEnchant()} != null
      * </blockquote>
      *
      * @return true if the current version has this enchantment, otherwise false.
      * @since 1.0.0
      */
     public boolean isSupported() {
-        return parseEnchantment() != null;
+        return enchantment != null;
     }
 
     /**

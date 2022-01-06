@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @see ItemStack
  */
 public final class XItemStack {
-    private XItemStack() { }
+    private XItemStack() {}
 
     /**
      * Writes an ItemStack object into a config.
@@ -420,8 +420,8 @@ public final class XItemStack {
                 PotionMeta potion = (PotionMeta) meta;
 
                 for (String effects : config.getStringList("custom-effects")) {
-                    PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
-                    potion.addCustomEffect(effect, true);
+                    XPotion.Effect effect = XPotion.parseEffect(effects);
+                    if (effect.hasChance()) potion.addCustomEffect(effect.getEffect(), true);
                 }
 
                 String baseEffect = config.getString("base-effect");
@@ -505,7 +505,9 @@ public final class XItemStack {
 
                     builder.flicker(fw.getBoolean("flicker"));
                     builder.trail(fw.getBoolean("trail"));
-                    builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type").toUpperCase(Locale.ENGLISH)).or(FireworkEffect.Type.STAR));
+                    builder.with(Enums.getIfPresent(FireworkEffect.Type.class, fw.getString("type")
+                                    .toUpperCase(Locale.ENGLISH))
+                            .or(FireworkEffect.Type.STAR));
 
                     ConfigurationSection colorsSection = fw.getConfigurationSection("colors");
                     List<String> fwColors = colorsSection.getStringList("base");
@@ -600,8 +602,8 @@ public final class XItemStack {
             if (meta instanceof SuspiciousStewMeta) {
                 SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
                 for (String effects : config.getStringList("effects")) {
-                    PotionEffect effect = XPotion.parsePotionEffectFromString(effects);
-                    stew.addCustomEffect(effect, true);
+                    XPotion.Effect effect = XPotion.parseEffect(effects);
+                    if (effect.hasChance()) stew.addCustomEffect(effect.getEffect(), true);
                 }
             }
         } else if (supports(14)) {
@@ -714,7 +716,7 @@ public final class XItemStack {
         if (enchants != null) {
             for (String ench : enchants.getKeys(false)) {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
-                enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.parseEnchantment(), enchants.getInt(ench), true));
+                enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.getEnchant(), enchants.getInt(ench), true));
             }
         }
 
@@ -724,7 +726,7 @@ public final class XItemStack {
             for (String ench : enchantment.getKeys(false)) {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
                 EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
-                enchant.ifPresent(xEnchantment -> book.addStoredEnchant(xEnchantment.parseEnchantment(), enchantment.getInt(ench), true));
+                enchant.ifPresent(xEnchantment -> book.addStoredEnchant(xEnchantment.getEnchant(), enchantment.getInt(ench), true));
             }
         }
 
@@ -999,7 +1001,8 @@ public final class XItemStack {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int invSize = items.length;
-            if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
+            if (beginIndex < 0 || beginIndex >= invSize)
+                throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
             for (; beginIndex < invSize; beginIndex++) {
                 if (modifiableSlots != null && !modifiableSlots.test(beginIndex)) continue;
@@ -1071,7 +1074,8 @@ public final class XItemStack {
     public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         ItemStack[] items = inventory.getStorageContents();
         int invSize = items.length;
-        if (beginIndex < 0 || beginIndex >= invSize) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
+        if (beginIndex < 0 || beginIndex >= invSize)
+            throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Inventory storage content size: " + invSize);
 
         for (; beginIndex < invSize; beginIndex++) {
             if (modifiableSlots != null && !modifiableSlots.test(beginIndex)) continue;

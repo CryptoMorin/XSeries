@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 7.0.1
+ * @version 7.0.2
  * @see Sound
  */
 public enum XSound {
@@ -1722,8 +1722,7 @@ public enum XSound {
      */
     public static class Record {
         @Nonnull public final XSound sound;
-        public final float volume;
-        public final float pitch;
+        public final float volume, pitch;
         public boolean playAtLocation;
         @Nullable public Player player;
         @Nullable public Location location;
@@ -1737,16 +1736,27 @@ public enum XSound {
             this.playAtLocation = playAtLocation;
         }
 
+        /**
+         * Plays the sound only for a single player and no one else can hear it.
+         */
         public Record forPlayer(@Nullable Player player) {
             this.player = player;
             return this;
         }
 
+        /**
+         * Plays the sound to all the nearby players (based on the specified volume)
+         */
         public Record atLocation(@Nullable Location location) {
             this.location = location;
             return this;
         }
 
+        /**
+         * Plays the sound only for a single player and no on else can hear it.
+         * The source of the sound is different and players using headphones may
+         * hear the sound with a <a href="https://en.wikipedia.org/wiki/3D_audio_effect">3D audio effect</a>.
+         */
         public Record forPlayerAtLocation(@Nullable Player player, @Nullable Location location) {
             this.player = player;
             this.location = location;
@@ -1774,6 +1784,25 @@ public enum XSound {
             Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
             if (playAtLocation || player == null) location.getWorld().playSound(updatedLocation, sound.parseSound(), volume, pitch);
             else player.playSound(updatedLocation, sound.parseSound(), volume, pitch);
+        }
+
+        /**
+         * Stops the sound playing to the players that this sound was played to.
+         * Note this works fine if the sound was played to one specific player, but for
+         * location-based sounds this only works if the players were within the same range as the original
+         * volume level.
+         * <p>
+         * If this is a critical issue you can extend this class and add a cache for all the players that heard the sound.
+         *
+         * @since 7.0.2
+         */
+        public void stopSound() {
+            if (playAtLocation) {
+                for (Entity entity : location.getWorld().getNearbyEntities(location, volume, volume, volume)) {
+                    if (entity instanceof Player) ((Player) entity).stopSound(sound.parseSound());
+                }
+            }
+            if (player != null) player.stopSound(sound.parseSound());
         }
     }
 }

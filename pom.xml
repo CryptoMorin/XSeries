@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>8.5.0.1</version>
+    <version>8.6.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -62,14 +62,14 @@
     </repositories>
 
     <properties>
-        <spigotVersion>1.18-rc3-R0.1-SNAPSHOT</spigotVersion>
+        <spigotVersion>1.18.1-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.18-rc3-R0.1-SNAPSHOT</version>
+            <version>${spigotVersion}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -156,7 +156,6 @@
                     </compilerArgs>
                     <excludes>
                         <exclude>com/cryptomorin/xseries/unused/</exclude>
-                        <exclude>com/cryptomorin/xseries/XMaterialUtil.java</exclude>
                         <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
                     </excludes>
                 </configuration>
@@ -244,7 +243,7 @@
             <id>18</id>
             <properties>
                 <nms>18_R1</nms>
-                <spigotVersion>1.18-rc3-R0.1-SNAPSHOT</spigotVersion>
+                <spigotVersion>1.18.1-R0.1-SNAPSHOT</spigotVersion>
             </properties>
         </profile>
         <profile>

@@ -7,6 +7,8 @@ import com.cryptomorin.xseries.particles.ParticleDisplay;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
@@ -30,19 +32,25 @@ public final class XSeriesTests {
         assertMaterial("RED_BED", "RED_BED");
         assertMaterial("MELON", "MELON");
         assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
-        Assertions.assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
-        Assertions.assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
+        assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
+        assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
+        for (Material material : Material.values()) if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
 
         print("Testing XPotion...");
         assertPresent(XPotion.matchXPotion("INVIS"));
         assertPresent(XPotion.matchXPotion("AIR"));
         assertPresent(XPotion.matchXPotion("BLIND"));
         assertPresent(XPotion.matchXPotion("DAMAGE_RESISTANCE"));
+        for (PotionEffectType effect : PotionEffectType.values()) {
+            XPotion.matchXPotion(effect);
+            assertPresent(XPotion.matchXPotion(effect.getName()));
+        }
 
         print("Testing XSound...");
         assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
         assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
         assertPresent(XSound.matchXSound("RECORD_11"));
+        for (Sound sound : Sound.values()) XSound.matchXSound(sound);
 
         print("Testing particles...");
         ParticleDisplay.of(Particle.CLOUD).
@@ -51,7 +59,7 @@ public final class XSeriesTests {
                 .rotationOrder(ParticleDisplay.Axis.X, ParticleDisplay.Axis.Y, ParticleDisplay.Axis.Z);
 
         print("Testing XTag...");
-        assertTrue(XTag.CORAL_PLANTS.isTagged(XMaterial.TUBE_CORAL));
+        assertTrue(XTag.CORALS.isTagged(XMaterial.TUBE_CORAL));
         assertTrue(XTag.LOGS_THAT_BURN.isTagged(XMaterial.STRIPPED_ACACIA_LOG));
         assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
 

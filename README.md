@@ -76,6 +76,7 @@ To shade the library, add the following under your maven plugins:
                     <exclude>com/cryptomorin/xseries/XBiome*</exclude>
                     <exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
                     <exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
+                    <exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
                 </excludes>
             </filter>
         </filters>

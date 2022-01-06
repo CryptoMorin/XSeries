@@ -2,7 +2,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 Hex_27
- * Copyright (c) 2021 Crypto Morin
+ * Copyright (c) 2022 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@ package com.cryptomorin.xseries;
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
@@ -62,7 +60,7 @@ import java.util.regex.PatternSyntaxException;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 10.1.1
+ * @version 10.1.1.1
  * @see Material
  * @see ItemStack
  */
@@ -1419,19 +1417,9 @@ public enum XMaterial {
      *
      * @since 3.4.0
      */
-    private static final LoadingCache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
+    private static final Cache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
             .expireAfterAccess(3, TimeUnit.HOURS)
-            .build(new CacheLoader<String, Pattern>() {
-                @Override
-                public Pattern load(@Nonnull String str) {
-                    try {
-                        return Pattern.compile(str);
-                    } catch (PatternSyntaxException ex) {
-                        ex.printStackTrace();
-                        return null;
-                    }
-                }
-            });
+            .build();
     /**
      * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
      * https://minecraftitemids.com/types/spawn-egg
@@ -1907,7 +1895,15 @@ public enum XMaterial {
             }
             if (checker.startsWith("REGEX:")) {
                 comp = comp.substring(6);
-                Pattern pattern = CACHED_REGEX.getUnchecked(comp);
+                Pattern pattern = CACHED_REGEX.getIfPresent(comp);
+                if (pattern == null) {
+                    try {
+                        pattern = Pattern.compile(comp);
+                        CACHED_REGEX.put(comp, pattern);
+                    } catch (PatternSyntaxException ex) {
+                        ex.printStackTrace();
+                    }
+                }
                 if (pattern != null && pattern.matcher(name).matches()) return true;
                 continue;
             }
@@ -2072,21 +2068,6 @@ public enum XMaterial {
     }
 
     /**
-     * Returns a set of all supported materials out of the set provided
-     * <p>
-     *
-     * @param materials {@link Set} of the materials to be filtered
-     *
-     * @return {@link Set} of materials that contains only the supported materials out of the provided {@link Set}
-     */
-
-    public static Set<XMaterial> filterSupported(Set<XMaterial> materials) {
-        Set<XMaterial> clone = new HashSet<>(materials);
-        clone.removeIf(material -> !material.isSupported());
-        return clone;
-    }
-
-    /**
      * This method is needed due to Java enum initialization limitations.
      * It's really inefficient yes, but it's only used for initialization.
      * <p>
@@ -2138,7 +2119,7 @@ public enum XMaterial {
          *
          * @since 1.0.0
          */
-        private static final int VERSION = parseVersion();
+        private static final int VERSION;
         /**
          * Cached result if the server version is after the v1.13 flattening update.
          *
@@ -2146,23 +2127,12 @@ public enum XMaterial {
          */
         private static final boolean ISFLAT = supports(13);
 
-        /**
-         * Gets the exact minor version (8, 9, ..., 17, 18)
-         * It's necessary to use this alternative method instead of <b>static initialization block</b>
-         * since you can't throw exceptions in them directly.
-         * <p>
-         * Performance doesn't matter here as the method is only called once.
-         *
-         * @return the exact minor version.
-         * @see #VERSION
-         * @since 8.5.0
-         */
-        private static int parseVersion() {
+        static {
             String version = Bukkit.getVersion();
             Matcher matcher = Pattern.compile("MC: \\d\\.(\\d+)").matcher(version);
 
-            if (matcher.find()) return Integer.parseInt(matcher.group(1));
-            throw new IllegalArgumentException("Failed to parse server version from: " + version);
+            if (matcher.find()) VERSION = Integer.parseInt(matcher.group(1));
+            else throw new IllegalArgumentException("Failed to parse server version from: " + version);
         }
     }
 }
