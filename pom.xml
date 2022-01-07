@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>8.6.0</version>
+    <version>8.6.0.0.1</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -62,6 +62,7 @@
     </repositories>
 
     <properties>
+        <!-- Latest version -->
         <spigotVersion>1.18.1-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 

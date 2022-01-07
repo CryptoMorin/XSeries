@@ -61,7 +61,7 @@ public final class ReflectionUtils {
      */
     public static final String VERSION;
 
-    static {
+    static { // This needs to be right below VERSION because of initialization order.
         // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
         // which allows easier testing as well.
         String found = null;
