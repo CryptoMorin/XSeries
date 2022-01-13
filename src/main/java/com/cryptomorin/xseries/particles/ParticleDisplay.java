@@ -74,11 +74,11 @@ public class ParticleDisplay implements Cloneable {
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustTransition}
-     * which is only available from 1.17+ (VIBRATION was released in 1.17)
+     * which is only available from 1.17+ (DUST_COLOR_TRANSITION was released in 1.17)
      *
      * @since 8.6.0.0.1
      */
-    private static final boolean ISFLAT2 = XParticle.getParticle("VIBRATION") != null;
+    private static final boolean ISFLAT2 = XParticle.getParticle("DUST_COLOR_TRANSITION") != null;
     private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
     private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
