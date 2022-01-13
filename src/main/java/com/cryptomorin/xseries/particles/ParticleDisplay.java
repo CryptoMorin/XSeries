@@ -67,11 +67,18 @@ import java.util.function.Predicate;
 public class ParticleDisplay implements Cloneable {
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustOptions}
-     * which is only available from 1.13+
+     * which is only available from 1.13+ (FOOTSTEP was removed in 1.13)
      *
      * @since 1.0.0
      */
     private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+    /**
+     * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustTransition}
+     * which is only available from 1.17+ (VIBRATION was released in 1.17)
+     *
+     * @since 8.6.0.0.1
+     */
+    private static final boolean ISFLAT2 = XParticle.getParticle("VIBRATION") != null;
     private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
     private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
@@ -262,22 +269,29 @@ public class ParticleDisplay implements Cloneable {
         String item = config.getString("itemstack");            // material name
         String materialdata = config.getString("materialdata"); // material name
 
-        float size = 1.0f;
-        if (display.data instanceof float[]) {
-            float[] datas = (float[]) display.data;
-            if (datas.length >= 4) {
-                if (config.isSet("size")) datas[3] = size = (float) config.getDouble("size");
-                else size = datas[3];
+        float size;
+        if (config.isSet("size")) {
+            size = (float) config.getDouble("size");
+            if (display.data instanceof float[]) {
+                float[] datas = (float[]) display.data;
+                if (datas.length > 3) {
+                    datas[3] = size;
+                }
             }
+        } else {
+            size = 1f;
         }
 
         if (color != null) {
             String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
-            if (colors.length == 1 || colors.length == 3) {
-                Color parsedColor = Color.white;
-                if (colors.length == 1) {
+            if (colors.length <= 3 || colors.length == 6) { // 1 or 3 : single color, 2 or 6 : two colors for DUST_TRANSITION
+                Color parsedColor1 = Color.white;
+                Color parsedColor2 = null;
+                if (colors.length <= 2) {
                     try {
-                        parsedColor = Color.decode(colors[0]);
+                        parsedColor1 = Color.decode(colors[0]);
+                        if (colors.length == 2)
+                            parsedColor2 = Color.decode(colors[1]);
                     } catch (NumberFormatException ex) {
                         /* I don't think it's worth it.
                         try {
@@ -286,13 +300,23 @@ public class ParticleDisplay implements Cloneable {
                          */
                     }
                 } else {
-                    parsedColor = new Color(NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]));
+                    parsedColor1 = new Color(NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]));
+                    if (colors.length == 6)
+                        parsedColor2 = new Color(NumberUtils.toInt(colors[3]), NumberUtils.toInt(colors[4]), NumberUtils.toInt(colors[5]));
                 }
 
-                display.data = new float[]{
-                        parsedColor.getRed(), parsedColor.getGreen(), parsedColor.getBlue(),
-                        size
-                };
+                if (parsedColor2 != null) {
+                    display.data = new float[]{
+                            parsedColor1.getRed(), parsedColor1.getGreen(), parsedColor1.getBlue(),
+                            size,
+                            parsedColor2.getRed(), parsedColor2.getGreen(), parsedColor2.getBlue()
+                    };
+                } else {
+                    display.data = new float[]{
+                            parsedColor1.getRed(), parsedColor1.getGreen(), parsedColor1.getBlue(),
+                            size
+                    };
+                }
             }
         } else if (blockdata != null) {
             Material material = Material.getMaterial(blockdata);
@@ -544,6 +568,24 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Adds color properties to the particle settings.
+     * The particle must be {@link Particle#DUST_COLOR_TRANSITION}
+     * to get custom colors.
+     *
+     * @param color1 the RGB color of the particle on spawn.
+     * @param size  the size of the particle.
+     * @param color2 the RGB color of the particle at the end.
+     *
+     * @return the same particle display, but modified.
+     * @see #colored(Location, Color, float)
+     * @since 8.6.0.0.1
+     */
+    @Nonnull
+    public ParticleDisplay withTransitionColor(@Nonnull Color color1, float size, @Nonnull Color color2) {
+        return withTransitionColor(color1.getRed(), color1.getGreen(), color1.getBlue(), size, color2.getRed(), color2.getGreen(), color2.getBlue());
+    }
+
+    /**
      * @since 7.1.0
      */
     @Nonnull
@@ -553,9 +595,18 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adds data for {@link Particle#BLOCK_CRACK}, {@link Particle#BLOCK_DUST}
-     * and {@link Particle#FALLING_DUST} particles. The displayed particle
-     * will depend on the given block data for its color.
+     * @since 8.6.0.0.1
+     */
+    @Nonnull
+    public ParticleDisplay withTransitionColor(float red1, float green1, float blue1, float size, float red2, float green2, float blue2) {
+        this.data = new float[]{red1, green1, blue1, size, red2, green2, blue2};
+        return this;
+    }
+
+    /**
+     * Adds data for {@link Particle#BLOCK_CRACK}, {@link Particle#BLOCK_DUST},
+     * {@link Particle#FALLING_DUST} and {@link Particle#BLOCK_MARKER} particles.
+     * The displayed particle will depend on the given block data for its color.
      * <p>
      * Only works on minecraft version 1.13 and more, because
      * {@link BlockData} didn't exist before.
@@ -941,7 +992,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 5.0.0
      */
     @Nonnull
-    public Location spawn(@Nonnull Location loc, @Nullable Player... players) {
+    public Location spawn(Location loc, @Nullable Player... players) {
         if (loc == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
         if (onSpawn != null) {
             if (!onSpawn.test(loc)) return loc;
@@ -957,6 +1008,14 @@ public class ParticleDisplay implements Cloneable {
             if (ISFLAT && particle.getDataType() == Particle.DustOptions.class) {
                 Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
                         .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
+                if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
+                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+
+            } else if (ISFLAT2 && particle.getDataType() == Particle.DustTransition.class) {
+                Particle.DustOptions dust = new Particle.DustTransition(
+                        org.bukkit.Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]),
+                        org.bukkit.Color.fromRGB((int) datas[4], (int) datas[5], (int) datas[6]),
+                        datas[3]);
                 if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
                 else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
 
