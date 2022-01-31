@@ -31,6 +31,8 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SpawnEggMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -163,7 +165,7 @@ public enum XMaterial {
     BLACK_CARPET(15, "CARPET"),
     BLACK_CONCRETE(15, "CONCRETE"),
     BLACK_CONCRETE_POWDER(15, "CONCRETE_POWDER"),
-    BLACK_DYE("INK_SACK", "INK_SAC"),
+    BLACK_DYE,
     BLACK_GLAZED_TERRACOTTA,
     BLACK_SHULKER_BOX,
     BLACK_STAINED_GLASS(15, "STAINED_GLASS"),
@@ -465,7 +467,7 @@ public enum XMaterial {
     DONKEY_SPAWN_EGG(32, "MONSTER_EGG"),
     DRAGON_BREATH("DRAGONS_BREATH"),
     DRAGON_EGG,
-    DRAGON_HEAD("SKULL", "SKULL_ITEM"),
+    DRAGON_HEAD(5, "SKULL", "SKULL_ITEM"),
     DRAGON_WALL_HEAD(5, "SKULL", "SKULL_ITEM"),
     DRIED_KELP,
     DRIED_KELP_BLOCK,
@@ -1682,11 +1684,21 @@ public enum XMaterial {
         String material = item.getType().name();
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
+        if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta instanceof SpawnEggMeta) {
+                SpawnEggMeta egg = (SpawnEggMeta) meta;
+                material = egg.getSpawnedType().name() + "_SPAWN_EGG";
+            }
+        }
+
         // Check FILLED_MAP enum for more info.
         //if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
 
-        return matchDefinedXMaterial(material, data)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported material from item: " + material + " (" + data + ')'));
+        // No orElseThrow, I don't want to deal with all that final variable bullshit.
+        Optional<XMaterial> result = matchDefinedXMaterial(material, data);
+        if (result.isPresent()) return result.get();
+        throw new IllegalArgumentException("Unsupported material from item: " + material + " (" + data + ')');
     }
 
     /**

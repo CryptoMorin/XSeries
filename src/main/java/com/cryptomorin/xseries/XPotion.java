@@ -69,7 +69,7 @@ public enum XPotion {
     FAST_DIGGING("HASTE", "SUPER_PICK", "DIGFAST", "DIG_SPEED", "QUICK_MINE", "SHARP"),
     FIRE_RESISTANCE("FIRE_RESIST", "RESIST_FIRE", "FIRE_RESISTANCE"),
     GLOWING("GLOW", "SHINE", "SHINY"),
-    HARM("INJURE", "DAMAGE", "HARMING", "INFLICT"),
+    HARM("INJURE", "DAMAGE", "HARMING", "INFLICT", "INSTANT_DAMAGE"),
     HEAL("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "INSTANT_HEALTH"),
     HEALTH_BOOST("BOOST_HEALTH", "BOOST", "HP"),
     HERO_OF_THE_VILLAGE("HERO", "VILLAGE_HERO"),
@@ -117,7 +117,9 @@ public enum XPotion {
     private static final XPotion[] POTIONEFFECTTYPE_MAPPING = new XPotion[VALUES.length + 1];
 
     static {
-        for (XPotion pot : VALUES) POTIONEFFECTTYPE_MAPPING[pot.type.getId()] = pot;
+        for (XPotion pot : VALUES)
+            if (pot.type != null) //noinspection deprecation
+                POTIONEFFECTTYPE_MAPPING[pot.type.getId()] = pot;
     }
 
     private final PotionEffectType type;
@@ -194,6 +196,7 @@ public enum XPotion {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
+    @SuppressWarnings("deprecation")
     @Nonnull
     public static XPotion matchXPotion(@Nonnull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");

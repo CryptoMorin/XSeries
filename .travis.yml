@@ -1,5 +1,5 @@
 language: java
 install: true
-# Hoping it uses JDK 17+ for it to compile 1.18 classes.
+# Should always use the latest JDK
 jdk: openjdk17
 script: mvn install -Dgpg.skip=true -Dmaven.javadoc.skip=true -B -ntp
