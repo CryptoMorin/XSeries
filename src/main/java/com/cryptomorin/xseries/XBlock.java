@@ -233,7 +233,7 @@ public final class XBlock {
         return false;
     }
 
-    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
+    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material, boolean applyPhysics) {
         Objects.requireNonNull(block, "Cannot set type of null block");
         if (material == null) material = XMaterial.AIR;
         XMaterial smartConversion = ITEM_TO_BLOCK.get(material);
@@ -344,8 +344,12 @@ public final class XBlock {
             update = true;
         }
 
-        if (update) state.update();
+        if (update) state.update(update, applyPhysics);
         return update;
+    }
+
+    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
+        return setType(block, material, true);
     }
 
     public static int getAge(Block block) {
