@@ -344,7 +344,7 @@ public final class XBlock {
             update = true;
         }
 
-        if (update) state.update(update, applyPhysics);
+        if (update) state.update(false, applyPhysics);
         return update;
     }
 
