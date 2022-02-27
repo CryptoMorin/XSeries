@@ -118,6 +118,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Lightable)) return;
             org.bukkit.block.data.Lightable lightable = (org.bukkit.block.data.Lightable) block.getBlockData();
             lightable.setLit(lit);
+            block.setBlockData(lightable, false);
             return;
         }
 
@@ -218,6 +219,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Directional)) return false;
             org.bukkit.block.data.Directional direction = (org.bukkit.block.data.Directional) block.getBlockData();
             direction.setFacing(facing);
+            block.setBlockData(direction, false);
             return true;
         }
 
@@ -231,7 +233,7 @@ public final class XBlock {
         return false;
     }
 
-    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
+    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material, boolean applyPhysics) {
         Objects.requireNonNull(block, "Cannot set type of null block");
         if (material == null) material = XMaterial.AIR;
         XMaterial smartConversion = ITEM_TO_BLOCK.get(material);
@@ -342,8 +344,12 @@ public final class XBlock {
             update = true;
         }
 
-        if (update) state.update();
+        if (update) state.update(false, applyPhysics);
         return update;
+    }
+
+    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
+        return setType(block, material, true);
     }
 
     public static int getAge(Block block) {
@@ -363,6 +369,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Ageable)) return;
             org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) block.getBlockData();
             ageable.setAge(age);
+            block.setBlockData(ageable, false);
         }
 
         BlockState state = block.getState();
@@ -411,6 +418,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled)) return false;
             org.bukkit.block.data.Levelled levelled = (org.bukkit.block.data.Levelled) block.getBlockData();
             levelled.setLevel(level);
+            block.setBlockData(levelled, false);
             return true;
         }
 
@@ -669,6 +677,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Powerable)) return;
             org.bukkit.block.data.Powerable powerable = (org.bukkit.block.data.Powerable) block.getBlockData();
             powerable.setPowered(powered);
+            block.setBlockData(powerable, false);
             return;
         }
 
@@ -694,6 +703,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Openable)) return;
             org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) block.getBlockData();
             openable.setOpen(opened);
+            block.setBlockData(openable, false);
             return;
         }
 
@@ -720,6 +730,7 @@ public final class XBlock {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Rotatable)) return;
             org.bukkit.block.data.Rotatable rotatable = (org.bukkit.block.data.Rotatable) block.getBlockData();
             rotatable.setRotation(facing);
+            block.setBlockData(rotatable, false);
         }
     }
 
