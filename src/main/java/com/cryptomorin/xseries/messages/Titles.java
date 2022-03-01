@@ -33,6 +33,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * A reflection API for titles in Minecraft.
@@ -45,7 +46,7 @@ import java.util.Objects;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 2.1.0
+ * @version 3.0.0
  * @see ReflectionUtils
  */
 public final class Titles {
@@ -60,6 +61,9 @@ public final class Titles {
      * ChatComponentText JSON message builder.
      */
     private static final MethodHandle CHAT_COMPONENT_TEXT;
+
+    private String title, subtitle;
+    private final int fadeIn, stay, fadeOut;
 
     static {
         MethodHandle packetCtor = null;
@@ -112,7 +116,17 @@ public final class Titles {
         CHAT_COMPONENT_TEXT = chatComp;
     }
 
-    private Titles() {}
+    public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.fadeIn = fadeIn;
+        this.stay = stay;
+        this.fadeOut = fadeOut;
+    }
+
+    public void send(Player player) {
+        sendTitle(player, fadeIn, stay, fadeOut, title, subtitle);
+    }
 
     /**
      * Sends a title message with title and subtitle to a player.
@@ -169,8 +183,12 @@ public final class Titles {
         sendTitle(player, 10, 20, 10, title, subtitle);
     }
 
+    public static Titles parseTitle(@Nonnull ConfigurationSection config) {
+        return parseTitle(config, null);
+    }
+
     /**
-     * Parses and sends a title from the config.
+     * Parses a title from config.
      * The configuration section must at least
      * contain {@code title} or {@code subtitle}
      *
@@ -181,14 +199,18 @@ public final class Titles {
      *     Titles.sendTitle(player, titleSection);
      * </pre></blockquote>
      *
-     * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
      *
-     * @since 1.0.0
+     * @since 3.0.0
      */
-    public static void sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+    public static Titles parseTitle(@Nonnull ConfigurationSection config, @Nullable Function<String, String> transformers) {
         String title = config.getString("title");
         String subtitle = config.getString("subtitle");
+
+        if (transformers != null) {
+            title = transformers.apply(title);
+            subtitle = transformers.apply(subtitle);
+        }
 
         int fadeIn = config.getInt("fade-in");
         int stay = config.getInt("stay");
@@ -198,7 +220,37 @@ public final class Titles {
         if (stay < 1) stay = 20;
         if (fadeOut < 1) fadeOut = 10;
 
-        sendTitle(player, fadeIn, stay, fadeOut, title, subtitle);
+        return new Titles(title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
+    }
+
+    /**
+     * Parses and sends a title from the config.
+     *
+     * @param player the player to send the title to.
+     * @param config the configuration section to parse the title properties from.
+     *
+     * @since 1.0.0
+     */
+    public static Titles sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+        Titles titles = parseTitle(config, null);
+        titles.send(player);
+        return titles;
     }
 
     /**

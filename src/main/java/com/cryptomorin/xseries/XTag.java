@@ -30,6 +30,10 @@ import java.util.*;
 @SuppressWarnings("NotNullFieldNotInitialized")
 public final class XTag<@NonNull T extends Enum<T>> {
 
+    public static final @NonNull XTag<XMaterial> AIR;
+
+    public static final @NonNull XTag<XMaterial> INVENTORY_NOT_DISPLAYABLE;
+
     /**
      * Tag representing all acacia log and bark variants
      */
@@ -879,7 +883,10 @@ public final class XTag<@NonNull T extends Enum<T>> {
     }
 
     static {
+        AIR = new XTag<>(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
         PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, PORTALS);
+
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
                 XMaterial.POLISHED_BLACKSTONE_WALL,
@@ -2270,21 +2277,23 @@ public final class XTag<@NonNull T extends Enum<T>> {
     }
 
     public boolean isTagged(@Nullable T value) {
-        // Just encase some plugins pass thru a null value.
-        if (value == null) {
-            return false;
-        }
-        return this.values.contains(value);
+        return value != null && this.values.contains(value);
     }
 
     @SafeVarargs
-    private final void inheritFrom(@NonNull XTag<@NonNull T>... values) {
+    private final XTag<T> inheritFrom(@NonNull XTag<@NonNull T>... values) {
+        // Copied because of Collections.unmodifiableSet.
+        // Better than wrapping it during getValues() every single time.
+
         Set<@NonNull T> newValues;
         if (this.values.isEmpty()) newValues = EnumSet.copyOf((EnumSet<T>) this.values);
         else newValues = EnumSet.copyOf(this.values);
+
         for (XTag<T> value : values) {
             newValues.addAll(value.values);
         }
+
         this.values = Collections.unmodifiableSet(newValues);
+        return this;
     }
 }

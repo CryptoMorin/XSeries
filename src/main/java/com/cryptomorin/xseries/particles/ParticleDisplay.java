@@ -78,7 +78,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 8.6.0.0.1
      */
-    private static final boolean ISFLAT2 = XParticle.getParticle("DUST_COLOR_TRANSITION") != null;
+    private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.getParticle("DUST_COLOR_TRANSITION") != null;
     private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
     private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
@@ -573,7 +573,7 @@ public class ParticleDisplay implements Cloneable {
      * to get custom colors.
      *
      * @param color1 the RGB color of the particle on spawn.
-     * @param size  the size of the particle.
+     * @param size   the size of the particle.
      * @param color2 the RGB color of the particle at the end.
      *
      * @return the same particle display, but modified.
@@ -1010,15 +1010,15 @@ public class ParticleDisplay implements Cloneable {
                         .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
                 if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
                 else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
-
-            } else if (ISFLAT2 && particle.getDataType() == Particle.DustTransition.class) {
-                Particle.DustOptions dust = new Particle.DustTransition(
+            } else if (SUPPORTS_DUST_TRANSITION && particle.getDataType() == Particle.DustTransition.class) {
+                // Having the variable type as Particle.DustOptions causes NoClassDefFoundError for DustOptions
+                // because of some weird upcasting stuff.
+                Particle.DustTransition dust = new Particle.DustTransition(
                         org.bukkit.Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]),
                         org.bukkit.Color.fromRGB((int) datas[4], (int) datas[5], (int) datas[6]),
                         datas[3]);
                 if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
                 else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
-
             } else if (isDirectional()) {
                 // With count=0, color on offset e.g. for MOB_SPELL or 1.12 REDSTONE
                 float[] rgb = {datas[0] / 255f, datas[1] / 255f, datas[2] / 255f};

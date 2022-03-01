@@ -718,6 +718,8 @@ public final class XItemStack {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
                 enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.getEnchant(), enchants.getInt(ench), true));
             }
+        } else {
+            if (config.getBoolean("glow")) meta.addEnchant(XEnchantment.DURABILITY.getEnchant(), 1, false);
         }
 
         // Enchanted Books
@@ -732,15 +734,16 @@ public final class XItemStack {
 
         // Flags
         List<String> flags = config.getStringList("flags");
-        for (String flag : flags) {
-            flag = flag.toUpperCase(Locale.ENGLISH);
-            if (flag.equals("ALL")) {
-                meta.addItemFlags(ItemFlag.values());
-                break;
+        if (!flags.isEmpty()) {
+            for (String flag : flags) {
+                flag = flag.toUpperCase(Locale.ENGLISH);
+                ItemFlag itemFlag = Enums.getIfPresent(ItemFlag.class, flag).orNull();
+                if (itemFlag != null) meta.addItemFlags(itemFlag);
             }
-
-            ItemFlag itemFlag = Enums.getIfPresent(ItemFlag.class, flag).orNull();
-            if (itemFlag != null) meta.addItemFlags(itemFlag);
+        } else {
+            String allFlags = config.getString("flags");
+            if (!Strings.isNullOrEmpty(allFlags) && allFlags.equalsIgnoreCase("ALL"))
+                meta.addItemFlags(ItemFlag.values());
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
