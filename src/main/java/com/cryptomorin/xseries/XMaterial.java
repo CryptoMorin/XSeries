@@ -1682,7 +1682,7 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
+        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? UNKNOWN_DATA_VALUE : item.getDurability());
 
         if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
             ItemMeta meta = item.getItemMeta();
