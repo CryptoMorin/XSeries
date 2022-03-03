@@ -1684,12 +1684,9 @@ public enum XMaterial {
         String material = item.getType().name();
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? UNKNOWN_DATA_VALUE : item.getDurability());
 
-        if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta instanceof SpawnEggMeta) {
-                SpawnEggMeta egg = (SpawnEggMeta) meta;
-                material = egg.getSpawnedType().name() + "_SPAWN_EGG";
-            }
+        if (!Data.ISFLAT && material.equals("POTION")) {
+            // In older versions the data value for POTION is the data value of the POTION_EFFECT and not the material data
+            data = UNKNOWN_DATA_VALUE;
         }
 
         // Check FILLED_MAP enum for more info.
