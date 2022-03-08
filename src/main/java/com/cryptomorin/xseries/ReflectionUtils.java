@@ -67,15 +67,16 @@ public final class ReflectionUtils {
         String found = null;
         for (Package pack : Package.getPackages()) {
             String name = pack.getName();
-            if (name.startsWith("org.bukkit.craftbukkit.v") // .v because there are other packages.
-                    // As a protection for forge+bukkit implementation that tend to mix versions.
-                    // The real CraftPlayer should exist in the package.
-                    // Note: Doesn't seem to function properly. Will need to separate the version
-                    // handler for NMS and CraftBukkit for softwares like catmc.
-                    && name.endsWith("entity")) {
+
+            // .v because there are other packages.
+            if (name.startsWith("org.bukkit.craftbukkit.v")) {
                 found = pack.getName().split("\\.")[3];
 
                 // Just a final guard to make sure it finds this important class.
+                // As a protection for forge+bukkit implementation that tend to mix versions.
+                // The real CraftPlayer should exist in the package.
+                // Note: Doesn't seem to function properly. Will need to separate the version
+                // handler for NMS and CraftBukkit for softwares like catmc.
                 try {
                     Class.forName("org.bukkit.craftbukkit." + found + ".entity.CraftPlayer");
                     break;

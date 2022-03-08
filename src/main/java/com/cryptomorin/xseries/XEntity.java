@@ -317,7 +317,7 @@ public final class XEntity {
                 if (sheared) sheep.setSheared(true);
             } else if (living instanceof Rabbit) {
                 Rabbit rabbit = (Rabbit) living;
-                rabbit.setRabbitType(Enums.getIfPresent(Rabbit.Type.class, config.getString("rabbit-type")).or(Rabbit.Type.WHITE));
+                rabbit.setRabbitType(Enums.getIfPresent(Rabbit.Type.class, config.getString("color")).or(Rabbit.Type.WHITE));
             } else if (living instanceof Bat) {
                 Bat bat = (Bat) living;
                 if (!config.getBoolean("awake")) bat.setAwake(false);
@@ -340,73 +340,23 @@ public final class XEntity {
                     } else if (XMaterial.supports(12)) {
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
-                            parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("variant")).or(Parrot.Variant.RED));
-                        } else if (XMaterial.supports(13)) {
-                            if (living instanceof Husk) {
-                                Husk husk = (Husk) living;
-                                husk.setConversionTime(config.getInt("conversion-time"));
-                            } else if (living instanceof Vex) {
-                                Vex vex = (Vex) living;
-                                vex.setCharging(config.getBoolean("charging"));
-                            } else if (living instanceof PufferFish) {
-                                PufferFish pufferFish = (PufferFish) living;
-                                pufferFish.setPuffState(config.getInt("puff-state"));
-                            } else if (living instanceof TropicalFish) {
-                                TropicalFish tropicalFish = (TropicalFish) living;
-                                tropicalFish.setBodyColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE));
-                                tropicalFish.setPattern(Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY));
-                                tropicalFish.setPatternColor(Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE));
-                            } else if (living instanceof EnderDragon) {
-                                EnderDragon dragon = (EnderDragon) living;
-                                dragon.setPhase(Enums.getIfPresent(EnderDragon.Phase.class, config.getString("phase")).or(EnderDragon.Phase.ROAR_BEFORE_ATTACK));
-                            } else if (living instanceof Phantom) {
-                                Phantom phantom = (Phantom) living;
-                                phantom.setSize(config.getInt("size"));
-                            } else if (XMaterial.supports(14)) {
-                                if (living instanceof Cat) {
-                                    Cat cat = (Cat) living;
-                                    cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("cat-type")).or(Cat.Type.TABBY));
-                                    cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
-                                } else if (living instanceof Fox) {
-                                    Fox fox = (Fox) living;
-                                    fox.setCrouching(config.getBoolean("crouching"));
-                                    fox.setSleeping(config.getBoolean("sleeping"));
-                                    fox.setFoxType(Enums.getIfPresent(Fox.Type.class, config.getString("type")).or(Fox.Type.RED));
-                                } else if (living instanceof Panda) {
-                                    Panda panda = (Panda) living;
-                                    panda.setHiddenGene(Enums.getIfPresent(Panda.Gene.class, config.getString("hidden-gene")).or(Panda.Gene.PLAYFUL));
-                                    panda.setMainGene(Enums.getIfPresent(Panda.Gene.class, config.getString("main-gene")).or(Panda.Gene.NORMAL));
-                                } else if (living instanceof MushroomCow) {
-                                    MushroomCow mooshroom = (MushroomCow) living;
-                                    mooshroom.setVariant(Enums.getIfPresent(MushroomCow.Variant.class, config.getString("variant")).or(MushroomCow.Variant.RED));
-                                } else if (XMaterial.supports(15)) {
-                                    if (living instanceof Bee) {
-                                        Bee bee = (Bee) living;
-                                        // Anger time ticks.
-                                        bee.setAnger(config.getInt("anger") * 20);
-                                        bee.setHasNectar(config.getBoolean("nectar"));
-                                        bee.setHasStung(config.getBoolean("stung"));
-                                        bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
-                                    } else if (XMaterial.supports(16)) {
-                                        if (living instanceof Hoglin) {
-                                            Hoglin hoglin = (Hoglin) living;
-                                            hoglin.setConversionTime(config.getInt("conversation") * 20);
-                                            hoglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
-                                            hoglin.setIsAbleToBeHunted(config.getBoolean("can-be-hunted"));
-                                        } else if (living instanceof Piglin) {
-                                            // Idk why Spigot did this...
-                                            Piglin piglin = (Piglin) living;
-                                            piglin.setConversionTime(config.getInt("conversation") * 20);
-                                            piglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
-                                        } else if (living instanceof Strider) {
-                                            Strider strider = (Strider) living;
-                                            strider.setShivering(config.getBoolean("shivering"));
-                                        }
+                            parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("color")).or(Parrot.Variant.RED));
+                        }
 
-                                        if (XMaterial.supports(17)) handleSeventeen(entity, config);
-                                    }
-                                }
+                        if (XMaterial.supports(13)) thirteen(entity, config);
+                        if (XMaterial.supports(14)) fourteen(entity, config);
+                        if (XMaterial.supports(15)) {
+                            if (living instanceof Bee) {
+                                Bee bee = (Bee) living;
+                                // Anger time ticks.
+                                bee.setAnger(config.getInt("anger") * 20);
+                                bee.setHasNectar(config.getBoolean("nectar"));
+                                bee.setHasStung(config.getBoolean("stung"));
+                                bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
                             }
+
+                            if (XMaterial.supports(16)) sixteen(entity, config);
+                            if (XMaterial.supports(17)) seventeen(entity, config);
                         }
                     }
                 }
@@ -429,10 +379,76 @@ public final class XEntity {
         return entity;
     }
 
+    private static void fourteen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Raider) {
+            // Illagers were added in 1.11 but the concept of raids and patrols were added in 1.14
+            Raider raider = (Raider) entity;
+            if (config.isSet("can-join-raid")) raider.setCanJoinRaid(config.getBoolean("can-join-raid"));
+            if (config.isSet("is-patrol-leader")) raider.setCanJoinRaid(config.getBoolean("is-patrol-leader"));
+        } else if (entity instanceof Cat) {
+            Cat cat = (Cat) entity;
+            cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("variant")).or(Cat.Type.TABBY));
+            cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
+        } else if (entity instanceof Fox) {
+            Fox fox = (Fox) entity;
+            fox.setCrouching(config.getBoolean("crouching"));
+            fox.setSleeping(config.getBoolean("sleeping"));
+            fox.setFoxType(Enums.getIfPresent(Fox.Type.class, config.getString("color")).or(Fox.Type.RED));
+        } else if (entity instanceof Panda) {
+            Panda panda = (Panda) entity;
+            panda.setHiddenGene(Enums.getIfPresent(Panda.Gene.class, config.getString("hidden-gene")).or(Panda.Gene.PLAYFUL));
+            panda.setMainGene(Enums.getIfPresent(Panda.Gene.class, config.getString("main-gene")).or(Panda.Gene.NORMAL));
+        } else if (entity instanceof MushroomCow) {
+            MushroomCow mooshroom = (MushroomCow) entity;
+            mooshroom.setVariant(Enums.getIfPresent(MushroomCow.Variant.class, config.getString("color")).or(MushroomCow.Variant.RED));
+        }
+    }
+
+    private static void thirteen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Husk) {
+            Husk husk = (Husk) entity;
+            husk.setConversionTime(config.getInt("conversion-time"));
+        } else if (entity instanceof Vex) {
+            Vex vex = (Vex) entity;
+            vex.setCharging(config.getBoolean("charging"));
+        } else if (entity instanceof PufferFish) {
+            PufferFish pufferFish = (PufferFish) entity;
+            pufferFish.setPuffState(config.getInt("puff-state"));
+        } else if (entity instanceof TropicalFish) {
+            TropicalFish tropicalFish = (TropicalFish) entity;
+            tropicalFish.setBodyColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE));
+            tropicalFish.setPattern(Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY));
+            tropicalFish.setPatternColor(Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE));
+        } else if (entity instanceof EnderDragon) {
+            EnderDragon dragon = (EnderDragon) entity;
+            dragon.setPhase(Enums.getIfPresent(EnderDragon.Phase.class, config.getString("phase")).or(EnderDragon.Phase.ROAR_BEFORE_ATTACK));
+        } else if (entity instanceof Phantom) {
+            Phantom phantom = (Phantom) entity;
+            phantom.setSize(config.getInt("size"));
+        }
+    }
+
+    private static void sixteen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Hoglin) {
+            Hoglin hoglin = (Hoglin) entity;
+            hoglin.setConversionTime(config.getInt("conversation") * 20);
+            hoglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
+            hoglin.setIsAbleToBeHunted(config.getBoolean("can-be-hunted"));
+        } else if (entity instanceof Piglin) {
+            // Idk why Spigot did this...
+            Piglin piglin = (Piglin) entity;
+            piglin.setConversionTime(config.getInt("conversation") * 20);
+            piglin.setImmuneToZombification(config.getBoolean("zombification-immunity"));
+        } else if (entity instanceof Strider) {
+            Strider strider = (Strider) entity;
+            strider.setShivering(config.getBoolean("shivering"));
+        }
+    }
+
     /**
      * AXOLOTL - GLOW_ITEM_FRAME - GLOW_SQUID - GOAT - MARKER
      */
-    private static boolean handleSeventeen(Entity entity, ConfigurationSection config) {
+    private static boolean seventeen(Entity entity, ConfigurationSection config) {
         if (entity instanceof Axolotl) {
             Axolotl axolotl = (Axolotl) entity;
             String variantStr = config.getString("variant");

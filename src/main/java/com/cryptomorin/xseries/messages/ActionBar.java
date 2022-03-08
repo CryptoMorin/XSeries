@@ -22,9 +22,11 @@
 package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.ReflectionUtils;
+import com.google.common.base.Strings;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -59,7 +61,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 3.2.0
  * @see ReflectionUtils
  */
 public final class ActionBar {
@@ -80,6 +82,8 @@ public final class ActionBar {
      * GAME_INFO enum constant.
      */
     private static final Object CHAT_MESSAGE_TYPE;
+
+    private static final char TIME_SPECIFIER_START = '^', TIME_SPECIFIER_END = '|';
 
     static {
         boolean exists = false;
@@ -147,6 +151,38 @@ public final class ActionBar {
     }
 
     private ActionBar() {}
+
+    /**
+     * Sends an action bar to a player.
+     * This particular method supports a special prefix for
+     * configuring the time of the actionbar.
+     * <p>
+     * <b>Format: {@code ^number|}</b>
+     * <br>
+     * where {@code number} is in seconds.
+     * <br>
+     * E.g. {@code ^7|&2Hello &4World!}
+     * will keep the actionbar active for 7 seconds.
+     *
+     * @param player  the player to send the action bar to.
+     * @param message the message to send.
+     *
+     * @see #sendActionBar(JavaPlugin, Player, String, long)
+     * @since 3.2.0
+     */
+    public static void sendActionBar(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nullable String message) {
+        if (!Strings.isNullOrEmpty(message)) {
+            if (message.charAt(0) == TIME_SPECIFIER_START) {
+                int end = message.indexOf(TIME_SPECIFIER_END);
+                if (end != -1) {
+                    int time = NumberUtils.toInt(message.substring(1, end), 0) * 20;
+                    if (time >= 0) sendActionBar(plugin, player, message.substring(end + 1), time);
+                }
+            }
+        }
+
+        sendActionBar(player, message);
+    }
 
     /**
      * Sends an action bar to a player.

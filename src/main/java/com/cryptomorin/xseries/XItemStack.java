@@ -59,6 +59,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.cryptomorin.xseries.XMaterial.supports;
@@ -73,7 +74,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 7.0.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -81,6 +82,8 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @see ItemStack
  */
 public final class XItemStack {
+    public static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
+
     private XItemStack() {}
 
     /**
@@ -360,19 +363,75 @@ public final class XItemStack {
      *
      * @param config the config section to deserialize the ItemStack object from.
      *
-     * @return a deserialized ItemStack or null if it can't be deserialized (malformed or insufficient data)
+     * @return a deserialized ItemStack.
+     * @since 1.0.0
+     */
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+        return edit(new ItemStack(Material.AIR), config, Function.identity());
+    }
+
+    private static List<String> splitNewLine(String str) {
+        int len = str.length();
+        List<String> list = new ArrayList<>();
+        int i = 0, start = 0;
+        boolean match = false, lastMatch = false;
+
+        while (i < len) {
+            if (str.charAt(i) == '\n') {
+                if (match) {
+                    list.add(str.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+                start = ++i;
+                continue;
+            }
+            lastMatch = false;
+            match = true;
+            i++;
+        }
+
+        if (match || lastMatch) {
+            list.add(str.substring(start, i));
+        }
+
+        return list;
+    }
+
+    /**
+     * Deserialize an ItemStack from the config.
+     *
+     * @param config the config section to deserialize the ItemStack object from.
+     *
+     * @return an edited ItemStack.
+     * @since 7.0.0
+     */
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull ConfigurationSection config, @Nonnull Function<String, String> translator) {
+        return edit(new ItemStack(Material.AIR), config, translator);
+    }
+
+    /**
+     * Deserialize an ItemStack from the config.
+     *
+     * @param config the config section to deserialize the ItemStack object from.
+     *
+     * @return an edited ItemStack.
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    @Nullable
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+    @Nonnull
+    public static ItemStack edit(@Nonnull ItemStack item, @Nonnull ConfigurationSection config, @Nonnull Function<String, String> translator) {
+        Objects.requireNonNull(item, "Cannot operate on null ItemStack, considering using an AIR ItemStack instead");
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
+        Objects.requireNonNull(translator, "Translator function cannot be null");
 
         // Material
-        String material = config.getString("material");
-        if (material == null) return null;
-        ItemStack item = XMaterial.matchXMaterial(material).map(XMaterial::parseItem).orElse(null);
-        if (item == null) return null;
+        String materialName = config.getString("material");
+        Optional<XMaterial> material = Strings.isNullOrEmpty(materialName) ?
+                Optional.empty() : XMaterial.matchXMaterial(materialName);
+        if (material.isPresent()) material.get().setType(item);
 
         // Amount
         int amount = config.getInt("amount");
@@ -652,7 +711,7 @@ public final class XItemStack {
         // Display Name
         String name = config.getString("name");
         if (!Strings.isNullOrEmpty(name)) {
-            String translated = ChatColor.translateAlternateColorCodes('&', name);
+            String translated = translator.apply(name);
             meta.setDisplayName(translated);
         } else if (name != null && name.isEmpty()) meta.setDisplayName(" "); // For GUI easy access configuration purposes
 
@@ -666,10 +725,10 @@ public final class XItemStack {
         }
 
         // Lore
+        List<String> translatedLore;
         List<String> lores = config.getStringList("lore");
         if (!lores.isEmpty()) {
-            List<String> translatedLore = new ArrayList<>(lores.size());
-            String lastColors = "";
+            translatedLore = new ArrayList<>(lores.size());
 
             for (String lore : lores) {
                 if (lore.isEmpty()) {
@@ -677,38 +736,19 @@ public final class XItemStack {
                     continue;
                 }
 
-                for (String singleLore : StringUtils.splitPreserveAllTokens(lore, '\n')) {
+                for (String singleLore : splitNewLine(lore)) {
                     if (singleLore.isEmpty()) {
                         translatedLore.add(" ");
                         continue;
                     }
-                    singleLore = lastColors + ChatColor.translateAlternateColorCodes('&', singleLore);
-                    translatedLore.add(singleLore);
-
-                    lastColors = ChatColor.getLastColors(singleLore);
+                    translatedLore.add(translator.apply(singleLore));
                 }
             }
 
             meta.setLore(translatedLore);
         } else {
             String lore = config.getString("lore");
-            if (!Strings.isNullOrEmpty(lore)) {
-                List<String> translatedLore = new ArrayList<>(10);
-                String lastColors = "";
-
-                for (String singleLore : StringUtils.splitPreserveAllTokens(lore, '\n')) {
-                    if (singleLore.isEmpty()) {
-                        translatedLore.add(" ");
-                        continue;
-                    }
-                    singleLore = lastColors + ChatColor.translateAlternateColorCodes('&', singleLore);
-                    translatedLore.add(singleLore);
-
-                    lastColors = ChatColor.getLastColors(singleLore);
-                }
-
-                meta.setLore(translatedLore);
-            }
+            if (!Strings.isNullOrEmpty(lore)) meta.setLore(Collections.singletonList(translator.apply(lore)));
         }
 
         // Enchantments
@@ -718,8 +758,9 @@ public final class XItemStack {
                 Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
                 enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.getEnchant(), enchants.getInt(ench), true));
             }
-        } else {
-            if (config.getBoolean("glow")) meta.addEnchant(XEnchantment.DURABILITY.getEnchant(), 1, false);
+        } else if (config.getBoolean("glow")) {
+            meta.addEnchant(XEnchantment.DURABILITY.getEnchant(), 1, false);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS); // HIDE_UNBREAKABLE is not for UNBREAKING enchant.
         }
 
         // Enchanted Books
@@ -743,7 +784,7 @@ public final class XItemStack {
         } else {
             String allFlags = config.getString("flags");
             if (!Strings.isNullOrEmpty(allFlags) && allFlags.equalsIgnoreCase("ALL"))
-                meta.addItemFlags(ItemFlag.values());
+                meta.addItemFlags(ITEM_FLAGS);
         }
 
         // Atrributes - https://minecraft.gamepedia.com/Attribute
@@ -785,7 +826,7 @@ public final class XItemStack {
      *
      * @return a deserialized ItemStack.
      */
-    @Nullable
+    @Nonnull
     public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem) {
         Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
         return deserialize(mapToConfigSection(serializedItem));

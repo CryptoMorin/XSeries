@@ -33,6 +33,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
+import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -362,7 +363,7 @@ public enum XMaterial {
     CUT_RED_SANDSTONE,
     CUT_RED_SANDSTONE_SLAB("STONE_SLAB2"),
     CUT_SANDSTONE,
-    CUT_SANDSTONE_SLAB("STEP"),
+    CUT_SANDSTONE_SLAB(1, "STEP"),
     CYAN_BANNER(6, "STANDING_BANNER", "BANNER"),
     CYAN_BED(supports(12) ? 9 : 0, "BED_BLOCK", "BED"),
     CYAN_CANDLE,
@@ -495,8 +496,8 @@ public enum XMaterial {
     END_ROD,
     END_STONE("ENDER_STONE"),
     END_STONE_BRICKS("END_BRICKS"),
-    END_STONE_BRICK_SLAB(6, "STEP"),
-    END_STONE_BRICK_STAIRS("SMOOTH_STAIRS"),
+    END_STONE_BRICK_SLAB,
+    END_STONE_BRICK_STAIRS,
     END_STONE_BRICK_WALL,
     EVOKER_SPAWN_EGG(34, "MONSTER_EGG"),
     EXPERIENCE_BOTTLE("EXP_BOTTLE"),
@@ -599,6 +600,10 @@ public enum XMaterial {
     GREEN_CARPET(13, "CARPET"),
     GREEN_CONCRETE(13, "CONCRETE"),
     GREEN_CONCRETE_POWDER(13, "CONCRETE_POWDER"),
+    /**
+     * 1.13 renamed to CACTUS_GREEN
+     * 1.14 renamed to GREEN_DYE
+     */
     GREEN_DYE(2, "INK_SACK", "CACTUS_GREEN"),
     GREEN_GLAZED_TERRACOTTA,
     GREEN_SHULKER_BOX,
@@ -729,7 +734,7 @@ public enum XMaterial {
      * Renamed to SILVER_GLAZED_TERRACOTTA in 1.12
      * Renamed to LIGHT_GRAY_GLAZED_TERRACOTTA in 1.14
      */
-    LIGHT_GRAY_GLAZED_TERRACOTTA(8, "STAINED_CLAY", "SILVER_GLAZED_TERRACOTTA"),
+    LIGHT_GRAY_GLAZED_TERRACOTTA("SILVER_GLAZED_TERRACOTTA"),
     LIGHT_GRAY_SHULKER_BOX("SILVER_SHULKER_BOX"),
     LIGHT_GRAY_STAINED_GLASS(8, "STAINED_GLASS"),
     LIGHT_GRAY_STAINED_GLASS_PANE(8, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -795,12 +800,12 @@ public enum XMaterial {
     MOJANG_BANNER_PATTERN,
     MOOSHROOM_SPAWN_EGG(96, "MONSTER_EGG"),
     MOSSY_COBBLESTONE,
-    MOSSY_COBBLESTONE_SLAB(3, "STEP"),
+    MOSSY_COBBLESTONE_SLAB(),
     MOSSY_COBBLESTONE_STAIRS,
     MOSSY_COBBLESTONE_WALL(1, "COBBLE_WALL", "COBBLESTONE_WALL"),
     MOSSY_STONE_BRICKS(1, "SMOOTH_BRICK"),
-    MOSSY_STONE_BRICK_SLAB(5, "STEP"),
-    MOSSY_STONE_BRICK_STAIRS("SMOOTH_STAIRS"),
+    MOSSY_STONE_BRICK_SLAB,
+    MOSSY_STONE_BRICK_STAIRS,
     MOSSY_STONE_BRICK_WALL,
     MOSS_BLOCK,
     MOSS_CARPET,
@@ -1003,7 +1008,7 @@ public enum XMaterial {
     POWERED_RAIL,
     PRISMARINE,
     PRISMARINE_BRICKS(2, "PRISMARINE"),
-    PRISMARINE_BRICK_SLAB(4, "STEP"),
+    PRISMARINE_BRICK_SLAB,
     PRISMARINE_BRICK_STAIRS,
     PRISMARINE_CRYSTALS,
     PRISMARINE_SHARD,
@@ -1088,7 +1093,7 @@ public enum XMaterial {
     RED_MUSHROOM,
     RED_MUSHROOM_BLOCK("RED_MUSHROOM", "HUGE_MUSHROOM_2"),
     RED_NETHER_BRICKS("RED_NETHER_BRICK"),
-    RED_NETHER_BRICK_SLAB(4, "STEP"),
+    RED_NETHER_BRICK_SLAB,
     RED_NETHER_BRICK_STAIRS,
     RED_NETHER_BRICK_WALL,
     RED_SAND(1, "SAND"),
@@ -1146,16 +1151,16 @@ public enum XMaterial {
     SMOKER,
     SMOOTH_BASALT,
     SMOOTH_QUARTZ,
-    SMOOTH_QUARTZ_SLAB(7, "STEP"),
+    SMOOTH_QUARTZ_SLAB,
     SMOOTH_QUARTZ_STAIRS,
     SMOOTH_RED_SANDSTONE(2, "RED_SANDSTONE"),
     SMOOTH_RED_SANDSTONE_SLAB("STONE_SLAB2"),
     SMOOTH_RED_SANDSTONE_STAIRS,
     SMOOTH_SANDSTONE(2, "SANDSTONE"),
-    SMOOTH_SANDSTONE_SLAB("STEP"),
+    SMOOTH_SANDSTONE_SLAB,
     SMOOTH_SANDSTONE_STAIRS,
-    SMOOTH_STONE("STEP"),
-    SMOOTH_STONE_SLAB("STEP"),
+    SMOOTH_STONE,
+    SMOOTH_STONE_SLAB,
     SNOW,
     SNOWBALL("SNOW_BALL"),
     SNOW_BLOCK,
@@ -1197,7 +1202,7 @@ public enum XMaterial {
     STONECUTTER,
     STONE_AXE,
     STONE_BRICKS("SMOOTH_BRICK"),
-    STONE_BRICK_SLAB(4, "DOUBLE_STEP", "STEP", "STONE_SLAB"),
+    STONE_BRICK_SLAB(5, "DOUBLE_STEP", "STEP", "STONE_SLAB"),
     STONE_BRICK_STAIRS("SMOOTH_STAIRS"),
     STONE_BRICK_WALL,
     STONE_BUTTON,
@@ -1345,7 +1350,7 @@ public enum XMaterial {
     WHITE_CONCRETE("CONCRETE"),
     WHITE_CONCRETE_POWDER("CONCRETE_POWDER"),
     WHITE_DYE(15, "INK_SACK", "BONE_MEAL"),
-    WHITE_GLAZED_TERRACOTTA("STAINED_CLAY"),
+    WHITE_GLAZED_TERRACOTTA,
     WHITE_SHULKER_BOX,
     WHITE_STAINED_GLASS("STAINED_GLASS"),
     WHITE_STAINED_GLASS_PANE("THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -1374,7 +1379,7 @@ public enum XMaterial {
     YELLOW_CONCRETE(4, "CONCRETE"),
     YELLOW_CONCRETE_POWDER(4, "CONCRETE_POWDER"),
     YELLOW_DYE(11, "INK_SACK", "DANDELION_YELLOW"),
-    YELLOW_GLAZED_TERRACOTTA(4, "STAINED_CLAY", "YELLOW_TERRACOTTA"),
+    YELLOW_GLAZED_TERRACOTTA,
     YELLOW_SHULKER_BOX,
     YELLOW_STAINED_GLASS(4, "STAINED_GLASS"),
     YELLOW_STAINED_GLASS_PANE(4, "THIN_GLASS", "STAINED_GLASS_PANE"),
@@ -1684,6 +1689,7 @@ public enum XMaterial {
         String material = item.getType().name();
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
+        // They didn't really use the items data value in older versions.
         if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
             ItemMeta meta = item.getItemMeta();
             if (meta instanceof SpawnEggMeta) {
@@ -1692,10 +1698,24 @@ public enum XMaterial {
             }
         }
 
-        // Check FILLED_MAP enum for more info.
-        //if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
+        // Potions used the items data value to store
+        // information about the type of potion in 1.8
+        if (!supports(9) && material.endsWith("ION")) {
+            // There's also 16000+ data value technique, but this is more reliable.
+            return Potion.fromItemStack(item).isSplash() ? SPLASH_POTION : POTION;
+        }
 
-        // No orElseThrow, I don't want to deal with all that final variable bullshit.
+        // Refer to the enum for info.
+        // Currently this is the only material with a non-zero data value
+        // that has been renamed after the flattening update.
+        // If this happens to more materials in the future,
+        // I might have to change then system.
+        if (Data.ISFLAT && !supports(14) && material.equals("CACTUS_GREEN")) return GREEN_DYE;
+
+        // Check FILLED_MAP enum for more info.
+        // if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
+
+        // No orElseThrow, I don't want to deal with Java's final variable bullshit.
         Optional<XMaterial> result = matchDefinedXMaterial(material, data);
         if (result.isPresent()) return result.get();
         throw new IllegalArgumentException("Unsupported material from item: " + material + " (" + data + ')');
