@@ -27,7 +27,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.*;
 
-@SuppressWarnings("NotNullFieldNotInitialized")
 public final class XTag<@NonNull T extends Enum<T>> {
 
     public static final @NonNull XTag<XMaterial> AIR;
@@ -2010,11 +2009,15 @@ public final class XTag<@NonNull T extends Enum<T>> {
      * Checks if this Material is an obtainable item. "Obtainable items" are simply materials that can be displayed in your GUI.
      * This method is mainly designed to support pre-1.13, servers using 1.13 and above will directly have their materials checked with {@link Material#isItem()}
      *
-     * @return true if this material is an item.
+     * @return true if this material is an item, otherwise false if it's not an item or the item is not supported.
      * @since 1.13
      */
     public static boolean isItem(XMaterial material) {
-        if (XMaterial.supports(13)) return material.parseMaterial().isItem();
+        if (XMaterial.supports(13)) {
+            Material mat = material.parseMaterial();
+            return mat != null && mat.isItem();
+        }
+
         switch (material) { // All the materials that are NOT an item (only 1.12 materials)
             case ATTACHED_MELON_STEM:
             case ATTACHED_PUMPKIN_STEM:

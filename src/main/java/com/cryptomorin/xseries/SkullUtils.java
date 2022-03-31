@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
@@ -51,7 +52,7 @@ import java.util.UUID;
  * </ul>
  *
  * @author Crypto Morin
- * @version 3.1.1
+ * @version 3.1.2
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
@@ -61,7 +62,6 @@ public class SkullUtils {
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
     private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
-    //private static final Pattern BASE64 = Pattern.compile("(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?");
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -71,9 +71,16 @@ public class SkullUtils {
             Class<?> CraftMetaSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
             Field profile = CraftMetaSkull.getDeclaredField("profile");
             profile.setAccessible(true);
-
-            profileSetter = lookup.unreflectSetter(profile);
             profileGetter = lookup.unreflectGetter(profile);
+
+            try {
+                // https://github.com/CryptoMorin/XSeries/issues/169
+                Method setProfile = CraftMetaSkull.getDeclaredMethod("setProfile", GameProfile.class);
+                setProfile.setAccessible(true);
+                profileSetter = lookup.unreflect(setProfile);
+            } catch (NoSuchMethodException e) {
+                profileSetter = lookup.unreflectSetter(profile);
+            }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }

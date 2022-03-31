@@ -74,7 +74,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.1.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -196,7 +196,6 @@ public final class XItemStack {
             config.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
         } else if (meta instanceof PotionMeta) {
             if (supports(9)) {
-
                 PotionMeta potion = (PotionMeta) meta;
                 List<PotionEffect> customEffects = potion.getCustomEffects();
                 List<String> effects = new ArrayList<>(customEffects.size());
@@ -204,15 +203,14 @@ public final class XItemStack {
                     effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
                 }
 
-                config.set("custom-effects", effects);
+                config.set("effects", effects);
                 PotionData potionData = potion.getBasePotionData();
                 config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
 
                 if (potion.hasColor()) config.set("color", potion.getColor().asRGB());
 
             } else {
-
-                //check for water bottles in 1.8
+                // Check for water bottles in 1.8
                 if (item.getDurability() != 0) {
                     Potion potion = Potion.fromItemStack(item);
                     config.set("level", potion.getLevel());
@@ -288,7 +286,7 @@ public final class XItemStack {
         } else if (supports(17)) {
             if (meta instanceof AxolotlBucketMeta) {
                 AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                if (bucket.hasVariant()) config.set("variant", bucket.getVariant().toString());
+                if (bucket.hasVariant()) config.set("color", bucket.getVariant().toString());
             }
         } else if (supports(16)) {
             if (meta instanceof CompassMeta) {
@@ -478,7 +476,7 @@ public final class XItemStack {
             if (supports(9)) {
                 PotionMeta potion = (PotionMeta) meta;
 
-                for (String effects : config.getStringList("custom-effects")) {
+                for (String effects : config.getStringList("effects")) {
                     XPotion.Effect effect = XPotion.parseEffect(effects);
                     if (effect.hasChance()) potion.addCustomEffect(effect.getEffect(), true);
                 }
@@ -521,7 +519,7 @@ public final class XItemStack {
                 spawner.update(true);
                 bsm.setBlockState(spawner);
             } else if (supports(11) && state instanceof ShulkerBox) {
-                ConfigurationSection shulkerSection = config.getConfigurationSection("shulker");
+                ConfigurationSection shulkerSection = config.getConfigurationSection("contents");
                 if (shulkerSection != null) {
                     ShulkerBox box = (ShulkerBox) state;
                     for (String key : shulkerSection.getKeys(false)) {
@@ -637,7 +635,7 @@ public final class XItemStack {
         } else if (supports(17)) {
             if (meta instanceof AxolotlBucketMeta) {
                 AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                String variantStr = config.getString("variant");
+                String variantStr = config.getString("color");
                 if (variantStr != null) {
                     Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
                     bucket.setVariant(variant);
