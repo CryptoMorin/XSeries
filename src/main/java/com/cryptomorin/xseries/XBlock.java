@@ -243,7 +243,7 @@ public final class XBlock {
         if (smartConversion != null) material = smartConversion;
         if (material.parseMaterial() == null) return false;
 
-        block.setType(material.parseMaterial());
+        block.setType(material.parseMaterial(), applyPhysics);
         if (XMaterial.supports(13)) return false;
 
         String parsedName = material.parseMaterial().name();
@@ -251,14 +251,14 @@ public final class XBlock {
             String blockName = parsedName.substring(0, parsedName.length() - "_ITEM".length());
             Material blockMaterial = Objects.requireNonNull(Material.getMaterial(blockName),
                     () -> "Could not find block material for item '" + parsedName + "' as '" + blockName + '\'');
-            block.setType(blockMaterial);
+            block.setType(blockMaterial, applyPhysics);
         } else if (parsedName.contains("CAKE")) {
             Material blockMaterial = Material.getMaterial("CAKE_BLOCK");
-            block.setType(blockMaterial);
+            block.setType(blockMaterial, applyPhysics);
         }
 
         LegacyMaterial legacyMaterial = LegacyMaterial.getMaterial(parsedName);
-        if (legacyMaterial == LegacyMaterial.BANNER) block.setType(LegacyMaterial.STANDING_BANNER.material);
+        if (legacyMaterial == LegacyMaterial.BANNER) block.setType(LegacyMaterial.STANDING_BANNER.material, applyPhysics);
         LegacyMaterial.Handling handling = legacyMaterial == null ? null : legacyMaterial.handling;
 
         BlockState state = block.getState();
