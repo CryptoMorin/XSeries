@@ -1689,8 +1689,8 @@ public enum XMaterial {
         String material = item.getType().name();
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
-        // They didn't really use the items data value in older versions.
-        if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
+        // Versions 1.9-1.12 didn't really use the items data value.
+        if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG") && supports(9)) {
             ItemMeta meta = item.getItemMeta();
             if (meta instanceof SpawnEggMeta) {
                 SpawnEggMeta egg = (SpawnEggMeta) meta;
