@@ -831,6 +831,22 @@ public final class XItemStack {
     }
 
     /**
+     * Deserialize an ItemStack from a {@code Map}.
+     *
+     * @param serializedItem the map holding the item configurations to deserialize
+     *                       the ItemStack object from.
+     * @param translator     the translator to use for translating the item's name.
+     *
+     * @return a deserialized ItemStack.
+     */
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem, @Nonnull Function<String, String> translator) {
+        Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+        Objects.requireNonNull(translator, "translator cannot be null.");
+        return deserialize(mapToConfigSection(serializedItem), translator);
+    }
+
+    /**
      * Converts a {@code Map<?, ?>} into a {@code ConfigurationSection}.
      *
      * @param map the map to convert.
