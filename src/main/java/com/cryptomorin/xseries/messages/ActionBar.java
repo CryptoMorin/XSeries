@@ -195,6 +195,8 @@ public final class ActionBar {
      */
     public static void sendActionBar(@Nonnull Player player, @Nullable String message) {
         Objects.requireNonNull(player, "Cannot send action bar to null player");
+        Objects.requireNonNull(message, "Cannot send null actionbar message");
+
         if (SPIGOT) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
             return;
@@ -321,6 +323,9 @@ public final class ActionBar {
      */
     public static void sendActionBar(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nullable String message, long duration) {
         if (duration < 1) return;
+        Objects.requireNonNull(plugin, "Cannot send consistent actionbar with null plugin");
+        Objects.requireNonNull(player, "Cannot send actionbar to null player");
+        Objects.requireNonNull(message, "Cannot send null actionbar message");
 
         new BukkitRunnable() {
             long repeater = duration;

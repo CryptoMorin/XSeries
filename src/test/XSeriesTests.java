@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
 
@@ -20,7 +21,15 @@ public final class XSeriesTests {
         System.out.println(str);
     }
 
+    private static void err(String str) {
+        System.err.println(str);
+    }
+
+    @SuppressWarnings("deprecation")
     public static void test() {
+//        DifferenceHelper.versionDifference();
+//        if (true) return;
+
         print("\n\n\nTest begin...");
 
         print("Testing XMaterial...");
@@ -38,8 +47,16 @@ public final class XSeriesTests {
         assertPresent(XPotion.matchXPotion("BLIND"));
         assertPresent(XPotion.matchXPotion("DAMAGE_RESISTANCE"));
         for (PotionEffectType effect : PotionEffectType.values()) {
-            XPotion.matchXPotion(effect);
-            assertPresent(XPotion.matchXPotion(effect.getName()));
+            try {
+                XPotion.matchXPotion(effect);
+                assertPresent(XPotion.matchXPotion(effect.getName()));
+            } catch (ArrayIndexOutOfBoundsException ex) {
+                err("Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
+                throw ex;
+            }
+        }
+        for (Enchantment enchant : Enchantment.values()) {
+            assertPresent(XEnchantment.matchXEnchantment(enchant.getName()), "Unknown enchantment: " + enchant.getName());
         }
 
         print("Testing XSound...");
@@ -77,9 +94,13 @@ public final class XSeriesTests {
         }
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static void assertPresent(Optional<?> opt) {
         Assertions.assertTrue(opt.isPresent());
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static void assertPresent(Optional<?> opt, String details) {
+        Assertions.assertTrue(opt.isPresent(), details);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

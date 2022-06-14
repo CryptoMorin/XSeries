@@ -49,7 +49,7 @@ import java.util.function.Function;
  * @version 3.0.0
  * @see ReflectionUtils
  */
-public final class Titles {
+public final class Titles implements Cloneable {
     /**
      * EnumTitleAction
      * Used for the fade in, stay and fade out feature of titles.
@@ -122,6 +122,12 @@ public final class Titles {
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public Titles clone() {
+        return new Titles(title, subtitle, fadeIn, stay, fadeOut);
     }
 
     public void send(Player player) {

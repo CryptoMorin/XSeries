@@ -33,10 +33,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.cryptomorin.xseries.ReflectionUtils.*;
 
@@ -47,7 +44,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.1.0
+ * @version 5.2.0
  */
 public final class NMSExtras {
     public static final MethodHandle EXP_PACKET;
@@ -116,8 +113,8 @@ public final class NMSExtras {
 
             // https://wiki.vg/Protocol#Set_Experience
             // exp - lvl - total exp
-            expPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutExperience"), MethodType.methodType(void.class, float.class,
-                    int.class, int.class));
+            expPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutExperience"), MethodType.methodType(
+                    void.class, float.class, int.class, int.class));
             // Lightning
             if (!supports(16)) {
                 entityPacket = lookup.findConstructor(getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
@@ -126,8 +123,14 @@ public final class NMSExtras {
                 vec3D = lookup.findConstructor(nmsVec3D, MethodType.methodType(void.class,
                         double.class, double.class, double.class));
 
-                entityPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutSpawnEntity"), MethodType.methodType(void.class,
-                        int.class, UUID.class, double.class, double.class, double.class, float.class, float.class, nmsEntityType, int.class, nmsVec3D));
+                List<Class<?>> spawnTypes = new ArrayList<>(Arrays.asList(
+                        int.class, UUID.class,
+                        double.class, double.class, double.class, float.class, float.class,
+                        nmsEntityType, int.class, nmsVec3D)
+                );
+                if (ReflectionUtils.supports(19)) spawnTypes.add(double.class);
+                entityPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutSpawnEntity"),
+                        MethodType.methodType(void.class, spawnTypes));
             }
 
             worldHandle = lookup.findVirtual(getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(

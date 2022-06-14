@@ -49,7 +49,7 @@ import java.util.*;
  * Enchanting: https://minecraft.gamepedia.com/Enchanting
  *
  * @author Crypto Morin
- * @version 2.2.0
+ * @version 2.3.0
  * @see Enchantment
  */
 public enum XEnchantment {
@@ -68,7 +68,6 @@ public enum XEnchantment {
     FIRE_ASPECT(true, "FIRE", "MELEE_FIRE", "MELEE_FLAME", "FA"),
     FROST_WALKER(true, "FROST", "WALKER"),
     IMPALING(true, "IMPALE", "OCEAN_DAMAGE", "OCEAN_DMG"),
-    SOUL_SPEED(true, "SPEED_SOUL", "SOUL_RUNNER"),
     KNOCKBACK(true, "K_BACK", "KB"),
     LOOT_BONUS_BLOCKS("FORTUNE", "BLOCKS_LOOT_BONUS", "FORT", "LBB"),
     LOOT_BONUS_MOBS("LOOTING", "MOB_LOOT", "MOBS_LOOT_BONUS", "LBM"),
@@ -87,7 +86,9 @@ public enum XEnchantment {
     QUICK_CHARGE(true, "QUICKCHARGE", "QUICK_DRAW", "FAST_CHARGE", "FAST_DRAW"),
     RIPTIDE(true, "RIP", "TIDE", "LAUNCH"),
     SILK_TOUCH(true, "SOFT_TOUCH", "ST"),
+    SOUL_SPEED(true, "SPEED_SOUL", "SOUL_RUNNER"),
     SWEEPING_EDGE("SWEEPING", "SWEEPING_EDGE", "SWEEP_EDGE"),
+    SWIFT_SNEAK(true, "SNEAK_SWIFT"),
     THORNS(true, "HIGHCRIT", "THORN", "HIGHERCRIT", "T"),
     VANISHING_CURSE(true, "VANISHING_CURSE", "VANISH_CURSE", "VANISHING", "VANISH"),
     WATER_WORKER("AQUA_AFFINITY", "WATER_WORKER", "AQUA_AFFINITY", "WATER_MINE", "WW");

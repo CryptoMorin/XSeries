@@ -46,7 +46,7 @@ import java.util.concurrent.CompletableFuture;
  * <a href="https://minecraft.fandom.com/wiki/Java_Edition_1.18">1.18 removed biomes issue.</a>
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 6.1.0
  * @see Biome
  */
 public enum XBiome {
@@ -62,6 +62,8 @@ public enum XBiome {
     OLD_GROWTH_SPRUCE_TAIGA("GIANT_SPRUCE_TAIGA", "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
     WINDSWEPT_SAVANNA("SHATTERED_SAVANNA", "MUTATED_SAVANNA", "SAVANNA_MOUNTAINS"),
     MEADOW,
+    MANGROVE_SWAMP,
+    DEEP_DARK,
     GROVE,
     SNOWY_SLOPES,
     FROZEN_PEAKS,
