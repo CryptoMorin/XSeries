@@ -59,6 +59,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -74,7 +75,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 7.1.0
+ * @version 7.2.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -366,7 +367,7 @@ public final class XItemStack {
      */
     @Nonnull
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
-        return edit(new ItemStack(Material.AIR), config, Function.identity());
+        return edit(new ItemStack(Material.AIR), config, Function.identity(), null);
     }
 
     private static List<String> splitNewLine(String str) {
@@ -397,18 +398,44 @@ public final class XItemStack {
         return list;
     }
 
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull ConfigurationSection config,
+                                        @Nonnull Function<String, String> translator) {
+        return deserialize(config, translator, null);
+    }
+
     /**
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
      *
      * @return an edited ItemStack.
-     * @since 7.0.0
+     * @since 7.2.0
      */
     @Nonnull
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config, @Nonnull Function<String, String> translator) {
-        return edit(new ItemStack(Material.AIR), config, translator);
+    public static ItemStack deserialize(@Nonnull ConfigurationSection config,
+                                        @Nonnull Function<String, String> translator,
+                                        @Nullable Consumer<Exception> restart) {
+        return edit(new ItemStack(Material.AIR), config, translator, restart);
     }
+
+
+    /**
+     * Deserialize an ItemStack from a {@code Map}.
+     *
+     * @param serializedItem the map holding the item configurations to deserialize
+     *                       the ItemStack object from.
+     * @param translator     the translator to use for translating the item's name.
+     *
+     * @return a deserialized ItemStack.
+     */
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem, @Nonnull Function<String, String> translator) {
+        Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+        Objects.requireNonNull(translator, "translator cannot be null.");
+        return deserialize(mapToConfigSection(serializedItem), translator);
+    }
+
 
     /**
      * Deserialize an ItemStack from the config.
@@ -420,16 +447,45 @@ public final class XItemStack {
      */
     @SuppressWarnings("deprecation")
     @Nonnull
-    public static ItemStack edit(@Nonnull ItemStack item, @Nonnull ConfigurationSection config, @Nonnull Function<String, String> translator) {
+    public static ItemStack edit(@Nonnull ItemStack item,
+                                 @Nonnull ConfigurationSection config,
+                                 @Nonnull Function<String, String> translator,
+                                 @Nullable Consumer<Exception> restart) {
         Objects.requireNonNull(item, "Cannot operate on null ItemStack, considering using an AIR ItemStack instead");
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
         Objects.requireNonNull(translator, "Translator function cannot be null");
 
         // Material
         String materialName = config.getString("material");
-        Optional<XMaterial> material = Strings.isNullOrEmpty(materialName) ?
-                Optional.empty() : XMaterial.matchXMaterial(materialName);
-        if (material.isPresent()) material.get().setType(item);
+        if (!Strings.isNullOrEmpty(materialName)) {
+            Optional<XMaterial> materialOpt = XMaterial.matchXMaterial(materialName);
+            XMaterial material;
+            if (materialOpt.isPresent()) material = materialOpt.get();
+            else {
+                UnknownMaterialCondition unknownMaterialCondition = new UnknownMaterialCondition(materialName);
+                restart.accept(unknownMaterialCondition);
+
+                if (unknownMaterialCondition.hasSolution()) material = unknownMaterialCondition.solution;
+                else throw unknownMaterialCondition;
+            }
+
+            if (!material.isSupported()) {
+                UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.UNSUPPORTED);
+                restart.accept(unsupportedMaterialCondition);
+
+                if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
+                else throw unsupportedMaterialCondition;
+            }
+            if (XTag.INVENTORY_NOT_DISPLAYABLE.isTagged(material)) {
+                UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.NOT_DISPLAYABLE);
+                restart.accept(unsupportedMaterialCondition);
+
+                if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
+                else throw unsupportedMaterialCondition;
+            }
+
+            material.setType(item);
+        }
 
         // Amount
         int amount = config.getInt("amount");
@@ -1150,5 +1206,55 @@ public final class XItemStack {
             }
         }
         return -1;
+    }
+
+    public static class MaterialCondition extends RuntimeException {
+        protected XMaterial solution;
+
+        public MaterialCondition(String message) {
+            super(message);
+        }
+
+        public void setSolution(XMaterial solution) {
+            this.solution = solution;
+        }
+
+        public boolean hasSolution() {
+            return this.solution != null;
+        }
+    }
+
+    public static final class UnknownMaterialCondition extends MaterialCondition {
+        private final String material;
+
+        public UnknownMaterialCondition(String material) {
+            super("Unknown material: " + material);
+            this.material = material;
+        }
+
+        public String getMaterial() {
+            return material;
+        }
+    }
+
+    public static final class UnAcceptableMaterialCondition extends MaterialCondition {
+        private final XMaterial material;
+        private final Reason reason;
+
+        public UnAcceptableMaterialCondition(XMaterial material, Reason reason) {
+            super("Unacceptable material: " + material.name() + " (" + reason.name() + ')');
+            this.material = material;
+            this.reason = reason;
+        }
+
+        public Reason getReason() {
+            return reason;
+        }
+
+        public XMaterial getMaterial() {
+            return material;
+        }
+
+        public enum Reason {UNSUPPORTED, NOT_DISPLAYABLE}
     }
 }

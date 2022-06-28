@@ -53,7 +53,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Potions: https://minecraft.gamepedia.com/Potion
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -65,6 +65,7 @@ public enum XPotion {
     CONDUIT_POWER("CONDUIT", "POWER_CONDUIT"),
     CONFUSION("NAUSEA", "SICKNESS", "SICK"),
     DAMAGE_RESISTANCE("RESISTANCE", "ARMOR", "DMG_RESIST", "DMG_RESISTANCE"),
+    DARKNESS,
     DOLPHINS_GRACE("DOLPHIN", "GRACE"),
     FAST_DIGGING("HASTE", "SUPER_PICK", "DIGFAST", "DIG_SPEED", "QUICK_MINE", "SHARP"),
     FIRE_RESISTANCE("FIRE_RESIST", "RESIST_FIRE", "FIRE_RESISTANCE"),

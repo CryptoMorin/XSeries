@@ -54,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -135,13 +135,12 @@ public final class XEntity {
         if (config.isSet("silent")) entity.setSilent(config.getBoolean("silent"));
         entity.setFireTicks(config.getInt("fire-ticks"));
         entity.setFallDistance(config.getInt("fall-distance"));
-        entity.setInvulnerable(config.getBoolean("invulnerable"));
+        if (config.isSet("invulnerable")) entity.setInvulnerable(config.getBoolean("invulnerable"));
 
         int live = config.getInt("ticks-lived");
         if (live > 0) entity.setTicksLived(live);
 
-        int portalCooldown = config.getInt("portal-cooldown", -1);
-        if (portalCooldown != -1) entity.setPortalCooldown(portalCooldown);
+        if (config.isSet("portal-cooldown")) entity.setPortalCooldown(config.getInt("portal-cooldown", -1));
         // We don't need damage cause.
 
         if (XMaterial.supports(13)) {
@@ -181,8 +180,8 @@ public final class XEntity {
 
         if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) entity;
-            double hp = config.getDouble("health", -1);
-            if (hp > -1) {
+            if (config.isSet("health")) {
+                double hp = config.getDouble("health");
                 living.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(hp);
                 living.setHealth(hp);
             }
