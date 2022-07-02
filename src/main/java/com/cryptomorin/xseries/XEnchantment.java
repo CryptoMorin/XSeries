@@ -22,22 +22,17 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Strings;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Enchantment support with multiple aliases.
@@ -237,7 +232,7 @@ public enum XEnchantment {
      */
     @Nonnull
     public static Optional<XEnchantment> matchXEnchantment(@Nonnull String enchantment) {
-        Validate.notEmpty(enchantment, "Enchantment name cannot be null or empty");
+        if (enchantment == null || enchantment.isEmpty()) throw new IllegalArgumentException("Enchantment name cannot be null or empty");
         return Optional.ofNullable(Data.NAMES.get(format(enchantment)));
     }
 
@@ -256,47 +251,6 @@ public enum XEnchantment {
     public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
         return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), () -> "Unsupported enchantment: " + enchantment.getName());
-    }
-
-    /**
-     * Adds an unsafe enchantment to the given item from a string.
-     * <p>
-     * <blockquote><pre>
-     *    ItemStack item = ...;
-     *    addEnchantFromString(item, "unbreaking, 10");
-     *    addEnchantFromString(item, "mending");
-     * </pre></blockquote>
-     * <p>
-     * Note that if you set your item's meta {@link ItemStack#setItemMeta(ItemMeta)} the enchantment
-     * will be removed.
-     * You need to use {@link ItemMeta#addEnchant(Enchantment, int, boolean)} instead.
-     * You can use the {@link #matchXEnchantment(String)} method in this case.
-     *
-     * @param item        the item to add the enchantment to.
-     * @param enchantment the enchantment string containing the enchantment name and level (optional)
-     *
-     * @return an enchanted {@link ItemStack} or the item itself without enchantment added if enchantment type is null.
-     * @see #matchXEnchantment(String)
-     * @since 1.0.0
-     */
-    @Nonnull
-    public static ItemStack addEnchantFromString(@Nonnull ItemStack item, @Nullable String enchantment) {
-        Objects.requireNonNull(item, "Cannot add enchantment to null ItemStack");
-        if (Strings.isNullOrEmpty(enchantment) || enchantment.equalsIgnoreCase("none")) return item;
-
-        String[] split = StringUtils.split(StringUtils.deleteWhitespace(enchantment), ',');
-        if (split.length == 0) split = StringUtils.split(enchantment, ' ');
-
-        Optional<XEnchantment> enchantOpt = matchXEnchantment(split[0]);
-        if (!enchantOpt.isPresent()) return item;
-        Enchantment enchant = enchantOpt.get().enchantment;
-        if (enchant == null) return item;
-
-        int lvl = 1;
-        if (split.length > 1) lvl = NumberUtils.toInt(split[1]);
-
-        item.addUnsafeEnchantment(enchant, lvl);
-        return item;
     }
 
     /**
@@ -352,7 +306,9 @@ public enum XEnchantment {
     @Override
     @Nonnull
     public String toString() {
-        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+        return Arrays.stream(name().split("_"))
+                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
     }
 
     /**

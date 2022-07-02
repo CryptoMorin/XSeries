@@ -25,9 +25,6 @@ package com.cryptomorin.xseries;
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -42,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
@@ -1263,22 +1261,22 @@ public enum XMaterial {
     STRAY_SPAWN_EGG(6, "MONSTER_EGG"),
     STRIDER_SPAWN_EGG,
     STRING,
-    STRIPPED_ACACIA_LOG(4, "LOG_2"),
-    STRIPPED_ACACIA_WOOD(4, "LOG_2"),
-    STRIPPED_BIRCH_LOG(2, "LOG"),
-    STRIPPED_BIRCH_WOOD(2, "LOG"),
+    STRIPPED_ACACIA_LOG,
+    STRIPPED_ACACIA_WOOD,
+    STRIPPED_BIRCH_LOG,
+    STRIPPED_BIRCH_WOOD,
     STRIPPED_CRIMSON_HYPHAE,
     STRIPPED_CRIMSON_STEM,
-    STRIPPED_DARK_OAK_LOG(5, "LOG_2"),
-    STRIPPED_DARK_OAK_WOOD(5, "LOG_2"),
-    STRIPPED_JUNGLE_LOG(3, "LOG"),
-    STRIPPED_JUNGLE_WOOD(3, "LOG"),
+    STRIPPED_DARK_OAK_LOG,
+    STRIPPED_DARK_OAK_WOOD,
+    STRIPPED_JUNGLE_LOG,
+    STRIPPED_JUNGLE_WOOD,
     STRIPPED_MANGROVE_LOG,
     STRIPPED_MANGROVE_WOOD,
-    STRIPPED_OAK_LOG("LOG"),
-    STRIPPED_OAK_WOOD("LOG"),
-    STRIPPED_SPRUCE_LOG(1, "LOG"),
-    STRIPPED_SPRUCE_WOOD(1, "LOG"),
+    STRIPPED_OAK_LOG,
+    STRIPPED_OAK_WOOD,
+    STRIPPED_SPRUCE_LOG,
+    STRIPPED_SPRUCE_WOOD,
     STRIPPED_WARPED_HYPHAE,
     STRIPPED_WARPED_STEM,
     STRUCTURE_BLOCK,
@@ -1670,7 +1668,7 @@ public enum XMaterial {
      */
     @Nonnull
     public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
-        Validate.notEmpty(name, "Cannot match a material with null or empty material name");
+        if (name == null || name.isEmpty()) throw new IllegalArgumentException("Cannot match a material with null or empty material name");
         Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
         return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
     }
@@ -1699,7 +1697,7 @@ public enum XMaterial {
             String mat = format(name.substring(0, index));
             try {
                 // We don't use Byte.parseByte because we have our own range check.
-                byte data = (byte) Integer.parseInt(StringUtils.deleteWhitespace(name.substring(index + 1)));
+                byte data = (byte) Integer.parseInt(name.substring(index + 1).replace(" ", ""));
                 return data >= 0 && data < MAX_DATA_VALUE ? matchDefinedXMaterial(mat, data) : matchDefinedXMaterial(mat, UNKNOWN_DATA_VALUE);
             } catch (NumberFormatException ignored) {
                 return matchDefinedXMaterial(mat, UNKNOWN_DATA_VALUE);
@@ -1743,7 +1741,7 @@ public enum XMaterial {
         byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         // Versions 1.9-1.12 didn't really use the items data value.
-        if (!Data.ISFLAT && item.hasItemMeta() && material.equals("MONSTER_EGG") && supports(9)) {
+        if (supports(9) && !supports(13) && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
             ItemMeta meta = item.getItemMeta();
             if (meta instanceof SpawnEggMeta) {
                 SpawnEggMeta egg = (SpawnEggMeta) meta;
@@ -2056,7 +2054,9 @@ public enum XMaterial {
     @Override
     @Nonnull
     public String toString() {
-        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+        return Arrays.stream(name().split("_"))
+                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
     }
 
     /**

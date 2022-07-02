@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries;
 
-import org.apache.commons.lang.Validate;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.TreeSpecies;
@@ -486,7 +485,7 @@ public final class XBlock {
     }
 
     public static void setCakeSlices(Block block, int amount) {
-        Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
+        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData data = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) data;
@@ -512,7 +511,7 @@ public final class XBlock {
     }
 
     public static int addCakeSlices(Block block, int slices) {
-        Validate.isTrue(isCake(block.getType()), "Block is not a cake: " + block.getType());
+        if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
         if (ISFLAT) {
             BlockData data = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) data;

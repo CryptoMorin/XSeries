@@ -23,9 +23,6 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
@@ -40,6 +37,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
@@ -1474,7 +1472,7 @@ public enum XSound {
      */
     @Nonnull
     public static Optional<XSound> matchXSound(@Nonnull String sound) {
-        Validate.notEmpty(sound, "Cannot match XSound of a null or empty sound name");
+        if (sound == null || sound.isEmpty()) throw new IllegalArgumentException("Cannot match XSound of a null or empty sound name");
         return Optional.ofNullable(Data.NAMES.get(format(sound)));
     }
 
@@ -1536,6 +1534,35 @@ public enum XSound {
         });
     }
 
+    private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+        List<String> list = new ArrayList<>(5);
+        boolean match = false, lastMatch = false;
+        int len = str.length();
+        int start = 0;
+
+        for (int i = 0; i < len; i++) {
+            if (str.charAt(i) == separatorChar) {
+                if (match) {
+                    list.add(str.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+
+                // This is important, it should not be i++
+                start = i + 1;
+                continue;
+            }
+
+            lastMatch = false;
+            match = true;
+        }
+
+        if (match || lastMatch) {
+            list.add(str.substring(start, len));
+        }
+        return list;
+    }
+
     /**
      * Just an extra feature that loads sounds from strings.
      * Useful for getting sounds from config files.
@@ -1576,9 +1603,9 @@ public enum XSound {
     @Nullable
     public static Record parse(@Nullable String sound) {
         if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;
-        String[] split = StringUtils.split(StringUtils.deleteWhitespace(sound), ',');
+        List<String> split = split(sound.replace(" ", ""), ',');
 
-        String name = split[0];
+        String name = split.get(0);
         boolean playAtLocation;
         if (name.charAt(0) == '~') {
             name = name.substring(1);
@@ -1593,14 +1620,14 @@ public enum XSound {
         float pitch = DEFAULT_PITCH;
 
         try {
-            if (split.length > 1) volume = Float.parseFloat(split[1]);
+            if (split.size() > 1) volume = Float.parseFloat(split.get(1));
         } catch (NumberFormatException ex) {
-            throw new NumberFormatException("Invalid number '" + split[1] + "' for sound volume '" + sound + '\'');
+            throw new NumberFormatException("Invalid number '" + split.get(1) + "' for sound volume '" + sound + '\'');
         }
         try {
-            if (split.length > 2) pitch = Float.parseFloat(split[2]);
+            if (split.size() > 2) pitch = Float.parseFloat(split.get(2));
         } catch (NumberFormatException ex) {
-            throw new NumberFormatException("Invalid number '" + split[2] + "' for sound pitch '" + sound + '\'');
+            throw new NumberFormatException("Invalid number '" + split.get(2) + "' for sound pitch '" + sound + '\'');
         }
 
         return new Record(soundType.get(), null, null, volume, pitch, playAtLocation);
@@ -1658,9 +1685,9 @@ public enum XSound {
         Objects.requireNonNull(player, "Cannot play note from null player");
         Objects.requireNonNull(playTo, "Cannot play note to null entity");
 
-        Validate.isTrue(ascendLevel > 0, "Note ascend level cannot be lower than 1");
-        Validate.isTrue(ascendLevel <= 7, "Note ascend level cannot be greater than 7");
-        Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
+        if (ascendLevel <= 0) throw new IllegalArgumentException("Note ascend level cannot be lower than 1");
+        if (ascendLevel > 7) throw new IllegalArgumentException("Note ascend level cannot be greater than 7");
+        if (delay <= 0) throw new IllegalArgumentException("Delay ticks must be at least 1");
 
         return new BukkitRunnable() {
             int repeating = ascendLevel;
@@ -1680,7 +1707,9 @@ public enum XSound {
      */
     @Override
     public String toString() {
-        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+        return Arrays.stream(name().split("_"))
+                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
     }
 
     /**
@@ -1729,8 +1758,8 @@ public enum XSound {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
 
-        Validate.isTrue(repeat > 0, "Cannot repeat playing sound " + repeat + " times");
-        Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
+        if (repeat <= 0) throw new IllegalArgumentException("Cannot repeat playing sound " + repeat + " times");
+        if (delay <= 0) throw new IllegalArgumentException("Delay ticks must be at least 1");
 
         return new BukkitRunnable() {
             int repeating = repeat;

@@ -25,7 +25,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
-import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -100,7 +99,7 @@ final class SkullCacheListener {
 
     @Nullable
     public static String getIdFromUsername(@Nonnull String username) {
-        Validate.notEmpty(username, "Cannot get UUID of a null or empty username");
+        if (username == null || username.isEmpty()) throw new IllegalArgumentException("Cannot get UUID of a null or empty username");
         int len = username.length();
         if (len < 3 || len > 16) throw new IllegalArgumentException("Username cannot be less than 3 and longer than 16 characters: " + username);
 

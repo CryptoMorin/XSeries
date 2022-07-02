@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
-Library mainly designed to provide cross-version support for Minecraft Bukkit servers,
+Library mainly designed to provide cross-version support for Minecraft Bukkit plugins,
 but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
 Some utilities are completely unrelated to cross-version support such as NoteBlockMusic.
 

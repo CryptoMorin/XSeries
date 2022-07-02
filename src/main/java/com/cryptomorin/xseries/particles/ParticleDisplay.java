@@ -21,8 +21,6 @@
  */
 package com.cryptomorin.xseries.particles;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -38,9 +36,8 @@ import org.bukkit.util.Vector;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
@@ -193,6 +190,51 @@ public class ParticleDisplay implements Cloneable {
         return edit(new ParticleDisplay(), config);
     }
 
+    private static int toInt(String str) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException nfe) {
+            return 0;
+        }
+    }
+
+    private static double toDouble(String str) {
+        try {
+            return Double.parseDouble(str);
+        } catch (NumberFormatException nfe) {
+            return 0;
+        }
+    }
+
+    private static java.util.List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+        List<String> list = new ArrayList<>(5);
+        boolean match = false, lastMatch = false;
+        int len = str.length();
+        int start = 0;
+
+        for (int i = 0; i < len; i++) {
+            if (str.charAt(i) == separatorChar) {
+                if (match) {
+                    list.add(str.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+
+                // This is important, it should not be i++
+                start = i + 1;
+                continue;
+            }
+
+            lastMatch = false;
+            match = true;
+        }
+
+        if (match || lastMatch) {
+            list.add(str.substring(start, len));
+        }
+        return list;
+    }
+
     /**
      * Builds particle settings from a configuration section. Keys in config can be :
      * <ul>
@@ -231,32 +273,32 @@ public class ParticleDisplay implements Cloneable {
 
         String offset = config.getString("offset");
         if (offset != null) {
-            String[] offsets = StringUtils.split(StringUtils.deleteWhitespace(offset), ',');
-            if (offsets.length >= 3) {
-                double offsetx = NumberUtils.toDouble(offsets[0]);
-                double offsety = NumberUtils.toDouble(offsets[1]);
-                double offsetz = NumberUtils.toDouble(offsets[2]);
+            List<String> offsets = split(offset.replace(" ", ""), ',');
+            if (offsets.size() >= 3) {
+                double offsetx = toDouble(offsets.get(0));
+                double offsety = toDouble(offsets.get(1));
+                double offsetz = toDouble(offsets.get(2));
                 display.offset(offsetx, offsety, offsetz);
             } else {
-                double masterOffset = NumberUtils.toDouble(offsets[0]);
+                double masterOffset = toDouble(offsets.get(0));
                 display.offset(masterOffset);
             }
         }
 
         String rotation = config.getString("rotation");
         if (rotation != null) {
-            String[] rotations = StringUtils.split(StringUtils.deleteWhitespace(rotation), ',');
-            if (rotations.length >= 3) {
-                double x = Math.toRadians(NumberUtils.toDouble(rotations[0]));
-                double y = Math.toRadians(NumberUtils.toDouble(rotations[1]));
-                double z = Math.toRadians(NumberUtils.toDouble(rotations[2]));
+            List<String> rotations = split(rotation.replace(" ", ""), ',');
+            if (rotations.size() >= 3) {
+                double x = Math.toRadians(toDouble(rotations.get(0)));
+                double y = Math.toRadians(toDouble(rotations.get(1)));
+                double z = Math.toRadians(toDouble(rotations.get(2)));
                 display.rotation = new Vector(x, y, z);
             }
         }
 
         String rotationOrder = config.getString("rotation-order");
         if (rotationOrder != null) {
-            rotationOrder = StringUtils.deleteWhitespace(rotationOrder).toUpperCase(Locale.ENGLISH);
+            rotationOrder = rotationOrder.replace(" ", "").toUpperCase(Locale.ENGLISH);
             display.rotationOrder(
                     Axis.valueOf(String.valueOf(rotationOrder.charAt(0))),
                     Axis.valueOf(String.valueOf(rotationOrder.charAt(1))),
@@ -283,15 +325,15 @@ public class ParticleDisplay implements Cloneable {
         }
 
         if (color != null) {
-            String[] colors = StringUtils.split(StringUtils.deleteWhitespace(color), ',');
-            if (colors.length <= 3 || colors.length == 6) { // 1 or 3 : single color, 2 or 6 : two colors for DUST_TRANSITION
+            List<String> colors = split(color.replace(" ", ""), ',');
+            if (colors.size() <= 3 || colors.size() == 6) { // 1 or 3 : single color, 2 or 6 : two colors for DUST_TRANSITION
                 Color parsedColor1 = Color.white;
                 Color parsedColor2 = null;
-                if (colors.length <= 2) {
+                if (colors.size() <= 2) {
                     try {
-                        parsedColor1 = Color.decode(colors[0]);
-                        if (colors.length == 2)
-                            parsedColor2 = Color.decode(colors[1]);
+                        parsedColor1 = Color.decode(colors.get(0));
+                        if (colors.size() == 2)
+                            parsedColor2 = Color.decode(colors.get(1));
                     } catch (NumberFormatException ex) {
                         /* I don't think it's worth it.
                         try {
@@ -300,9 +342,9 @@ public class ParticleDisplay implements Cloneable {
                          */
                     }
                 } else {
-                    parsedColor1 = new Color(NumberUtils.toInt(colors[0]), NumberUtils.toInt(colors[1]), NumberUtils.toInt(colors[2]));
-                    if (colors.length == 6)
-                        parsedColor2 = new Color(NumberUtils.toInt(colors[3]), NumberUtils.toInt(colors[4]), NumberUtils.toInt(colors[5]));
+                    parsedColor1 = new Color(toInt(colors.get(0)), toInt(colors.get(1)), toInt(colors.get(2)));
+                    if (colors.size() == 6)
+                        parsedColor2 = new Color(toInt(colors.get(3)), toInt(colors.get(4)), toInt(colors.get(5)));
                 }
 
                 if (parsedColor2 != null) {

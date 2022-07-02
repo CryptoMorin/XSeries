@@ -26,7 +26,6 @@ import com.google.common.base.Strings;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -175,7 +174,11 @@ public final class ActionBar {
             if (message.charAt(0) == TIME_SPECIFIER_START) {
                 int end = message.indexOf(TIME_SPECIFIER_END);
                 if (end != -1) {
-                    int time = NumberUtils.toInt(message.substring(1, end), 0) * 20;
+                    int time = 0;
+                    try {
+                        time = Integer.parseInt(message.substring(1, end)) * 20;
+                    } catch (NumberFormatException ignored) {
+                    }
                     if (time >= 0) sendActionBar(plugin, player, message.substring(end + 1), time);
                 }
             }

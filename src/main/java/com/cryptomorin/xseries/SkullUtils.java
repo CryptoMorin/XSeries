@@ -24,7 +24,6 @@ package com.cryptomorin.xseries;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
@@ -131,7 +130,7 @@ public class SkullUtils {
 
     @Nonnull
     protected static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
-        Validate.notEmpty(value, "Skull value cannot be null or empty");
+        if (value == null || value.isEmpty()) throw new IllegalArgumentException("Skull value cannot be null or empty");
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
         profile.getProperties().put("textures", new Property("textures", value));
 

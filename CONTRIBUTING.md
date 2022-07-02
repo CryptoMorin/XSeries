@@ -18,8 +18,8 @@ if it's unrelated to adding support for that version since your changes are like
 * Make sure the utility works on different Minecraft server versions.
 * Use method and variable names that make sense and are related to the context.
 * Don't use Optional everywhere that can return null.
-* Using Guava and Apache Commons is a plus, but make sure what you're using is supported in
-older versions of Bukkit's libraries.
+* Using Google's Guava is a plus, but not always. Make sure what you're using is supported in
+older versions of Bukkit's libraries and don't. Don't use other libraries included in Bukkit, specially Apache Commons since it was removed.
 * Add JavaDocs with proper formatting. It's also preferred to explain how the complex parts of a method work
 inside the method. Use simple English when possible.
 * All the functions used in the utilities should be compatible with Bukkit, Spigot and Paper.

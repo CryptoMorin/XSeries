@@ -22,10 +22,6 @@
 package com.cryptomorin.xseries;
 
 import com.google.common.base.Strings;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -40,6 +36,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * Potion type support for multiple aliases.
@@ -178,7 +175,7 @@ public enum XPotion {
      */
     @Nonnull
     public static Optional<XPotion> matchXPotion(@Nonnull String potion) {
-        Validate.notEmpty(potion, "Cannot match XPotion of a null or empty potion effect type");
+        if (potion == null || potion.isEmpty()) throw new IllegalArgumentException("Cannot match XPotion of a null or empty potion effect type");
         PotionEffectType idType = fromId(potion);
         if (idType != null) {
             XPotion type = Data.NAMES.get(idType.getName());
@@ -223,6 +220,35 @@ public enum XPotion {
         }
     }
 
+    private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+        List<String> list = new ArrayList<>(5);
+        boolean match = false, lastMatch = false;
+        int len = str.length();
+        int start = 0;
+
+        for (int i = 0; i < len; i++) {
+            if (str.charAt(i) == separatorChar) {
+                if (match) {
+                    list.add(str.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+
+                // This is important, it should not be i++
+                start = i + 1;
+                continue;
+            }
+
+            lastMatch = false;
+            match = true;
+        }
+
+        if (match || lastMatch) {
+            list.add(str.substring(start, len));
+        }
+        return list;
+    }
+
     /**
      * Parse a {@link PotionEffect} from a string, usually from config.
      * Supports potion type IDs.
@@ -244,29 +270,43 @@ public enum XPotion {
     @Nullable
     public static Effect parseEffect(@Nullable String potion) {
         if (Strings.isNullOrEmpty(potion) || potion.equalsIgnoreCase("none")) return null;
-        String[] split = StringUtils.split(StringUtils.deleteWhitespace(potion), ',');
-        if (split.length == 0) split = StringUtils.split(potion, ' ');
+        List<String> split = split(potion.replace(" ", ""), ',');
+        if (split.isEmpty()) split = split(potion, ' ');
 
         double chance = 100;
         int chanceIndex = 0;
-        if (split.length > 2) {
-            chanceIndex = split[2].indexOf('%');
-            if (chanceIndex != -1) chance = NumberUtils.toDouble(split[2].substring(chanceIndex + 1), 100);
+        if (split.size() > 2) {
+            chanceIndex = split.get(2).indexOf('%');
+            if (chanceIndex != -1) {
+                try {
+                    chance = Double.parseDouble(split.get(2).substring(chanceIndex + 1));
+                } catch (NumberFormatException ex) {
+                    chance = 100;
+                }
+            }
         }
 
-        Optional<XPotion> typeOpt = matchXPotion(split[0]);
+        Optional<XPotion> typeOpt = matchXPotion(split.get(0));
         if (!typeOpt.isPresent()) return null;
         PotionEffectType type = typeOpt.get().type;
         if (type == null) return null;
 
         int duration = 2400; // 20 ticks * 60 seconds * 2 minutes
         int amplifier = 0;
-        if (split.length > 1) {
-            duration = NumberUtils.toInt(split[1]) * 20;
-            if (split.length > 2) amplifier = NumberUtils.toInt(chanceIndex <= 0 ? split[2] : split[2].substring(0, chanceIndex)) - 1;
+        if (split.size() > 1) {
+            duration = toInt(split.get(1), 1) * 20;
+            if (split.size() > 2) amplifier = toInt(chanceIndex <= 0 ? split.get(2) : split.get(2).substring(0, chanceIndex), 1) - 1;
         }
 
         return new Effect(new PotionEffect(type, duration, amplifier), chance);
+    }
+
+    private static int toInt(String str, @SuppressWarnings("SameParameterValue") int defaultValue) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException nfe) {
+            return defaultValue;
+        }
     }
 
     /**
@@ -353,7 +393,7 @@ public enum XPotion {
     @Nonnull
     public static ItemStack buildItemWithEffects(@Nonnull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(type, "Cannot build an effected item with null type");
-        Validate.isTrue(canHaveEffects(type), "Cannot build item with " + type.name() + " potion type");
+        if (!canHaveEffects(type)) throw new IllegalArgumentException("Cannot build item with " + type.name() + " potion type");
 
         ItemStack item = new ItemStack(type);
         PotionMeta meta = (PotionMeta) item.getItemMeta();
@@ -445,7 +485,9 @@ public enum XPotion {
      */
     @Override
     public String toString() {
-        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+        return Arrays.stream(name().split("_"))
+                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
     }
 
     /**
