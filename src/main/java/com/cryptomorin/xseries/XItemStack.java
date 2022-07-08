@@ -73,7 +73,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 7.2.0
+ * @version 7.2.0.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -497,6 +497,7 @@ public final class XItemStack {
             if (materialOpt.isPresent()) material = materialOpt.get();
             else {
                 UnknownMaterialCondition unknownMaterialCondition = new UnknownMaterialCondition(materialName);
+                if (restart == null) throw unknownMaterialCondition;
                 restart.accept(unknownMaterialCondition);
 
                 if (unknownMaterialCondition.hasSolution()) material = unknownMaterialCondition.solution;
@@ -505,6 +506,7 @@ public final class XItemStack {
 
             if (!material.isSupported()) {
                 UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.UNSUPPORTED);
+                if (restart == null) throw unsupportedMaterialCondition;
                 restart.accept(unsupportedMaterialCondition);
 
                 if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
@@ -512,6 +514,7 @@ public final class XItemStack {
             }
             if (XTag.INVENTORY_NOT_DISPLAYABLE.isTagged(material)) {
                 UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.NOT_DISPLAYABLE);
+                if (restart == null) throw unsupportedMaterialCondition;
                 restart.accept(unsupportedMaterialCondition);
 
                 if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
