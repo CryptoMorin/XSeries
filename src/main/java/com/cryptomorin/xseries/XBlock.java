@@ -243,7 +243,7 @@ public final class XBlock {
         if (material.parseMaterial() == null) return false;
 
         block.setType(material.parseMaterial(), applyPhysics);
-        if (XMaterial.supports(13)) return false;
+        if (ISFLAT) return false;
 
         String parsedName = material.parseMaterial().name();
         if (parsedName.endsWith("_ITEM")) {
