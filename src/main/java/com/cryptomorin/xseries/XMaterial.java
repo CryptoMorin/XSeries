@@ -2151,6 +2151,22 @@ public enum XMaterial {
     public boolean isSupported() {
         return this.material != null;
     }
+    
+    /**
+	 * Checks if this material represents any type of air.
+	 * 
+	 * @return true if this material is air.
+	 */
+	public boolean isAir() {
+		switch(this) {
+		case AIR:
+		case CAVE_AIR:
+		case VOID_AIR:
+			return true;
+		default:
+			return false;
+		}
+	}
 
     /**
      * This method is needed due to Java enum initialization limitations.
