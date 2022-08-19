@@ -30,3 +30,18 @@ target/
 repo/
 out/
 META-INF/
+
+# Eclipse IDE
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
