@@ -2153,6 +2153,20 @@ public enum XMaterial {
     }
 
     /**
+     * Checks if this material is supported in the current version and
+     * returns itself if yes.
+     * <p>
+     * In the other case, the alternate material will get returned,
+     * no matter if it is supported or not.
+     * 
+     * @param alternateMaterial the material to get if this one is not supported.
+     * @return this material or the {@code alternateMaterial} if not supported.
+     */
+    public XMaterial or(XMaterial alternateMaterial) {
+        return isSupported() ? this : alternateMaterial;
+    }
+
+    /**
      * This method is needed due to Java enum initialization limitations.
      * It's really inefficient yes, but it's only used for initialization.
      * <p>
