@@ -665,7 +665,7 @@ public final class NoteBlockMusic {
         public abstract void play(Player player, Supplier<Location> location);
 
         public long getEstimatedLength() {
-            return restatement * restatementFermata;
+            return (long) restatement * restatementFermata;
         }
     }
 
@@ -727,7 +727,7 @@ public final class NoteBlockMusic {
 
         @Override
         public long getEstimatedLength() {
-            long result = restatement * restatementFermata;
+            long result = (long) restatement * restatementFermata;
             for (Instruction instruction : instructions) result += instruction.getEstimatedLength();
             return result;
         }

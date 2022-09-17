@@ -26,7 +26,6 @@ import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.NumberConversions;
@@ -343,10 +342,10 @@ public final class XParticle {
      * @param extend     the extension for each ellipse.
      *
      * @return the animation handler.
-     * @see #magicCircles(JavaPlugin, double, double, double, double, ParticleDisplay)
+     * @see #magicCircles(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask circularBeam(JavaPlugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
+    public static BukkitTask circularBeam(Plugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
         return new BukkitRunnable() {
             final double rateDiv = Math.PI / rate;
             final double radiusDiv = Math.PI / radiusRate;
@@ -441,7 +440,7 @@ public final class XParticle {
      * @return the animation handler.
      * @since 4.0.0
      */
-    public static BukkitTask chaoticDoublePendulum(JavaPlugin plugin, double radius, double gravity, double length, double length2,
+    public static BukkitTask chaoticDoublePendulum(Plugin plugin, double radius, double gravity, double length, double length2,
                                                    double mass1, double mass2,
                                                    boolean dimension3, int speed, ParticleDisplay display) {
         // If you want the particles to stay. But it's gonna lag a lot.
@@ -517,10 +516,10 @@ public final class XParticle {
      * @param distance   the distance between each circle.
      *
      * @return the animation handler.
-     * @see #circularBeam(JavaPlugin, double, double, double, double, ParticleDisplay)
+     * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask magicCircles(JavaPlugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
+    public static BukkitTask magicCircles(Plugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
         return new BukkitRunnable() {
             final double radiusDiv = Math.PI / radiusRate;
             final Vector dir = display.getLocation().getDirection().normalize().multiply(distance);
@@ -617,7 +616,7 @@ public final class XParticle {
      *
      * @since 3.0.0
      */
-    public static BukkitTask blackhole(JavaPlugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
+    public static BukkitTask blackhole(Plugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
         display.directional();
         display.extra = 0.1;
 
@@ -795,7 +794,7 @@ public final class XParticle {
      * @return the task handling the animation.
      * @since 2.0.0
      */
-    public static BukkitTask vortex(JavaPlugin plugin, int points, double rate, ParticleDisplay display) {
+    public static BukkitTask vortex(Plugin plugin, int points, double rate, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
         display.directional();
 
@@ -854,11 +853,11 @@ public final class XParticle {
      * @param displays the display references used to spawn particles in the runnable.
      *
      * @return the async task handling the movement.
-     * @see #rotateAround(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
-     * @see #guard(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
-    public static BukkitTask moveRotatingAround(JavaPlugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
+    public static BukkitTask moveRotatingAround(Plugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
                                                 Runnable runnable, ParticleDisplay... displays) {
         return new BukkitRunnable() {
             double rotation = 180;
@@ -894,11 +893,11 @@ public final class XParticle {
      * @param displays the display references used to spawn particles in the runnable.
      *
      * @return the async task handling the movement.
-     * @see #rotateAround(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
-     * @see #guard(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
-    public static BukkitTask moveAround(JavaPlugin plugin, long update, double rate, double endRate, double offsetx, double offsety, double offsetz,
+    public static BukkitTask moveAround(Plugin plugin, long update, double rate, double endRate, double offsetx, double offsety, double offsetz,
                                         Runnable runnable, ParticleDisplay... displays) {
         return new BukkitRunnable() {
             double multiplier = 0;
@@ -935,7 +934,7 @@ public final class XParticle {
      * @return the timer task handling the displays.
      * @since 1.0.0
      */
-    public static BukkitTask testDisplay(JavaPlugin plugin, Runnable runnable) {
+    public static BukkitTask testDisplay(Plugin plugin, Runnable runnable) {
         return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, 0L, 1L);
     }
 
@@ -950,11 +949,11 @@ public final class XParticle {
      * @param displays the displays references used to spawn particles in the runnable.
      *
      * @return the async task handling the movement.
-     * @see #moveRotatingAround(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
-     * @see #guard(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #moveRotatingAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
-    public static BukkitTask rotateAround(JavaPlugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
+    public static BukkitTask rotateAround(Plugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
                                           Runnable runnable, ParticleDisplay... displays) {
         return new BukkitRunnable() {
             double rotation = 180;
@@ -992,11 +991,11 @@ public final class XParticle {
      * @param displays the displays references used to spawn particles in the runnable.
      *
      * @return the async task handling the movement.
-     * @see #rotateAround(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
-     * @see #moveRotatingAround(JavaPlugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #moveRotatingAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
-    public static BukkitTask guard(JavaPlugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
+    public static BukkitTask guard(Plugin plugin, long update, double rate, double offsetx, double offsety, double offsetz,
                                    Runnable runnable, ParticleDisplay... displays) {
         return new BukkitRunnable() {
             double rotation = 180;
@@ -1144,7 +1143,7 @@ public final class XParticle {
      *
      * @since 1.0.0
      */
-    public static BukkitTask spread(JavaPlugin plugin, int amount, int rate, Location start, Location originEnd,
+    public static BukkitTask spread(Plugin plugin, int amount, int rate, Location start, Location originEnd,
                                     double offsetx, double offsety, double offsetz, ParticleDisplay display) {
         return new BukkitRunnable() {
             int count = amount;
@@ -1204,7 +1203,7 @@ public final class XParticle {
      * @see #atom(int, double, double, ParticleDisplay, ParticleDisplay)
      * @since 1.0.0
      */
-    public static BukkitTask atomic(JavaPlugin plugin, int orbits, double radius, double rate, ParticleDisplay orbit) {
+    public static BukkitTask atomic(Plugin plugin, int orbits, double radius, double rate, ParticleDisplay orbit) {
         return new BukkitRunnable() {
             final double rateDiv = Math.PI / rate;
             final double dist = Math.PI / orbits;
@@ -1241,10 +1240,10 @@ public final class XParticle {
      * @param fadeDown  helix radius will increase to the original radius as it gets closer to the center.
      *
      * @return the animation task.
-     * @see #dnaReplication(JavaPlugin, double, double, int, double, int, int, ParticleDisplay)
+     * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask helix(JavaPlugin plugin, int strings, double radius, double rate, double extension, int height, int speed,
+    public static BukkitTask helix(Plugin plugin, int strings, double radius, double rate, double extension, int height, int speed,
                                    boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
         return new BukkitRunnable() {
             // If we look at a helix string from above, we'll see a circle tunnel.
@@ -1361,8 +1360,8 @@ public final class XParticle {
      * @param display             display for strings.
      * @param hydrogenBondDisplay display for hydrogen bonds.
      *
-     * @see #helix(JavaPlugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
-     * @see #dnaReplication(JavaPlugin, double, double, int, double, int, int, ParticleDisplay)
+     * @see #helix(Plugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
+     * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 1.0.0
      */
     public static void dna(double radius, double rate, double extension, int height, int hydrogenBondDist, ParticleDisplay display, ParticleDisplay hydrogenBondDisplay) {
@@ -1410,7 +1409,7 @@ public final class XParticle {
      * @see #dna(double, double, double, int, int, ParticleDisplay, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask dnaReplication(JavaPlugin plugin, double radius, double rate, int speed, double extension,
+    public static BukkitTask dnaReplication(Plugin plugin, double radius, double rate, int speed, double extension,
                                             int height, int hydrogenBondDist, ParticleDisplay display) {
         // We'll use the common nucleotide colors.
         ParticleDisplay adenine = ParticleDisplay.colored(null, java.awt.Color.BLUE, 1); // Blue
@@ -1491,7 +1490,7 @@ public final class XParticle {
      * @return the timer task handling the animation.
      * @since 1.0.0
      */
-    public static BukkitTask cloud(JavaPlugin plugin, ParticleDisplay cloud, ParticleDisplay rain) {
+    public static BukkitTask cloud(Plugin plugin, ParticleDisplay cloud, ParticleDisplay rain) {
         return new BukkitRunnable() {
             @Override
             public void run() {
@@ -1733,7 +1732,7 @@ public final class XParticle {
      * @param cubes       the dimension of the hypercube starting from 3D. E.g. {@code dimension 1 -> 4D tersseract}
      *
      * @see #structuredCube(Location, Location, double, ParticleDisplay)
-     * @see #tesseract(JavaPlugin, double, double, double, long, ParticleDisplay)
+     * @see #tesseract(Plugin, double, double, double, long, ParticleDisplay)
      * @since 1.0.0
      */
     public static void hypercube(Location startOrigin, Location endOrigin, double rate, double sizeRate, int cubes, ParticleDisplay display) {
@@ -1813,7 +1812,7 @@ public final class XParticle {
      * @see #hypercube(Location, Location, double, double, int, ParticleDisplay)
      * @since 4.0.0
      */
-    public static BukkitTask tesseract(JavaPlugin plugin, double size, double rate, double speed, long ticks, ParticleDisplay display) {
+    public static BukkitTask tesseract(Plugin plugin, double size, double rate, double speed, long ticks, ParticleDisplay display) {
         // We can multiply these later to change the size.
         // This array doesn't really need to be a constant as it's initialized once.
         double[][] positions = {
@@ -2057,7 +2056,7 @@ public final class XParticle {
      * @see #spikeSphere(double, double, int, double, double, ParticleDisplay)
      * @since 3.0.0
      */
-    public static void star(JavaPlugin plugin, int points, int spikes, double rate, double spikeLength, double coreRadius,
+    public static void star(Plugin plugin, int points, int spikes, double rate, double spikeLength, double coreRadius,
                             double neuron, boolean prototype, int speed, ParticleDisplay display) {
         double pointsRate = PII / points;
         double rateDiv = Math.PI / rate;
@@ -2201,7 +2200,7 @@ public final class XParticle {
      * @param radius the radius of orbits.
      * @param rate   the rate of orbit and nucleus points.
      *
-     * @see #atomic(JavaPlugin, int, double, double, ParticleDisplay)
+     * @see #atomic(Plugin, int, double, double, ParticleDisplay)
      * @since 1.0.0
      */
     public static void atom(int orbits, double radius, double rate, ParticleDisplay orbit, ParticleDisplay nucleus) {
@@ -2226,7 +2225,7 @@ public final class XParticle {
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
-    public static void meguminExplosion(JavaPlugin plugin, double size, ParticleDisplay display) {
+    public static void meguminExplosion(Plugin plugin, double size, ParticleDisplay display) {
         polygon(10, 4, size, 0.02, 0.3, display);
         polygon(10, 3, size / (size - 1), 0.5, 0, display);
         circle(size, 40, display);
@@ -2241,7 +2240,7 @@ public final class XParticle {
      *
      * @since 1.0.0
      */
-    public static BukkitTask explosionWave(JavaPlugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
+    public static BukkitTask explosionWave(Plugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
         return new BukkitRunnable() {
             final double addition = Math.PI * 0.1;
             final double rateDiv = Math.PI / rate;
@@ -2399,7 +2398,7 @@ public final class XParticle {
      * @return the async bukkit task displaying the image.
      * @since 1.0.0
      */
-    public static BukkitTask displayRenderedImage(JavaPlugin plugin, Map<double[], Color> render, Callable<Location> location,
+    public static BukkitTask displayRenderedImage(Plugin plugin, Map<double[], Color> render, Callable<Location> location,
                                                   int repeat, long period, int quality, int speed, float size) {
         return new BukkitRunnable() {
             int times = repeat;

@@ -29,7 +29,7 @@ import org.bukkit.Note;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * play command: https://minecraft.gamepedia.com/Commands/play
  *
  * @author Crypto Morin
- * @version 8.0.0
+ * @version 8.0.1
  * @see Sound
  */
 public enum XSound {
@@ -1520,18 +1520,13 @@ public enum XSound {
      * @see #play(Location, String)
      * @since 3.0.0
      */
-    @Nonnull
-    public static CompletableFuture<Record> play(@Nonnull Location location, @Nullable String sound) {
+    @Nullable
+    public static Record play(@Nonnull Location location, @Nullable String sound) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
-        return CompletableFuture.supplyAsync(() -> {
-            Record record = parse(sound);
-            if (record == null) return null;
-            record.atLocation(location).play();
-            return record;
-        }).exceptionally(x -> {
-            x.printStackTrace();
-            return null;
-        });
+        Record record = parse(sound);
+        if (record == null) return null;
+        record.atLocation(location).play();
+        return record;
     }
 
     private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
@@ -1680,7 +1675,7 @@ public enum XSound {
      * @since 2.0.0
      */
     @Nonnull
-    public static BukkitTask playAscendingNote(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument,
+    public static BukkitTask playAscendingNote(@Nonnull Plugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument,
                                                int ascendLevel, int delay) {
         Objects.requireNonNull(player, "Cannot play note from null player");
         Objects.requireNonNull(playTo, "Cannot play note to null entity");
@@ -1754,7 +1749,7 @@ public enum XSound {
      * @since 2.0.0
      */
     @Nonnull
-    public BukkitTask playRepeatedly(@Nonnull JavaPlugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
+    public BukkitTask playRepeatedly(@Nonnull Plugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
 

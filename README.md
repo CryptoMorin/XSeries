@@ -45,6 +45,16 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles
 </dependency>
 ```
 
+Gradle
+```kotlin
+repositories {
+  mavenCentral()
+}
+dependencies {
+  implementation("com.github.cryptomorin:XSeries:version") { isTransitive = false }
+}
+```
+
 You shouldn't worry if the reflection or other classes are going to use your memory with heavy useless static cache.
 As long as you don't use them anywhere in your code, they won't initialize.
 The memory usage of these utilities are extremely enhanced.
@@ -90,6 +100,20 @@ To shade the library, add the following under your maven plugins:
         </execution>
     </executions>
 </plugin>
+```
+
+Gradle
+```kotlin
+plugins {
+    java
+    id("com.github.johnrengelman.shadow") version ("7.1.2")
+}
+
+tasks {
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        relocate("com.cryptomorin.xseries", "my.plugin.utils")
+    }
+}
 ```
 
 ### Contributing

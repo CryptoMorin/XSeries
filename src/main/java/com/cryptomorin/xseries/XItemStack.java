@@ -73,7 +73,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
  *
  * @author Crypto Morin
- * @version 7.2.0.1
+ * @version 7.3.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -82,6 +82,11 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  */
 public final class XItemStack {
     public static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
+
+    /**
+     * Because item metas cannot be applied to AIR apparently.
+     */
+    private static final XMaterial DEFAULT_MATERIAL = XMaterial.NETHER_PORTAL;
 
     private XItemStack() {}
 
@@ -182,7 +187,8 @@ public final class XItemStack {
                 config.set(entry, enchant.getValue());
             }
         } else if (meta instanceof SkullMeta) {
-            config.set("skull", SkullUtils.getSkinValue(meta));
+            String skull = SkullUtils.getSkinValue(meta);
+            if (skull != null) config.set("skull", skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.createSection("patterns");
@@ -341,6 +347,10 @@ public final class XItemStack {
         }
     }
 
+    public static boolean isDefaultItem(ItemStack item) {
+        return DEFAULT_MATERIAL.isSimilar(item);
+    }
+
     /**
      * Writes an ItemStack properties into a {@code Map}.
      *
@@ -365,7 +375,7 @@ public final class XItemStack {
      */
     @Nonnull
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
-        return edit(new ItemStack(Material.AIR), config, Function.identity(), null);
+        return edit(new ItemStack(DEFAULT_MATERIAL.parseMaterial()), config, Function.identity(), null);
     }
 
     private static List<String> splitNewLine(String str) {
@@ -414,7 +424,7 @@ public final class XItemStack {
     public static ItemStack deserialize(@Nonnull ConfigurationSection config,
                                         @Nonnull Function<String, String> translator,
                                         @Nullable Consumer<Exception> restart) {
-        return edit(new ItemStack(Material.AIR), config, translator, restart);
+        return edit(new ItemStack(DEFAULT_MATERIAL.parseMaterial()), config, translator, restart);
     }
 
 
@@ -528,8 +538,18 @@ public final class XItemStack {
         int amount = config.getInt("amount");
         if (amount > 1) item.setAmount(amount);
 
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
+        ItemMeta meta;
+        { // For Java's stupid closure capture system.
+            ItemMeta tempMeta = item.getItemMeta();
+            if (tempMeta == null) {
+                // When AIR is null. Useful for when you just want to use the meta to save data and
+                // set the type later. A simple CraftMetaItem.
+                meta = Bukkit.getItemFactory().getItemMeta(XMaterial.STONE.parseMaterial());
+            } else {
+                meta = tempMeta;
+            }
+        }
+
 
         // Durability - Damage
         if (supports(13)) {
@@ -881,6 +901,11 @@ public final class XItemStack {
         if (!flags.isEmpty()) {
             for (String flag : flags) {
                 flag = flag.toUpperCase(Locale.ENGLISH);
+                if (flag.equals("ALL")) {
+                    meta.addItemFlags(ITEM_FLAGS);
+                    break;
+                }
+
                 ItemFlag itemFlag = Enums.getIfPresent(ItemFlag.class, flag).orNull();
                 if (itemFlag != null) meta.addItemFlags(itemFlag);
             }
@@ -1104,7 +1129,7 @@ public final class XItemStack {
                     if (++lastEmpty == invSize) lastEmpty = -1;
                 } else {
                     ItemStack partialItem = inventory.getItem(firstPartial);
-                    int maxAmount = partialItem.getMaxStackSize();
+                    int maxAmount = split ? partialItem.getMaxStackSize() : inventory.getMaxStackSize();
                     int partialAmount = partialItem.getAmount();
                     int amount = item.getAmount();
                     int sum = amount + partialAmount;
