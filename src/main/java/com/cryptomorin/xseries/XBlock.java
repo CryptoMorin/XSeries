@@ -228,6 +228,7 @@ public final class XBlock {
         BlockState state = block.getState();
         MaterialData data = state.getData();
         if (data instanceof Directional) {
+            if (XMaterial.matchXMaterial(block.getType()) == XMaterial.LADDER) facing = facing.getOppositeFace();
             ((Directional) data).setFacingDirection(facing);
             state.update(true);
             return true;

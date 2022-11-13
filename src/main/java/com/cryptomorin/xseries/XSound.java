@@ -1609,7 +1609,7 @@ public enum XSound {
 
         if (name.isEmpty()) throw new IllegalArgumentException("No sound name specified: " + sound);
         Optional<XSound> soundType = matchXSound(name);
-        if (!soundType.isPresent()) return null;
+        if (!soundType.isPresent()) throw new IllegalArgumentException("Unknown sound: " + name);
 
         float volume = DEFAULT_VOLUME;
         float pitch = DEFAULT_PITCH;
