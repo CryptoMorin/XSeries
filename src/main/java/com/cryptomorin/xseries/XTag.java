@@ -713,6 +713,10 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull public static final XTag<XMaterial> WOODEN_TOOLS;
     /**
+     * This doesn't refer to all materials that contain fluids, but pure fluids.
+     */
+    @Nonnull public static final XTag<XMaterial> FLUID;
+    /**
      * Tag representing all stone tools and swords
      */
     @Nonnull public static final XTag<XMaterial> STONE_TOOLS;
@@ -892,7 +896,9 @@ public final class XTag<T extends Enum<T>> {
     static {
         AIR = new XTag<>(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
         PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, PORTALS);
+        FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
+        FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS);
 
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
@@ -1039,8 +1045,6 @@ public final class XTag<T extends Enum<T>> {
         FENCE_GATES = new XTag<>(XMaterial.class, WOODEN_FENCE_GATES);
         FENCES = new XTag<>(XMaterial.NETHER_BRICK_FENCE);
         FENCES.inheritFrom(WOODEN_FENCES);
-        FIRE = new XTag<>(XMaterial.FIRE,
-                XMaterial.SOUL_FIRE);
         FLOWER_POTS = new XTag<>(XMaterial.POTTED_OAK_SAPLING,
                 XMaterial.POTTED_WITHER_ROSE,
                 XMaterial.POTTED_ACACIA_SAPLING,

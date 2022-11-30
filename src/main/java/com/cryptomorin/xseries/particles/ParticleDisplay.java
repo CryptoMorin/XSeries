@@ -79,7 +79,7 @@ public class ParticleDisplay implements Cloneable {
     private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
     private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
 
-    public int count;
+    public int count = 1;
     public double extra;
     public boolean force;
     @Nonnull private Particle particle = DEFAULT_PARTICLE;

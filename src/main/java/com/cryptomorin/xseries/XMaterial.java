@@ -2131,8 +2131,9 @@ public enum XMaterial {
      * <p>
      * In the other case, the alternate material will get returned,
      * no matter if it is supported or not.
-     * 
+     *
      * @param alternateMaterial the material to get if this one is not supported.
+     *
      * @return this material or the {@code alternateMaterial} if not supported.
      */
     @Nullable

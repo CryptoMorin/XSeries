@@ -170,7 +170,7 @@ public final class XItemStack {
 
             if (supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
-                ConfigurationSection shulker = config.createSection("shulker");
+                ConfigurationSection shulker = config.createSection("contents");
                 int i = 0;
                 for (ItemStack itemInBox : box.getInventory().getContents()) {
                     if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
