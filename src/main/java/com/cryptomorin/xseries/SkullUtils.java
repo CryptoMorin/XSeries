@@ -26,6 +26,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -39,6 +42,7 @@ import java.lang.reflect.Method;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * <b>SkullUtils</b> - Apply skull texture from different sources.<br>
@@ -49,22 +53,51 @@ import java.util.UUID;
  * <ul>
  *     <li>https://minecraft-heads.com/</li>
  * </ul>
+ * <p>
+ * The basic premise behind this API is that the final skull data is contained in a {@link GameProfile}
+ * either by ID, name or encoded textures URL property.
  *
  * @author Crypto Morin
- * @version 3.1.2
+ * @version 4.0.0
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
  */
 public class SkullUtils {
-    protected static final MethodHandle PROFILE_GETTER, PROFILE_SETTER;
+    protected static final MethodHandle
+            CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
+            CRAFT_META_SKULL_BLOCK_SETTER;
+
+    /**
+     * Some people use this without quotes surrounding the keys, not sure what that'd work.
+     */
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
-    private static final boolean SUPPORTS_UUID = XMaterial.supports(12);
+    private static final boolean SUPPORTS_UUID = ReflectionUtils.supports(12);
+
+    /**
+     * We'll just return an x shaped hardcoded skull.
+     * https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross
+     */
+    private static final String INVALID_BASE64 =
+            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzEwNTkxZTY5MDllNmEyODFiMzcxODM2ZTQ2MmQ2N2EyYzc4ZmEwOTUyZTkxMGYzMmI0MWEyNmM0OGMxNzU3YyJ9fX0=";
+
+    /**
+     * They don't seem to use anything complicated, but the length is inconsistent for some reasons.
+     * It doesn't seem like uppercase characters are used either.
+     */
+    private static final Pattern MOJANG_SHA256_APPROX = Pattern.compile("[0-9a-z]{60,70}");
+
+    /**
+     * The value after this URL is probably an SHA-252 value that Mojang uses to unique identify player skins.
+     * <br>
+     * This <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin/Cape">wiki</a> documents how to
+     * get base64 information from player's UUID.
+     */
     private static final String TEXTURES = "https://textures.minecraft.net/texture/";
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle profileSetter = null, profileGetter = null;
+        MethodHandle profileSetter = null, profileGetter = null, blockSetter = null;
 
         try {
             Class<?> CraftMetaSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
@@ -84,8 +117,19 @@ public class SkullUtils {
             e.printStackTrace();
         }
 
-        PROFILE_SETTER = profileSetter;
-        PROFILE_GETTER = profileGetter;
+        try {
+            // CraftSkull private GameProfile profile;
+            Class<?> CraftSkullBlock = ReflectionUtils.getCraftClass("block.CraftSkull");
+            Field field = CraftSkullBlock.getDeclaredField("profile");
+            field.setAccessible(true);
+            blockSetter = lookup.unreflectSetter(field);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        CRAFT_META_SKULL_PROFILE_SETTER = profileSetter;
+        CRAFT_META_SKULL_PROFILE_GETTER = profileGetter;
+        CRAFT_META_SKULL_BLOCK_SETTER = blockSetter;
     }
 
     @SuppressWarnings("deprecation")
@@ -122,20 +166,26 @@ public class SkullUtils {
     @Nonnull
     public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String identifier) {
         SkullMeta meta = (SkullMeta) head;
-        if (isUsername(identifier)) return applySkin(head, Bukkit.getOfflinePlayer(identifier));
-        if (identifier.contains("textures.minecraft.net")) return getValueFromTextures(meta, identifier);
-        if (identifier.length() > 100 && isBase64(identifier)) return getSkullByValue(meta, identifier);
-        return getTexturesFromUrlValue(meta, identifier);
+        // @formatter:off
+        switch (detectSkullValueType(identifier)) {
+            case UUID: return applySkin(head, Bukkit.getOfflinePlayer(UUID.fromString(identifier)));
+            case NAME: return applySkin(head, Bukkit.getOfflinePlayer(identifier));
+            case BASE64:       return setSkullBase64(meta, identifier);
+            case TEXTURE_URL:  return setSkullBase64(meta, encodeTexturesURL(identifier));
+            case TEXTURE_HASH: return setSkullBase64(meta, encodeTexturesURL(TEXTURES + identifier));
+            case UNKNOWN:      return setSkullBase64(meta, INVALID_BASE64);
+            default: throw new AssertionError("Unknown skull value");
+        }
+        // @formatter:on
     }
 
     @Nonnull
-    protected static SkullMeta getSkullByValue(@Nonnull SkullMeta head, @Nonnull String value) {
+    protected static SkullMeta setSkullBase64(@Nonnull SkullMeta head, @Nonnull String value) {
         if (value == null || value.isEmpty()) throw new IllegalArgumentException("Skull value cannot be null or empty");
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-        profile.getProperties().put("textures", new Property("textures", value));
+        GameProfile profile = profileFromBase64(value);
 
         try {
-            PROFILE_SETTER.invoke(head, profile);
+            CRAFT_META_SKULL_PROFILE_SETTER.invoke(head, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -144,13 +194,68 @@ public class SkullUtils {
     }
 
     @Nonnull
-    private static SkullMeta getValueFromTextures(@Nonnull SkullMeta head, @Nonnull String url) {
-        return getSkullByValue(head, encodeBase64(VALUE_PROPERTY + url + "\"}}}"));
+    public static GameProfile profileFromBase64(String value) {
+        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        profile.getProperties().put("textures", new Property("textures", value));
+        return profile;
     }
 
     @Nonnull
-    private static SkullMeta getTexturesFromUrlValue(@Nonnull SkullMeta head, @Nonnull String urlValue) {
-        return getValueFromTextures(head, TEXTURES + urlValue);
+    public static GameProfile profileFromPlayer(OfflinePlayer player) {
+        return new GameProfile(player.getUniqueId(), player.getName());
+    }
+
+    @Nonnull
+    public static GameProfile detectProfileFromString(String identifier) {
+        // @formatter:off sometimes programming is just art that a machine can't understand :)
+        switch (detectSkullValueType(identifier)) {
+            case UUID:         return new GameProfile(UUID.fromString(               identifier), null);
+            case NAME:         return new GameProfile(null,                          identifier);
+            case BASE64:       return profileFromBase64(                             identifier);
+            case TEXTURE_URL:  return profileFromBase64(encodeTexturesURL(           identifier));
+            case TEXTURE_HASH: return profileFromBase64(encodeTexturesURL(TEXTURES + identifier));
+            case UNKNOWN:      return profileFromBase64(INVALID_BASE64); // This can't be cached because the caller might change it.
+            default: throw new AssertionError("Unknown skull value");
+        }
+        // @formatter:on
+    }
+
+    public static ValueType detectSkullValueType(String identifier) {
+        try {
+            UUID.fromString(identifier);
+            return ValueType.UUID;
+        } catch (IllegalArgumentException ignored) {}
+
+        if (isUsername(identifier)) return ValueType.NAME;
+        if (identifier.contains("textures.minecraft.net")) return ValueType.TEXTURE_URL;
+        if (identifier.length() > 100 && isBase64(identifier)) return ValueType.BASE64;
+
+        // We'll just "assume" that it's a textures.minecraft.net hash without the URL part.
+        if (MOJANG_SHA256_APPROX.matcher(identifier).matches()) return ValueType.TEXTURE_HASH;
+
+        return ValueType.UNKNOWN;
+    }
+
+    public static void setSkin(@Nonnull Block block, @Nonnull String value) {
+        Objects.requireNonNull(block, "Can't set skin of null block");
+
+        BlockState state = block.getState();
+        if (!(state instanceof Skull)) return;
+        Skull skull = (Skull) state;
+
+        GameProfile profile = detectProfileFromString(value);
+        try {
+            CRAFT_META_SKULL_BLOCK_SETTER.invoke(skull, profile);
+        } catch (Throwable e) {
+            throw new RuntimeException("Error while setting block skin with value: " + value, e);
+        }
+
+        skull.update(true);
+    }
+
+    public static String encodeTexturesURL(String url) {
+        // String.format bad!
+        return encodeBase64(VALUE_PROPERTY + url + "\"}}}");
     }
 
     @Nonnull
@@ -179,7 +284,7 @@ public class SkullUtils {
         GameProfile profile = null;
 
         try {
-            profile = (GameProfile) PROFILE_GETTER.invoke(meta);
+            profile = (GameProfile) CRAFT_META_SKULL_PROFILE_GETTER.invoke(meta);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -202,7 +307,7 @@ public class SkullUtils {
      */
     private static boolean isUsername(@Nonnull String name) {
         int len = name.length();
-        if (len < 3 || len > 16) return false;
+        if (len > 16) return false; // Yes, in the old Minecraft 1 letter usernames were a thing.
 
         // For some reasons Apache's Lists.charactersOf is faster than character indexing for small strings.
         for (char ch : Lists.charactersOf(name)) {
@@ -210,4 +315,6 @@ public class SkullUtils {
         }
         return true;
     }
+
+    public enum ValueType {NAME, UUID, BASE64, TEXTURE_URL, TEXTURE_HASH, UNKNOWN}
 }

@@ -54,7 +54,7 @@ final class SkullCacheListener {
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
         SkullMeta meta = (SkullMeta) head;
-        return SkullUtils.getSkullByValue(meta, base64);
+        return SkullUtils.setSkullBase64(meta, base64);
     }
 
     /**
@@ -137,7 +137,7 @@ final class SkullCacheListener {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         try {
-            SkullUtils.PROFILE_SETTER.invoke(meta, profile);
+            SkullUtils.CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
