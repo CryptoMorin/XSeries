@@ -63,7 +63,7 @@
 
     <properties>
         <!-- Latest version -->
-        <spigotVersion>1.19-R0.1-SNAPSHOT</spigotVersion>
+        <spigotVersion>1.19.3-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
     <dependencies>

@@ -44,7 +44,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.2.0
+ * @version 5.2.1
  */
 public final class NMSExtras {
     public static final MethodHandle EXP_PACKET;
@@ -205,7 +205,9 @@ public final class NMSExtras {
                         MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
-                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign, v(18, "c").orElse("getUpdatePacket"), MethodType.methodType(PacketPlayOutTileEntityData));
+                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign,
+                        v(19, "f").v(18, "c").orElse("getUpdatePacket"),
+                        MethodType.methodType(PacketPlayOutTileEntityData));
                 tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
             }
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException ex) {

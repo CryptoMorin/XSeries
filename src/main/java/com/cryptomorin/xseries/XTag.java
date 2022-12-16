@@ -898,7 +898,7 @@ public final class XTag<T extends Enum<T>> {
         PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
         FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS);
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, new XTag<>(XMaterial.SWEET_BERRY_BUSH));
 
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,

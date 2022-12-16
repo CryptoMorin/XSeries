@@ -27,10 +27,10 @@ public final class XSeriesTests {
 
     @SuppressWarnings("deprecation")
     public static void test() {
-//        DifferenceHelper.versionDifference();
-//        if (true) return;
-
         print("\n\n\nTest begin...");
+
+        print("Writing enum differences...");
+        DifferenceHelper.versionDifference();
 
         print("Testing XMaterial...");
         assertPresent(XMaterial.matchXMaterial("AIR"));
