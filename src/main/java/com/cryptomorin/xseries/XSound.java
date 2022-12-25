@@ -1961,6 +1961,10 @@ public enum XSound {
             this.playAtLocation = playAtLocation;
         }
 
+        public Record(Record other) {
+            this(other.sound, other.player, other.location, other.volume, other.pitch, other.playAtLocation);
+        }
+
         /**
          * Plays the sound only for a single player and no one else can hear it.
          */
