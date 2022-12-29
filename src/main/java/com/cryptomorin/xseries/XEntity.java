@@ -195,7 +195,7 @@ public final class XEntity {
             if (XMaterial.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
-            if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("do-damage-ticks"));
+            if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));
             if (config.isSet("remaining-air")) living.setRemainingAir(config.getInt("remaining-air"));
             XPotion.addEffects(living, config.getStringList("effects"));
 
