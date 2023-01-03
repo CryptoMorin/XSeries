@@ -3,6 +3,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -13,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DifferenceHelper {
     /**
@@ -39,7 +40,7 @@ public class DifferenceHelper {
                 .filter(x -> x.getType() == clazz)
                 .filter(x -> Modifier.isStatic(x.getModifiers()))
                 .map(Field::getName)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -60,7 +61,7 @@ public class DifferenceHelper {
      */
     public static <S extends Enum<S>, E extends Enum<E>>
     void writeDifference(Path path, Class<S> system, Class<E> custom, java.util.function.Predicate<String> ignore) {
-        List<String> enumNames = Arrays.stream(system.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
+        List<String> enumNames = Arrays.stream(system.getEnumConstants()).map(Enum::name).collect(toList());
         writeDifference(path, enumNames, custom, ignore);
     }
 

@@ -31,8 +31,10 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.util.stream.Collectors.joining;
+
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Enchantment support with multiple aliases.
@@ -308,7 +310,7 @@ public enum XEnchantment {
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
+                .collect(joining(" "));
     }
 
     /**

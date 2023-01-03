@@ -35,9 +35,11 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.util.stream.Collectors.joining;
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
@@ -1775,7 +1777,7 @@ public enum XSound {
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
+                .collect(joining(" "));
     }
 
     /**

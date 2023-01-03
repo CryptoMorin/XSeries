@@ -34,10 +34,11 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.util.stream.Collectors.joining;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
 /**
  * Potion type support for multiple aliases.
  * Uses EssentialsX potion list for aliases.
@@ -487,7 +488,7 @@ public enum XPotion {
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
+                .collect(joining(" "));
     }
 
     /**

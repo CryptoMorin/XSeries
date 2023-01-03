@@ -34,12 +34,14 @@ import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.util.stream.Collectors.joining;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
@@ -2075,7 +2077,7 @@ public enum XMaterial {
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
+                .collect(joining(" "));
     }
 
     /**
