@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.utils.EnumUtils;
 import com.google.common.base.Enums;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -31,8 +32,6 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import static java.util.stream.Collectors.joining;
 
 import java.util.*;
 
@@ -308,9 +307,7 @@ public enum XEnchantment {
     @Override
     @Nonnull
     public String toString() {
-        return Arrays.stream(name().split("_"))
-                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(joining(" "));
+        return EnumUtils.getDisplayName(this);
     }
 
     /**

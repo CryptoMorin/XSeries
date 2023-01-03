@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.utils.EnumUtils;
 import com.google.common.base.Strings;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -34,8 +35,6 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import static java.util.stream.Collectors.joining;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -486,9 +485,7 @@ public enum XPotion {
      */
     @Override
     public String toString() {
-        return Arrays.stream(name().split("_"))
-                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
-                .collect(joining(" "));
+    	return EnumUtils.getDisplayName(this);
     }
 
     /**
