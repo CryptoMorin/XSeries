@@ -189,6 +189,20 @@ public final class Titles implements Cloneable {
         sendTitle(player, 10, 20, 10, title, subtitle);
     }
 
+    /**
+     * Parses and sends a title from the config.
+     *
+     * @param player the player to send the title to.
+     * @param config the configuration section to parse the title properties from.
+     *
+     * @since 1.0.0
+     */
+    public static Titles sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+        Titles titles = parseTitle(config, null);
+        titles.send(player);
+        return titles;
+    }
+
     public static Titles parseTitle(@Nonnull ConfigurationSection config) {
         return parseTitle(config, null);
     }
@@ -243,20 +257,6 @@ public final class Titles implements Cloneable {
 
     public void setSubtitle(String subtitle) {
         this.subtitle = subtitle;
-    }
-
-    /**
-     * Parses and sends a title from the config.
-     *
-     * @param player the player to send the title to.
-     * @param config the configuration section to parse the title properties from.
-     *
-     * @since 1.0.0
-     */
-    public static Titles sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
-        Titles titles = parseTitle(config, null);
-        titles.send(player);
-        return titles;
     }
 
     /**

@@ -478,28 +478,6 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Rotates the given xyz with the given rotation radians and
-     * adds the to the specified location.
-     *
-     * @param location the location to add the rotated axis.
-     *
-     * @return a cloned rotated location.
-     * @since 3.0.0
-     */
-    @Nonnull
-    public Location rotate(@Nonnull Location location, double x, double y, double z) {
-        if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
-        if (rotation == null) return cloneLocation(location).add(x, y, z);
-
-        Vector rotate = new Vector(x, y, z);
-        rotateAround(rotate, rotationOrder[0], rotation);
-        rotateAround(rotate, rotationOrder[1], rotation);
-        rotateAround(rotate, rotationOrder[2], rotation);
-
-        return cloneLocation(location).add(rotate);
-    }
-
-    /**
      * Get the data object. Currently, it can be instance of float[] with [R, G, B, size],
      * or instance of {@link BlockData}, {@link MaterialData} for legacy usage or {@link ItemStack}
      *
@@ -896,6 +874,28 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Rotates the given xyz with the given rotation radians and
+     * adds them to the specified location.
+     *
+     * @param location the location to add the rotated axis.
+     *
+     * @return a cloned rotated location.
+     * @since 3.0.0
+     */
+    @Nonnull
+    public Location rotate(@Nonnull Location location, double x, double y, double z) {
+        if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
+        if (rotation == null) return cloneLocation(location).add(x, y, z);
+
+        Vector rotate = new Vector(x, y, z);
+        rotateAround(rotate, rotationOrder[0], rotation);
+        rotateAround(rotate, rotationOrder[1], rotation);
+        rotateAround(rotate, rotationOrder[2], rotation);
+
+        return cloneLocation(location).add(rotate);
+    }
+
+    /**
      * Set the xyz offset of the particle settings.
      *
      * @since 1.1.0
@@ -914,6 +914,16 @@ public class ParticleDisplay implements Cloneable {
     public ParticleDisplay offset(@Nonnull Vector offset) {
         this.offset = Objects.requireNonNull(offset, "Particle offset cannot be null");
         return this;
+    }
+
+    /**
+     * Set the xyz offset of the particle settings to a single number.
+     *
+     * @since 6.0.0.1
+     */
+    @Nonnull
+    public ParticleDisplay offset(double offset) {
+        return offset(offset, offset, offset);
     }
 
     /**
@@ -936,16 +946,6 @@ public class ParticleDisplay implements Cloneable {
      */
     public void setRotation(@Nullable Vector rotation) {
         this.rotation = rotation;
-    }
-
-    /**
-     * Set the xyz offset of the particle settings to a single number.
-     *
-     * @since 6.0.0.1
-     */
-    @Nonnull
-    public ParticleDisplay offset(double offset) {
-        return offset(offset, offset, offset);
     }
 
     /**

@@ -205,6 +205,36 @@ public final class ActionBar {
         }
     }
 
+
+    /**
+     * Sends an action bar to a player for a specific amount of ticks.
+     *
+     * @param plugin   the plugin handling the message scheduler.
+     * @param player   the player to send the action bar to.
+     * @param message  the message to send.
+     * @param duration the duration to keep the action bar in ticks.
+     *
+     * @see #sendActionBarWhile(Plugin, Player, String, Callable)
+     * @since 1.0.0
+     */
+    public static void sendActionBar(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable String message, long duration) {
+        if (duration < 1) return;
+        Objects.requireNonNull(plugin, "Cannot send consistent actionbar with null plugin");
+        Objects.requireNonNull(player, "Cannot send actionbar to null player");
+        Objects.requireNonNull(message, "Cannot send null actionbar message");
+
+        new BukkitRunnable() {
+            long repeater = duration;
+
+            @Override
+            public void run() {
+                sendActionBar(player, message);
+                repeater -= 40L;
+                if (repeater - 40L < -20L) cancel();
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 40L);
+    }
+
     /**
      * Sends an action bar all the online players.
      *
@@ -301,35 +331,6 @@ public final class ActionBar {
                 }
             }
             // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
-        }.runTaskTimerAsynchronously(plugin, 0L, 40L);
-    }
-
-    /**
-     * Sends an action bar to a player for a specific amount of ticks.
-     *
-     * @param plugin   the plugin handling the message scheduler.
-     * @param player   the player to send the action bar to.
-     * @param message  the message to send.
-     * @param duration the duration to keep the action bar in ticks.
-     *
-     * @see #sendActionBarWhile(Plugin, Player, String, Callable)
-     * @since 1.0.0
-     */
-    public static void sendActionBar(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable String message, long duration) {
-        if (duration < 1) return;
-        Objects.requireNonNull(plugin, "Cannot send consistent actionbar with null plugin");
-        Objects.requireNonNull(player, "Cannot send actionbar to null player");
-        Objects.requireNonNull(message, "Cannot send null actionbar message");
-
-        new BukkitRunnable() {
-            long repeater = duration;
-
-            @Override
-            public void run() {
-                sendActionBar(player, message);
-                repeater -= 40L;
-                if (repeater - 40L < -20L) cancel();
-            }
         }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 }
