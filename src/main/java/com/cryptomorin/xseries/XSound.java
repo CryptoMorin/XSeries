@@ -1943,7 +1943,7 @@ public enum XSound {
      *
      * @since 3.0.0
      */
-    public static class Record {
+    public static class Record implements Cloneable {
         @Nonnull public final XSound sound;
         public final float volume, pitch;
         public boolean playAtLocation;
@@ -2038,6 +2038,18 @@ public enum XSound {
 
         public String rebuild() {
             return (playAtLocation ? "~" : "") + sound.sound + ", " + volume + ", " + pitch;
+        }
+
+        @Override
+        public Record clone() {
+            return new Record(
+                    sound,
+                    player,
+                    location,
+                    volume,
+                    pitch,
+                    playAtLocation
+            );
         }
     }
 }

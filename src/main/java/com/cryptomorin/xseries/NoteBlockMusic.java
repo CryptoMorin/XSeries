@@ -189,7 +189,7 @@ public final class NoteBlockMusic {
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
                     if (line.isEmpty() || line.startsWith("#")) continue;
-                    parseInstructions(line).play(player, location);
+                    parseInstructions(line).play(player, location, true);
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -250,7 +250,7 @@ public final class NoteBlockMusic {
         return CompletableFuture.runAsync(() -> {
             if (Strings.isNullOrEmpty(script)) return;
             Sequence seq = parseInstructions(script);
-            seq.play(player, location);
+            seq.play(player, location, true);
         }).exceptionally(ex -> {
             ex.printStackTrace();
             return null;
@@ -629,9 +629,17 @@ public final class NoteBlockMusic {
         }
 
         @Override
-        public void play(Player player, Supplier<Location> location) {
+        public void play(Player player, Supplier<Location> location, boolean playAtLocation) {
+            org.bukkit.Sound bukkitSound = sound.parseSound();
             for (int repeat = restatement; repeat > 0; repeat--) {
-                player.getWorld().playSound(location.get(), sound.parseSound(), volume, pitch);
+                Location finalLocation = location.get();
+                if (bukkitSound != null) {
+                    if (playAtLocation) {
+                        finalLocation.getWorld().playSound(finalLocation, bukkitSound, volume, pitch);
+                    } else {
+                        player.playSound(finalLocation, bukkitSound, volume, pitch);
+                    }
+                }
                 if (restatementFermata > 0) sleep(restatementFermata);
             }
             if (fermata > 0) sleep(fermata);
@@ -662,7 +670,7 @@ public final class NoteBlockMusic {
             this.fermata = fermata;
         }
 
-        public abstract void play(Player player, Supplier<Location> location);
+        public abstract void play(Player player, Supplier<Location> location, boolean playAtLocation);
 
         public long getEstimatedLength() {
             return (long) restatement * restatementFermata;
@@ -694,10 +702,10 @@ public final class NoteBlockMusic {
         }
 
         @Override
-        public void play(Player player, Supplier<Location> location) {
+        public void play(Player player, Supplier<Location> location, boolean playAtLocation) {
             for (int repeat = restatement; repeat > 0; repeat--) {
                 for (Instruction instruction : instructions) {
-                    instruction.play(player, location);
+                    instruction.play(player, location, playAtLocation);
                 }
                 if (restatementFermata > 0) sleep(restatementFermata);
             }
