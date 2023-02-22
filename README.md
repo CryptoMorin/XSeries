@@ -60,9 +60,14 @@ You shouldn't worry if the reflection or other classes are going to use your mem
 As long as you don't use them anywhere in your code, they won't initialize.
 The memory usage of these utilities are extremely enhanced.
 
-**Note:** DO NOT extract the JAR into your project if you're using maven. You have to shade the library,
+# Shading
+
+DO NOT extract the JAR into your project if you're using maven. You have to shade the library,
 otherwise your plugin or other plugins will break due to version mismatch.
 To shade the library, add the following under your maven plugins:
+
+### [Apache Maven Shade Plugin](https://maven.apache.org/plugins/maven-shade-plugin/)
+
 ```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -103,7 +108,9 @@ To shade the library, add the following under your maven plugins:
 </plugin>
 ```
 
-Gradle
+### [Gradle Shadow plugin](https://imperceptiblethoughts.com/shadow/)
+
+Gradle (Kotlin DSL)
 ```kotlin
 plugins {
     java
@@ -111,8 +118,22 @@ plugins {
 }
 
 tasks {
-    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    shadowJar {
         relocate("com.cryptomorin.xseries", "my.plugin.utils")
+    }
+}
+```
+
+Gradle (Groovy)
+```groovy
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'java'
+}
+
+tasks {
+    shadowJar {
+        relocate 'com.cryptomorin.xseries', 'my.plugin.utils'
     }
 }
 ```
