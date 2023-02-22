@@ -3,6 +3,7 @@
 [![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
+[![CodeFactor](https://www.codefactor.io/repository/github/cryptomorin/xseries/badge)](https://www.codefactor.io/repository/github/cryptomorin/xseries)
 
 Library mainly designed to provide cross-version support for Minecraft Bukkit plugins,
 but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
@@ -66,7 +67,7 @@ To shade the library, add the following under your maven plugins:
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-shade-plugin</artifactId>
-    <version>3.2.4</version>
+    <version>3.4.1</version>
     <configuration>
         <relocations>
             <relocation>

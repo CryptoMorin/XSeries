@@ -381,17 +381,6 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * We don't want to use {@link Location#clone()} since it doesn't copy to constructor and Java's clone method
-     * is known to be inefficient and broken.
-     *
-     * @since 3.0.3
-     */
-    @Nonnull
-    private static Location cloneLocation(@Nonnull Location location) {
-        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-    }
-
-    /**
      * Rotates the given location vector around a certain axis.
      *
      * @param location the location to rotate.
@@ -610,6 +599,15 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * @since 7.1.0
+     */
+    @Nonnull
+    public ParticleDisplay withColor(float red, float green, float blue, float size) {
+        this.data = new float[]{red, green, blue, size};
+        return this;
+    }
+
+    /**
      * Adds color properties to the particle settings.
      * The particle must be {@link Particle#DUST_COLOR_TRANSITION}
      * to get custom colors.
@@ -625,15 +623,6 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay withTransitionColor(@Nonnull Color color1, float size, @Nonnull Color color2) {
         return withTransitionColor(color1.getRed(), color1.getGreen(), color1.getBlue(), size, color2.getRed(), color2.getGreen(), color2.getBlue());
-    }
-
-    /**
-     * @since 7.1.0
-     */
-    @Nonnull
-    public ParticleDisplay withColor(float red, float green, float blue, float size) {
-        this.data = new float[]{red, green, blue, size};
-        return this;
     }
 
     /**
@@ -822,6 +811,17 @@ public class ParticleDisplay implements Cloneable {
     @Nullable
     public Location cloneLocation(double x, double y, double z) {
         return location == null ? null : cloneLocation(location).add(x, y, z);
+    }
+
+    /**
+     * We don't want to use {@link Location#clone()} since it doesn't copy to constructor and Java's clone method
+     * is known to be inefficient and broken.
+     *
+     * @since 3.0.3
+     */
+    @Nonnull
+    private static Location cloneLocation(@Nonnull Location location) {
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**

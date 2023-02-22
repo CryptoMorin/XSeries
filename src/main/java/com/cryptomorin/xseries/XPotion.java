@@ -359,7 +359,7 @@ public enum XPotion {
         ItemStack potion = Material.getMaterial("SPLASH_POTION") == null ?
                 new ItemStack(Material.POTION, 1, (short) 16398) : // or 16384?
                 new ItemStack(Material.SPLASH_POTION);
-        // TODO check why the fuck Lingering potion isn't supported.
+        // Why the fuck isn't Lingering potion supported?
 
         PotionMeta meta = (PotionMeta) potion.getItemMeta();
         meta.setColor(color);

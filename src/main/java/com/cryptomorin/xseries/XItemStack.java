@@ -70,10 +70,10 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
  *     ItemStack item = XItemStack.deserialize(section);
  * </pre>
- * ItemStack: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html
+ * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.3.0
+ * @version 7.3.1
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -84,11 +84,15 @@ public final class XItemStack {
     public static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
 
     /**
-     * Because item metas cannot be applied to AIR apparently.
+     * Because item metas cannot be applied to AIR, apparently.
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.NETHER_PORTAL;
 
     private XItemStack() {}
+
+    public static boolean isDefaultItem(ItemStack item) {
+        return DEFAULT_MATERIAL.isSimilar(item);
+    }
 
     /**
      * Writes an ItemStack object into a config.
@@ -125,7 +129,7 @@ public final class XItemStack {
 
         // Display Name & Lore
         if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
-        if (meta.hasLore()) config.set("lore", meta.getLore()); // TODO Add a method to "untranslate" color codes.
+        if (meta.hasLore()) config.set("lore", meta.getLore());
 
         if (supports(14)) {
             if (meta.hasCustomModelData()) config.set("custom-model-data", meta.getCustomModelData());
@@ -249,18 +253,21 @@ public final class XItemStack {
             }
         } else if (meta instanceof BookMeta) {
             BookMeta book = (BookMeta) meta;
-            ConfigurationSection bookInfo = config.createSection("book");
 
-            bookInfo.set("title", book.getTitle());
-            bookInfo.set("author", book.getAuthor());
-            if (supports(9)) {
-                BookMeta.Generation generation = book.getGeneration();
-                if (generation != null) {
-                    bookInfo.set("generation", book.getGeneration().toString());
+            if (book.getTitle() != null || book.getAuthor() != null || book.getGeneration() != null || !book.getPages().isEmpty()) {
+                ConfigurationSection bookInfo = config.createSection("book");
+
+                if (book.getTitle() != null) bookInfo.set("title", book.getTitle());
+                if (book.getAuthor() != null) bookInfo.set("author", book.getAuthor());
+                if (supports(9)) {
+                    BookMeta.Generation generation = book.getGeneration();
+                    if (generation != null) {
+                        bookInfo.set("generation", book.getGeneration().toString());
+                    }
                 }
-            }
 
-            bookInfo.set("pages", book.getPages());
+                if (!book.getPages().isEmpty()) bookInfo.set("pages", book.getPages());
+            }
         } else if (meta instanceof MapMeta) {
             MapMeta map = (MapMeta) meta;
             ConfigurationSection mapSection = config.createSection("map");
@@ -347,10 +354,6 @@ public final class XItemStack {
         }
     }
 
-    public static boolean isDefaultItem(ItemStack item) {
-        return DEFAULT_MATERIAL.isSimilar(item);
-    }
-
     /**
      * Writes an ItemStack properties into a {@code Map}.
      *
@@ -378,32 +381,18 @@ public final class XItemStack {
         return edit(new ItemStack(DEFAULT_MATERIAL.parseMaterial()), config, Function.identity(), null);
     }
 
-    private static List<String> splitNewLine(String str) {
-        int len = str.length();
-        List<String> list = new ArrayList<>();
-        int i = 0, start = 0;
-        boolean match = false, lastMatch = false;
-
-        while (i < len) {
-            if (str.charAt(i) == '\n') {
-                if (match) {
-                    list.add(str.substring(start, i));
-                    match = false;
-                    lastMatch = true;
-                }
-                start = ++i;
-                continue;
-            }
-            lastMatch = false;
-            match = true;
-            i++;
-        }
-
-        if (match || lastMatch) {
-            list.add(str.substring(start, i));
-        }
-
-        return list;
+    /**
+     * Deserialize an ItemStack from a {@code Map}.
+     *
+     * @param serializedItem the map holding the item configurations to deserialize
+     *                       the ItemStack object from.
+     *
+     * @return a deserialized ItemStack.
+     */
+    @Nonnull
+    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem) {
+        Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+        return deserialize(mapToConfigSection(serializedItem));
     }
 
     @Nonnull
@@ -481,6 +470,34 @@ public final class XItemStack {
         return list;
     }
 
+    private static List<String> splitNewLine(String str) {
+        int len = str.length();
+        List<String> list = new ArrayList<>();
+        int i = 0, start = 0;
+        boolean match = false, lastMatch = false;
+
+        while (i < len) {
+            if (str.charAt(i) == '\n') {
+                if (match) {
+                    list.add(str.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+                start = ++i;
+                continue;
+            }
+            lastMatch = false;
+            match = true;
+            i++;
+        }
+
+        if (match || lastMatch) {
+            list.add(str.substring(start, i));
+        }
+
+        return list;
+    }
+
     /**
      * Deserialize an ItemStack from the config.
      *
@@ -492,9 +509,9 @@ public final class XItemStack {
     @SuppressWarnings("deprecation")
     @Nonnull
     public static ItemStack edit(@Nonnull ItemStack item,
-                                 @Nonnull ConfigurationSection config,
-                                 @Nonnull Function<String, String> translator,
-                                 @Nullable Consumer<Exception> restart) {
+                                 @Nonnull final ConfigurationSection config,
+                                 @Nonnull final Function<String, String> translator,
+                                 @Nullable final Consumer<Exception> restart) {
         Objects.requireNonNull(item, "Cannot operate on null ItemStack, considering using an AIR ItemStack instead");
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
         Objects.requireNonNull(translator, "Translator function cannot be null");
@@ -570,6 +587,7 @@ public final class XItemStack {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");
 
+            //System.out.println("patters v2: "  + patterns);
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
                     PatternType type = PatternType.getByIdentifier(pattern);
@@ -646,10 +664,12 @@ public final class XItemStack {
             } else if (state instanceof Banner) {
                 Banner banner = (Banner) state;
                 ConfigurationSection patterns = config.getConfigurationSection("patterns");
-                if (!supports(14))
-                    banner.setBaseColor(DyeColor.WHITE); // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/block
-                // /CraftBanner.java?until=b3dc236663a55450c69356e660c0c84f0abbb3aa
+                if (!supports(14)) {
+                    // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/block/CraftBanner.java?until=b3dc236663a55450c69356e660c0c84f0abbb3aa
+                    banner.setBaseColor(DyeColor.WHITE);
+                }
 
+                //System.out.println("patterns are "  + patterns);
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
                         PatternType type = PatternType.getByIdentifier(pattern);
@@ -947,20 +967,6 @@ public final class XItemStack {
     }
 
     /**
-     * Deserialize an ItemStack from a {@code Map}.
-     *
-     * @param serializedItem the map holding the item configurations to deserialize
-     *                       the ItemStack object from.
-     *
-     * @return a deserialized ItemStack.
-     */
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem) {
-        Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
-        return deserialize(mapToConfigSection(serializedItem));
-    }
-
-    /**
      * Converts a {@code Map<?, ?>} into a {@code ConfigurationSection}.
      *
      * @param map the map to convert.
@@ -1069,7 +1075,7 @@ public final class XItemStack {
 
     /**
      * Optimized version of {@link Inventory#addItem(ItemStack...)}
-     * https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventory.java
+     * <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventory.java">CraftInventory</a>
      *
      * @param inventory       the inventory to add the items to.
      * @param split           if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or

@@ -1562,44 +1562,6 @@ public enum XSound {
         return Objects.requireNonNull(Data.NAMES.get(sound.name()), () -> "Unsupported sound: " + sound.name());
     }
 
-    /**
-     * A quick async way to play a sound from the config.
-     *
-     * @param player the player to play the sound to.
-     * @param sound  the sound to play to the player.
-     *
-     * @see #play(Location, String)
-     * @since 1.0.0
-     */
-    @Nonnull
-    public static CompletableFuture<Record> play(@Nonnull Player player, @Nullable String sound) {
-        Objects.requireNonNull(player, "Cannot play sound to null player");
-        return CompletableFuture.supplyAsync(() -> {
-            Record record = parse(sound);
-            if (record == null) return null;
-            record.forPlayer(player).play();
-            return record;
-        }).exceptionally(x -> {
-            x.printStackTrace();
-            return null;
-        });
-    }
-
-    /**
-     * A quick async way to play a sound from the config.
-     *
-     * @see #play(Location, String)
-     * @since 3.0.0
-     */
-    @Nullable
-    public static Record play(@Nonnull Location location, @Nullable String sound) {
-        Objects.requireNonNull(location, "Cannot play sound to null location");
-        Record record = parse(sound);
-        if (record == null) return null;
-        record.atLocation(location).play();
-        return record;
-    }
-
     private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(5);
         boolean match = false, lastMatch = false;
@@ -1850,6 +1812,50 @@ public enum XSound {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
         Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);
+    }
+
+    /**
+     * A quick async way to play a sound from the config.
+     *
+     * @param player the player to play the sound to.
+     * @param sound  the sound to play to the player.
+     *
+     * @see #play(Location, String)
+     * @since 1.0.0
+     */
+    @Nonnull
+    @Deprecated
+    public static CompletableFuture<Record> play(@Nonnull Player player, @Nullable String sound) {
+        Objects.requireNonNull(player, "Cannot play sound to null player");
+        return CompletableFuture.supplyAsync(() -> {
+            Record record;
+            try {
+                record = parse(sound);
+            } catch (Throwable ex) {
+                return null;
+            }
+            if (record == null) return null;
+            record.forPlayer(player).play();
+            return record;
+        }).exceptionally(x -> {
+            x.printStackTrace();
+            return null;
+        });
+    }
+
+    /**
+     * A quick async way to play a sound from the config.
+     *
+     * @see #play(Location, String)
+     * @since 3.0.0
+     */
+    @Nullable
+    public static Record play(@Nonnull Location location, @Nullable String sound) {
+        Objects.requireNonNull(location, "Cannot play sound to null location");
+        Record record = parse(sound);
+        if (record == null) return null;
+        record.atLocation(location).play();
+        return record;
     }
 
     /**

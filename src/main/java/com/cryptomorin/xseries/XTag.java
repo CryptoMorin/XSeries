@@ -40,6 +40,7 @@ public final class XTag<T extends Enum<T>> {
     /**
      *
      */
+    @Nonnull public static final XTag<XMaterial> CORAL_FANS;
     @Nonnull public static final XTag<XMaterial> ALIVE_CORAL_BLOCKS;
     /**
      * Tag representing all dead coral non-walled fans
@@ -225,6 +226,7 @@ public final class XTag<T extends Enum<T>> {
      * Tag representing all possible blocks that can be replaced by dripstone
      */
     @Nonnull public static final XTag<XMaterial> DRIPSTONE_REPLACEABLE;
+    @Nonnull public static final XTag<XMaterial> WALL_HEADS;
     /**
      * Tag representing all variants of emerald ores
      */
@@ -622,6 +624,7 @@ public final class XTag<T extends Enum<T>> {
      * Tag representing all wall signs
      */
     @Nonnull public static final XTag<XMaterial> WALL_SIGNS;
+    @Nonnull public static final XTag<XMaterial> HANGING_SIGNS;
     /**
      * Tag representing all different types of walls
      */
@@ -842,6 +845,7 @@ public final class XTag<T extends Enum<T>> {
     static { // wooded material
         STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
         WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
+        HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
         WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
         WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
         WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
@@ -876,6 +880,7 @@ public final class XTag<T extends Enum<T>> {
         DEAD_CORAL_FANS = new XTag<>(findAllCorals(false, false, true, false));
         DEAD_CORAL_BLOCKS = new XTag<>(findAllCorals(false, true, false, false));
         DEAD_CORAL_PLANTS = new XTag<>(findAllCorals(false, false, false, false));
+        CORAL_FANS = new XTag<>(XMaterial.class, ALIVE_CORAL_FANS, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, DEAD_CORAL_FANS);
 
         CORALS = new XTag<>(XMaterial.class, ALIVE_CORAL_WALL_FANS,
                 ALIVE_CORAL_FANS,
@@ -894,11 +899,8 @@ public final class XTag<T extends Enum<T>> {
     }
 
     static {
-        AIR = new XTag<>(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
-        PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
-        FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
-        FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, new XTag<>(XMaterial.SWEET_BERRY_BUSH));
+        WALL_HEADS = new XTag<>(XMaterial.class, new XTag<>(findMaterialsEndingWith("WALL_HEAD")),
+                new XTag<>(XMaterial.WITHER_SKELETON_WALL_SKULL, XMaterial.SKELETON_WALL_SKULL));
 
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
@@ -1977,6 +1979,18 @@ public final class XTag<T extends Enum<T>> {
 
     }
 
+    static {
+        AIR = new XTag<>(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
+        PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
+        FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
+        FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
+
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, WALL_SIGNS,
+                HANGING_SIGNS, CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
+                new XTag<>(XMaterial.SWEET_BERRY_BUSH, XMaterial.CHORUS_PLANT, XMaterial.KELP_PLANT,
+                        XMaterial.CAVE_VINES_PLANT, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT));
+    }
+
     @Nonnull private Set<T> values;
 
     @SafeVarargs
@@ -1991,8 +2005,8 @@ public final class XTag<T extends Enum<T>> {
     }
 
     private static XMaterial[] findAllColors(String material) {
-        String[] colorPrefixes = {"ORANGE", "LIGHT_BLUE", "GRAY", "BLACK", "MAGENTA", "PINK", "BLUE", "GREEN", "CYAN", "PURPLE", "YELLOW", "LIME", "LIGHT_GRAY", "WHITE", "BROWN"
-                , "RED"};
+        String[] colorPrefixes = {"ORANGE", "LIGHT_BLUE", "GRAY", "BLACK", "MAGENTA", "PINK", "BLUE",
+                "GREEN", "CYAN", "PURPLE", "YELLOW", "LIME", "LIGHT_GRAY", "WHITE", "BROWN", "RED"};
         List<XMaterial> list = new ArrayList<>();
         XMaterial.matchXMaterial(material).ifPresent(list::add);
         for (String color : colorPrefixes) {
@@ -2008,6 +2022,14 @@ public final class XTag<T extends Enum<T>> {
             XMaterial.matchXMaterial(wood + '_' + material).ifPresent(list::add);
         }
         return list.toArray(new XMaterial[0]);
+    }
+
+    private static XMaterial[] findMaterialsEndingWith(String material) {
+        return Arrays.stream(XMaterial.VALUES).filter(x -> x.name().endsWith(material)).toArray(XMaterial[]::new);
+    }
+
+    private static XMaterial[] findMaterialsStartingWith(String material) {
+        return Arrays.stream(XMaterial.VALUES).filter(x -> x.name().startsWith(material)).toArray(XMaterial[]::new);
     }
 
     private static XMaterial[] findAllCorals(boolean alive, boolean block, boolean fan, boolean wall) {

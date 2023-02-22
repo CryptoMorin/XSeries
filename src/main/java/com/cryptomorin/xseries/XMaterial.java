@@ -1674,21 +1674,6 @@ public enum XMaterial {
     }
 
     /**
-     * Parses the given material name as an XMaterial with a given data
-     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
-     *
-     * @see #matchXMaterialWithData(String)
-     * @see #matchDefinedXMaterial(String, byte)
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
-        if (name == null || name.isEmpty()) throw new IllegalArgumentException("Cannot match a material with null or empty material name");
-        Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
-        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
-    }
-
-    /**
      * Parses material name and data value from the specified string.
      * The separator for the material name and its data value is {@code :}
      * Spaces are allowed. Mostly used when getting materials from config for old school minecrafters.
@@ -1723,6 +1708,21 @@ public enum XMaterial {
     }
 
     /**
+     * Parses the given material name as an XMaterial with a given data
+     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
+     *
+     * @see #matchXMaterialWithData(String)
+     * @see #matchDefinedXMaterial(String, byte)
+     * @since 2.0.0
+     */
+    @Nonnull
+    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
+        if (name == null || name.isEmpty()) throw new IllegalArgumentException("Cannot match a material with null or empty material name");
+        Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
+        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
+    }
+
+    /**
      * Parses the given material as an XMaterial.
      *
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
@@ -1753,7 +1753,11 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
+
+        // 1.13+ doesn't use data values at all.
+        // Maps are given different data values for different parts of the map also some plugins use negative values for custom images.
+        // Items that have durability, such as armor and tools don't use the data value to distinguish their material.
+        byte data = (byte) (Data.ISFLAT || material.equals("MAP") || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         // Versions 1.9-1.12 didn't really use the items data value.
         if (supports(9) && !supports(13) && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
@@ -1792,6 +1796,30 @@ public enum XMaterial {
     }
 
     /**
+     * Gets the XMaterial based on the material's ID (Magic Value) and data value.<br>
+     * You should avoid using this for performance issues.
+     *
+     * @param id   the ID (Magic value) of the material.
+     * @param data the data value of the material.
+     *
+     * @return a parsed XMaterial with the same ID and data value.
+     * @see #matchXMaterial(ItemStack)
+     * @since 2.0.0
+     * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
+     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} cache yourself.
+     * This method obviously doesn't work for 1.13+ and will not be supported. This is only here for debugging purposes.
+     */
+    @Nonnull
+    @Deprecated
+    public static Optional<XMaterial> matchXMaterial(int id, byte data) {
+        if (id < 0 || id > MAX_ID || data < 0) return Optional.empty();
+        for (XMaterial materials : VALUES) {
+            if (materials.data == data && materials.getId() == id) return Optional.of(materials);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * The main method that parses the given material name and data value as an XMaterial.
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
@@ -1825,47 +1853,6 @@ public enum XMaterial {
 
         if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated)) return getIfPresent(name);
         return Optional.of(oldXMaterial);
-    }
-
-    /**
-     * <b>XMaterial Paradox (Duplication Check)</b>
-     * Checks if the material has any duplicates.
-     * <p>
-     * <b>Example:</b>
-     * <p>{@code MELON, CARROT, POTATO, BEETROOT -> true}
-     *
-     * @param name the name of the material to check.
-     *
-     * @return true if there's a duplicated material for this material, otherwise false.
-     * @since 2.0.0
-     */
-    private static boolean isDuplicated(@Nonnull String name) {
-        // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
-        return DUPLICATED.contains(name);
-    }
-
-    /**
-     * Gets the XMaterial based on the material's ID (Magic Value) and data value.<br>
-     * You should avoid using this for performance issues.
-     *
-     * @param id   the ID (Magic value) of the material.
-     * @param data the data value of the material.
-     *
-     * @return a parsed XMaterial with the same ID and data value.
-     * @see #matchXMaterial(ItemStack)
-     * @since 2.0.0
-     * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
-     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} cache yourself.
-     * This method obviously doesn't work for 1.13+ and will not be supported. This is only here for debugging purposes.
-     */
-    @Nonnull
-    @Deprecated
-    public static Optional<XMaterial> matchXMaterial(int id, byte data) {
-        if (id < 0 || id > MAX_ID || data < 0) return Optional.empty();
-        for (XMaterial materials : VALUES) {
-            if (materials.data == data && materials.getId() == id) return Optional.of(materials);
-        }
-        return Optional.empty();
     }
 
     /**
@@ -2185,6 +2172,23 @@ public enum XMaterial {
     @Nullable
     public XMaterial or(@Nullable XMaterial alternateMaterial) {
         return isSupported() ? this : alternateMaterial;
+    }
+
+    /**
+     * <b>XMaterial Paradox (Duplication Check)</b>
+     * Checks if the material has any duplicates.
+     * <p>
+     * <b>Example:</b>
+     * <p>{@code MELON, CARROT, POTATO, BEETROOT -> true}
+     *
+     * @param name the name of the material to check.
+     *
+     * @return true if there's a duplicated material for this material, otherwise false.
+     * @since 2.0.0
+     */
+    private static boolean isDuplicated(@Nonnull String name) {
+        // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
+        return DUPLICATED.contains(name);
     }
 
     /**

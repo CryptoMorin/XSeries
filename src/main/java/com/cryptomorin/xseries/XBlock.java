@@ -46,7 +46,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 2.2.0
+ * @version 2.2.1
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -54,10 +54,17 @@ import java.util.*;
  */
 @SuppressWarnings("deprecation")
 public final class XBlock {
+    /**
+     * This list contains both block and item version of the same material.
+     */
     public static final Set<XMaterial> CROPS = Collections.unmodifiableSet(EnumSet.of(
-            XMaterial.CARROT, XMaterial.POTATO, XMaterial.NETHER_WART, XMaterial.WHEAT_SEEDS, XMaterial.PUMPKIN_SEEDS,
-            XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.SUGAR_CANE, XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
-            XMaterial.KELP, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM
+            XMaterial.CARROT, XMaterial.CARROTS, XMaterial.POTATO, XMaterial.POTATOES,
+            XMaterial.NETHER_WART, XMaterial.PUMPKIN_SEEDS, XMaterial.WHEAT_SEEDS, XMaterial.WHEAT,
+            XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.BEETROOTS, XMaterial.SUGAR_CANE,
+            XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO, XMaterial.CHORUS_PLANT,
+            XMaterial.KELP, XMaterial.KELP_PLANT, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM,
+            XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM
+
     ));
     public static final Set<XMaterial> DANGEROUS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE

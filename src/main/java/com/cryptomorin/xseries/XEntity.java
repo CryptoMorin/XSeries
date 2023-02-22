@@ -54,7 +54,7 @@ import java.util.*;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.1
+ * @version 4.0.2
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -69,7 +69,7 @@ public final class XEntity {
 
     static {
         Set<EntityType> undead = EnumSet.of(
-                EntityType.SKELETON_HORSE, EntityType.SKELETON, EntityType.ZOMBIE, EntityType.GIANT,
+                EntityType.SKELETON, EntityType.ZOMBIE, EntityType.GIANT,
                 EntityType.ZOMBIE_VILLAGER, EntityType.WITHER,
                 EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE
         );
@@ -77,13 +77,17 @@ public final class XEntity {
         if (XMaterial.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
-            if (XMaterial.supports(13)) {
-                undead.add(EntityType.DROWNED);
-                undead.add(EntityType.PHANTOM);
-                if (XMaterial.supports(16)) {
-                    undead.add(EntityType.ZOGLIN);
-                    undead.add(EntityType.PIGLIN);
-                    undead.add(EntityType.ZOMBIFIED_PIGLIN);
+            if (XMaterial.supports(11)) {
+                // Added in v1.6.1 but wasn't available in the API until v1.11
+                undead.add(EntityType.SKELETON_HORSE);
+                if (XMaterial.supports(13)) {
+                    undead.add(EntityType.DROWNED);
+                    undead.add(EntityType.PHANTOM);
+                    if (XMaterial.supports(16)) {
+                        undead.add(EntityType.ZOGLIN);
+                        undead.add(EntityType.PIGLIN);
+                        undead.add(EntityType.ZOMBIFIED_PIGLIN);
+                    }
                 }
             }
         }
