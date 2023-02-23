@@ -139,7 +139,7 @@ public class SkullUtils {
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
         if (SUPPORTS_UUID) meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
-        else meta.setOwner(id.toString());
+        else meta.setOwner(Bukkit.getOfflinePlayer(id).getName());
 
         head.setItemMeta(meta);
         return head;
