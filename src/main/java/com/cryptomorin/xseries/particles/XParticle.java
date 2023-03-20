@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.particles;
 import com.google.common.base.Enums;
 import org.bukkit.Color;
 import org.bukkit.*;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -100,7 +101,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Particles: https://minecraft.gamepedia.com/Particles<br>
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 5.0.1
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -2419,20 +2420,57 @@ public final class XParticle {
      * Display a rendered image repeatedly.
      *
      * @param render   the rendered image map.
-     * @param location the dynamic location to display the image at.
+     * @param location the dynamic location to display the image at. The {@link Location#getYaw()} determines the image's rotation.
      * @param quality  the quality of the image is exactly the number of particles display for each pixel. Recommended value is 1
      * @param speed    the speed is exactly the same value as the speed of particles. Recommended amount is 0
      * @param size     the size of the particle. Recommended amount is 0.8
      *
      * @since 1.0.0
      */
+    @SuppressWarnings("ConstantConditions")
     public static void displayRenderedImage(Map<double[], Color> render, Location location, int quality, int speed, float size) {
         World world = location.getWorld();
+
+        BlockFace facing;
+        double rotation = location.getYaw(); // The rotation axis.
+        if (rotation >= 135 || rotation < -135) facing = BlockFace.NORTH;
+        else if (rotation >= -135 && rotation < -45) facing = BlockFace.EAST;
+        else if (rotation >= -45 && rotation < 45) facing = BlockFace.SOUTH;
+        else if (rotation >= 45 && rotation < 135) facing = BlockFace.WEST;
+        else throw new IllegalArgumentException("Unknown rotation yaw: " + rotation);
+
         for (Map.Entry<double[], Color> pixel : render.entrySet()) {
             Particle.DustOptions data = new Particle.DustOptions(pixel.getValue(), size);
             double[] pixelLoc = pixel.getKey();
+            double x, y, z;
 
-            Location loc = new Location(world, location.getX() - pixelLoc[0], location.getY() - pixelLoc[1], location.getZ());
+            switch (facing) {
+                case NORTH:
+                    x = location.getX() - pixelLoc[0];
+                    y = location.getY() - pixelLoc[1];
+                    z = location.getZ();
+                    break;
+                case EAST:
+                    // East
+                    x = location.getX();
+                    y = location.getY() - pixelLoc[0];
+                    z = location.getZ() - pixelLoc[1];
+                    break;
+                case SOUTH:
+                    x = location.getX() - pixelLoc[1];
+                    y = location.getY() - pixelLoc[0];
+                    z = location.getZ();
+                    break;
+                case WEST:
+                    x = location.getX();
+                    y = location.getY() - pixelLoc[1];
+                    z = location.getZ() - pixelLoc[0];
+                    break;
+                default:
+                    throw new AssertionError("Invalid facing: " + facing);
+            }
+
+            Location loc = new Location(world, x, y, z);
             world.spawnParticle(Particle.REDSTONE, loc, quality, 0, 0, 0, speed, data);
         }
     }

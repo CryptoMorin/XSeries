@@ -1,5 +1,4 @@
 import com.cryptomorin.xseries.ReflectionUtils;
-import com.mojang.bridge.game.GameVersion;
 import org.bukkit.craftbukkit.Main;
 
 import java.io.IOException;
@@ -59,10 +58,11 @@ public final class TinyReflection {
 
     protected static String getMCVersion() {
         try {
-            GameVersion version = (GameVersion) Arrays.stream(ReflectionUtils.getNMSClass("MinecraftVersion").getMethods())
-                    .filter(x -> x.getReturnType() == GameVersion.class).findFirst().get().invoke(null);
-            return version.getName();
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            Class<?> GameVersionClass = Class.forName("com.mojang.bridge.game.GameVersion");
+            Object gameVersion = Arrays.stream(ReflectionUtils.getNMSClass("MinecraftVersion").getMethods())
+                    .filter(x -> x.getReturnType() == GameVersionClass).findFirst().get().invoke(null);
+            return (String) gameVersion.getClass().getDeclaredMethod("getName").invoke(gameVersion);
+        } catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }

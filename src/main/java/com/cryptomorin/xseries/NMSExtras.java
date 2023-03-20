@@ -192,7 +192,9 @@ public final class NMSExtras {
 
             Class<?> blockPos = getNMSClass("core", "BlockPosition");
             Class<?> block = getNMSClass("world.level.block", "Block");
-            blockPosition = lookup.findConstructor(blockPos, MethodType.methodType(void.class, double.class, double.class, double.class));
+            blockPosition = lookup.findConstructor(blockPos,
+                    v(19, MethodType.methodType(void.class, int.class, int.class, int.class)).orElse(
+                            MethodType.methodType(void.class, double.class, double.class, double.class)));
             getBlockType = lookup.findVirtual(world, v(18, "a_").orElse("getType"), MethodType.methodType(BLOCK_DATA, blockPos));
             getBlock = lookup.findVirtual(BLOCK_DATA, v(18, "b").orElse("getBlock"), MethodType.methodType(block));
             playBlockAction = lookup.findVirtual(world, v(18, "a").orElse("playBlockAction"), MethodType.methodType(void.class, blockPos, block, int.class, int.class));

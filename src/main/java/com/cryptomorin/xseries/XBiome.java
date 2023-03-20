@@ -45,7 +45,7 @@ import java.util.concurrent.CompletableFuture;
  * <a href="https://minecraft.fandom.com/wiki/Java_Edition_1.18">1.18 removed biomes issue.</a>
  *
  * @author Crypto Morin
- * @version 6.1.0
+ * @version 6.1.1
  * @see Biome
  */
 public enum XBiome {
@@ -53,6 +53,7 @@ public enum XBiome {
     SNOWY_PLAINS("SNOWY_TUNDRA", "ICE_FLATS", "ICE_PLAINS"),
     SPARSE_JUNGLE("JUNGLE_EDGE", "JUNGLE_EDGE"),
     STONY_SHORE("STONE_SHORE", "STONE_BEACH"),
+    CHERRY_GROVE,
     OLD_GROWTH_PINE_TAIGA("GIANT_TREE_TAIGA", "REDWOOD_TAIGA", "MEGA_TAIGA"),
     WINDSWEPT_FOREST("WOODED_MOUNTAINS", "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
     WOODED_BADLANDS("WOODED_BADLANDS_PLATEAU", "MESA_ROCK", "MESA_PLATEAU_FOREST"),
@@ -69,7 +70,6 @@ public enum XBiome {
     JAGGED_PEAKS,
     STONY_PEAKS,
     CUSTOM,
-
     BADLANDS("MESA"),
     BADLANDS_PLATEAU(WOODED_BADLANDS, "MESA_CLEAR_ROCK", "MESA_PLATEAU"),
     BEACH("BEACHES"),

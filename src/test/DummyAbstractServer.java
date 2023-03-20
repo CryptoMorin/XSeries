@@ -153,7 +153,7 @@ public abstract class DummyAbstractServer {
                         "--spigot-settings=" + spigotYml,
                 });
 
-                DummyAbstractServer.print("Initializing server...");
+//                DummyAbstractServer.print("Initializing server...");
                 //Bukkit.setServer(instance);
 
                 DummyAbstractServer.print("Done!");
