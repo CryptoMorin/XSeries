@@ -1845,8 +1845,27 @@ public enum XSound {
      */
     @Nonnull
     public BukkitTask playRepeatedly(@Nonnull Plugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
+    	return playRepeatedly(plugin, Collections.singleton(entity), volume, pitch, repeat, delay);
+    }
+
+    /**
+     * Plays a sound repeatedly with the given delay at moving targets' locations.
+     *
+     * @param plugin the plugin handling schedulers. (You can replace this with a static instance)
+     * @param entities the entities to play the sound to. We exactly need the entities to keep the track of location changes.
+     * @param volume the volume of the sound.
+     * @param pitch  the pitch of the sound.
+     * @param repeat the amount of times to repeat playing.
+     * @param delay  the delay between each repeat.
+     *
+     * @return the async task handling this operation.
+     * @see #play(Location, float, float)
+     * @since 2.0.0
+     */
+    @Nonnull
+    public BukkitTask playRepeatedly(@Nonnull Plugin plugin, @Nonnull Iterable<? extends Entity> entities, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
-        Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
+        Objects.requireNonNull(entities, "Cannot play repeating sound at null locations");
 
         if (repeat <= 0) throw new IllegalArgumentException("Cannot repeat playing sound " + repeat + " times");
         if (delay <= 0) throw new IllegalArgumentException("Delay ticks must be at least 1");
@@ -1856,7 +1875,9 @@ public enum XSound {
 
             @Override
             public void run() {
-                play(entity.getLocation(), volume, pitch);
+            	for(Entity entity : entities)
+            		play(entity.getLocation(), volume, pitch);
+            	
                 if (repeating-- == 0) cancel();
             }
         }.runTaskTimer(plugin, 0, delay);
