@@ -692,9 +692,12 @@ public final class XParticle {
             final double rateDiv = Math.PI / rate;
             int timer = time;
             double theta = 0;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 for (int i = 0; i < points; i++) {
                     // Spawn a circle.
                     double angle = PII * ((double) i / points);
@@ -729,7 +732,12 @@ public final class XParticle {
                 }
 
                 theta += rateDiv;
-                return --timer > 0;
+
+                if (--timer <= 0) {
+                    done = true;
+                    return false;
+                }
+                return true;
             }
         };
     }
@@ -1333,9 +1341,12 @@ public final class XParticle {
                                     double offsetx, double offsety, double offsetz, ParticleDisplay display) {
         return new BooleanSupplier() {
             int count = amount;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 int frame = rate;
 
                 while (frame-- != 0) {
@@ -1347,7 +1358,11 @@ public final class XParticle {
                     line(start, end, 0.1, display);
                 }
 
-                return count-- > 0;
+                if (count-- <= 0) {
+                    done = true;
+                    return false;
+                }
+                return true;
             }
         };
     }
@@ -1480,9 +1495,12 @@ public final class XParticle {
             double dynamicRadius = fadeDown ? 0 : radius;
             boolean center = !fadeDown;
             double y = 0;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 int repeat = speed;
                 while (repeat-- > 0) {
                     y += rate;
@@ -1504,8 +1522,14 @@ public final class XParticle {
                         display.rotate(0, -angle, 0);
                         tempString--;
                     }
+
+                    if (y > height) {
+                        done = true;
+                        return false;
+                    }
                 }
-                return y <= height;
+
+                return true;
             }
         };
     }
@@ -1669,9 +1693,12 @@ public final class XParticle {
         return new BooleanSupplier() {
             double y = 0;
             int nucleotideDist = 0;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 int repeat = speed;
                 while (repeat-- != 0) {
                     y += rate;
@@ -1707,8 +1734,14 @@ public final class XParticle {
                             line(nucleotide2, midPointBond, rate - 0.1, guanine);
                         }
                     }
+
+                    if (y > height) {
+                        done = true;
+                        return false;
+                    }
                 }
-                return y < height;
+
+                return true;
             }
         };
     }
@@ -2152,9 +2185,12 @@ public final class XParticle {
         return new BooleanSupplier() {
             double angle = 0;
             long repeat = 0;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 double cos = Math.cos(angle);
                 double sin = Math.sin(angle);
 
@@ -2207,6 +2243,7 @@ public final class XParticle {
                 }
 
                 if (++repeat > ticks) {
+                    done = true;
                     return false;
                 } else {
                     angle += speed;
@@ -2389,9 +2426,12 @@ public final class XParticle {
             tasks.add(new BooleanSupplier() {
                 double vein = 0;
                 double theta = 0;
+                boolean done = false;
 
                 @Override
                 public boolean getAsBoolean() {
+                    if (done) return false;
+
                     int repeat = speed;
                     while (repeat-- != 0) {
                         theta += rateDiv;
@@ -2415,7 +2455,11 @@ public final class XParticle {
                         }
                     }
 
-                    return theta < PII;
+                    if (theta >= PII) {
+                        done = true;
+                        return false;
+                    }
+                    return true;
                 }
             });
         }
@@ -2637,9 +2681,12 @@ public final class XParticle {
             final double addition = Math.PI * 0.1;
             final double rateDiv = Math.PI / rate;
             double times = Math.PI / 4;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 times += addition;
                 for (double theta = 0; theta <= PII; theta += rateDiv) {
                     double x = times * Math.cos(theta);
@@ -2653,7 +2700,11 @@ public final class XParticle {
                     z = times * Math.sin(theta);
                     secDisplay.spawn(x, y, z);
                 }
-                return times <= 20;
+                if (times > 20) {
+                    done = true;
+                    return false;
+                }
+                return true;
             }
         };
     }
@@ -2810,15 +2861,23 @@ public final class XParticle {
                                                   int repeat, int quality, int speed, float size) {
         return new BooleanSupplier() {
             int times = repeat;
+            boolean done = false;
 
             @Override
             public boolean getAsBoolean() {
+                if (done) return false;
+
                 try {
                     displayRenderedImage(render, location.call(), quality, speed, size);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                return times-- > 0;
+
+                if (times-- <= 0) {
+                    done = true;
+                    return false;
+                }
+                return true;
             }
         };
     }
