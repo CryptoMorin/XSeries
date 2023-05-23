@@ -381,6 +381,72 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Serialize a ParticleDisplay into a ConfigurationSection
+     *
+     * @param display The ParticleDisplay to serialize
+     * @param section The ConfigurationSection to serialize into
+     */
+    @SuppressWarnings("deprecation")
+    public static void serialize(ParticleDisplay display, ConfigurationSection section) {
+        section.set("particle", display.particle.name());
+        section.set("count", display.count);
+        section.set("extra", display.extra);
+        section.set("force", display.force);
+
+        if (display.offset != null) {
+            section.set("offset", display.offset.getX() + ", " + display.offset.getY() + ", " + display.offset.getZ());
+        }
+
+        if (display.rotation != null) {
+            section.set("rotation", Math.toDegrees(display.rotation.getX()) + ", " + Math.toDegrees(display.rotation.getY()) + ", " + Math.toDegrees(display.rotation.getZ()));
+        }
+
+        if (display.rotationOrder != DEFAULT_ROTATION_ORDER) {
+            StringBuilder builder = new StringBuilder();
+            for (Axis axis : display.rotationOrder) {
+                builder.append(axis.name());
+            }
+            section.set("rotation-order", builder.toString());
+        }
+
+        float size = 1f;
+
+        if (display.data instanceof float[]) {
+            float[] datas = (float[]) display.data;
+            List<String> colors = new ArrayList<>();
+            if (datas.length >= 3) {
+                if (datas.length > 3) {
+                    size = datas[3];
+                }
+                Color color1 = new Color(datas[0], datas[1], datas[2]);
+                colors.add(Integer.toString(color1.getRed()));
+                colors.add(Integer.toString(color1.getGreen()));
+                colors.add(Integer.toString(color1.getBlue()));
+            }
+            if (datas.length >= 7) {
+                Color color2 = new Color(datas[4], datas[5], datas[6]);
+                colors.add(Integer.toString(color2.getRed()));
+                colors.add(Integer.toString(color2.getGreen()));
+                colors.add(Integer.toString(color2.getBlue()));
+            }
+            section.set("color", String.join(", ", colors));
+        }
+
+        if (ISFLAT) {
+            if (display.data instanceof BlockData) {
+                section.set("blockdata", ((BlockData) display.data).getMaterial().name());
+            }
+        }
+        if (display.data instanceof ItemStack) {
+            section.set("itemstack", ((ItemStack) display.data).getType().name());
+        } else if (display.data instanceof MaterialData) {
+            section.set("materialdata", ((MaterialData) display.data).getItemType().name());
+        }
+
+        section.set("size", size);
+    }
+
+    /**
      * Rotates the given location vector around a certain axis.
      *
      * @param location the location to rotate.
