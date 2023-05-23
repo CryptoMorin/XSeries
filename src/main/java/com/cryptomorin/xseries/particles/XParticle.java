@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 
 /**
  * <b>XParticle</b> - The most unique particle animation, text and image renderer.<br>
@@ -336,18 +337,17 @@ public final class XParticle {
     /**
      * Spawns connected 3D ellipses.
      *
-     * @param plugin     the timer handler.
      * @param maxRadius  the maximum radius for the ellipses.
      * @param rate       the rate of the 3D ellipses circle points.
      * @param radiusRate the rate of the circle radius change.
      * @param extend     the extension for each ellipse.
      *
-     * @return the animation handler.
-     * @see #magicCircles(Plugin, double, double, double, double, ParticleDisplay)
+     * @return the animation runnable.
+     * @see #magicCircles(double, double, double, double, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask circularBeam(Plugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
-        return new BukkitRunnable() {
+    public static Runnable circularBeam(double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
+        return new Runnable() {
             final double rateDiv = Math.PI / rate;
             final double radiusDiv = Math.PI / radiusRate;
             final Vector dir = display.getLocation().getDirection().normalize().multiply(extend);
@@ -370,7 +370,24 @@ public final class XParticle {
                 // Next circle center location.
                 display.getLocation().add(dir);
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        };
+    }
+
+    /**
+     * Spawns connected 3D ellipses.
+     *
+     * @param plugin     the timer handler.
+     * @param maxRadius  the maximum radius for the ellipses.
+     * @param rate       the rate of the 3D ellipses circle points.
+     * @param radiusRate the rate of the circle radius change.
+     * @param extend     the extension for each ellipse.
+     *
+     * @return the animation handler.
+     * @see #magicCircles(Plugin, double, double, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static BukkitTask circularBeam(Plugin plugin, double maxRadius, double rate, double radiusRate, double extend, ParticleDisplay display) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, circularBeam(maxRadius, rate, radiusRate, extend, display), 0, 1);
     }
 
     /**
@@ -427,7 +444,6 @@ public final class XParticle {
      * shape stop producing new paths since it reaches the doubles limit.
      * Source: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
      *
-     * @param plugin     the timer handler.
      * @param radius     the radius of the pendulum. Yes this doesn't depend on length since the length needs to be a really
      *                   high value and this won't work with Minecraft's xyz.
      * @param gravity    the gravity of the enviroment. Recommended is -1 positive numbers will mean gravity towards space.
@@ -438,16 +454,16 @@ public final class XParticle {
      * @param dimension3 if it should enter 3D mode.
      * @param speed      the speed of the animation.
      *
-     * @return the animation handler.
+     * @return the animation runnable.
      * @since 4.0.0
      */
-    public static BukkitTask chaoticDoublePendulum(Plugin plugin, double radius, double gravity, double length, double length2,
+    public static Runnable chaoticDoublePendulum(double radius, double gravity, double length, double length2,
                                                    double mass1, double mass2,
                                                    boolean dimension3, int speed, ParticleDisplay display) {
         // If you want the particles to stay. But it's gonna lag a lot.
         //Map<Vector, Vector> locs = new HashMap<>();
 
-        return new BukkitRunnable() {
+        return new Runnable() {
             final Vector rotation = new Vector(Math.PI / 33, Math.PI / 44, Math.PI / 55);
             double theta = Math.PI / 2;
             double theta2 = Math.PI / 2;
@@ -504,24 +520,57 @@ public final class XParticle {
 //                locs.put(new Vector(x2, y2, 0), display.rotation.clone());
                 }
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        };
+    }
+
+    /**
+     * Spawns a double pendulum with chaotic movement.
+     * Note that if this runs for too long it'll stop working due to
+     * the limit of doubles resulting in a {@link Double#NaN}
+     * <p>
+     * <a href="https://en.wikipedia.org/wiki/Double_pendulum">Double pendulum</a>
+     * is a way to show <a href="https://en.wikipedia.org/wiki/Chaos_theory">Chaos motion</a>.
+     * The particles display are showing the path where the second
+     * pendulum is going from.
+     * <p>
+     * Changing the mass or length to a lower value can make the
+     * shape stop producing new paths since it reaches the doubles limit.
+     * Source: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
+     *
+     * @param plugin     the timer handler.
+     * @param radius     the radius of the pendulum. Yes this doesn't depend on length since the length needs to be a really
+     *                   high value and this won't work with Minecraft's xyz.
+     * @param gravity    the gravity of the enviroment. Recommended is -1 positive numbers will mean gravity towards space.
+     * @param length     the length of the first pendulum. Recommended is 200
+     * @param length2    the length of the second pendulum. Recommended is 200
+     * @param mass1      the mass of the first pendulum. Recommended is 50
+     * @param mass2      the mass of the second pendulum. Recommended is 50
+     * @param dimension3 if it should enter 3D mode.
+     * @param speed      the speed of the animation.
+     *
+     * @return the animation handler.
+     * @since 4.0.0
+     */
+    public static BukkitTask chaoticDoublePendulum(Plugin plugin, double radius, double gravity, double length, double length2,
+                                                   double mass1, double mass2,
+                                                   boolean dimension3, int speed, ParticleDisplay display) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, chaoticDoublePendulum(radius, gravity, length, length2, mass1, mass2, dimension3, speed, display), 0, 1);
     }
 
     /**
      * Spawns circles increasing their radius.
      *
-     * @param plugin     the timer handler.
      * @param radius     the radius for the first circle.
      * @param rate       the rate of circle points.
      * @param radiusRate the circle radius change rate.
      * @param distance   the distance between each circle.
      *
-     * @return the animation handler.
-     * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
+     * @return the animation runnable.
+     * @see #circularBeam(double, double, double, double, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask magicCircles(Plugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
-        return new BukkitRunnable() {
+    public static Runnable magicCircles(double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
+        return new Runnable() {
             final double radiusDiv = Math.PI / radiusRate;
             final Vector dir = display.getLocation().getDirection().normalize().multiply(distance);
             double dynamicRadius = radius;
@@ -540,7 +589,24 @@ public final class XParticle {
                 dynamicRadius += radiusDiv;
                 display.getLocation().add(dir);
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        };
+    }
+
+    /**
+     * Spawns circles increasing their radius.
+     *
+     * @param plugin     the timer handler.
+     * @param radius     the radius for the first circle.
+     * @param rate       the rate of circle points.
+     * @param radiusRate the circle radius change rate.
+     * @param distance   the distance between each circle.
+     *
+     * @return the animation handler.
+     * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
+     * @since 3.0.0
+     */
+    public static BukkitTask magicCircles(Plugin plugin, double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, magicCircles(radius, rate, radiusRate, distance, display), 0, 1);
     }
 
     /**
@@ -608,26 +674,27 @@ public final class XParticle {
     /**
      * Spawn a blackhole.
      *
-     * @param plugin the timer handler.
      * @param points the points of the blackhole pulls.
      * @param radius the radius of the blackhole circle.
      * @param rate   the rate of the blackhole circle points.
      * @param mode   blackhole mode. There are 5 modes.
      * @param time   the amount of ticks to keep the blackhole.
      *
+     * @return the blackhole runnable. It will return false when the blackhole is done.
+     *
      * @since 3.0.0
      */
-    public static BukkitTask blackhole(Plugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
+    public static BooleanSupplier blackhole(int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
         display.directional();
         display.extra = 0.1;
 
-        return new BukkitRunnable() {
+        return new BooleanSupplier() {
             final double rateDiv = Math.PI / rate;
             int timer = time;
             double theta = 0;
 
             @Override
-            public void run() {
+            public boolean getAsBoolean() {
                 for (int i = 0; i < points; i++) {
                     // Spawn a circle.
                     double angle = PII * ((double) i / points);
@@ -662,9 +729,31 @@ public final class XParticle {
                 }
 
                 theta += rateDiv;
-                if (--timer <= 0) cancel();
+                return --timer > 0;
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        };
+    }
+
+    /**
+     * Spawn a blackhole.
+     *
+     * @param plugin the timer handler.
+     * @param points the points of the blackhole pulls.
+     * @param radius the radius of the blackhole circle.
+     * @param rate   the rate of the blackhole circle points.
+     * @param mode   blackhole mode. There are 5 modes.
+     * @param time   the amount of ticks to keep the blackhole.
+     *
+     * @since 3.0.0
+     */
+    public static BukkitTask blackhole(Plugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
+        BooleanSupplier blackhole = blackhole(points, radius, rate, mode, time, display);
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!blackhole.getAsBoolean()) cancel();
+            }
+        }.runTaskTimerAsynchronously(plugin, 0, 1);
     }
 
     /**
@@ -788,18 +877,17 @@ public final class XParticle {
      * Note that the speed of the particle is important.
      * Speed 0 will spawn static lines.
      *
-     * @param plugin the timer handler.
      * @param points the points of the vortex.
      * @param rate   the speed of the vortex.
      *
-     * @return the task handling the animation.
+     * @return the runnable of the vortex.
      * @since 2.0.0
      */
-    public static BukkitTask vortex(Plugin plugin, int points, double rate, ParticleDisplay display) {
+    public static Runnable vortex(int points, double rate, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
         display.directional();
 
-        return new BukkitRunnable() {
+        return new Runnable() {
             double theta = 0;
 
             @Override
@@ -821,7 +909,23 @@ public final class XParticle {
                     display.spawn(x, 0, z);
                 }
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 1L);
+        };
+    }
+
+    /**
+     * Spawns a galaxy-like vortex.
+     * Note that the speed of the particle is important.
+     * Speed 0 will spawn static lines.
+     *
+     * @param plugin the timer handler.
+     * @param points the points of the vortex.
+     * @param rate   the speed of the vortex.
+     *
+     * @return the task handling the animation.
+     * @since 2.0.0
+     */
+    public static BukkitTask vortex(Plugin plugin, int points, double rate, ParticleDisplay display) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, vortex(points, rate, display), 0, 1);
     }
 
     /**
