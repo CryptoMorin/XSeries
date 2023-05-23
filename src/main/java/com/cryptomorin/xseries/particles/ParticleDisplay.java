@@ -478,6 +478,34 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Get the particle.
+     *
+     * @return the particle.
+     */
+    @Nonnull
+    public Particle getParticle() {
+        return particle;
+    }
+
+    /**
+     * Get the count of the particle.
+     *
+     * @return the count of the particle.
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * Get the extra data of the particle.
+     *
+     * @return the extra data of the particle.
+     */
+    public double getExtra() {
+        return extra;
+    }
+
+    /**
      * Get the data object. Currently, it can be instance of float[] with [R, G, B, size],
      * or instance of {@link BlockData}, {@link MaterialData} for legacy usage or {@link ItemStack}
      *
