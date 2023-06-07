@@ -88,7 +88,8 @@ public final class XItemStack {
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.NETHER_PORTAL;
 
-    private XItemStack() {}
+    private XItemStack() {
+    }
 
     public static boolean isDefaultItem(ItemStack item) {
         return DEFAULT_MATERIAL.isSimilar(item);
@@ -100,7 +101,6 @@ public final class XItemStack {
      *
      * @param item   the ItemStack to serialize.
      * @param config the config section to write this item to.
-     *
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
@@ -244,10 +244,12 @@ public final class XItemStack {
                 List<String> fadeColors = new ArrayList<>(fwFadeColors.size());
 
                 ConfigurationSection colors = fwc.createSection("colors");
-                for (Color color : fwBaseColors) baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                for (Color color : fwBaseColors)
+                    baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 colors.set("base", baseColors);
 
-                for (Color color : fwFadeColors) fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                for (Color color : fwFadeColors)
+                    fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
                 colors.set("fade", fadeColors);
                 i++;
             }
@@ -358,7 +360,6 @@ public final class XItemStack {
      * Writes an ItemStack properties into a {@code Map}.
      *
      * @param item the ItemStack to serialize.
-     *
      * @return a Map containing the serialized ItemStack properties.
      */
     public static Map<String, Object> serialize(@Nonnull ItemStack item) {
@@ -372,7 +373,6 @@ public final class XItemStack {
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
-     *
      * @return a deserialized ItemStack.
      * @since 1.0.0
      */
@@ -386,7 +386,6 @@ public final class XItemStack {
      *
      * @param serializedItem the map holding the item configurations to deserialize
      *                       the ItemStack object from.
-     *
      * @return a deserialized ItemStack.
      */
     @Nonnull
@@ -405,7 +404,6 @@ public final class XItemStack {
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
-     *
      * @return an edited ItemStack.
      * @since 7.2.0
      */
@@ -423,7 +421,6 @@ public final class XItemStack {
      * @param serializedItem the map holding the item configurations to deserialize
      *                       the ItemStack object from.
      * @param translator     the translator to use for translating the item's name.
-     *
      * @return a deserialized ItemStack.
      */
     @Nonnull
@@ -502,7 +499,6 @@ public final class XItemStack {
      * Deserialize an ItemStack from the config.
      *
      * @param config the config section to deserialize the ItemStack object from.
-     *
      * @return an edited ItemStack.
      * @since 1.0.0
      */
@@ -591,7 +587,8 @@ public final class XItemStack {
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
                     PatternType type = PatternType.getByIdentifier(pattern);
-                    if (type == null) type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                    if (type == null)
+                        type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
                     DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
 
                     banner.addPattern(new Pattern(color, type));
@@ -673,7 +670,8 @@ public final class XItemStack {
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
                         PatternType type = PatternType.getByIdentifier(pattern);
-                        if (type == null) type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                        if (type == null)
+                            type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
                         DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
 
                         banner.addPattern(new Pattern(color, type));
@@ -844,7 +842,8 @@ public final class XItemStack {
         if (!Strings.isNullOrEmpty(name)) {
             String translated = translator.apply(name);
             meta.setDisplayName(translated);
-        } else if (name != null && name.isEmpty()) meta.setDisplayName(" "); // For GUI easy access configuration purposes
+        } else if (name != null && name.isEmpty())
+            meta.setDisplayName(" "); // For GUI easy access configuration purposes
 
         // Unbreakable
         if (supports(11)) meta.setUnbreakable(config.getBoolean("unbreakable"));
@@ -970,7 +969,6 @@ public final class XItemStack {
      * Converts a {@code Map<?, ?>} into a {@code ConfigurationSection}.
      *
      * @param map the map to convert.
-     *
      * @return a {@code ConfigurationSection} containing the map values.
      */
     @Nonnull
@@ -996,7 +994,6 @@ public final class XItemStack {
      * Converts a {@code ConfigurationSection} into a {@code Map<String, Object>}.
      *
      * @param config the configuration section to convert.
-     *
      * @return a {@code Map<String, Object>} containing the configuration section values.
      */
     @Nonnull
@@ -1022,7 +1019,6 @@ public final class XItemStack {
      * This only works for 1.13 and above.
      *
      * @param str the RGB string.
-     *
      * @return a color based on the RGB.
      * @since 1.1.0
      */
@@ -1039,7 +1035,6 @@ public final class XItemStack {
      *
      * @param player the player to give the items to.
      * @param items  the items to give.
-     *
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
@@ -1054,7 +1049,6 @@ public final class XItemStack {
      * @param player the player to give the items to.
      * @param items  the items to give.
      * @param split  same as {@link #addItems(Inventory, boolean, ItemStack...)}
-     *
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
@@ -1083,7 +1077,6 @@ public final class XItemStack {
      *                        you're adding stacked tools such as swords that you'd like to split them to other slots.
      * @param modifiableSlots the slots that are allowed to be used for adding the items, otherwise null to allow all slots.
      * @param items           the items to add.
-     *
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
@@ -1170,7 +1163,6 @@ public final class XItemStack {
      * @param item            the item to match.
      * @param beginIndex      the index which to start the search from in the inventory.
      * @param modifiableSlots the slots that can be used to share items.
-     *
      * @return the first matched item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
@@ -1185,7 +1177,8 @@ public final class XItemStack {
             for (; beginIndex < invSize; beginIndex++) {
                 if (modifiableSlots != null && !modifiableSlots.test(beginIndex)) continue;
                 ItemStack cItem = items[beginIndex];
-                if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)) return beginIndex;
+                if (cItem != null && cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item))
+                    return beginIndex;
             }
         }
         return -1;
@@ -1205,7 +1198,6 @@ public final class XItemStack {
      * }</pre>
      *
      * @param items the items to stack.
-     *
      * @return stacked up items.
      * @since 4.0.0
      */
@@ -1244,7 +1236,6 @@ public final class XItemStack {
      * @param inventory       the inventory to search from.
      * @param beginIndex      the item slot to start the search from in the inventory.
      * @param modifiableSlots the slots that can be used.
-     *
      * @return first empty item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
@@ -1267,7 +1258,6 @@ public final class XItemStack {
      *
      * @param inventory  the inventory to search from.
      * @param beginIndex the item slot to start the search from in the inventory.
-     *
      * @return first empty or partial item slot, otherwise -1
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @see #firstEmpty(Inventory, int)
@@ -1278,11 +1268,13 @@ public final class XItemStack {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int len = items.length;
-            if (beginIndex < 0 || beginIndex >= len) throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
+            if (beginIndex < 0 || beginIndex >= len)
+                throw new IndexOutOfBoundsException("Begin Index: " + beginIndex + ", Size: " + len);
 
             for (; beginIndex < len; beginIndex++) {
                 ItemStack cItem = items[beginIndex];
-                if (cItem == null || (cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item))) return beginIndex;
+                if (cItem == null || (cItem.getAmount() < cItem.getMaxStackSize() && cItem.isSimilar(item)))
+                    return beginIndex;
             }
         }
         return -1;

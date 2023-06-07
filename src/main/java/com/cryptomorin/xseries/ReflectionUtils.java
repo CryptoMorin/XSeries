@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -28,9 +29,12 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <b>ReflectionUtils</b> - Reflection handler for NMS and CraftBukkit.<br>
@@ -46,7 +50,7 @@ import java.util.concurrent.CompletableFuture;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 6.0.1
+ * @version 7.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -58,8 +62,10 @@ public final class ReflectionUtils {
      * In order to maintain cross-version compatibility we cannot import these classes.
      * <p>
      * Performance is not a concern for these specific statically initialized values.
+     * <p>
+     * <a href="https://www.spigotmc.org/wiki/spigot-nms-and-minecraft-versions-legacy/">Versions Legacy</a>
      */
-    public static final String VERSION;
+    public static final String NMS_VERSION;
 
     static { // This needs to be right below VERSION because of initialization order.
         // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
@@ -85,23 +91,72 @@ public final class ReflectionUtils {
                 }
             }
         }
-        if (found == null) throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
-        VERSION = found;
+        if (found == null)
+            throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
+        NMS_VERSION = found;
     }
 
     /**
      * The raw minor version number.
      * E.g. {@code v1_17_R1} to {@code 17}
      *
+     * @see #supports(int)
      * @since 4.0.0
      */
-    public static final int VER = Integer.parseInt(VERSION.substring(1).split("_")[1]);
+    public static final int MINOR_NUMBER;
+    /**
+     * The raw patch version number.
+     * E.g. {@code v1_17_R1} to {@code 1}
+     * <p>
+     * I'd not recommend developers to support individual patches at all. You should always support the latest patch.
+     * For example, between v1.14.0, v1.14.1, v1.14.2, v1.14.3 and v1.14.4 you should only support v1.14.4
+     * <p>
+     * This can be used to warn server owners when your plugin will break on older patches.
+     *
+     * @see #supportsPatch(int)
+     * @since 7.0.0
+     */
+    public static final int PATCH_NUMBER;
+
+    static {
+        String[] split = NMS_VERSION.substring(1).split("_");
+        if (split.length < 1) {
+            throw new IllegalStateException("Version number division error: " + Arrays.toString(split) + ' ' + getVersionInformation());
+        }
+
+        String minorVer = split[1];
+        try {
+            MINOR_NUMBER = Integer.parseInt(minorVer);
+        } catch (Throwable ex) {
+            throw new RuntimeException("Failed to parse minor number: " + minorVer + ' ' + getVersionInformation(), ex);
+        }
+
+        Matcher bukkitVer = Pattern.compile("^\\d+\\.\\d+\\.(\\d+)").matcher(Bukkit.getBukkitVersion());
+        if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
+            try {
+                // group(0) gives the whole matched string, we just want the captured group.
+                PATCH_NUMBER = Integer.parseInt(bukkitVer.group(1));
+            } catch (Throwable ex) {
+                throw new RuntimeException("Failed to parse minor number: " + bukkitVer + ' ' + getVersionInformation(), ex);
+            }
+        } else {
+            // 1.8-R0.1-SNAPSHOT
+            PATCH_NUMBER = 0;
+        }
+    }
+
+    public static String getVersionInformation() {
+        return "(NMS: " + NMS_VERSION + " | " +
+                "Minecraft: " + Bukkit.getVersion() + " | " +
+                "Bukkit: " + Bukkit.getBukkitVersion() + ')';
+    }
+
     /**
      * Mojang remapped their NMS in 1.17 https://www.spigotmc.org/threads/spigot-bungeecord-1-17.510208/#post-4184317
      */
     public static final String
-            CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + '.',
-            NMS = v(17, "net.minecraft.").orElse("net.minecraft.server." + VERSION + '.');
+            CRAFTBUKKIT_PACKAGE = "org.bukkit.craftbukkit." + NMS_VERSION + '.',
+            NMS_PACKAGE = v(17, "net.minecraft.").orElse("net.minecraft.server." + NMS_VERSION + '.');
     /**
      * A nullable public accessible field only available in {@code EntityPlayer}.
      * This can be null if the player is offline.
@@ -145,7 +200,8 @@ public final class ReflectionUtils {
         GET_HANDLE = getHandle;
     }
 
-    private ReflectionUtils() {}
+    private ReflectionUtils() {
+    }
 
     /**
      * This method is purely for readability.
@@ -164,19 +220,32 @@ public final class ReflectionUtils {
     /**
      * Checks whether the server version is equal or greater than the given version.
      *
-     * @param version the version to compare the server version with.
-     *
+     * @param minorNumber the version to compare the server version with.
      * @return true if the version is equal or newer, otherwise false.
+     * @see #MINOR_NUMBER
      * @since 4.0.0
      */
-    public static boolean supports(int version) {return VER >= version;}
+    public static boolean supports(int minorNumber) {
+        return MINOR_NUMBER >= minorNumber;
+    }
+
+    /**
+     * Checks whether the server version is equal or greater than the given version.
+     *
+     * @param patchNumber the version to compare the server version with.
+     * @return true if the version is equal or newer, otherwise false.
+     * @see #PATCH_NUMBER
+     * @since 7.0.0
+     */
+    public static boolean supportsPatch(int patchNumber) {
+        return PATCH_NUMBER >= patchNumber;
+    }
 
     /**
      * Get a NMS (net.minecraft.server) class which accepts a package for 1.17 compatibility.
      *
      * @param newPackage the 1.17 package name.
      * @param name       the name of the class.
-     *
      * @return the NMS class or null if not found.
      * @since 4.0.0
      */
@@ -190,14 +259,13 @@ public final class ReflectionUtils {
      * Get a NMS (net.minecraft.server) class.
      *
      * @param name the name of the class.
-     *
      * @return the NMS class or null if not found.
      * @since 1.0.0
      */
     @Nullable
     public static Class<?> getNMSClass(@Nonnull String name) {
         try {
-            return Class.forName(NMS + name);
+            return Class.forName(NMS_PACKAGE + name);
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
             return null;
@@ -210,7 +278,6 @@ public final class ReflectionUtils {
      *
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
-     *
      * @return the async thread handling the packet.
      * @see #sendPacketSync(Player, Object...)
      * @since 1.0.0
@@ -229,7 +296,6 @@ public final class ReflectionUtils {
      *
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
-     *
      * @see #sendPacket(Player, Object...)
      * @since 2.0.0
      */
@@ -274,14 +340,13 @@ public final class ReflectionUtils {
      * Get a CraftBukkit (org.bukkit.craftbukkit) class.
      *
      * @param name the name of the class to load.
-     *
      * @return the CraftBukkit class or null if not found.
      * @since 1.0.0
      */
     @Nullable
     public static Class<?> getCraftClass(@Nonnull String name) {
         try {
-            return Class.forName(CRAFTBUKKIT + name);
+            return Class.forName(CRAFTBUKKIT_PACKAGE + name);
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
             return null;
@@ -289,7 +354,7 @@ public final class ReflectionUtils {
     }
 
     public static Class<?> getArrayClass(String clazz, boolean nms) {
-        clazz = "[L" + (nms ? NMS : CRAFTBUKKIT) + clazz + ';';
+        clazz = "[L" + (nms ? NMS_PACKAGE : CRAFTBUKKIT_PACKAGE) + clazz + ';';
         try {
             return Class.forName(clazz);
         } catch (ClassNotFoundException ex) {
@@ -319,7 +384,8 @@ public final class ReflectionUtils {
         }
 
         public VersionHandler<T> v(int version, T handle) {
-            if (version == this.version) throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
+            if (version == this.version)
+                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
             if (version > this.version && supports(version)) {
                 this.version = version;
                 this.handle = handle;
@@ -344,7 +410,8 @@ public final class ReflectionUtils {
         }
 
         public CallableVersionHandler<T> v(int version, Callable<T> handle) {
-            if (version == this.version) throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
+            if (version == this.version)
+                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
             if (version > this.version && supports(version)) {
                 this.version = version;
                 this.handle = handle;

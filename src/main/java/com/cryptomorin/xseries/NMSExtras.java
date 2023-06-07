@@ -171,7 +171,8 @@ public final class NMSExtras {
                 if (supports(16)) {
 //                    Class<?> sectionPosClass = getNMSClass("SectionPosition");
 //                    chunkWrapper = lookup.findConstructor(sectionPosClass, MethodType.methodType(int.class, int.class, int.class));
-                } else chunkWrapper = lookup.findConstructor(chunkCoordIntPairClass, MethodType.methodType(void.class, int.class, int.class));
+                } else
+                    chunkWrapper = lookup.findConstructor(chunkCoordIntPairClass, MethodType.methodType(void.class, int.class, int.class));
             } catch (NoSuchMethodException | IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -248,7 +249,8 @@ public final class NMSExtras {
         SET_BLOCK_DATA = setBlockData;
     }
 
-    private NMSExtras() {}
+    private NMSExtras() {
+    }
 
     public static void setExp(Player player, float bar, int lvl, int exp) {
         try {
@@ -418,7 +420,9 @@ public final class NMSExtras {
     public static class WorldlessBlockWrapper {
         public final Block block;
 
-        public WorldlessBlockWrapper(Block block) {this.block = block;}
+        public WorldlessBlockWrapper(Block block) {
+            this.block = block;
+        }
 
         @Override
         public int hashCode() {

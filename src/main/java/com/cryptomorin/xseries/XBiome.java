@@ -201,7 +201,6 @@ public enum XBiome {
      * the normal RegEx + String Methods approach for both formatted and unformatted material names.
      *
      * @param name the biome name to format.
-     *
      * @return an enum name.
      * @since 1.0.0
      */
@@ -214,7 +213,8 @@ public enum XBiome {
 
         for (int i = 0; i < len; i++) {
             char ch = name.charAt(i);
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_') appendUnderline = true;
+            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
+                appendUnderline = true;
             else {
                 if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
                     if (appendUnderline) {
@@ -233,13 +233,13 @@ public enum XBiome {
      * Parses the XBiome with the given name.
      *
      * @param biome the name of the biome.
-     *
      * @return a matched XBiome.
      * @since 1.0.0
      */
     @Nonnull
     public static Optional<XBiome> matchXBiome(@Nonnull String biome) {
-        if (biome == null || biome.isEmpty()) throw new IllegalArgumentException("Cannot match XBiome of a null or empty biome name");
+        if (biome == null || biome.isEmpty())
+            throw new IllegalArgumentException("Cannot match XBiome of a null or empty biome name");
         return Optional.ofNullable(Data.NAMES.get(format(biome)));
     }
 
@@ -247,7 +247,6 @@ public enum XBiome {
      * Parses the XBiome with the given bukkit biome.
      *
      * @param biome the Bukkit biome.
-     *
      * @return a matched biome.
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
@@ -286,7 +285,6 @@ public enum XBiome {
      * Note that this doesn't send any update packets to the nearby clients.
      *
      * @param chunk the chunk to change the biome.
-     *
      * @return the async task handling this operation.
      * @since 1.0.0
      */
@@ -295,7 +293,8 @@ public enum XBiome {
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
-            if (!chunk.load(true)) throw new IllegalStateException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
+            if (!chunk.load(true))
+                throw new IllegalStateException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
         int heightMax = HORIZONTAL_SUPPORT ? chunk.getWorld().getMaxHeight() : 1;
         int heightMin = EXTENDED_MINIMUM ? chunk.getWorld().getMinHeight() : 0;
@@ -326,7 +325,6 @@ public enum XBiome {
      *
      * @param start the start position.
      * @param end   the end position.
-     *
      * @since 1.0.0
      */
     @Nonnull
@@ -336,7 +334,8 @@ public enum XBiome {
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
 
         World world = start.getWorld(); // Avoid getting from weak reference in a loop.
-        if (!world.getUID().equals(end.getWorld().getUID())) throw new IllegalArgumentException("Location worlds mismatch");
+        if (!world.getUID().equals(end.getWorld().getUID()))
+            throw new IllegalArgumentException("Location worlds mismatch");
         int heightMax = HORIZONTAL_SUPPORT ? world.getMaxHeight() : 1;
         int heightMin = EXTENDED_MINIMUM ? world.getMinHeight() : 0;
 
