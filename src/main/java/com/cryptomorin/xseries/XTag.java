@@ -25,7 +25,12 @@ import org.bukkit.Material;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 public final class XTag<T extends Enum<T>> {
 
@@ -642,6 +647,11 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> PORTALS;
     /**
+     * Tag representing all possible pottery sherds
+     */
+    @Nonnull
+    public static final XTag<XMaterial> POTTERY_SHERDS;
+    /**
      * Tag representing all possible variants of pressure plates
      */
     @Nonnull
@@ -701,6 +711,11 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> SMALL_FLOWERS;
+    /**
+     * Tag representing all possible smithing templates
+     */
+    @Nonnull
+    public static final XTag<XMaterial> SMITHING_TEMPLATES;
     /**
      * Tag representing all possible variants of snow
      */
@@ -1481,6 +1496,26 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
                 XMaterial.BRICK_SLAB,
                 XMaterial.POLISHED_GRANITE_SLAB);
+        POTTERY_SHERDS = new XTag<>(XMaterial.ANGLER_POTTERY_SHERD,
+                XMaterial.ARCHER_POTTERY_SHERD,
+                XMaterial.ARMS_UP_POTTERY_SHERD,
+                XMaterial.BLADE_POTTERY_SHERD,
+                XMaterial.BREWER_POTTERY_SHERD,
+                XMaterial.BURN_POTTERY_SHERD,
+                XMaterial.DANGER_POTTERY_SHERD,
+                XMaterial.EXPLORER_POTTERY_SHERD,
+                XMaterial.FRIEND_POTTERY_SHERD,
+                XMaterial.HEART_POTTERY_SHERD,
+                XMaterial.HEARTBREAK_POTTERY_SHERD,
+                XMaterial.HOWL_POTTERY_SHERD,
+                XMaterial.MINER_POTTERY_SHERD,
+                XMaterial.MOURNER_POTTERY_SHERD,
+                XMaterial.PLENTY_POTTERY_SHERD,
+                XMaterial.PRIZE_POTTERY_SHERD,
+                XMaterial.SHEAF_POTTERY_SHERD,
+                XMaterial.SHELTER_POTTERY_SHERD,
+                XMaterial.SKULL_POTTERY_SHERD,
+                XMaterial.SNORT_POTTERY_SHERD);
         SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
         SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
@@ -1938,6 +1973,23 @@ public final class XTag<T extends Enum<T>> {
                 GOLDEN_ARMOR_PIECES,
                 DIAMOND_ARMOR_PIECES,
                 NETHERITE_ARMOR_PIECES);
+        SMITHING_TEMPLATES = new XTag<>(XMaterial.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
+                XMaterial.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.HOST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RIB_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WARD_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
 
         AZALEA_GROWS_ON = new XTag<>(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW);
         AZALEA_GROWS_ON.inheritFrom(TERRACOTTA, SAND, DIRT);
