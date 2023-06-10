@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries;
 
 import org.bukkit.Chunk;
+import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -44,7 +45,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.2.1
+ * @version 5.3.0
  */
 public final class NMSExtras {
     public static final MethodHandle EXP_PACKET;
@@ -62,7 +63,8 @@ public final class NMSExtras {
     public static final MethodHandle PLAY_BLOCK_ACTION;
     public static final MethodHandle GET_BUKKIT_ENTITY;
     public static final MethodHandle GET_BLOCK_TYPE;
-    public static final MethodHandle GET_BLOCK, GET_IBLOCK_DATA, SANITIZE_LINES, TILE_ENTITY_SIGN, TILE_ENTITY_SIGN__GET_UPDATE_PACKET, TILE_ENTITY_SIGN__SET_LINE;
+    public static final MethodHandle GET_BLOCK, GET_IBLOCK_DATA, SANITIZE_LINES, TILE_ENTITY_SIGN,
+            TILE_ENTITY_SIGN__GET_UPDATE_PACKET, TILE_ENTITY_SIGN__SET_LINE, SIGN_TEXT;
 
     public static final Class<?>
             MULTI_BLOCK_CHANGE_INFO_CLASS = null, // getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
@@ -89,7 +91,7 @@ public final class NMSExtras {
         MethodHandle getBlock = null;
         MethodHandle getIBlockData = null;
         MethodHandle sanitizeLines = null;
-        MethodHandle tileEntitySign = null, tileEntitySign_getUpdatePacket = null, tileEntitySign_setLine = null;
+        MethodHandle tileEntitySign = null, tileEntitySign_getUpdatePacket = null, tileEntitySign_setLine = null, signText = null;
 
         MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
                 shortsOrInfo = null, setBlockData = null;
@@ -200,7 +202,9 @@ public final class NMSExtras {
             getBlock = lookup.findVirtual(BLOCK_DATA, v(18, "b").orElse("getBlock"), MethodType.methodType(block));
             playBlockAction = lookup.findVirtual(world, v(18, "a").orElse("playBlockAction"), MethodType.methodType(void.class, blockPos, block, int.class, int.class));
 
-            signEditorPacket = lookup.findConstructor(signOpenPacket, MethodType.methodType(void.class, blockPos));
+            signEditorPacket = lookup.findConstructor(signOpenPacket,
+                    v(20, MethodType.methodType(void.class, blockPos, boolean.class))
+                            .orElse(MethodType.methodType(void.class, blockPos)));
             if (supports(17)) {
                 packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
                 getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BLOCK_DATA, Material.class, byte.class));
@@ -209,9 +213,24 @@ public final class NMSExtras {
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
                 tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign,
-                        v(19, "f").v(18, "c").orElse("getUpdatePacket"),
+                        v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
                         MethodType.methodType(PacketPlayOutTileEntityData));
-                tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
+
+                if (supports(20)) {
+                    Class<?> SignText = getNMSClass("world.level.block.entity.SignText");
+                    // public boolean a(SignText signtext, boolean flag) {
+                    //        return flag ? this.c(signtext) : this.b(signtext);
+                    // }
+                    tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(boolean.class, SignText, boolean.class));
+
+                    // public SignText(net.minecraft.network.chat.IChatBaseComponent[] var0, IChatBaseComponent[] var1,
+                    // EnumColor var2, boolean var3) {
+                    Class<?> EnumColor = getNMSClass("world.item.EnumColor");
+                    signText = lookup.findConstructor(SignText, MethodType.methodType(void.class,
+                            IChatBaseComponent.arrayType(), IChatBaseComponent.arrayType(), EnumColor, boolean.class));
+                } else {
+                    tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
+                }
             }
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException ex) {
             ex.printStackTrace();
@@ -247,6 +266,7 @@ public final class NMSExtras {
         CHUNK_WRAPPER_SET = chunkWrapperSet;
         SHORTS_OR_INFO = shortsOrInfo;
         SET_BLOCK_DATA = setBlockData;
+        SIGN_TEXT = signText;
     }
 
     private NMSExtras() {
@@ -387,7 +407,7 @@ public final class NMSExtras {
     /**
      * Currently only supports 1.17
      */
-    public static void openSign(Player player, String[] lines) {
+    public static void openSign(Player player, DyeColor textColor, String[] lines, boolean frontSide) {
         try {
             Location loc = player.getLocation();
             Object position = BLOCK_POSITION.invoke(loc.getBlockX(), 1, loc.getBlockY());
@@ -396,13 +416,32 @@ public final class NMSExtras {
 
             Object components = SANITIZE_LINES.invoke((Object[]) lines);
             Object tileSign = TILE_ENTITY_SIGN.invoke(position, signBlockData);
-            for (int i = 0; i < lines.length; i++) {
-                Object component = java.lang.reflect.Array.get(components, i);
-                TILE_ENTITY_SIGN__SET_LINE.invoke(tileSign, i, component, component);
+            if (supports(20)) {
+                // When can we use this without blocks... player.openSign();
+                Class<?> EnumColor = ReflectionUtils.getNMSClass("world.item.EnumColor");
+                Object enumColor = null;
+                for (Field field : EnumColor.getFields()) {
+                    Object color = field.get(null);
+                    String colorName = (String) EnumColor.getDeclaredMethod("b").invoke(color); // gets its name
+                    if (textColor.name().equalsIgnoreCase(colorName)) {
+                        enumColor = color;
+                        break;
+                    }
+                }
+
+                Object signText = SIGN_TEXT.invoke(components, components, enumColor, frontSide);
+                TILE_ENTITY_SIGN__SET_LINE.invoke(signText, true);
+            } else {
+                for (int i = 0; i < lines.length; i++) {
+                    Object component = java.lang.reflect.Array.get(components, i);
+                    TILE_ENTITY_SIGN__SET_LINE.invoke(tileSign, i, component, component);
+                }
             }
             Object signLinesUpdatePacket = TILE_ENTITY_SIGN__GET_UPDATE_PACKET.invoke(tileSign);
 
-            Object signPacket = PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position);
+            Object signPacket =
+                    v(20, PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position, true))
+                            .orElse(PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position));
 
             sendPacket(player, blockChangePacket, signLinesUpdatePacket, signPacket);
         } catch (Throwable x) {

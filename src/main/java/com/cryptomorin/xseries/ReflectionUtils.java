@@ -133,8 +133,8 @@ public final class ReflectionUtils {
             throw new RuntimeException("Failed to parse minor number: " + minorVer + ' ' + getVersionInformation(), ex);
         }
 
-        // Don't use \d, it'd also match negative number (if it somehow ever happened?)
-        Matcher bukkitVer = Pattern.compile("^[0-9]+\\.[0-9]+\\.([0-9]+)").matcher(Bukkit.getBukkitVersion());
+        // Bukkit.getBukkitVersion() = "1.12.2-R0.1-SNAPSHOT"
+        Matcher bukkitVer = Pattern.compile("^\\d+\\.\\d+\\.(\\d+)").matcher(Bukkit.getBukkitVersion());
         if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
             try {
                 // group(0) gives the whole matched string, we just want the captured group.
