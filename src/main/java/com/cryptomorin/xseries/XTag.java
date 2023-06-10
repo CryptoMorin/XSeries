@@ -93,6 +93,11 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> AZALEA_ROOT_REPLACEABLE;
     /**
+     * Tag representing all bamboo wood variants
+     */
+    @Nonnull
+    public static final XTag<XMaterial> BAMBOO_LOGS;
+    /**
      * Tag representing all possible blocks bamboo may be planted on
      */
     @Nonnull
@@ -172,6 +177,11 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> CAVE_VINES;
+    /**
+     * Tag representing all cherry log and bark variants
+     */
+    @Nonnull
+    public static final XTag<XMaterial> CHERRY_LOGS;
     /**
      * Tag representing all climbable blocks
      */
@@ -364,6 +374,11 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> GUARDED_BY_PIGLINS;
+    /**
+     * Tag representing all possible types of hanging signs
+     */
+    @Nonnull
+    public static final XTag<XMaterial> HANGING_SIGNS;
     /**
      * Tag representing all block types that repel hoglins
      */
@@ -627,6 +642,11 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> PORTALS;
     /**
+     * Tag representing all possible pottery sherds
+     */
+    @Nonnull
+    public static final XTag<XMaterial> POTTERY_SHERDS;
+    /**
      * Tag representing all possible variants of pressure plates
      */
     @Nonnull
@@ -686,6 +706,11 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> SMALL_FLOWERS;
+    /**
+     * Tag representing all possible smithing templates
+     */
+    @Nonnull
+    public static final XTag<XMaterial> SMITHING_TEMPLATES;
     /**
      * Tag representing all possible variants of snow
      */
@@ -776,8 +801,6 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> WALL_SIGNS;
-    @Nonnull
-    public static final XTag<XMaterial> HANGING_SIGNS;
     /**
      * Tag representing all different types of walls
      */
@@ -1016,6 +1039,14 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.SPRUCE_LOG,
                 XMaterial.SPRUCE_WOOD,
                 XMaterial.STRIPPED_SPRUCE_WOOD);
+        CHERRY_LOGS = new XTag<>(XMaterial.STRIPPED_CHERRY_LOG,
+                XMaterial.CHERRY_LOG,
+                XMaterial.CHERRY_WOOD,
+                XMaterial.STRIPPED_CHERRY_WOOD);
+        BAMBOO_LOGS = new XTag<>(XMaterial.STRIPPED_BAMBOO_BLOCK,
+                XMaterial.BAMBOO_BLOCK,
+                XMaterial.BAMBOO_MOSAIC,
+                XMaterial.BAMBOO_PLANKS);
     }
 
     static { // colorable
@@ -1039,7 +1070,7 @@ public final class XTag<T extends Enum<T>> {
     static { // wooded material
         STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
         WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
-        HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
+        HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
         WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
         WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
         WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
@@ -1273,7 +1304,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.POTTED_SPRUCE_SAPLING,
                 XMaterial.POTTED_JUNGLE_SAPLING,
                 XMaterial.POTTED_BIRCH_SAPLING,
-                XMaterial.POTTED_MANGROVE_PROPAGULE);
+                XMaterial.POTTED_MANGROVE_PROPAGULE,
+                XMaterial.POTTED_CHERRY_SAPLING);
         FOX_FOOD = new XTag<>(XMaterial.GLOW_BERRIES,
                 XMaterial.SWEET_BERRIES);
         FOXES_SPAWNABLE_ON = new XTag<>(XMaterial.SNOW,
@@ -1324,7 +1356,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BIRCH_BOAT,
                 XMaterial.SPRUCE_BOAT,
                 XMaterial.JUNGLE_BOAT,
-                XMaterial.MANGROVE_BOAT);
+                XMaterial.MANGROVE_BOAT,
+                XMaterial.CHERRY_BOAT,
+                XMaterial.BAMBOO_RAFT);
         ITEMS_COALS = new XTag<>(XMaterial.COAL,
                 XMaterial.CHARCOAL);
         ITEMS_CREEPER_DROP_MUSIC_DISCS = new XTag<>(XMaterial.MUSIC_DISC_BLOCKS,
@@ -1359,7 +1393,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.BIRCH_LEAVES,
                 XMaterial.OAK_LEAVES,
-                XMaterial.MANGROVE_LEAVES);
+                XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES);
         NON_WOODEN_STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
                 XMaterial.STONE_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
@@ -1445,6 +1480,26 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
                 XMaterial.BRICK_SLAB,
                 XMaterial.POLISHED_GRANITE_SLAB);
+        POTTERY_SHERDS = new XTag<>(XMaterial.ANGLER_POTTERY_SHERD,
+                XMaterial.ARCHER_POTTERY_SHERD,
+                XMaterial.ARMS_UP_POTTERY_SHERD,
+                XMaterial.BLADE_POTTERY_SHERD,
+                XMaterial.BREWER_POTTERY_SHERD,
+                XMaterial.BURN_POTTERY_SHERD,
+                XMaterial.DANGER_POTTERY_SHERD,
+                XMaterial.EXPLORER_POTTERY_SHERD,
+                XMaterial.FRIEND_POTTERY_SHERD,
+                XMaterial.HEART_POTTERY_SHERD,
+                XMaterial.HEARTBREAK_POTTERY_SHERD,
+                XMaterial.HOWL_POTTERY_SHERD,
+                XMaterial.MINER_POTTERY_SHERD,
+                XMaterial.MOURNER_POTTERY_SHERD,
+                XMaterial.PLENTY_POTTERY_SHERD,
+                XMaterial.PRIZE_POTTERY_SHERD,
+                XMaterial.SHEAF_POTTERY_SHERD,
+                XMaterial.SHELTER_POTTERY_SHERD,
+                XMaterial.SKULL_POTTERY_SHERD,
+                XMaterial.SNORT_POTTERY_SHERD);
         SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
         SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
@@ -1468,7 +1523,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.OAK_SAPLING,
                 XMaterial.FLOWERING_AZALEA,
                 XMaterial.BIRCH_SAPLING,
-                XMaterial.MANGROVE_PROPAGULE);
+                XMaterial.MANGROVE_PROPAGULE,
+                XMaterial.CHERRY_SAPLING);
         WOLVES_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK);
@@ -1788,6 +1844,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.TARGET,
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES,
                 XMaterial.MOSS_BLOCK);
 
         LAVA_POOL_STONE_CANNOT_REPLACE = new XTag<>(XMaterial.DARK_OAK_LEAVES,
@@ -1796,6 +1853,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CRIMSON_HYPHAE,
                 XMaterial.JUNGLE_LEAVES,
                 XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES,
                 XMaterial.DARK_OAK_WOOD,
                 XMaterial.STRIPPED_ACACIA_LOG,
                 XMaterial.DARK_OAK_LOG,
@@ -1805,6 +1863,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.JUNGLE_LOG,
                 XMaterial.SPRUCE_LOG,
                 XMaterial.MANGROVE_LOG,
+                XMaterial.CHERRY_LOG,
                 XMaterial.STRIPPED_CRIMSON_HYPHAE,
                 XMaterial.SPRUCE_LEAVES,
                 XMaterial.STRIPPED_BIRCH_LOG,
@@ -1814,6 +1873,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BIRCH_WOOD,
                 XMaterial.STRIPPED_JUNGLE_WOOD,
                 XMaterial.STRIPPED_MANGROVE_LOG,
+                XMaterial.STRIPPED_CHERRY_LOG,
                 XMaterial.WARPED_HYPHAE,
                 XMaterial.CHEST,
                 XMaterial.FLOWERING_AZALEA_LEAVES,
@@ -1825,6 +1885,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.OAK_LEAVES,
                 XMaterial.STRIPPED_BIRCH_WOOD,
                 XMaterial.STRIPPED_MANGROVE_WOOD,
+                XMaterial.STRIPPED_CHERRY_WOOD,
                 XMaterial.STRIPPED_JUNGLE_LOG,
                 XMaterial.WARPED_STEM,
                 XMaterial.END_PORTAL_FRAME,
@@ -1833,6 +1894,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.STRIPPED_SPRUCE_WOOD,
                 XMaterial.JUNGLE_WOOD,
                 XMaterial.MANGROVE_WOOD,
+                XMaterial.CHERRY_WOOD,
                 XMaterial.STRIPPED_OAK_WOOD,
                 XMaterial.STRIPPED_WARPED_STEM,
                 XMaterial.OAK_LOG,
@@ -1895,6 +1957,23 @@ public final class XTag<T extends Enum<T>> {
                 GOLDEN_ARMOR_PIECES,
                 DIAMOND_ARMOR_PIECES,
                 NETHERITE_ARMOR_PIECES);
+        SMITHING_TEMPLATES = new XTag<>(XMaterial.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
+                XMaterial.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.HOST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RIB_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WARD_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
 
         AZALEA_GROWS_ON = new XTag<>(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW);
         AZALEA_GROWS_ON.inheritFrom(TERRACOTTA, SAND, DIRT);
@@ -1993,7 +2072,8 @@ public final class XTag<T extends Enum<T>> {
                 SPRUCE_LOGS,
                 JUNGLE_LOGS,
                 BIRCH_LOGS,
-                MANGROVE_LOGS);
+                MANGROVE_LOGS,
+                CHERRY_LOGS);
         LOGS = new XTag<>(XMaterial.class,
                 LOGS_THAT_BURN,
                 CRIMSON_STEMS,
@@ -2180,7 +2260,7 @@ public final class XTag<T extends Enum<T>> {
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
 
         INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, WALL_SIGNS,
-                HANGING_SIGNS, CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
+                CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
                 new XTag<>(XMaterial.SWEET_BERRY_BUSH, XMaterial.CHORUS_PLANT, XMaterial.KELP_PLANT,
                         XMaterial.CAVE_VINES_PLANT, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT));
     }
@@ -2211,7 +2291,7 @@ public final class XTag<T extends Enum<T>> {
     }
 
     private static XMaterial[] findAllWoodTypes(String material) {
-        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON", "MANGROVE"};
+        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON", "MANGROVE", "CHERRY", "BAMBOO"};
         List<XMaterial> list = new ArrayList<>();
         for (String wood : woodPrefixes) {
             XMaterial.matchXMaterial(wood + '_' + material).ifPresent(list::add);
