@@ -25,12 +25,7 @@ import org.bukkit.Material;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class XTag<T extends Enum<T>> {
 
@@ -380,7 +375,7 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> GUARDED_BY_PIGLINS;
     /**
-     * Tag representing all possible variants of hanging signs
+     * Tag representing all possible types of hanging signs
      */
     @Nonnull
     public static final XTag<XMaterial> HANGING_SIGNS;
@@ -777,11 +772,6 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> TERRACOTTA;
     /**
-     * Tag representing all possible types of top hanging signs
-     */
-    @Nonnull
-    public static final XTag<XMaterial> TOP_HANGING_SIGNS;
-    /**
      * Tag representing all possible types of trapdoors
      */
     @Nonnull
@@ -801,11 +791,6 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> VALID_SPAWN;
-    /**
-     * Tag representing all wall hanging signs
-     */
-    @Nonnull
-    public static final XTag<XMaterial> WALL_HANGING_SIGNS;
     /**
      * Tag representing all possible block types that can override a wall post creation
      */
@@ -1085,8 +1070,7 @@ public final class XTag<T extends Enum<T>> {
     static { // wooded material
         STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
         WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
-        TOP_HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
-        WALL_HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
+        HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
         WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
         WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
         WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
@@ -2060,9 +2044,6 @@ public final class XTag<T extends Enum<T>> {
         SIGNS = new XTag<>(XMaterial.class,
                 WALL_SIGNS,
                 STANDING_SIGNS);
-        HANGING_SIGNS = new XTag<>(XMaterial.class,
-                WALL_HANGING_SIGNS,
-                TOP_HANGING_SIGNS);
         PRESSURE_PLATES = new XTag<>(XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
                 XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE);
         PRESSURE_PLATES.inheritFrom(STONE_PRESSURE_PLATES, WOODEN_PRESSURE_PLATES);
@@ -2279,7 +2260,7 @@ public final class XTag<T extends Enum<T>> {
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
 
         INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, WALL_SIGNS,
-                WALL_HANGING_SIGNS, CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
+                CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
                 new XTag<>(XMaterial.SWEET_BERRY_BUSH, XMaterial.CHORUS_PLANT, XMaterial.KELP_PLANT,
                         XMaterial.CAVE_VINES_PLANT, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT));
     }
