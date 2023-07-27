@@ -26,6 +26,7 @@ import org.bukkit.Material;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class XTag<T extends Enum<T>> {
 
@@ -2282,10 +2283,13 @@ public final class XTag<T extends Enum<T>> {
         FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
 
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, WALL_SIGNS,
-                CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
-                new XTag<>(XMaterial.SWEET_BERRY_BUSH, XMaterial.CHORUS_PLANT, XMaterial.KELP_PLANT,
-                        XMaterial.CAVE_VINES_PLANT, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT));
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS, WALL_SIGNS, WALL_HANGING_SIGNS,
+                WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT),
+                CROPS.without(XMaterial.WHEAT), new XTag<>(XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
+                XMaterial.FROSTED_ICE, XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM, XMaterial.COCOA,
+                XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.PITCHER_CROP, XMaterial.POWDER_SNOW,
+                XMaterial.REDSTONE_WIRE, XMaterial.TALL_SEAGRASS, XMaterial.TRIPWIRE, XMaterial.TORCHFLOWER_CROP,
+                XMaterial.BUBBLE_COLUMN, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING));
     }
 
     @Nonnull
@@ -2300,6 +2304,10 @@ public final class XTag<T extends Enum<T>> {
     private XTag(@Nonnull Class<T> clazz, @Nonnull XTag<T>... values) {
         this.values = EnumSet.noneOf(clazz);
         this.inheritFrom(values);
+    }
+
+    private XTag(@Nonnull Set<T> values) {
+        this.values = Collections.unmodifiableSet(values);
     }
 
     private static XMaterial[] findAllColors(String material) {
@@ -2625,6 +2633,14 @@ public final class XTag<T extends Enum<T>> {
 
     public boolean isTagged(@Nullable T value) {
         return value != null && this.values.contains(value);
+    }
+
+    @SafeVarargs
+    private final XTag<T> without(T... without) {
+        Set<T> ignore = new HashSet<>();
+        Collections.addAll(ignore, without);
+        Set<T> newValues = values.stream().filter(t -> !ignore.contains(t)).collect(Collectors.toSet());
+        return new XTag<>(newValues);
     }
 
     @SafeVarargs
