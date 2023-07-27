@@ -315,6 +315,11 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> FENCES;
     /**
+     * Tag representing all possible variants of filled cauldron
+     */
+    @Nonnull
+    public static final XTag<XMaterial> FILLED_CAULDRONS;
+    /**
      * Tag representing all possible variants fire
      */
     @Nonnull
@@ -792,6 +797,11 @@ public final class XTag<T extends Enum<T>> {
     @Nonnull
     public static final XTag<XMaterial> VALID_SPAWN;
     /**
+     * Tag representing all possible variants of wall hanging sign
+     */
+    @Nonnull
+    public static final XTag<XMaterial> WALL_HANGING_SIGNS;
+    /**
      * Tag representing all possible block types that can override a wall post creation
      */
     @Nonnull
@@ -801,6 +811,11 @@ public final class XTag<T extends Enum<T>> {
      */
     @Nonnull
     public static final XTag<XMaterial> WALL_SIGNS;
+    /**
+     * Tag representing all possible types of wall torches
+     */
+    @Nonnull
+    public static final XTag<XMaterial> WALL_TORCHES;
     /**
      * Tag representing all different types of walls
      */
@@ -1070,6 +1085,7 @@ public final class XTag<T extends Enum<T>> {
     static { // wooded material
         STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
         WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
+        WALL_HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
         HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
         WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
         WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
@@ -1127,6 +1143,9 @@ public final class XTag<T extends Enum<T>> {
         WALL_HEADS = new XTag<>(XMaterial.class, new XTag<>(findMaterialsEndingWith("WALL_HEAD")),
                 new XTag<>(XMaterial.WITHER_SKELETON_WALL_SKULL, XMaterial.SKELETON_WALL_SKULL));
 
+        WALL_TORCHES = new XTag<>(XMaterial.WALL_TORCH,
+                XMaterial.SOUL_WALL_TORCH,
+                XMaterial.REDSTONE_WALL_TORCH);
         WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
                 XMaterial.POLISHED_BLACKSTONE_WALL,
@@ -1197,6 +1216,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.PUMPKIN_STEM);
         CAMPFIRES = new XTag<>(XMaterial.CAMPFIRE,
                 XMaterial.SOUL_CAMPFIRE);
+        FILLED_CAULDRONS = new XTag<>(XMaterial.LAVA_CAULDRON,
+                XMaterial.POWDER_SNOW_CAULDRON,
+                XMaterial.WATER_CAULDRON);
         CAULDRONS = new XTag<>(XMaterial.CAULDRON,
                 XMaterial.LAVA_CAULDRON,
                 XMaterial.POWDER_SNOW_CAULDRON,
