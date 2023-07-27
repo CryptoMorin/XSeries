@@ -2283,13 +2283,15 @@ public final class XTag<T extends Enum<T>> {
         FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
 
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS, WALL_SIGNS, WALL_HANGING_SIGNS,
-                WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT),
-                CROPS.without(XMaterial.WHEAT), new XTag<>(XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
-                XMaterial.FROSTED_ICE, XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM, XMaterial.COCOA,
-                XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.PITCHER_CROP, XMaterial.POWDER_SNOW,
-                XMaterial.REDSTONE_WIRE, XMaterial.TALL_SEAGRASS, XMaterial.TRIPWIRE, XMaterial.TORCHFLOWER_CROP,
-                XMaterial.BUBBLE_COLUMN, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING));
+        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS,
+                WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS,
+                CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT), CROPS.without(XMaterial.WHEAT),
+                new XTag<>(XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
+                        XMaterial.FROSTED_ICE, XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM,
+                        XMaterial.COCOA, XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.PITCHER_CROP,
+                        XMaterial.POWDER_SNOW, XMaterial.REDSTONE_WIRE, XMaterial.TALL_SEAGRASS, XMaterial.TRIPWIRE,
+                        XMaterial.TORCHFLOWER_CROP, XMaterial.BUBBLE_COLUMN, XMaterial.TWISTING_VINES_PLANT,
+                        XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING));
     }
 
     @Nonnull
