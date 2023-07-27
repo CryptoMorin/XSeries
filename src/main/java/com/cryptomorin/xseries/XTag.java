@@ -1327,7 +1327,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.POTTED_JUNGLE_SAPLING,
                 XMaterial.POTTED_BIRCH_SAPLING,
                 XMaterial.POTTED_MANGROVE_PROPAGULE,
-                XMaterial.POTTED_CHERRY_SAPLING);
+                XMaterial.POTTED_CHERRY_SAPLING,
+                XMaterial.POTTED_TORCHFLOWER);
         FOX_FOOD = new XTag<>(XMaterial.GLOW_BERRIES,
                 XMaterial.SWEET_BERRIES);
         FOXES_SPAWNABLE_ON = new XTag<>(XMaterial.SNOW,
