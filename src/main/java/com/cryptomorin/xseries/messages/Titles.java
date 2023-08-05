@@ -143,7 +143,6 @@ public final class Titles implements Cloneable {
      * @param fadeOut  the amount of ticks for the title to fade out.
      * @param title    the title message.
      * @param subtitle the subtitle message.
-     *
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
@@ -181,7 +180,6 @@ public final class Titles implements Cloneable {
      * @param player   the player to send the title to.
      * @param title    the title message.
      * @param subtitle the subtitle message.
-     *
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
@@ -194,7 +192,6 @@ public final class Titles implements Cloneable {
      *
      * @param player the player to send the title to.
      * @param config the configuration section to parse the title properties from.
-     *
      * @since 1.0.0
      */
     public static Titles sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
@@ -220,7 +217,6 @@ public final class Titles implements Cloneable {
      * </pre></blockquote>
      *
      * @param config the configuration section to parse the title properties from.
-     *
      * @since 3.0.0
      */
     public static Titles parseTitle(@Nonnull ConfigurationSection config, @Nullable Function<String, String> transformers) {
@@ -263,7 +259,6 @@ public final class Titles implements Cloneable {
      * Clears the title and subtitle message from the player's screen.
      *
      * @param player the player to clear the title from.
-     *
      * @since 1.0.0
      */
     public static void clearTitle(@Nonnull Player player) {
@@ -295,7 +290,6 @@ public final class Titles implements Cloneable {
      * @param header  the header of the tablist.
      * @param footer  the footer of the tablist.
      * @param players players to send this change to.
-     *
      * @since 1.0.0
      */
     public static void sendTabList(@Nonnull String header, @Nonnull String footer, Player... players) {

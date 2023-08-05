@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public final class XSeriesTests {
     private XSeriesTests() {}
@@ -34,6 +33,7 @@ public final class XSeriesTests {
 
         print("Testing XMaterial...");
         assertPresent(XMaterial.matchXMaterial("AIR"));
+        assertSame(XMaterial.matchXMaterial("CLAY_BRICK").get(), XMaterial.BRICK);
         assertMaterial("RED_BED", "RED_BED");
         assertMaterial("MELON", "MELON");
         assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
@@ -77,7 +77,7 @@ public final class XSeriesTests {
         assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
 
         print("Testing reflection...");
-        print("Version pack: " + ReflectionUtils.VERSION + " (" + ReflectionUtils.VER + ')');
+        print("Version pack: " + ReflectionUtils.NMS_VERSION + " (" + ReflectionUtils.MINOR_NUMBER + ')');
         initializeReflection();
 
         print("\n\n\nTest end...");

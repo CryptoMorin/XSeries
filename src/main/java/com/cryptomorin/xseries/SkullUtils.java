@@ -224,7 +224,8 @@ public class SkullUtils {
         try {
             UUID.fromString(identifier);
             return ValueType.UUID;
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         if (isUsername(identifier)) return ValueType.NAME;
         if (identifier.contains("textures.minecraft.net")) return ValueType.TEXTURE_URL;
@@ -302,7 +303,6 @@ public class SkullUtils {
      * https://help.minecraft.net/hc/en-us/articles/360034636712
      *
      * @param name the username to check.
-     *
      * @return true if the string matches the Minecraft username rule, otherwise false.
      */
     private static boolean isUsername(@Nonnull String name) {
@@ -311,7 +311,8 @@ public class SkullUtils {
 
         // For some reasons Apache's Lists.charactersOf is faster than character indexing for small strings.
         for (char ch : Lists.charactersOf(name)) {
-            if (ch != '_' && !(ch >= 'A' && ch <= 'Z') && !(ch >= 'a' && ch <= 'z') && !(ch >= '0' && ch <= '9')) return false;
+            if (ch != '_' && !(ch >= 'A' && ch <= 'Z') && !(ch >= 'a' && ch <= 'z') && !(ch >= '0' && ch <= '9'))
+                return false;
         }
         return true;
     }
