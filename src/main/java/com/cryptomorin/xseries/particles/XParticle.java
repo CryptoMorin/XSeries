@@ -134,13 +134,13 @@ public final class XParticle {
      */
     public static final double PII = 2 * Math.PI;
 
-    private XParticle() {}
+    private XParticle() {
+    }
 
     /**
      * An optimized and stable way of getting particles for cross-version support.
      *
      * @param particle the particle name.
-     *
      * @return a particle that matches the specified name.
      * @since 1.0.0
      */
@@ -152,7 +152,6 @@ public final class XParticle {
      * Get a random particle from a list of particle names.
      *
      * @param particles the particles name.
-     *
      * @return a random particle from the list.
      * @since 1.0.0
      */
@@ -166,7 +165,6 @@ public final class XParticle {
      *
      * @param min the minimum number.
      * @param max the maximum number.
-     *
      * @return a random number.
      * @see #randInt(int, int)
      * @since 1.0.0
@@ -180,7 +178,6 @@ public final class XParticle {
      *
      * @param min the minimum number.
      * @param max the maximum number.
-     *
      * @return a random number.
      * @see #random(double, double)
      * @since 1.0.0
@@ -222,7 +219,6 @@ public final class XParticle {
      * @param radiusRate the radius rate change of circles.
      * @param rate       the rate of the biggest cirlce points.
      * @param rateChange the rate change of circle points.
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -239,7 +235,6 @@ public final class XParticle {
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     *
      * @see #sphere(double, double, ParticleDisplay)
      * @see #circle(double, double, double, double, double, ParticleDisplay)
      * @since 1.0.0
@@ -269,7 +264,6 @@ public final class XParticle {
      * @param limit     the limit of the circle. Usually from 0 to PII.
      *                  If you choose 0, it'll be a full circle {@link #PII}
      *                  If you choose -1, it'll do a full loop based on the extension.
-     *
      * @see #illuminati(double, double, ParticleDisplay)
      * @see #eye(double, double, double, double, ParticleDisplay)
      */
@@ -317,7 +311,6 @@ public final class XParticle {
      * @param radiusRate the radius of the diamond. Lower means longer radius.
      * @param rate       the rate of the diamond points.
      * @param height     the height of the diamond.
-     *
      * @since 4.0.0
      */
     public static void diamond(double radiusRate, double rate, double height, ParticleDisplay display) {
@@ -397,7 +390,6 @@ public final class XParticle {
      * @param count    the count of the shapes.
      * @param radius   the radius of the circular form.
      * @param runnable the shape(s) to display.
-     *
      * @since 4.0.0
      */
     public static void flower(int count, double radius, ParticleDisplay display, Runnable runnable) {
@@ -417,7 +409,6 @@ public final class XParticle {
      * @param radius     the radius of the circle.
      * @param rate       the rate of the circle points.
      * @param radiusRate the radius change of the circle to fill it.
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 4.0.0
      */
@@ -452,7 +443,6 @@ public final class XParticle {
      * @param mass1      the mass of the first pendulum. Recommended is 50
      * @param mass2      the mass of the second pendulum. Recommended is 50
      * @param dimension3 if it should enter 3D mode.
-     * @param speed      the speed of the animation.
      *
      * @return the animation runnable.
      * @since 4.0.0
@@ -565,8 +555,8 @@ public final class XParticle {
      * @param radiusRate the circle radius change rate.
      * @param distance   the distance between each circle.
      *
-     * @return the animation runnable.
-     * @see #circularBeam(double, double, double, double, ParticleDisplay)
+     * @return the animation handler.
+     * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
      */
     public static Runnable magicCircles(double radius, double rate, double radiusRate, double distance, ParticleDisplay display) {
@@ -614,7 +604,6 @@ public final class XParticle {
      *
      * @param radius the radius of the infinity circles.
      * @param rate   the rate of the sign points.
-     *
      * @since 3.0.0
      */
     public static void infinity(double radius, double rate, ParticleDisplay display) {
@@ -639,7 +628,6 @@ public final class XParticle {
      * @param radius     the radius of the cone circle.
      * @param rate       the rate of the cone circles.
      * @param circleRate the rate of the cone circle points.
-     *
      * @since 1.0.0
      */
     public static void cone(double height, double radius, double rate, double circleRate, ParticleDisplay display) {
@@ -679,9 +667,7 @@ public final class XParticle {
      * @param rate   the rate of the blackhole circle points.
      * @param mode   blackhole mode. There are 5 modes.
      * @param time   the amount of ticks to keep the blackhole.
-     *
      * @return the blackhole runnable. It will return false when the blackhole is done.
-     *
      * @since 3.0.0
      */
     public static BooleanSupplier blackhole(int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
@@ -772,7 +758,6 @@ public final class XParticle {
      * @param curve   the curve the the rainbow circles.
      * @param layers  the layers of each rainbow color.
      * @param compact the distance between each circles.
-     *
      * @since 2.0.0
      */
     public static void rainbow(double radius, double rate, double curve, double layers, double compact, ParticleDisplay display) {
@@ -815,7 +800,6 @@ public final class XParticle {
      *
      * @param radius the radius of crescent's big circle.
      * @param rate   the rate of the crescent's circle points.
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -844,7 +828,6 @@ public final class XParticle {
      * @param heightRange the height range of randomized waves. Recommended value is 1
      * @param size        the size of the terrain. Normal size is 3
      * @param rate        the rate of waves points. Recommended value is around 30
-     *
      * @since 2.0.0
      */
     public static void waveFunction(double extend, double heightRange, double size, double rate, ParticleDisplay display) {
@@ -887,8 +870,7 @@ public final class XParticle {
      *
      * @param points the points of the vortex.
      * @param rate   the speed of the vortex.
-     *
-     * @return the runnable of the vortex.
+     * @return the task handling the animation.
      * @since 2.0.0
      */
     public static Runnable vortex(int points, double rate, ParticleDisplay display) {
@@ -944,7 +926,6 @@ public final class XParticle {
      * @param height the height of the cylinder.
      * @param radius the radius of the cylinder circles.
      * @param rate   the rate of cylinder points.
-     *
      * @since 1.0.0
      */
     public static void cylinder(double height, double radius, double rate, ParticleDisplay display) {
@@ -963,9 +944,9 @@ public final class XParticle {
      * @param runnable the particles to spawn.
      * @param displays the display references used to spawn particles in the runnable.
      *
-     * @return the runnable handling the movement.
-     * @see #rotateAround(double, double, double, double, Runnable, ParticleDisplay...)
-     * @see #guard(double, double, double, double, Runnable, ParticleDisplay...)
+     * @return the async task handling the movement.
+     * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
+     * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
     public static Runnable moveRotatingAround(double rate, double offsetx, double offsety, double offsetz,
@@ -1002,7 +983,6 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the display references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
@@ -1079,7 +1059,6 @@ public final class XParticle {
      *
      * @param plugin   the timer handler.
      * @param runnable the shape(s) to display.
-     *
      * @return the timer task handling the displays.
      * @since 1.0.0
      */
@@ -1154,7 +1133,6 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the displays references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #rotateAround(double, double, double, double, Runnable, ParticleDisplay...)
      * @see #moveRotatingAround(double, double, double, double, Runnable, ParticleDisplay...)
@@ -1220,7 +1198,6 @@ public final class XParticle {
      *
      * @param radius the circle radius.
      * @param rate   the rate of cirlce points/particles.
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1265,7 +1242,6 @@ public final class XParticle {
      * @param chance            the chance to grow a spike randomly.
      * @param minRandomDistance he minimum distance of spikes from sphere.
      * @param maxRandomDistance the maximum distance of spikes from sphere.
-     *
      * @see #sphere(double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1301,7 +1277,6 @@ public final class XParticle {
      * @param rate       the number of circles used to form the ring (tunnel circles)
      * @param radius     the radius of the ring.
      * @param tubeRadius the radius of the circles used to form the ring (tunnel circles)
-     *
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1375,7 +1350,6 @@ public final class XParticle {
      * @param rate      rate of spike line points.
      * @param start     start location of spikes.
      * @param originEnd end location of spikes.
-     *
      * @since 1.0.0
      */
     public static BukkitTask spread(Plugin plugin, int amount, int rate, Location start, Location originEnd,
@@ -1400,7 +1374,6 @@ public final class XParticle {
      * @param depth          the depth of heart's inner spike.
      * @param compressHeight compress the heart along the y axis.
      * @param rate           the rate of the heart points. Will be converted to radians.
-     *
      * @since 1.0.0
      */
     public static void heart(double cut, double cutAngle, double depth, double compressHeight, double rate, ParticleDisplay display) {
@@ -1423,7 +1396,6 @@ public final class XParticle {
      * @param orbits the orbits of the atom.
      * @param radius the radius of the atom orbits.
      * @param rate   the rate of orbit points.
-     *
      * @see #atom(int, double, double, ParticleDisplay, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1579,7 +1551,6 @@ public final class XParticle {
      * @param lengthRate the length change rate of the lightning branch. Recommended is 1
      * @param branch     the chance of creating a new branch. Recommended is 0.1
      * @param branchRate the chance change of creating a new branch. Recommended is 1
-     *
      * @since 3.0.0
      */
     public static void lightning(Location start, Vector direction, int entries, int branches, double radius,
@@ -1633,7 +1604,6 @@ public final class XParticle {
      * @param hydrogenBondDist    the distance between each hydrogen bond (read inside method). This distance is also affected by rate.
      * @param display             display for strings.
      * @param hydrogenBondDisplay display for hydrogen bonds.
-     *
      * @see #helix(Plugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
      * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 1.0.0
@@ -1780,7 +1750,6 @@ public final class XParticle {
      * @param player the player to draw the line from.
      * @param length the length of the line.
      * @param rate   the rate of points of the line.
-     *
      * @see #line(Location, Location, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1811,7 +1780,6 @@ public final class XParticle {
      * @param plugin the timer handler.
      * @param cloud  recommended particle is {@link Particle#CLOUD} or {@link Particle#SMOKE_LARGE} and the offset xyz should be higher than 2
      * @param rain   recommended particle is {@link Particle#WATER_DROP} or {@link Particle#FALLING_LAVA} and the offset xyz should be the same as cloud.
-     *
      * @return the timer task handling the animation.
      * @since 1.0.0
      */
@@ -1827,7 +1795,6 @@ public final class XParticle {
      * @param start the starting point of the line.
      * @param end   the ending point of the line.
      * @param rate  the rate of points of the line.
-     *
      * @see #drawLine(Player, double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1858,7 +1825,6 @@ public final class XParticle {
      * @param start the starting point of the rectangle which is equals to the display location.
      * @param end   the ending point of the rectangle.
      * @param rate  the rate of the rectangle points.
-     *
      * @see #cube(Location, Location, double, ParticleDisplay)
      * @see #cage(Location, Location, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -1886,7 +1852,6 @@ public final class XParticle {
      * @param end     the ending point of the cage.
      * @param rate    the rate of cage two rectangles and the bar lines.
      * @param barRate the chance of bars for the cage.
-     *
      * @see #rectangle(Location, Location, double, ParticleDisplay)
      * @see #cylinder(double, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -1930,7 +1895,6 @@ public final class XParticle {
      * @param start the starting point of the cube.
      * @param end   the ending point of the cube.
      * @param rate  the rate of cube points.
-     *
      * @see #cube(Location, Location, double, ParticleDisplay)
      * @see #structuredCube(Location, Location, double, ParticleDisplay)
      * @since 1.0.0
@@ -1966,7 +1930,6 @@ public final class XParticle {
      * @param start the starting point of the cube.
      * @param end   the ending point of the cube.
      * @param rate  the rate of cube points.
-     *
      * @see #filledCube(Location, Location, double, ParticleDisplay)
      * @see #structuredCube(Location, Location, double, ParticleDisplay)
      * @since 1.0.0
@@ -2003,7 +1966,6 @@ public final class XParticle {
      * @param start the starting point of the cube.
      * @param end   the ending point of the cube.
      * @param rate  the rate of cube points.
-     *
      * @see #filledCube(Location, Location, double, ParticleDisplay)
      * @see #cube(Location, Location, double, ParticleDisplay)
      * @since 1.0.0
@@ -2049,7 +2011,6 @@ public final class XParticle {
      * @param rate        the rate of cube points.
      * @param sizeRate    the size
      * @param cubes       the dimension of the hypercube starting from 3D. E.g. {@code dimension 1 -> 4D tersseract}
-     *
      * @see #structuredCube(Location, Location, double, ParticleDisplay)
      * @see #tesseract(Plugin, double, double, double, long, ParticleDisplay)
      * @since 1.0.0
@@ -2128,7 +2089,6 @@ public final class XParticle {
      * @param ticks  the amount of ticks to keep the animation.
      *
      * @return the animation runnable. It will return false when the animation is over.
-     *
      * @see #hypercube(Location, Location, double, double, int, ParticleDisplay)
      * @since 4.0.0
      */
@@ -2328,7 +2288,6 @@ public final class XParticle {
      * @param x0    the amount of x to move the shape. Recommended is 3
      * @param y0    the amount of y to move the shape. Recommended is 0
      * @param color the color set of the mandelbrot. This can change the shape. Recommended is 1000
-     *
      * @since 4.0.0
      */
     public static void mandelbrot(double size, double zoom, double rate, double x0, double y0, int color, ParticleDisplay display) {
@@ -2364,7 +2323,6 @@ public final class XParticle {
      * @param moveX       the amount to move in the x axis.
      * @param moveY       the amount to move in the y axis.
      * @param display     The particle should be {@link Particle#REDSTONE}
-     *
      * @see #mandelbrot(double, double, double, double, double, int, ParticleDisplay)
      * @since 4.0.0
      */
@@ -2409,7 +2367,6 @@ public final class XParticle {
      * @param speed       the speed of animation. Smoothest/slowest is 1
      *
      * @return a list of runnables. They will return false when the animation is done.
-     *
      * @see #spikeSphere(double, double, int, double, double, ParticleDisplay)
      * @since 3.0.0
      */
@@ -2507,7 +2464,6 @@ public final class XParticle {
      * @param radius2   the other radius of the eye. Usually the same as the first radius.
      * @param rate      the rate of the eye points.
      * @param extension the extension of the eye. Recommended is 0.2
-     *
      * @since 4.0.0
      */
     public static void eye(double radius, double radius2, double rate, double extension, ParticleDisplay display) {
@@ -2529,7 +2485,6 @@ public final class XParticle {
      *
      * @param size      the size of the illuminati shape.
      * @param extension the extension of the illuminati eye.
-     *
      * @since 4.0.0
      */
     public static void illuminati(double size, double extension, ParticleDisplay display) {
@@ -2549,7 +2504,6 @@ public final class XParticle {
      * @param size       the size of the shape.
      * @param rate       the rate of connection points.
      * @param extend     extends the shape, connecting unrelated points together.
-     *
      * @since 1.0.0
      */
     public static void polygon(int points, int connection, double size, double rate, double extend, ParticleDisplay display) {
@@ -2599,7 +2553,6 @@ public final class XParticle {
      * @param orbits the number of atom orbits.
      * @param radius the radius of orbits.
      * @param rate   the rate of orbit and nucleus points.
-     *
      * @see #atomic(Plugin, int, double, double, ParticleDisplay)
      * @since 1.0.0
      */
@@ -2620,7 +2573,6 @@ public final class XParticle {
      * in a totally different shape.
      *
      * @param size the shape of the explosion circle. Recommended value is 6
-     *
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
@@ -2673,7 +2625,6 @@ public final class XParticle {
      * @param rate the distance between each cos/sin lines.
      *
      * @return the animation runnable. It will return false when it's done.
-     *
      * @since 1.0.0
      */
     public static BooleanSupplier explosionWave(double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
@@ -2731,7 +2682,6 @@ public final class XParticle {
      * Reads an Image from the given path.
      *
      * @param path the path of the image.
-     *
      * @return a buffered image.
      * @since 1.0.0
      */
@@ -2751,7 +2701,6 @@ public final class XParticle {
      * @param path   the path of the image.
      * @param width  the new width.
      * @param height the new height.
-     *
      * @return the resized image.
      * @since 1.0.0
      */
@@ -2788,7 +2737,6 @@ public final class XParticle {
      * @param resizedWidth  the resizing width.
      * @param resizedHeight the resizing height.
      * @param compact       the pixel compact of the image.
-     *
      * @return the rendered particle locations.
      * @since 1.0.0
      */
@@ -2804,7 +2752,6 @@ public final class XParticle {
      * @param resizedWidth  the new image width.
      * @param resizedHeight the new image height.
      * @param compact       particles compact value. Should be lower than 0.5 and higher than 0.1 The recommended value is 0.2
-     *
      * @return a rendered map of an image.
      * @since 1.0.0
      */
@@ -2853,7 +2800,6 @@ public final class XParticle {
      * @param quality  the quality of the image is exactly the number of particles display for each pixel. Recommended value is 1
      * @param speed    the speed is exactly the same value as the speed of particles. Recommended amount is 0
      * @param size     the size of the particle. Recommended amount is 0.8
-     *
      * @return the async bukkit task displaying the image.
      * @since 1.0.0
      */
@@ -2916,7 +2862,6 @@ public final class XParticle {
      * @param quality  the quality of the image is exactly the number of particles display for each pixel. Recommended value is 1
      * @param speed    the speed is exactly the same value as the speed of particles. Recommended amount is 0
      * @param size     the size of the particle. Recommended amount is 0.8
-     *
      * @since 1.0.0
      */
     @SuppressWarnings("ConstantConditions")
@@ -2972,7 +2917,6 @@ public final class XParticle {
      *
      * @param image the buffered image to save.
      * @param path  the path to save the image to.
-     *
      * @see #stringToImage(Font, java.awt.Color, String)
      * @since 1.0.0
      */
@@ -2990,7 +2934,6 @@ public final class XParticle {
      * @param font  the font to generate the text with.
      * @param color the color of text.
      * @param str   the string to generate the image.
-     *
      * @return the buffered image.
      * @see #saveImage(BufferedImage, Path)
      * @since 1.0.0

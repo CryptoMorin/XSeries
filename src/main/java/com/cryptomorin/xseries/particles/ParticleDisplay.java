@@ -82,13 +82,20 @@ public class ParticleDisplay implements Cloneable {
     public int count = 1;
     public double extra;
     public boolean force;
-    @Nonnull private Particle particle = DEFAULT_PARTICLE;
-    @Nullable private Location location;
-    @Nullable private Callable<Location> locationCaller;
-    @Nullable private Vector rotation, offset = new Vector();
-    @Nonnull private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
-    @Nullable private Object data;
-    @Nullable private Predicate<Location> onSpawn;
+    @Nonnull
+    private Particle particle = DEFAULT_PARTICLE;
+    @Nullable
+    private Location location;
+    @Nullable
+    private Callable<Location> locationCaller;
+    @Nullable
+    private Vector rotation, offset = new Vector();
+    @Nonnull
+    private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
+    @Nullable
+    private Object data;
+    @Nullable
+    private Predicate<Location> onSpawn;
 
     /**
      * Builds a simple ParticleDisplay object with cross-version
@@ -97,7 +104,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the display.
      * @param size     the size of the dust.
-     *
      * @return a redstone colored dust.
      * @see #simple(Location, Particle)
      * @since 1.0.0
@@ -115,7 +121,6 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location of the display.
      * @param color    the color of the particle.
      * @param size     the size of the dust.
-     *
      * @return a redstone colored dust.
      * @see #colored(Location, int, int, int, float)
      * @since 3.0.0
@@ -135,7 +140,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the display.
      * @param particle the particle of the display.
-     *
      * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
      */
@@ -166,7 +170,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location of the particle.
      * @param particle the particle to show.
-     *
      * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
      */
@@ -182,7 +185,6 @@ public class ParticleDisplay implements Cloneable {
      * Builds particle settings from a configuration section.
      *
      * @param config the config section for the settings.
-     *
      * @return a parsed ParticleDisplay from the config.
      * @since 1.0.0
      */
@@ -254,7 +256,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param display the particle display settings to update.
      * @param config  the config section for the settings.
-     *
      * @return the same ParticleDisplay, but edited.
      * @since 5.0.0
      */
@@ -386,7 +387,6 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location to rotate.
      * @param axis     the axis to rotate the location around.
      * @param rotation the rotation vector that contains the degrees of the rotation. The number is taken from this vector according to the given axis.
-     *
      * @since 7.0.0
      */
     public static Vector rotateAround(@Nonnull Vector location, @Nonnull Axis axis, @Nonnull Vector rotation) {
@@ -409,7 +409,6 @@ public class ParticleDisplay implements Cloneable {
      * Rotates the given location vector around a certain axis.
      *
      * @param location the location to rotate.
-     *
      * @since 7.0.0
      */
     public static Vector rotateAround(@Nonnull Vector location, double x, double y, double z) {
@@ -424,7 +423,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location to rotate.
      * @param axis     the axis to rotate the location around.
-     *
      * @since 7.0.0
      */
     public static Vector rotateAround(@Nonnull Vector location, @Nonnull Axis axis, double angle) {
@@ -461,7 +459,6 @@ public class ParticleDisplay implements Cloneable {
      * You can modify the given location. It's NOT a copy.
      *
      * @param onSpawn a predicate that if returns false, it'll not spawn that particle.
-     *
      * @return the same particle display.
      * @since 7.0.0
      */
@@ -518,7 +515,6 @@ public class ParticleDisplay implements Cloneable {
      * Changes the particle count of the particle settings.
      *
      * @param count the particle count.
-     *
      * @return the same particle display.
      * @since 3.0.0
      */
@@ -532,7 +528,6 @@ public class ParticleDisplay implements Cloneable {
      * In most cases extra is the speed of the particles.
      *
      * @param extra the extra number.
-     *
      * @return the same particle display.
      * @since 3.0.1
      */
@@ -549,7 +544,6 @@ public class ParticleDisplay implements Cloneable {
      * are added with {@link #spawn(Location, Player...)}.
      *
      * @param force the force argument.
-     *
      * @return the same particle display, but modified.
      * @since 5.0.1
      */
@@ -566,7 +560,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param color the RGB color of the particle.
      * @param size  the size of the particle.
-     *
      * @return the same particle display, but modified.
      * @see #colored(Location, Color, float)
      * @since 3.0.0
@@ -593,7 +586,6 @@ public class ParticleDisplay implements Cloneable {
      * @param color1 the RGB color of the particle on spawn.
      * @param size   the size of the particle.
      * @param color2 the RGB color of the particle at the end.
-     *
      * @return the same particle display, but modified.
      * @see #colored(Location, Color, float)
      * @since 8.6.0.0.1
@@ -621,7 +613,6 @@ public class ParticleDisplay implements Cloneable {
      * {@link BlockData} didn't exist before.
      *
      * @param blockData the block data that will change the particle data.
-     *
      * @return the same particle display, but modified.
      * @since 5.1.0
      */
@@ -639,7 +630,6 @@ public class ParticleDisplay implements Cloneable {
      * {@link Particle#BLOCK_DUST} and {@link Particle#FALLING_DUST} will support this data.
      *
      * @param materialData the material data that will change the particle data.
-     *
      * @return the same particle display, but modified.
      * @see #withBlock(BlockData)
      * @since 5.1.0
@@ -656,7 +646,6 @@ public class ParticleDisplay implements Cloneable {
      * particle, depending on the given item stack.
      *
      * @param item the item stack that will change the particle data.
-     *
      * @return the same particle display, but modified.
      * @since 5.1.0
      */
@@ -675,7 +664,6 @@ public class ParticleDisplay implements Cloneable {
      * Saves an instance of an entity to track the location from.
      *
      * @param entity the entity to track the location from.
-     *
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
@@ -688,7 +676,6 @@ public class ParticleDisplay implements Cloneable {
      * Sets a caller for location changes.
      *
      * @param locationCaller the caller to call to get the new location.
-     *
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
@@ -734,7 +721,6 @@ public class ParticleDisplay implements Cloneable {
      * Sets the location that this particle should spawn.
      *
      * @param location the new location.
-     *
      * @since 7.0.0
      */
     public ParticleDisplay withLocation(@Nullable Location location) {
@@ -747,7 +733,6 @@ public class ParticleDisplay implements Cloneable {
      * Only some of the shapes support this method.
      *
      * @param entity the entity to face.
-     *
      * @return the same particle display.
      * @see #rotate(Vector)
      * @since 3.0.0
@@ -762,7 +747,6 @@ public class ParticleDisplay implements Cloneable {
      * Only some of the shapes support this method.
      *
      * @param location the location to face.
-     *
      * @return the same particle display.
      * @see #rotate(Vector)
      * @since 6.1.0
@@ -781,7 +765,6 @@ public class ParticleDisplay implements Cloneable {
      * @param x the x to add to the location.
      * @param y the y to add to the location.
      * @param z the z to add to the location.
-     *
      * @return the cloned location.
      * @see #clone()
      * @since 1.0.0
@@ -808,7 +791,6 @@ public class ParticleDisplay implements Cloneable {
      * @param x the x to add.
      * @param y the y to add.
      * @param z the z to add.
-     *
      * @return the cloned ParticleDisplay.
      * @see #clone()
      * @since 1.0.0
@@ -848,7 +830,6 @@ public class ParticleDisplay implements Cloneable {
      * Rotates the particle position based on this vector.
      *
      * @param vector the vector to rotate from. The xyz values of this vector must be radians.
-     *
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
@@ -878,7 +859,6 @@ public class ParticleDisplay implements Cloneable {
      * adds them to the specified location.
      *
      * @param location the location to add the rotated axis.
-     *
      * @return a cloned rotated location.
      * @since 3.0.0
      */
@@ -941,7 +921,6 @@ public class ParticleDisplay implements Cloneable {
      * Sets a new rotation vector ignoring previous ones.
      *
      * @param rotation the new rotation.
-     *
      * @since 7.0.0
      */
     public void setRotation(@Nullable Vector rotation) {
@@ -990,7 +969,6 @@ public class ParticleDisplay implements Cloneable {
      * spawning particles.
      *
      * @param location the xyz to add.
-     *
      * @since 1.0.0
      */
     @Nonnull
@@ -1014,7 +992,6 @@ public class ParticleDisplay implements Cloneable {
      * This method does not support rotations if used directly.
      *
      * @param loc the location to display the particle at.
-     *
      * @see #spawn(double, double, double)
      * @since 2.1.0
      */
@@ -1029,7 +1006,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param loc     the location to display the particle at.
      * @param players if this particle should only be sent to specific players. Shouldn't be empty.
-     *
      * @see #spawn(double, double, double)
      * @since 5.0.0
      */
@@ -1050,8 +1026,10 @@ public class ParticleDisplay implements Cloneable {
             if (ISFLAT && particle.getDataType() == Particle.DustOptions.class) {
                 Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
                         .fromRGB((int) datas[0], (int) datas[1], (int) datas[2]), datas[3]);
-                if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
-                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+                if (players == null)
+                    world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
+                else for (Player player : players)
+                    player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
             } else if (SUPPORTS_DUST_TRANSITION && particle.getDataType() == Particle.DustTransition.class) {
                 // Having the variable type as Particle.DustOptions causes NoClassDefFoundError for DustOptions
                 // because of some weird upcasting stuff.
@@ -1059,22 +1037,28 @@ public class ParticleDisplay implements Cloneable {
                         org.bukkit.Color.fromRGB((int) datas[0], (int) datas[1], (int) datas[2]),
                         org.bukkit.Color.fromRGB((int) datas[4], (int) datas[5], (int) datas[6]),
                         datas[3]);
-                if (players == null) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
-                else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
+                if (players == null)
+                    world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust, force);
+                else for (Player player : players)
+                    player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, dust);
             } else if (isDirectional()) {
                 // With count=0, color on offset e.g. for MOB_SPELL or 1.12 REDSTONE
                 float[] rgb = {datas[0] / 255f, datas[1] / 255f, datas[2] / 255f};
                 if (players == null) {
-                    if (ISFLAT) world.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null, force);
+                    if (ISFLAT)
+                        world.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null, force);
                     else world.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3], null);
-                } else for (Player player : players) player.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3]);
+                } else for (Player player : players)
+                    player.spawnParticle(particle, loc, count, rgb[0], rgb[1], rgb[2], datas[3]);
 
             } else {
                 // Else color can't have any effect, keep default param
                 if (players == null) {
-                    if (ISFLAT) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
+                    if (ISFLAT)
+                        world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null, force);
                     else world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, null);
-                } else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
+                } else for (Player player : players)
+                    player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra);
             }
         } else {
             // Checks without data or block crack, block dust, falling dust, item crack or if data isn't right type
@@ -1082,7 +1066,8 @@ public class ParticleDisplay implements Cloneable {
             if (players == null) {
                 if (ISFLAT) world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas, force);
                 else world.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
-            } else for (Player player : players) player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
+            } else for (Player player : players)
+                player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
         }
 
         return loc;

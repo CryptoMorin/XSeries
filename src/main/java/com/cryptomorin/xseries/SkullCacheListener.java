@@ -99,9 +99,11 @@ final class SkullCacheListener {
 
     @Nullable
     public static String getIdFromUsername(@Nonnull String username) {
-        if (username == null || username.isEmpty()) throw new IllegalArgumentException("Cannot get UUID of a null or empty username");
+        if (username == null || username.isEmpty())
+            throw new IllegalArgumentException("Cannot get UUID of a null or empty username");
         int len = username.length();
-        if (len < 3 || len > 16) throw new IllegalArgumentException("Username cannot be less than 3 and longer than 16 characters: " + username);
+        if (len < 3 || len > 16)
+            throw new IllegalArgumentException("Username cannot be less than 3 and longer than 16 characters: " + username);
 
         try {
             URL convertName = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);

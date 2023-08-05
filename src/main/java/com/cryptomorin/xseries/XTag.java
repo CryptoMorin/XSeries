@@ -29,769 +29,986 @@ import java.util.*;
 
 public final class XTag<T extends Enum<T>> {
 
-    @Nonnull public static final XTag<XMaterial> AIR;
+    @Nonnull
+    public static final XTag<XMaterial> AIR;
 
-    @Nonnull public static final XTag<XMaterial> INVENTORY_NOT_DISPLAYABLE;
+    @Nonnull
+    public static final XTag<XMaterial> INVENTORY_NOT_DISPLAYABLE;
 
     /**
      * Tag representing all acacia log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> ACACIA_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> ACACIA_LOGS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> CORAL_FANS;
-    @Nonnull public static final XTag<XMaterial> ALIVE_CORAL_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> CORAL_FANS;
+    @Nonnull
+    public static final XTag<XMaterial> ALIVE_CORAL_BLOCKS;
     /**
      * Tag representing all dead coral non-walled fans
      */
-    @Nonnull public static final XTag<XMaterial> ALIVE_CORAL_FANS;
+    @Nonnull
+    public static final XTag<XMaterial> ALIVE_CORAL_FANS;
     /**
      * Tag representing all non-dead coral plants
      */
-    @Nonnull public static final XTag<XMaterial> ALIVE_CORAL_PLANTS;
+    @Nonnull
+    public static final XTag<XMaterial> ALIVE_CORAL_PLANTS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> ALIVE_CORAL_WALL_FANS;
+    @Nonnull
+    public static final XTag<XMaterial> ALIVE_CORAL_WALL_FANS;
     /**
      * Tag representing all possible blocks available for animals to spawn on
      */
-    @Nonnull public static final XTag<XMaterial> ANIMALS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> ANIMALS_SPAWNABLE_ON;
     /**
      * Tag representing all variants of anvil
      */
-    @Nonnull public static final XTag<XMaterial> ANVIL;
+    @Nonnull
+    public static final XTag<XMaterial> ANVIL;
     /**
      * Tag representing all items that can tempt axolotl
      */
-    @Nonnull public static final XTag<XMaterial> AXOLOTL_TEMPT_ITEMS;
+    @Nonnull
+    public static final XTag<XMaterial> AXOLOTL_TEMPT_ITEMS;
     /**
      * Tag representing all possible blocks for axolotls to spawn on
      */
-    @Nonnull public static final XTag<XMaterial> AXOLOTLS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> AXOLOTLS_SPAWNABLE_ON;
     /**
      * Tag representing all possible blocks for azalea to grow on
      */
-    @Nonnull public static final XTag<XMaterial> AZALEA_GROWS_ON;
+    @Nonnull
+    public static final XTag<XMaterial> AZALEA_GROWS_ON;
     /**
      * Tag representing all possible blocks that can be replaced by azalea
      */
-    @Nonnull public static final XTag<XMaterial> AZALEA_ROOT_REPLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> AZALEA_ROOT_REPLACEABLE;
+    /**
+     * Tag representing all bamboo wood variants
+     */
+    @Nonnull
+    public static final XTag<XMaterial> BAMBOO_LOGS;
     /**
      * Tag representing all possible blocks bamboo may be planted on
      */
-    @Nonnull public static final XTag<XMaterial> BAMBOO_PLANTABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> BAMBOO_PLANTABLE_ON;
     /**
      * Tag representing all banner blocks
      */
-    @Nonnull public static final XTag<XMaterial> BANNERS;
+    @Nonnull
+    public static final XTag<XMaterial> BANNERS;
     /**
      * Tag representing the nether base materials
      */
-    @Nonnull public static final XTag<XMaterial> BASE_STONE_NETHER;
+    @Nonnull
+    public static final XTag<XMaterial> BASE_STONE_NETHER;
     /**
      * Tag representing the overworld base materials
      */
-    @Nonnull public static final XTag<XMaterial> BASE_STONE_OVERWORLD;
+    @Nonnull
+    public static final XTag<XMaterial> BASE_STONE_OVERWORLD;
     /**
      * Tag representing all possible blocks that can be used as beacon base
      */
-    @Nonnull public static final XTag<XMaterial> BEACON_BASE_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> BEACON_BASE_BLOCKS;
     /**
      * Tag representing all possible variants of bed
      */
-    @Nonnull public static final XTag<XMaterial> BEDS;
+    @Nonnull
+    public static final XTag<XMaterial> BEDS;
     /**
      * Tag representing all possible blocks/crops that be grown by bees
      */
-    @Nonnull public static final XTag<XMaterial> BEE_GROWABLES;
+    @Nonnull
+    public static final XTag<XMaterial> BEE_GROWABLES;
     /**
      * Tag representing all possible blocks big dripleaf may be planted on
      */
-    @Nonnull public static final XTag<XMaterial> BIG_DRIPLEAF_PLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> BIG_DRIPLEAF_PLACEABLE;
     /**
      * Tag representing all birch log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> BIRCH_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> BIRCH_LOGS;
     /**
      * Tag representing all possible variants of buttons
      */
-    @Nonnull public static final XTag<XMaterial> BUTTONS;
+    @Nonnull
+    public static final XTag<XMaterial> BUTTONS;
     /**
      * Tag representing all possible variants of campfires
      */
-    @Nonnull public static final XTag<XMaterial> CAMPFIRES;
+    @Nonnull
+    public static final XTag<XMaterial> CAMPFIRES;
     /**
      * Tag representing all possible variants of candle cakes
      */
-    @Nonnull public static final XTag<XMaterial> CANDLE_CAKES;
+    @Nonnull
+    public static final XTag<XMaterial> CANDLE_CAKES;
     /**
      * Tag representing all possible variants of candles
      */
-    @Nonnull public static final XTag<XMaterial> CANDLES;
+    @Nonnull
+    public static final XTag<XMaterial> CANDLES;
     /**
      * Tag representing all possible variants of carpets
      */
-    @Nonnull public static final XTag<XMaterial> CARPETS;
+    @Nonnull
+    public static final XTag<XMaterial> CARPETS;
     /**
      * Tag representing all possible variants of cauldrons
      */
-    @Nonnull public static final XTag<XMaterial> CAULDRONS;
+    @Nonnull
+    public static final XTag<XMaterial> CAULDRONS;
     /**
      * Tag representing all possible variants of cave vines
      */
-    @Nonnull public static final XTag<XMaterial> CAVE_VINES;
+    @Nonnull
+    public static final XTag<XMaterial> CAVE_VINES;
+    /**
+     * Tag representing all cherry log and bark variants
+     */
+    @Nonnull
+    public static final XTag<XMaterial> CHERRY_LOGS;
     /**
      * Tag representing all climbable blocks
      */
-    @Nonnull public static final XTag<XMaterial> CLIMBABLE;
+    @Nonnull
+    public static final XTag<XMaterial> CLIMBABLE;
     /**
      * Tag representing all preferred items for harvesting clusters{unused as of 1.18}
      */
-    @Nonnull public static final XTag<XMaterial> CLUSTER_MAX_HARVESTABLES;
+    @Nonnull
+    public static final XTag<XMaterial> CLUSTER_MAX_HARVESTABLES;
     /**
      * Tag representing all possible variants of coal ores
      */
-    @Nonnull public static final XTag<XMaterial> COAL_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> COAL_ORES;
     /**
      * Tag representing all possible variants of concrete
      */
-    @Nonnull public static final XTag<XMaterial> CONCRETE;
+    @Nonnull
+    public static final XTag<XMaterial> CONCRETE;
     /**
      * Tag representing all possible variants of concrete_powder
      */
-    @Nonnull public static final XTag<XMaterial> CONCRETE_POWDER;
+    @Nonnull
+    public static final XTag<XMaterial> CONCRETE_POWDER;
     /**
      * Tag representing all possible variants of copper ores
      */
-    @Nonnull public static final XTag<XMaterial> COPPER_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> COPPER_ORES;
     /**
      * Tag representing all corals
      */
-    @Nonnull public static final XTag<XMaterial> CORALS;
+    @Nonnull
+    public static final XTag<XMaterial> CORALS;
     /**
      * Tag representing all crimson log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> CRIMSON_STEMS;
+    @Nonnull
+    public static final XTag<XMaterial> CRIMSON_STEMS;
     /**
      * Tag representing all crops
      */
-    @Nonnull public static final XTag<XMaterial> CROPS;
+    @Nonnull
+    public static final XTag<XMaterial> CROPS;
     /**
      * Tag representing all possible blocks that can make crystal sounds
      */
-    @Nonnull public static final XTag<XMaterial> CRYSTAL_SOUND_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> CRYSTAL_SOUND_BLOCKS;
     /**
      * Tag representing all dark oak log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> DARK_OAK_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> DARK_OAK_LOGS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> DEAD_CORAL_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> DEAD_CORAL_BLOCKS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> DEAD_CORAL_FANS;
+    @Nonnull
+    public static final XTag<XMaterial> DEAD_CORAL_FANS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> DEAD_CORAL_PLANTS;
+    @Nonnull
+    public static final XTag<XMaterial> DEAD_CORAL_PLANTS;
     /**
      *
      */
-    @Nonnull public static final XTag<XMaterial> DEAD_CORAL_WALL_FANS;
+    @Nonnull
+    public static final XTag<XMaterial> DEAD_CORAL_WALL_FANS;
     /**
      * Tag representing all possible blocks that may be replaced by deepslate ores
      */
-    @Nonnull public static final XTag<XMaterial> DEEPSLATE_ORE_REPLACEABLES;
+    @Nonnull
+    public static final XTag<XMaterial> DEEPSLATE_ORE_REPLACEABLES;
     /**
      * Tag representing all possible variants of diamond ores
      */
-    @Nonnull public static final XTag<XMaterial> DIAMOND_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> DIAMOND_ORES;
     /**
      * Tag representing all dirt
      */
-    @Nonnull public static final XTag<XMaterial> DIRT;
+    @Nonnull
+    public static final XTag<XMaterial> DIRT;
     /**
      * Tag representing all possible types of doors
      */
-    @Nonnull public static final XTag<XMaterial> DOORS;
+    @Nonnull
+    public static final XTag<XMaterial> DOORS;
     /**
      * Tag representing all blocks that can't be destroyed by dragons
      */
-    @Nonnull public static final XTag<XMaterial> DRAGON_IMMUNE;
+    @Nonnull
+    public static final XTag<XMaterial> DRAGON_IMMUNE;
     /**
      * Tag representing all possible blocks that can be replaced by dripstone
      */
-    @Nonnull public static final XTag<XMaterial> DRIPSTONE_REPLACEABLE;
-    @Nonnull public static final XTag<XMaterial> WALL_HEADS;
+    @Nonnull
+    public static final XTag<XMaterial> DRIPSTONE_REPLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> WALL_HEADS;
     /**
      * Tag representing all variants of emerald ores
      */
-    @Nonnull public static final XTag<XMaterial> EMERALD_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> EMERALD_ORES;
     /**
      * Tag representing all possible blocks that can be picked up by endermen
      */
-    @Nonnull public static final XTag<XMaterial> ENDERMAN_HOLDABLE;
+    @Nonnull
+    public static final XTag<XMaterial> ENDERMAN_HOLDABLE;
     /**
      * Tag representing all blocks that cant be replaced by world generation features
      */
-    @Nonnull public static final XTag<XMaterial> FEATURES_CANNOT_REPLACE;
+    @Nonnull
+    public static final XTag<XMaterial> FEATURES_CANNOT_REPLACE;
     /**
      * Tag representing all possible variants of fence gates
      */
-    @Nonnull public static final XTag<XMaterial> FENCE_GATES;
+    @Nonnull
+    public static final XTag<XMaterial> FENCE_GATES;
     /**
      * Tag representing all possible variants of fences
      */
-    @Nonnull public static final XTag<XMaterial> FENCES;
+    @Nonnull
+    public static final XTag<XMaterial> FENCES;
     /**
      * Tag representing all possible variants fire
      */
-    @Nonnull public static final XTag<XMaterial> FIRE;
+    @Nonnull
+    public static final XTag<XMaterial> FIRE;
     /**
      * Tag representing all possible variants of flower pots
      */
-    @Nonnull public static final XTag<XMaterial> FLOWER_POTS;
+    @Nonnull
+    public static final XTag<XMaterial> FLOWER_POTS;
     /**
      * Tag representing all possible types of flowers
      */
-    @Nonnull public static final XTag<XMaterial> FLOWERS;
+    @Nonnull
+    public static final XTag<XMaterial> FLOWERS;
     /**
      * Tag representing all items can be used as food for fox
      */
-    @Nonnull public static final XTag<XMaterial> FOX_FOOD;
+    @Nonnull
+    public static final XTag<XMaterial> FOX_FOOD;
     /**
      * Tag representing all possible blocks foxes may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> FOXES_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> FOXES_SPAWNABLE_ON;
     /**
      * Tag representing all possible items can be used to avoid freezing
      */
-    @Nonnull public static final XTag<XMaterial> FREEZE_IMMUNE_WEARABLES;
+    @Nonnull
+    public static final XTag<XMaterial> FREEZE_IMMUNE_WEARABLES;
     /**
      * Tag representing all blocks that geodes will not spawn in
      */
-    @Nonnull public static final XTag<XMaterial> GEODE_INVALID_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> GEODE_INVALID_BLOCKS;
     /**
      * Tag representing all variants of glass
      */
-    @Nonnull public static final XTag<XMaterial> GLASS;
+    @Nonnull
+    public static final XTag<XMaterial> GLASS;
     /**
      * Tag representing all possible variants of glazed terracotta
      */
-    @Nonnull public static final XTag<XMaterial> GLAZED_TERRACOTTA;
+    @Nonnull
+    public static final XTag<XMaterial> GLAZED_TERRACOTTA;
     /**
      * Tag representing all possible blocks goats may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> GOATS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> GOATS_SPAWNABLE_ON;
     /**
      * Tag representing all possible variants of gold ores
      */
-    @Nonnull public static final XTag<XMaterial> GOLD_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> GOLD_ORES;
     /**
      * Tag representing all block types that are guarded by piglins
      */
-    @Nonnull public static final XTag<XMaterial> GUARDED_BY_PIGLINS;
+    @Nonnull
+    public static final XTag<XMaterial> GUARDED_BY_PIGLINS;
+    /**
+     * Tag representing all possible types of hanging signs
+     */
+    @Nonnull
+    public static final XTag<XMaterial> HANGING_SIGNS;
     /**
      * Tag representing all block types that repel hoglins
      */
-    @Nonnull public static final XTag<XMaterial> HOGLIN_REPELLENTS;
+    @Nonnull
+    public static final XTag<XMaterial> HOGLIN_REPELLENTS;
     /**
      * Tag representing all possible variants of ice
      */
-    @Nonnull public static final XTag<XMaterial> ICE;
+    @Nonnull
+    public static final XTag<XMaterial> ICE;
     /**
      * Tag representing all items ignored by baby piglins
      */
-    @Nonnull public static final XTag<XMaterial> IGNORED_BY_PIGLIN_BABIES;
+    @Nonnull
+    public static final XTag<XMaterial> IGNORED_BY_PIGLIN_BABIES;
     /**
      * Tag representing all possible block types that do not drip water/lava
      */
-    @Nonnull public static final XTag<XMaterial> IMPERMEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> IMPERMEABLE;
     /**
      * Tag representing all block types that can burn for infinitely long in the end
      */
-    @Nonnull public static final XTag<XMaterial> INFINIBURN_END;
+    @Nonnull
+    public static final XTag<XMaterial> INFINIBURN_END;
     /**
      * Tag representing all block types that can burn for infinitely long in the nether
      */
-    @Nonnull public static final XTag<XMaterial> INFINIBURN_NETHER;
+    @Nonnull
+    public static final XTag<XMaterial> INFINIBURN_NETHER;
     /**
      * Tag representing all block types that can burn for infinitely long in the overworld
      */
-    @Nonnull public static final XTag<XMaterial> INFINIBURN_OVERWORLD;
+    @Nonnull
+    public static final XTag<XMaterial> INFINIBURN_OVERWORLD;
     /**
      * Tag representing all block types that play muffled step sounds
      */
-    @Nonnull public static final XTag<XMaterial> INSIDE_STEP_SOUND_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> INSIDE_STEP_SOUND_BLOCKS;
     /**
      * Tag representing all possible variants of iron ores
      */
-    @Nonnull public static final XTag<XMaterial> IRON_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> IRON_ORES;
     /**
      * Tag representing all possible variants of arrows
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_ARROWS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_ARROWS;
     /**
      * Tag representing all items that can be used as banners
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_BANNERS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_BANNERS;
     /**
      * Tag representing all items that can be used to fuel beacon
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_BEACON_PAYMENT_ITEMS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_BEACON_PAYMENT_ITEMS;
     /**
      * Tag representing all possible variants of boats
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_BOATS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_BOATS;
     /**
      * Tag representing all possible variants of coal
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_COALS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_COALS;
     /**
      * Tag representing all possible music discs that can be dropped by creeper
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_CREEPER_DROP_MUSIC_DISCS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_CREEPER_DROP_MUSIC_DISCS;
     /**
      * Tag representing all possible types of fish
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_FISHES;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_FISHES;
     /**
      * Tag representing all furnace materials {empty in spigot as of 1.18}
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_FURNACE_MATERIALS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_FURNACE_MATERIALS;
     /**
      * Tag representing all possible book types that can be placed on lecterns
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_LECTERN_BOOKS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_LECTERN_BOOKS;
     /**
      * Tag representing all types of music discs
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_MUSIC_DISCS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_MUSIC_DISCS;
     /**
      * Tag representing all items loved by piglins
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_PIGLIN_LOVED;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_PIGLIN_LOVED;
     /**
      * Tag representing all stone tool materials
      */
-    @Nonnull public static final XTag<XMaterial> ITEMS_STONE_TOOL_MATERIALS;
+    @Nonnull
+    public static final XTag<XMaterial> ITEMS_STONE_TOOL_MATERIALS;
     /**
      * Tag representing all possible types of wall banners
      */
-    @Nonnull public static final XTag<XMaterial> WALL_BANNERS;
+    @Nonnull
+    public static final XTag<XMaterial> WALL_BANNERS;
     /**
      * Tag representing all jungle log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> JUNGLE_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> JUNGLE_LOGS;
     /**
      * Tag representing all possible variants of lapis ores
      */
-    @Nonnull public static final XTag<XMaterial> LAPIS_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> LAPIS_ORES;
     /**
      * Tag representing all blocks that can't be replaced by lava pools
      */
-    @Nonnull public static final XTag<XMaterial> LAVA_POOL_STONE_CANNOT_REPLACE;
+    @Nonnull
+    public static final XTag<XMaterial> LAVA_POOL_STONE_CANNOT_REPLACE;
     /**
      * Tag representing all types of leaves
      */
-    @Nonnull public static final XTag<XMaterial> LEAVES;
+    @Nonnull
+    public static final XTag<XMaterial> LEAVES;
     /**
      * Tag representing all wood and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> LOGS;
     /**
      * Tag representing all wood and bark variants that can catch fire
      */
-    @Nonnull public static final XTag<XMaterial> LOGS_THAT_BURN;
+    @Nonnull
+    public static final XTag<XMaterial> LOGS_THAT_BURN;
     /**
      * Tag representing all possible blocks that can be replaced by lush ground
      */
-    @Nonnull public static final XTag<XMaterial> LUSH_GROUND_REPLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> LUSH_GROUND_REPLACEABLE;
     /**
      * Tag representing all mangrove log and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> MANGROVE_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> MANGROVE_LOGS;
     /**
      * Tag representing all block types mineable with axe
      */
-    @Nonnull public static final XTag<XMaterial> MINEABLE_AXE;
+    @Nonnull
+    public static final XTag<XMaterial> MINEABLE_AXE;
     /**
      * Tag representing all block types mineable with hoe
      */
-    @Nonnull public static final XTag<XMaterial> MINEABLE_HOE;
+    @Nonnull
+    public static final XTag<XMaterial> MINEABLE_HOE;
     /**
      * Tag representing all block types mineable with pickaxe
      */
-    @Nonnull public static final XTag<XMaterial> MINEABLE_PICKAXE;
+    @Nonnull
+    public static final XTag<XMaterial> MINEABLE_PICKAXE;
     /**
      * Tag representing all block types mineable with shovel
      */
-    @Nonnull public static final XTag<XMaterial> MINEABLE_SHOVEL;
+    @Nonnull
+    public static final XTag<XMaterial> MINEABLE_SHOVEL;
     /**
      * Tag representing all possible block types mooshrooms can spawn on
      */
-    @Nonnull public static final XTag<XMaterial> MOOSHROOMS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> MOOSHROOMS_SPAWNABLE_ON;
     /**
      * Tag representing all block types that can be replaced by moss
      */
-    @Nonnull public static final XTag<XMaterial> MOSS_REPLACEABLE;
-    @Nonnull public static final XTag<XMaterial> MUSHROOM_GROW_BLOCK;
+    @Nonnull
+    public static final XTag<XMaterial> MOSS_REPLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> MUSHROOM_GROW_BLOCK;
     /**
      * Tag representing all block types that need minimum of diamond tool to drop items
      */
-    @Nonnull public static final XTag<XMaterial> NEEDS_DIAMOND_TOOL;
+    @Nonnull
+    public static final XTag<XMaterial> NEEDS_DIAMOND_TOOL;
     /**
      * Tag representing all block types that need minimum of iron tool to drop items
      */
-    @Nonnull public static final XTag<XMaterial> NEEDS_IRON_TOOL;
+    @Nonnull
+    public static final XTag<XMaterial> NEEDS_IRON_TOOL;
     /**
      * Tag representing all block types that need minimum of stone tool to drop items
      */
-    @Nonnull public static final XTag<XMaterial> NEEDS_STONE_TOOL;
+    @Nonnull
+    public static final XTag<XMaterial> NEEDS_STONE_TOOL;
     /**
      * Tag representing all non-flammable wood and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> NON_FLAMMABLE_WOOD;
+    @Nonnull
+    public static final XTag<XMaterial> NON_FLAMMABLE_WOOD;
     /**
      * Tag representing all non-wooden stairs
      */
-    @Nonnull public static final XTag<XMaterial> NON_WOODEN_STAIRS;
+    @Nonnull
+    public static final XTag<XMaterial> NON_WOODEN_STAIRS;
     /**
      * Tag representing all non-wooden slabs
      */
-    @Nonnull public static final XTag<XMaterial> NON_WOODEN_SLABS;
+    @Nonnull
+    public static final XTag<XMaterial> NON_WOODEN_SLABS;
     /**
      * Tag representing all nylium blocks
      */
-    @Nonnull public static final XTag<XMaterial> NYLIUM;
+    @Nonnull
+    public static final XTag<XMaterial> NYLIUM;
     /**
      * Tag representing all oak wood and bark variants
      */
-    @Nonnull public static final XTag<XMaterial> OAK_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> OAK_LOGS;
     /**
      * Tag representing all possible blocks that can block vibration signals
      */
-    @Nonnull public static final XTag<XMaterial> OCCLUDES_VIBRATION_SIGNALS;
+    @Nonnull
+    public static final XTag<XMaterial> OCCLUDES_VIBRATION_SIGNALS;
     /**
      * Tag representing all ores
      */
-    @Nonnull public static final XTag<XMaterial> ORES;
+    @Nonnull
+    public static final XTag<XMaterial> ORES;
     /**
      * Tag representing all possible block types parrots may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> PARROTS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> PARROTS_SPAWNABLE_ON;
     /**
      * Tag representing all items that can be used as piglin food
      */
-    @Nonnull public static final XTag<XMaterial> PIGLIN_FOOD;
+    @Nonnull
+    public static final XTag<XMaterial> PIGLIN_FOOD;
     /**
      * Tag representing all block types that repel piglins
      */
-    @Nonnull public static final XTag<XMaterial> PIGLIN_REPELLENTS;
+    @Nonnull
+    public static final XTag<XMaterial> PIGLIN_REPELLENTS;
     /**
      * Tag representing all types of planks
      */
-    @Nonnull public static final XTag<XMaterial> PLANKS;
+    @Nonnull
+    public static final XTag<XMaterial> PLANKS;
     /**
      * Tag representing all possible blocks polar bears may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN;
+    @Nonnull
+    public static final XTag<XMaterial> POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN;
     /**
      * Tag representing all possible block types that be used as portals
      */
-    @Nonnull public static final XTag<XMaterial> PORTALS;
+    @Nonnull
+    public static final XTag<XMaterial> PORTALS;
+    /**
+     * Tag representing all possible pottery sherds
+     */
+    @Nonnull
+    public static final XTag<XMaterial> POTTERY_SHERDS;
     /**
      * Tag representing all possible variants of pressure plates
      */
-    @Nonnull public static final XTag<XMaterial> PRESSURE_PLATES;
+    @Nonnull
+    public static final XTag<XMaterial> PRESSURE_PLATES;
     /**
      * Tag representing all block types that prevent inside mob spawning
      */
-    @Nonnull public static final XTag<XMaterial> PREVENT_MOB_SPAWNING_INSIDE;
+    @Nonnull
+    public static final XTag<XMaterial> PREVENT_MOB_SPAWNING_INSIDE;
     /**
      * Tag representing all possible block types that rabbits may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> RABBITS_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> RABBITS_SPAWNABLE_ON;
     /**
      * Tag representing all possible types of rails
      */
-    @Nonnull public static final XTag<XMaterial> RAILS;
+    @Nonnull
+    public static final XTag<XMaterial> RAILS;
     /**
      * Tag representing all possible variants of redstone ores
      */
-    @Nonnull public static final XTag<XMaterial> REDSTONE_ORES;
+    @Nonnull
+    public static final XTag<XMaterial> REDSTONE_ORES;
     /**
      * Tag representing all plant blocks that may be replaced
      */
-    @Nonnull public static final XTag<XMaterial> REPLACEABLE_PLANTS;
+    @Nonnull
+    public static final XTag<XMaterial> REPLACEABLE_PLANTS;
     /**
      * Tag representing all possible types of sand
      */
-    @Nonnull public static final XTag<XMaterial> SAND;
+    @Nonnull
+    public static final XTag<XMaterial> SAND;
     /**
      * Tag representing all possible types of saplings
      */
-    @Nonnull public static final XTag<XMaterial> SAPLINGS;
+    @Nonnull
+    public static final XTag<XMaterial> SAPLINGS;
     /**
      * Tag representing all possible variants of shulker boxes
      */
-    @Nonnull public static final XTag<XMaterial> SHULKER_BOXES;
+    @Nonnull
+    public static final XTag<XMaterial> SHULKER_BOXES;
     /**
      * Tag representing all possible variants of signs
      */
-    @Nonnull public static final XTag<XMaterial> SIGNS;
+    @Nonnull
+    public static final XTag<XMaterial> SIGNS;
     /**
      * Tag representing all possible block types small dripleaf may be placed upon
      */
-    @Nonnull public static final XTag<XMaterial> SMALL_DRIPLEAF_PLACEABLE;
+    @Nonnull
+    public static final XTag<XMaterial> SMALL_DRIPLEAF_PLACEABLE;
     /**
      * Tag representing all flowers small in size {1 block tall}
      */
-    @Nonnull public static final XTag<XMaterial> SMALL_FLOWERS;
+    @Nonnull
+    public static final XTag<XMaterial> SMALL_FLOWERS;
+    /**
+     * Tag representing all possible smithing templates
+     */
+    @Nonnull
+    public static final XTag<XMaterial> SMITHING_TEMPLATES;
     /**
      * Tag representing all possible variants of snow
      */
-    @Nonnull public static final XTag<XMaterial> SNOW;
+    @Nonnull
+    public static final XTag<XMaterial> SNOW;
     /**
      * Tag representing all possible blocks that can be lit up with sould fire
      */
-    @Nonnull public static final XTag<XMaterial> SOUL_FIRE_BASE_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> SOUL_FIRE_BASE_BLOCKS;
     /**
      * Tag representing all possible blocks that activate soul speed enchantment
      */
-    @Nonnull public static final XTag<XMaterial> SOUL_SPEED_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> SOUL_SPEED_BLOCKS;
     /**
      * Tag representing all spruce wood and log variants
      */
-    @Nonnull public static final XTag<XMaterial> SPRUCE_LOGS;
+    @Nonnull
+    public static final XTag<XMaterial> SPRUCE_LOGS;
     /**
      * Tag representing all possible types of stairs
      */
-    @Nonnull public static final XTag<XMaterial> STAIRS;
+    @Nonnull
+    public static final XTag<XMaterial> STAIRS;
     /**
      * Tag representing all possible types of standing signs
      */
-    @Nonnull public static final XTag<XMaterial> STANDING_SIGNS;
+    @Nonnull
+    public static final XTag<XMaterial> STANDING_SIGNS;
     /**
      * Tag representing all possible variants of stone bricks
      */
-    @Nonnull public static final XTag<XMaterial> STONE_BRICKS;
+    @Nonnull
+    public static final XTag<XMaterial> STONE_BRICKS;
     /**
      * Tag representing all possible blocks that can be replaced by regular stone ores
      */
-    @Nonnull public static final XTag<XMaterial> STONE_ORE_REPLACEABLES;
+    @Nonnull
+    public static final XTag<XMaterial> STONE_ORE_REPLACEABLES;
     /**
      * Tag representing all pressure plates made of some type of stone
      */
-    @Nonnull public static final XTag<XMaterial> STONE_PRESSURE_PLATES;
+    @Nonnull
+    public static final XTag<XMaterial> STONE_PRESSURE_PLATES;
     /**
      * Tag representing all block types that make strider warm
      */
-    @Nonnull public static final XTag<XMaterial> STRIDER_WARM_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> STRIDER_WARM_BLOCKS;
     /**
      * Tag representing all flowers that are tall {2 blocks}
      */
-    @Nonnull public static final XTag<XMaterial> TALL_FLOWERS;
+    @Nonnull
+    public static final XTag<XMaterial> TALL_FLOWERS;
     /**
      * Tag representing all possible variants of non-glazed terracotta
      */
-    @Nonnull public static final XTag<XMaterial> TERRACOTTA;
+    @Nonnull
+    public static final XTag<XMaterial> TERRACOTTA;
     /**
      * Tag representing all possible types of trapdoors
      */
-    @Nonnull public static final XTag<XMaterial> TRAPDOORS;
+    @Nonnull
+    public static final XTag<XMaterial> TRAPDOORS;
     /**
      * Tag representing all block types that can be bonemealed underwater
      */
-    @Nonnull public static final XTag<XMaterial> UNDERWATER_BONEMEALS;
+    @Nonnull
+    public static final XTag<XMaterial> UNDERWATER_BONEMEALS;
     /**
      * Tag representing all blocks that have unstable bottom when placed in centre of 2 blocks
      */
-    @Nonnull public static final XTag<XMaterial> UNSTABLE_BOTTOM_CENTER;
+    @Nonnull
+    public static final XTag<XMaterial> UNSTABLE_BOTTOM_CENTER;
     /**
      * Tag representing all valid mob spawn positions
      */
-    @Nonnull public static final XTag<XMaterial> VALID_SPAWN;
+    @Nonnull
+    public static final XTag<XMaterial> VALID_SPAWN;
     /**
      * Tag representing all possible block types that can override a wall post creation
      */
-    @Nonnull public static final XTag<XMaterial> WALL_POST_OVERRIDE;
+    @Nonnull
+    public static final XTag<XMaterial> WALL_POST_OVERRIDE;
     /**
      * Tag representing all wall signs
      */
-    @Nonnull public static final XTag<XMaterial> WALL_SIGNS;
-    @Nonnull public static final XTag<XMaterial> HANGING_SIGNS;
+    @Nonnull
+    public static final XTag<XMaterial> WALL_SIGNS;
     /**
      * Tag representing all different types of walls
      */
-    @Nonnull public static final XTag<XMaterial> WALLS;
+    @Nonnull
+    public static final XTag<XMaterial> WALLS;
     /**
      * Tag representing all warped stems
      */
-    @Nonnull public static final XTag<XMaterial> WARPED_STEMS;
+    @Nonnull
+    public static final XTag<XMaterial> WARPED_STEMS;
     /**
      * Tag representing all block types that can't be destroyed by withers
      */
-    @Nonnull public static final XTag<XMaterial> WITHER_IMMUNE;
+    @Nonnull
+    public static final XTag<XMaterial> WITHER_IMMUNE;
     /**
      * Tag representing all possible block types that may be used as wither summon base
      */
-    @Nonnull public static final XTag<XMaterial> WITHER_SUMMON_BASE_BLOCKS;
+    @Nonnull
+    public static final XTag<XMaterial> WITHER_SUMMON_BASE_BLOCKS;
     /**
      * Tag representing all possible block types that wolves may spawn on
      */
-    @Nonnull public static final XTag<XMaterial> WOLVES_SPAWNABLE_ON;
+    @Nonnull
+    public static final XTag<XMaterial> WOLVES_SPAWNABLE_ON;
     /**
      * Tag representing all possible types of wooden buttons
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_BUTTONS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_BUTTONS;
     /**
      * Tag representing all possible types of wooden doors
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_DOORS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_DOORS;
     /**
      * Tag representing all possible types of wooden fence gates
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_FENCE_GATES;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_FENCE_GATES;
     /**
      * Tag representing all possible types of wooden fences
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_FENCES;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_FENCES;
     /**
      * Tag representing all possible types of wooden pressure plates
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_PRESSURE_PLATES;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_PRESSURE_PLATES;
     /**
      * Tag representing all possible types of wooden slabs
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_SLABS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_SLABS;
     /**
      * Tag representing all possible types of wooden stairs
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_STAIRS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_STAIRS;
     /**
      * Tag representing all possible types of wooden trapdoors
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_TRAPDOORS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_TRAPDOORS;
     /**
      * Tag representing all possible types of wool
      */
-    @Nonnull public static final XTag<XMaterial> WOOL;
+    @Nonnull
+    public static final XTag<XMaterial> WOOL;
 
 
     /**
      * Tag representing all armor pieces made of leather
      */
-    @Nonnull public static final XTag<XMaterial> LEATHER_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> LEATHER_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces made of iron
      */
-    @Nonnull public static final XTag<XMaterial> IRON_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> IRON_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces made of chains
      */
-    @Nonnull public static final XTag<XMaterial> CHAINMAIL_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> CHAINMAIL_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces made of gold
      */
-    @Nonnull public static final XTag<XMaterial> GOLDEN_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> GOLDEN_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces made of diamond
      */
-    @Nonnull public static final XTag<XMaterial> DIAMOND_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> DIAMOND_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces made of netherite
      */
-    @Nonnull public static final XTag<XMaterial> NETHERITE_ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> NETHERITE_ARMOR_PIECES;
     /**
      * Tag representing all armor pieces that add armor bars upon wearing
      */
-    @Nonnull public static final XTag<XMaterial> ARMOR_PIECES;
+    @Nonnull
+    public static final XTag<XMaterial> ARMOR_PIECES;
     /**
      * Tag representing all wooden tools and swords
      */
-    @Nonnull public static final XTag<XMaterial> WOODEN_TOOLS;
+    @Nonnull
+    public static final XTag<XMaterial> WOODEN_TOOLS;
     /**
      * This doesn't refer to all materials that contain fluids, but pure fluids.
      */
-    @Nonnull public static final XTag<XMaterial> FLUID;
+    @Nonnull
+    public static final XTag<XMaterial> FLUID;
     /**
      * Tag representing all stone tools and swords
      */
-    @Nonnull public static final XTag<XMaterial> STONE_TOOLS;
+    @Nonnull
+    public static final XTag<XMaterial> STONE_TOOLS;
     /**
      * Tag representing all iron tools and swords
      */
-    @Nonnull public static final XTag<XMaterial> IRON_TOOLS;
+    @Nonnull
+    public static final XTag<XMaterial> IRON_TOOLS;
     /**
      * Tag representing all diamond tools and swords
      */
-    @Nonnull public static final XTag<XMaterial> DIAMOND_TOOLS;
+    @Nonnull
+    public static final XTag<XMaterial> DIAMOND_TOOLS;
     /**
      * Tag representing all netherite tools and swords
      */
-    @Nonnull public static final XTag<XMaterial> NETHERITE_TOOLS;
+    @Nonnull
+    public static final XTag<XMaterial> NETHERITE_TOOLS;
 
     /**
      * Tag representing all possible enchants that can be applied to all armor pieces (excluding elytras)
      */
-    @Nonnull public static final XTag<XEnchantment> ARMOR_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> ARMOR_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to helmets/turtle shells
      */
-    @Nonnull public static final XTag<XEnchantment> HELEMT_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> HELEMT_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to chestplates
      */
-    @Nonnull public static final XTag<XEnchantment> CHESTPLATE_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> CHESTPLATE_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to leggings
      */
-    @Nonnull public static final XTag<XEnchantment> LEGGINGS_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> LEGGINGS_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to boots
      */
-    @Nonnull public static final XTag<XEnchantment> BOOTS_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> BOOTS_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to elytras
      */
-    @Nonnull public static final XTag<XEnchantment> ELYTRA_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> ELYTRA_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to swords
      */
-    @Nonnull public static final XTag<XEnchantment> SWORD_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> SWORD_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to axes
      */
-    @Nonnull public static final XTag<XEnchantment> AXE_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> AXE_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to hoes
      */
-    @Nonnull public static final XTag<XEnchantment> HOE_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> HOE_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to pickaxes
      */
-    @Nonnull public static final XTag<XEnchantment> PICKAXE_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> PICKAXE_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to shovels
      */
-    @Nonnull public static final XTag<XEnchantment> SHOVEL_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> SHOVEL_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to shears
      */
-    @Nonnull public static final XTag<XEnchantment> SHEARS_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> SHEARS_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to bows
      */
-    @Nonnull public static final XTag<XEnchantment> BOW_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> BOW_ENCHANTS;
     /**
      * Tag representing all possible enchants that can be applied to crossbows
      */
-    @Nonnull public static final XTag<XEnchantment> CROSSBOW_ENCHANTS;
+    @Nonnull
+    public static final XTag<XEnchantment> CROSSBOW_ENCHANTS;
 
     static { // logs
         ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
@@ -822,6 +1039,14 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.SPRUCE_LOG,
                 XMaterial.SPRUCE_WOOD,
                 XMaterial.STRIPPED_SPRUCE_WOOD);
+        CHERRY_LOGS = new XTag<>(XMaterial.STRIPPED_CHERRY_LOG,
+                XMaterial.CHERRY_LOG,
+                XMaterial.CHERRY_WOOD,
+                XMaterial.STRIPPED_CHERRY_WOOD);
+        BAMBOO_LOGS = new XTag<>(XMaterial.STRIPPED_BAMBOO_BLOCK,
+                XMaterial.BAMBOO_BLOCK,
+                XMaterial.BAMBOO_MOSAIC,
+                XMaterial.BAMBOO_PLANKS);
     }
 
     static { // colorable
@@ -845,7 +1070,7 @@ public final class XTag<T extends Enum<T>> {
     static { // wooded material
         STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
         WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
-        HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
+        HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
         WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
         WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
         WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
@@ -1079,7 +1304,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.POTTED_SPRUCE_SAPLING,
                 XMaterial.POTTED_JUNGLE_SAPLING,
                 XMaterial.POTTED_BIRCH_SAPLING,
-                XMaterial.POTTED_MANGROVE_PROPAGULE);
+                XMaterial.POTTED_MANGROVE_PROPAGULE,
+                XMaterial.POTTED_CHERRY_SAPLING);
         FOX_FOOD = new XTag<>(XMaterial.GLOW_BERRIES,
                 XMaterial.SWEET_BERRIES);
         FOXES_SPAWNABLE_ON = new XTag<>(XMaterial.SNOW,
@@ -1130,7 +1356,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BIRCH_BOAT,
                 XMaterial.SPRUCE_BOAT,
                 XMaterial.JUNGLE_BOAT,
-                XMaterial.MANGROVE_BOAT);
+                XMaterial.MANGROVE_BOAT,
+                XMaterial.CHERRY_BOAT,
+                XMaterial.BAMBOO_RAFT);
         ITEMS_COALS = new XTag<>(XMaterial.COAL,
                 XMaterial.CHARCOAL);
         ITEMS_CREEPER_DROP_MUSIC_DISCS = new XTag<>(XMaterial.MUSIC_DISC_BLOCKS,
@@ -1165,7 +1393,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.BIRCH_LEAVES,
                 XMaterial.OAK_LEAVES,
-                XMaterial.MANGROVE_LEAVES);
+                XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES);
         NON_WOODEN_STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
                 XMaterial.STONE_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
@@ -1251,6 +1480,26 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
                 XMaterial.BRICK_SLAB,
                 XMaterial.POLISHED_GRANITE_SLAB);
+        POTTERY_SHERDS = new XTag<>(XMaterial.ANGLER_POTTERY_SHERD,
+                XMaterial.ARCHER_POTTERY_SHERD,
+                XMaterial.ARMS_UP_POTTERY_SHERD,
+                XMaterial.BLADE_POTTERY_SHERD,
+                XMaterial.BREWER_POTTERY_SHERD,
+                XMaterial.BURN_POTTERY_SHERD,
+                XMaterial.DANGER_POTTERY_SHERD,
+                XMaterial.EXPLORER_POTTERY_SHERD,
+                XMaterial.FRIEND_POTTERY_SHERD,
+                XMaterial.HEART_POTTERY_SHERD,
+                XMaterial.HEARTBREAK_POTTERY_SHERD,
+                XMaterial.HOWL_POTTERY_SHERD,
+                XMaterial.MINER_POTTERY_SHERD,
+                XMaterial.MOURNER_POTTERY_SHERD,
+                XMaterial.PLENTY_POTTERY_SHERD,
+                XMaterial.PRIZE_POTTERY_SHERD,
+                XMaterial.SHEAF_POTTERY_SHERD,
+                XMaterial.SHELTER_POTTERY_SHERD,
+                XMaterial.SKULL_POTTERY_SHERD,
+                XMaterial.SNORT_POTTERY_SHERD);
         SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
         SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
@@ -1274,7 +1523,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.OAK_SAPLING,
                 XMaterial.FLOWERING_AZALEA,
                 XMaterial.BIRCH_SAPLING,
-                XMaterial.MANGROVE_PROPAGULE);
+                XMaterial.MANGROVE_PROPAGULE,
+                XMaterial.CHERRY_SAPLING);
         WOLVES_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK);
@@ -1594,6 +1844,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.TARGET,
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES,
                 XMaterial.MOSS_BLOCK);
 
         LAVA_POOL_STONE_CANNOT_REPLACE = new XTag<>(XMaterial.DARK_OAK_LEAVES,
@@ -1602,6 +1853,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CRIMSON_HYPHAE,
                 XMaterial.JUNGLE_LEAVES,
                 XMaterial.MANGROVE_LEAVES,
+                XMaterial.CHERRY_LEAVES,
                 XMaterial.DARK_OAK_WOOD,
                 XMaterial.STRIPPED_ACACIA_LOG,
                 XMaterial.DARK_OAK_LOG,
@@ -1611,6 +1863,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.JUNGLE_LOG,
                 XMaterial.SPRUCE_LOG,
                 XMaterial.MANGROVE_LOG,
+                XMaterial.CHERRY_LOG,
                 XMaterial.STRIPPED_CRIMSON_HYPHAE,
                 XMaterial.SPRUCE_LEAVES,
                 XMaterial.STRIPPED_BIRCH_LOG,
@@ -1620,6 +1873,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BIRCH_WOOD,
                 XMaterial.STRIPPED_JUNGLE_WOOD,
                 XMaterial.STRIPPED_MANGROVE_LOG,
+                XMaterial.STRIPPED_CHERRY_LOG,
                 XMaterial.WARPED_HYPHAE,
                 XMaterial.CHEST,
                 XMaterial.FLOWERING_AZALEA_LEAVES,
@@ -1631,6 +1885,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.OAK_LEAVES,
                 XMaterial.STRIPPED_BIRCH_WOOD,
                 XMaterial.STRIPPED_MANGROVE_WOOD,
+                XMaterial.STRIPPED_CHERRY_WOOD,
                 XMaterial.STRIPPED_JUNGLE_LOG,
                 XMaterial.WARPED_STEM,
                 XMaterial.END_PORTAL_FRAME,
@@ -1639,6 +1894,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.STRIPPED_SPRUCE_WOOD,
                 XMaterial.JUNGLE_WOOD,
                 XMaterial.MANGROVE_WOOD,
+                XMaterial.CHERRY_WOOD,
                 XMaterial.STRIPPED_OAK_WOOD,
                 XMaterial.STRIPPED_WARPED_STEM,
                 XMaterial.OAK_LOG,
@@ -1701,6 +1957,23 @@ public final class XTag<T extends Enum<T>> {
                 GOLDEN_ARMOR_PIECES,
                 DIAMOND_ARMOR_PIECES,
                 NETHERITE_ARMOR_PIECES);
+        SMITHING_TEMPLATES = new XTag<>(XMaterial.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
+                XMaterial.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.HOST_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.RIB_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WARD_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
+                XMaterial.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
 
         AZALEA_GROWS_ON = new XTag<>(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW);
         AZALEA_GROWS_ON.inheritFrom(TERRACOTTA, SAND, DIRT);
@@ -1799,7 +2072,8 @@ public final class XTag<T extends Enum<T>> {
                 SPRUCE_LOGS,
                 JUNGLE_LOGS,
                 BIRCH_LOGS,
-                MANGROVE_LOGS);
+                MANGROVE_LOGS,
+                CHERRY_LOGS);
         LOGS = new XTag<>(XMaterial.class,
                 LOGS_THAT_BURN,
                 CRIMSON_STEMS,
@@ -1986,12 +2260,13 @@ public final class XTag<T extends Enum<T>> {
         FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
 
         INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, FIRE, FLUID, PORTALS, WALL_SIGNS,
-                HANGING_SIGNS, CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
+                CORAL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS,
                 new XTag<>(XMaterial.SWEET_BERRY_BUSH, XMaterial.CHORUS_PLANT, XMaterial.KELP_PLANT,
                         XMaterial.CAVE_VINES_PLANT, XMaterial.TWISTING_VINES_PLANT, XMaterial.WEEPING_VINES_PLANT));
     }
 
-    @Nonnull private Set<T> values;
+    @Nonnull
+    private Set<T> values;
 
     @SafeVarargs
     private XTag(@Nonnull T... values) {
@@ -2016,7 +2291,7 @@ public final class XTag<T extends Enum<T>> {
     }
 
     private static XMaterial[] findAllWoodTypes(String material) {
-        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON", "MANGROVE"};
+        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON", "MANGROVE", "CHERRY", "BAMBOO"};
         List<XMaterial> list = new ArrayList<>();
         for (String wood : woodPrefixes) {
             XMaterial.matchXMaterial(wood + '_' + material).ifPresent(list::add);

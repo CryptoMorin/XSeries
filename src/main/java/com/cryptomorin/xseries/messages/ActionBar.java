@@ -105,7 +105,7 @@ public final class ActionBar {
 
                 // Game Info Message Type
                 Class<?> chatMessageTypeClass = Class.forName(
-                        NMS + v(17, "network.chat").orElse("") + "ChatMessageType"
+                        NMS_PACKAGE + v(17, "network.chat").orElse("") + "ChatMessageType"
                 );
 
                 // Packet Constructor
@@ -138,7 +138,8 @@ public final class ActionBar {
         PACKET_PLAY_OUT_CHAT = packet;
     }
 
-    private ActionBar() {}
+    private ActionBar() {
+    }
 
     /**
      * Sends an action bar to a player.
@@ -154,7 +155,6 @@ public final class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
-     *
      * @see #sendActionBar(Plugin, Player, String, long)
      * @since 3.2.0
      */
@@ -181,7 +181,6 @@ public final class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
-     *
      * @see #sendActionBar(Plugin, Player, String, long)
      * @since 1.0.0
      */
@@ -213,7 +212,6 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send.
      * @param duration the duration to keep the action bar in ticks.
-     *
      * @see #sendActionBarWhile(Plugin, Player, String, Callable)
      * @since 1.0.0
      */
@@ -239,7 +237,6 @@ public final class ActionBar {
      * Sends an action bar all the online players.
      *
      * @param message the message to send.
-     *
      * @see #sendActionBar(Player, String)
      * @since 1.0.0
      */
@@ -251,7 +248,6 @@ public final class ActionBar {
      * Clear the action bar by sending an empty message.
      *
      * @param player the player to send the action bar to.
-     *
      * @see #sendActionBar(Player, String)
      * @since 2.1.1
      */
@@ -280,7 +276,6 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will not be updated.
      * @param callable the condition for the action bar to continue.
-     *
      * @see #sendActionBar(Plugin, Player, String, long)
      * @since 1.0.0
      */
@@ -312,7 +307,6 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will be updated.
      * @param callable the condition for the action bar to continue.
-     *
      * @see #sendActionBarWhile(Plugin, Player, String, Callable)
      * @since 1.0.0
      */
