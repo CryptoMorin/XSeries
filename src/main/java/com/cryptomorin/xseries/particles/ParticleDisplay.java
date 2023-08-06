@@ -390,9 +390,18 @@ public class ParticleDisplay implements Cloneable {
     @SuppressWarnings("deprecation")
     public static void serialize(ParticleDisplay display, ConfigurationSection section) {
         section.set("particle", display.particle.name());
-        section.set("count", display.count);
-        section.set("extra", display.extra);
-        section.set("force", display.force);
+
+        if (display.count != 1) {
+            section.set("count", display.count);
+        }
+
+        if (display.extra != 0) {
+            section.set("extra", display.extra);
+        }
+
+        if (display.force) {
+            section.set("force", true);
+        }
 
         if (display.offset != null) {
             section.set("offset", display.offset.getX() + ", " + display.offset.getY() + ", " + display.offset.getZ());
