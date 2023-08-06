@@ -419,9 +419,8 @@ public class ParticleDisplay implements Cloneable {
             section.set("rotation-order", builder.toString());
         }
 
-        float size = 1f;
-
         if (display.data instanceof float[]) {
+            float size = 1f;
             float[] datas = (float[]) display.data;
             StringJoiner colorJoiner = new StringJoiner(", ");
             if (datas.length >= 3) {
@@ -440,6 +439,7 @@ public class ParticleDisplay implements Cloneable {
                 colorJoiner.add(Integer.toString(color2.getBlue()));
             }
             section.set("color", colorJoiner.toString());
+            section.set("size", size);
         }
 
         if (ISFLAT) {
@@ -452,8 +452,6 @@ public class ParticleDisplay implements Cloneable {
         } else if (display.data instanceof MaterialData) {
             section.set("materialdata", ((MaterialData) display.data).getItemType().name());
         }
-
-        section.set("size", size);
     }
 
     /**
