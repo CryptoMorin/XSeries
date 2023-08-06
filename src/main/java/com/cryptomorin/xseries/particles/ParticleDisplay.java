@@ -412,11 +412,8 @@ public class ParticleDisplay implements Cloneable {
         }
 
         if (display.rotationOrder != DEFAULT_ROTATION_ORDER) {
-            StringBuilder builder = new StringBuilder();
-            for (Axis axis : display.rotationOrder) {
-                builder.append(axis.name());
-            }
-            section.set("rotation-order", builder.toString());
+            Axis[] order = display.rotationOrder;
+            section.set("rotation-order", order[0].name() + order[1].name() + order[2].name());
         }
 
         if (display.data instanceof float[]) {
