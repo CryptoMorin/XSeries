@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Crypto Morin
+ * Copyright (c) 2023 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ import java.util.function.Function;
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see ReflectionUtils
  */
 public final class Titles implements Cloneable {
@@ -65,6 +65,12 @@ public final class Titles implements Cloneable {
     private String title, subtitle;
     private final int fadeIn, stay, fadeOut;
 
+    /**
+     * From the latest 1.11.2 not checked with supports() to prevent
+     * errors on outdated 1.11 versions.
+     */
+    private static final boolean SUPPORTS_TITLES;
+
     static {
         MethodHandle packetCtor = null;
         MethodHandle chatComp = null;
@@ -74,7 +80,19 @@ public final class Titles implements Cloneable {
         Object subtitle = null;
         Object clear = null;
 
-        if (!ReflectionUtils.supports(11)) {
+
+        boolean SUPPORTS_TITLES1;
+        try {
+            Player.class.getDeclaredMethod("sendTitle",
+                    String.class, String.class,
+                    int.class, int.class, int.class);
+            SUPPORTS_TITLES1 = true;
+        } catch (NoSuchMethodException e) {
+            SUPPORTS_TITLES1 = false;
+        }
+        SUPPORTS_TITLES = SUPPORTS_TITLES1;
+
+        if (!SUPPORTS_TITLES) {
             Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
             Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
             Class<?> titleTypes = packet.getDeclaredClasses()[0];
@@ -151,7 +169,7 @@ public final class Titles implements Cloneable {
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
-        if (ReflectionUtils.supports(11)) {
+        if (SUPPORTS_TITLES) {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             return;
         }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Crypto Morin
+ * Copyright (c) 2023 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.3.1
+ * @version 7.3.2
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -642,10 +642,14 @@ public final class XItemStack {
             BlockState state = bsm.getBlockState();
 
             if (state instanceof CreatureSpawner) {
+                // Do we still need this? XMaterial handles it, doesn't it?
                 CreatureSpawner spawner = (CreatureSpawner) state;
-                spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, config.getString("spawner").toUpperCase(Locale.ENGLISH)).orNull());
-                spawner.update(true);
-                bsm.setBlockState(spawner);
+                String spawnerStr = config.getString("spawner");
+                if (!Strings.isNullOrEmpty(spawnerStr)) {
+                    spawner.setSpawnedType(Enums.getIfPresent(EntityType.class, spawnerStr.toUpperCase(Locale.ENGLISH)).orNull());
+                    spawner.update(true);
+                    bsm.setBlockState(spawner);
+                }
             } else if (supports(11) && state instanceof ShulkerBox) {
                 ConfigurationSection shulkerSection = config.getConfigurationSection("contents");
                 if (shulkerSection != null) {

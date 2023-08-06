@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Crypto Morin
+ * Copyright (c) 2023 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,14 +100,18 @@ import java.util.function.BooleanSupplier;
  * Getting started with <a href="https://www.spigotmc.org/wiki/vector-programming-for-beginners/">Vectors</a><br>
  * Extra stuff if you want to read more: https://www.spigotmc.org/threads/418399/<br>
  * Particles: https://minecraft.gamepedia.com/Particles<br>
+ * <p>
+ * This class also uses {@link BooleanSupplier} and {@link Runnable} for repeating/delayed tasks
+ * in order to be compatible with other server softwares such as <a href="https://papermc.io/software/folia">Folia</a>.
  *
  * @author Crypto Morin
- * @version 5.0.1
+ * @version 6.0.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
  * @see Vector
  */
+@SuppressWarnings("JavadocLinkAsPlainText")
 public final class XParticle {
     /**
      * A full circle has two PIs.
@@ -415,6 +419,7 @@ public final class XParticle {
     public static void filledCircle(double radius, double rate, double radiusRate, ParticleDisplay display) {
         double dynamicRate = 0;
         for (double i = 0.1; i < radius; i += radiusRate) {
+            //noinspection ConstantValue
             if (i > radius) i = radius;
             dynamicRate += rate / (radius / radiusRate);
             circle(i, dynamicRate, display);
@@ -433,7 +438,7 @@ public final class XParticle {
      * <p>
      * Changing the mass or length to a lower value can make the
      * shape stop producing new paths since it reaches the doubles limit.
-     * Source: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
+     * Source: <a href="https://www.myphysicslab.com/pendulum/double-pendulum-en.html">myphysicslab</a>
      *
      * @param radius     the radius of the pendulum. Yes this doesn't depend on length since the length needs to be a really
      *                   high value and this won't work with Minecraft's xyz.
@@ -525,7 +530,7 @@ public final class XParticle {
      * <p>
      * Changing the mass or length to a lower value can make the
      * shape stop producing new paths since it reaches the doubles limit.
-     * Source: https://www.myphysicslab.com/pendulum/double-pendulum-en.html
+     * <a href="https://www.myphysicslab.com/pendulum/double-pendulum-en.html">Source</a>
      *
      * @param plugin     the timer handler.
      * @param radius     the radius of the pendulum. Yes this doesn't depend on length since the length needs to be a really
@@ -1193,7 +1198,7 @@ public final class XParticle {
 
     /**
      * Spawn a sphere.
-     * Tutorial: https://www.spigotmc.org/threads/146338/
+     * <a href="https://www.spigotmc.org/threads/146">Spigot Thread Tutorial</a>
      * Also uses its own unique directional pattern.
      *
      * @param radius the circle radius.
@@ -1789,7 +1794,7 @@ public final class XParticle {
 
     /**
      * Spawns a line from a location to another.
-     * Tutorial: https://www.spigotmc.org/threads/176695/
+     * <a href="https://www.spigotmc.org/threads/176695/">Spigot Thread Tutorial</a>
      * This method is a modified version to get the best performance.
      *
      * @param start the starting point of the line.
@@ -1814,6 +1819,7 @@ public final class XParticle {
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
+            //noinspection ConstantValue
             if (i > length) i = length;
             clone.spawn(x * i, y * i, z * i);
         }
@@ -2001,10 +2007,10 @@ public final class XParticle {
     /**
      * Inaccurate representation of hypercubes. Just a bunch of tesseracts.
      * New smaller tesseracts will be created as the dimension increases.
-     * https://en.wikipedia.org/wiki/Hypercube
+     * <a href="https://en.wikipedia.org/wiki/Hypercube">Hypercube</a>
      * <p>
      * I'm still looking for a way to make this animated
-     * but it's damn confusing: https://www.youtube.com/watch?v=iGO12Z5Lw8s
+     * but it's damn confusing: <a href="https://www.youtube.com/watch?v=iGO12Z5Lw8s">YouTube</a>
      *
      * @param startOrigin the starting point for the original cube.
      * @param endOrigin   the endnig point for the original cube.

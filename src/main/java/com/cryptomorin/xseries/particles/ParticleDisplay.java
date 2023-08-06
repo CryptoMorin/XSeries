@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Crypto Morin
+ * Copyright (c) 2023 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ import java.util.function.Predicate;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 7.1.0
+ * @version 7.2.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -404,11 +404,15 @@ public class ParticleDisplay implements Cloneable {
         }
 
         if (display.offset != null) {
-            section.set("offset", display.offset.getX() + ", " + display.offset.getY() + ", " + display.offset.getZ());
+            Vector offset = display.offset;
+            section.set("offset", offset.getX() + ", " + offset.getY() + ", " + offset.getZ());
         }
 
         if (display.rotation != null) {
-            section.set("rotation", Math.toDegrees(display.rotation.getX()) + ", " + Math.toDegrees(display.rotation.getY()) + ", " + Math.toDegrees(display.rotation.getZ()));
+            Vector rotation = display.rotation;
+            section.set("rotation", Math.toDegrees(rotation.getX()) + ", " +
+                    Math.toDegrees(rotation.getY()) + ", " +
+                    Math.toDegrees(rotation.getZ()));
         }
 
         if (display.rotationOrder != DEFAULT_ROTATION_ORDER) {
