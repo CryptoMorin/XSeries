@@ -423,23 +423,23 @@ public class ParticleDisplay implements Cloneable {
 
         if (display.data instanceof float[]) {
             float[] datas = (float[]) display.data;
-            List<String> colors = new ArrayList<>();
+            StringJoiner colorJoiner = new StringJoiner(", ");
             if (datas.length >= 3) {
                 if (datas.length > 3) {
                     size = datas[3];
                 }
                 Color color1 = new Color(datas[0], datas[1], datas[2]);
-                colors.add(Integer.toString(color1.getRed()));
-                colors.add(Integer.toString(color1.getGreen()));
-                colors.add(Integer.toString(color1.getBlue()));
+                colorJoiner.add(Integer.toString(color1.getRed()));
+                colorJoiner.add(Integer.toString(color1.getGreen()));
+                colorJoiner.add(Integer.toString(color1.getBlue()));
             }
             if (datas.length >= 7) {
                 Color color2 = new Color(datas[4], datas[5], datas[6]);
-                colors.add(Integer.toString(color2.getRed()));
-                colors.add(Integer.toString(color2.getGreen()));
-                colors.add(Integer.toString(color2.getBlue()));
+                colorJoiner.add(Integer.toString(color2.getRed()));
+                colorJoiner.add(Integer.toString(color2.getGreen()));
+                colorJoiner.add(Integer.toString(color2.getBlue()));
             }
-            section.set("color", String.join(", ", colors));
+            section.set("color", colorJoiner.toString());
         }
 
         if (ISFLAT) {
