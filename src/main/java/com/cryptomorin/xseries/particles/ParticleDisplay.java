@@ -382,6 +382,76 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Serialize a ParticleDisplay into a ConfigurationSection
+     *
+     * @param display The ParticleDisplay to serialize
+     * @param section The ConfigurationSection to serialize into
+     */
+    @SuppressWarnings("deprecation")
+    public static void serialize(ParticleDisplay display, ConfigurationSection section) {
+        section.set("particle", display.particle.name());
+
+        if (display.count != 1) {
+            section.set("count", display.count);
+        }
+
+        if (display.extra != 0) {
+            section.set("extra", display.extra);
+        }
+
+        if (display.force) {
+            section.set("force", true);
+        }
+
+        if (display.offset != null) {
+            section.set("offset", display.offset.getX() + ", " + display.offset.getY() + ", " + display.offset.getZ());
+        }
+
+        if (display.rotation != null) {
+            section.set("rotation", Math.toDegrees(display.rotation.getX()) + ", " + Math.toDegrees(display.rotation.getY()) + ", " + Math.toDegrees(display.rotation.getZ()));
+        }
+
+        if (display.rotationOrder != DEFAULT_ROTATION_ORDER) {
+            Axis[] order = display.rotationOrder;
+            section.set("rotation-order", order[0].name() + order[1].name() + order[2].name());
+        }
+
+        if (display.data instanceof float[]) {
+            float size = 1f;
+            float[] datas = (float[]) display.data;
+            StringJoiner colorJoiner = new StringJoiner(", ");
+            if (datas.length >= 3) {
+                if (datas.length > 3) {
+                    size = datas[3];
+                }
+                Color color1 = new Color(datas[0], datas[1], datas[2]);
+                colorJoiner.add(Integer.toString(color1.getRed()));
+                colorJoiner.add(Integer.toString(color1.getGreen()));
+                colorJoiner.add(Integer.toString(color1.getBlue()));
+            }
+            if (datas.length >= 7) {
+                Color color2 = new Color(datas[4], datas[5], datas[6]);
+                colorJoiner.add(Integer.toString(color2.getRed()));
+                colorJoiner.add(Integer.toString(color2.getGreen()));
+                colorJoiner.add(Integer.toString(color2.getBlue()));
+            }
+            section.set("color", colorJoiner.toString());
+            section.set("size", size);
+        }
+
+        if (ISFLAT) {
+            if (display.data instanceof BlockData) {
+                section.set("blockdata", ((BlockData) display.data).getMaterial().name());
+            }
+        }
+        if (display.data instanceof ItemStack) {
+            section.set("itemstack", ((ItemStack) display.data).getType().name());
+        } else if (display.data instanceof MaterialData) {
+            section.set("materialdata", ((MaterialData) display.data).getItemType().name());
+        }
+    }
+
+    /**
      * Rotates the given location vector around a certain axis.
      *
      * @param location the location to rotate.
@@ -472,6 +542,34 @@ public class ParticleDisplay implements Cloneable {
      */
     public void withParticle(@Nonnull Particle particle) {
         this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
+    }
+
+    /**
+     * Get the particle.
+     *
+     * @return the particle.
+     */
+    @Nonnull
+    public Particle getParticle() {
+        return particle;
+    }
+
+    /**
+     * Get the count of the particle.
+     *
+     * @return the count of the particle.
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * Get the extra data of the particle.
+     *
+     * @return the extra data of the particle.
+     */
+    public double getExtra() {
+        return extra;
     }
 
     /**
