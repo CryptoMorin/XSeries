@@ -22,10 +22,13 @@
 package com.cryptomorin.xseries;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class XTag<T extends Enum<T>> {
@@ -2300,6 +2303,137 @@ public final class XTag<T extends Enum<T>> {
     @SafeVarargs
     private XTag(@Nonnull T... values) {
         this.values = Collections.unmodifiableSet(EnumSet.copyOf(Arrays.asList(values)));
+    }
+
+    /**
+     * Compiles a list of string checkers for various classes like {@link XMaterial}, {@link XSound}, etc.
+     * Mostly used for configs.
+     * <p>
+     * Supports {@link String#contains} {@code CONTAINS:NAME} and Regular Expression {@code REGEX:PATTERN} formats.
+     * <p>
+     * <b>Example:</b>
+     * <blockquote><pre>
+     *     XMaterial material = {@link XMaterial#matchXMaterial(ItemStack)};
+     *     if (XTag.anyMatch(XTag.stringMatcher(plugin.getConfig().getStringList("disabled-items"), null)) return;
+     * </pre></blockquote>
+     * <br>
+     * <b>{@code CONTAINS} Examples:</b>
+     * <pre>
+     *     {@code "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true}
+     *     {@code "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true}
+     * </pre>
+     * <p>
+     * <b>{@code REGEX} Examples</b>
+     * <pre>
+     *     {@code "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG}
+     *     {@code "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR}
+     * </pre>
+     * <p>
+     * The reason that there are tags for {@code CONTAINS} and {@code REGEX} is for the performance.
+     * Server owners should be advised to avoid using {@code REGEX} tag if they can use the {@code CONTAINS} tag instead.
+     * <p>
+     * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
+     *
+     * @param elements the material names to check base material on.
+     * @return a compiled list of enum matchers.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E> List<Matcher<E>> stringMatcher(@Nullable Collection<String> elements,
+                                              @Nullable Collection<Matcher.Error> errors) {
+        if (elements == null || elements.isEmpty()) return new ArrayList<>();
+        List<Matcher<E>> matchers = new ArrayList<>(elements.size());
+
+        for (String comp : elements) {
+            String checker = comp.toUpperCase(Locale.ENGLISH);
+            if (checker.startsWith("CONTAINS:")) {
+                comp = XMaterial.format(checker.substring(9));
+                matchers.add(new Matcher.TextMatcher<>(comp, true));
+                continue;
+            }
+            if (checker.startsWith("REGEX:")) {
+                comp = comp.substring(6);
+                try {
+                    matchers.add(new Matcher.RegexMatcher<>(Pattern.compile(comp)));
+                } catch (Throwable e) {
+                    if (errors != null) errors.add(new Matcher.Error(comp, "REGEX", e));
+                }
+                continue;
+            }
+            if (checker.startsWith("TAG:")) {
+                comp = XMaterial.format(comp.substring(4));
+                try {
+                    Field field = XTag.class.getField(comp);
+                    XTag<?> obj = (XTag<?>) field.get(null);
+                    matchers.add(new Matcher.XTagMatcher(obj));
+                } catch (Throwable e) {
+                    if (errors != null) errors.add(new Matcher.Error(comp, "TAG", e));
+                }
+            }
+
+            matchers.add(new Matcher.TextMatcher<>(comp, false));
+        }
+
+        return matchers;
+    }
+
+    public static <T> boolean anyMatch(T target, Collection<Matcher<T>> matchers) {
+        return matchers.stream().anyMatch(x -> x.matches(target));
+    }
+
+    public abstract static class Matcher<T> {
+        public static final class Error extends RuntimeException {
+            public final String matcher;
+
+            public Error(String matcher, String message, Throwable cause) {
+                super(message, cause);
+                this.matcher = matcher;
+            }
+        }
+
+        public abstract boolean matches(T object);
+
+        public static final class TextMatcher<T> extends Matcher<T> {
+            public final String text;
+            public final boolean contains;
+
+            public TextMatcher(String text, boolean contains) {
+                this.text = text;
+                this.contains = contains;
+            }
+
+            @Override
+            public boolean matches(T object) {
+                String name = object instanceof Enum ? ((Enum<?>) object).name() : object.toString();
+                return contains ? name.contains(this.text) : name.equals(this.text);
+            }
+        }
+
+        public static final class RegexMatcher<T> extends Matcher<T> {
+            public final Pattern regex;
+
+            public RegexMatcher(Pattern regex) {
+                this.regex = regex;
+            }
+
+            @Override
+            public boolean matches(T object) {
+                String name = object instanceof Enum ? ((Enum<?>) object).name() : object.toString();
+                return regex.matcher(name).matches();
+            }
+        }
+
+        public static final class XTagMatcher<T extends Enum<T>> extends Matcher<T> {
+            public final XTag<T> matcher;
+
+            public XTagMatcher(XTag<T> matcher) {
+                this.matcher = matcher;
+            }
+
+            @Override
+            public boolean matches(T object) {
+                return matcher.isTagged(object);
+            }
+        }
     }
 
     @SafeVarargs

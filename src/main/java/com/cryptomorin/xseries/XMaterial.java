@@ -2042,7 +2042,9 @@ public enum XMaterial {
      * @param materials the material names to check base material on.
      * @return true if one of the given material names is similar to the base material.
      * @since 3.1.1
+     * @deprecated Use XTag.stringMatcher() instead.
      */
+    @Deprecated
     public boolean isOneOf(@Nullable Collection<String> materials) {
         if (materials == null || materials.isEmpty()) return false;
         String name = this.name();
