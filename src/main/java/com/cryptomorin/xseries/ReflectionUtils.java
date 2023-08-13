@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -220,6 +221,11 @@ public final class ReflectionUtils {
      */
     private static final MethodHandle GET_HANDLE;
     /**
+     * Responsible for getting the NMS handler {@code WorldServer} object for the world.
+     * {@code CraftWorld} is simply a wrapper for {@code WorldServer}.
+     */
+    private static final MethodHandle GET_HANDLE_WORLD;
+    /**
      * Sends a packet to the player's client through a {@code NetworkManager} which
      * is where {@code ProtocolLib} controls packets by injecting channels!
      */
@@ -227,16 +233,19 @@ public final class ReflectionUtils {
 
     static {
         Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
+        Class<?> worldServer = getNMSClass("server.level", "WorldServer");
         Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
+        Class<?> craftWorld = getCraftClass("CraftWorld");
         Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle sendPacket = null, getHandle = null, connection = null;
+        MethodHandle sendPacket = null, getHandle = null, getHandleWorld = null, connection = null;
 
         try {
             connection = lookup.findGetter(entityPlayer,
                     v(20, "c").v(17, "b").orElse("playerConnection"), playerConnection);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
+            getHandleWorld = lookup.findVirtual(craftWorld, "getHandle", MethodType.methodType(worldServer));
             sendPacket = lookup.findVirtual(playerConnection,
                     v(18, "a").orElse("sendPacket"),
                     MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
@@ -247,6 +256,7 @@ public final class ReflectionUtils {
         PLAYER_CONNECTION = connection;
         SEND_PACKET = sendPacket;
         GET_HANDLE = getHandle;
+        GET_HANDLE_WORLD = getHandleWorld;
     }
 
     private ReflectionUtils() {
@@ -288,6 +298,20 @@ public final class ReflectionUtils {
      */
     public static boolean supportsPatch(int patchNumber) {
         return PATCH_NUMBER >= patchNumber;
+    }
+
+    /**
+     * Checks whether the server version is equal or greater than the given version.
+     * If minorNumber matches, it will check if patchNumber is equal or greater,
+     * if minorNumber does not match, it will check if minorNumber is greater.
+     * 
+     * @param minorNumber the minor version to compare the server version with.
+     * @param patchNumber the patch version to compare the server version with.
+     * @see #MINOR_NUMBER
+     * @see #PATCH_NUMBER
+     */
+    public static boolean supports(int minorNumber, int patchNumber) {
+        return (MINOR_NUMBER == minorNumber && supportsPatch(patchNumber)) || MINOR_NUMBER > minorNumber;
     }
 
     /**
@@ -367,6 +391,17 @@ public final class ReflectionUtils {
         Objects.requireNonNull(player, "Cannot get handle of null player");
         try {
             return GET_HANDLE.invoke(player);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            return null;
+        }
+    }
+
+    @Nullable
+    public static Object getHandle(@Nonnull World world) {
+        Objects.requireNonNull(world, "Cannot get handle of null world");
+        try {
+            return GET_HANDLE_WORLD.invoke(world);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             return null;
