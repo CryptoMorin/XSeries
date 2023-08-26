@@ -258,6 +258,36 @@ public enum XBiome {
     }
 
     /**
+     * Checks if this biome is supported in the current Minecraft version.
+     * <p>
+     * An invocation of this method yields exactly the same result as the expression:
+     * <p>
+     * <blockquote>
+     * {@link #getBiome()} != null
+     * </blockquote>
+     *
+     * @return true if the current version has this biome, otherwise false.
+     */
+    public boolean isSupported() {
+        return this.biome != null;
+    }
+
+    /**
+     * Checks if this biome is supported in the current version and
+     * returns itself if yes.
+     * <p>
+     * In the other case, the alternate biome will get returned,
+     * no matter if it is supported or not.
+     *
+     * @param alternateBiome the biome to get if this one is not supported.
+     * @return this biome or the {@code alternateBiome} if not supported.
+     */
+    @Nullable
+    public XBiome or(@Nullable XBiome alternateBiome) {
+        return isSupported() ? this : alternateBiome;
+    }
+
+    /**
      * Gets the environment (world type) which this biome originally belongs to.
      *
      * @return the environment that this biome belongs to.

@@ -443,6 +443,21 @@ public enum XPotion {
     }
 
     /**
+     * Checks if this potion is supported in the current version and
+     * returns itself if yes.
+     * <p>
+     * In the other case, the alternate potion will get returned,
+     * no matter if it is supported or not.
+     *
+     * @param alternatePotion the potion to get if this one is not supported.
+     * @return this potion or the {@code alternatePotion} if not supported.
+     */
+    @Nullable
+    public XPotion or(@Nullable XPotion alternatePotion) {
+        return isSupported() ? this : alternatePotion;
+    }
+
+    /**
      * Gets the PotionType from this PotionEffectType.
      * Usually for potion items.
      *
