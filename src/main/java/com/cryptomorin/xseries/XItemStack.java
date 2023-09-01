@@ -1076,8 +1076,8 @@ public final class XItemStack {
      * <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventory.java">CraftInventory</a>
      *
      * @param inventory       the inventory to add the items to.
-     * @param split           if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or
-     *                        item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
+     * @param split           false if it should check for the inventory stack size {@link Inventory#getMaxStackSize()} or
+     *                        true for item's max stack size {@link ItemStack#getMaxStackSize()} when putting items. This is useful when
      *                        you're adding stacked tools such as swords that you'd like to split them to other slots.
      * @param modifiableSlots the slots that are allowed to be used for adding the items, otherwise null to allow all slots.
      * @param items           the items to add.
@@ -1093,7 +1093,7 @@ public final class XItemStack {
         List<ItemStack> leftOvers = new ArrayList<>(items.length);
 
         // No other optimized way to access this using Bukkit API...
-        // We could pass the length to individual methods so they could also use getItem() which
+        // We could pass the length to individual methods, so they could also use getItem() which
         // skips parsing all the items in the inventory if not needed, but that's just too much.
         // Note: This is not the same as Inventory#getSize()
         int invSize = inventory.getStorageContents().length;
@@ -1101,12 +1101,13 @@ public final class XItemStack {
 
         for (ItemStack item : items) {
             int lastPartial = 0;
+            int maxAmount = split ? item.getMaxStackSize() : inventory.getMaxStackSize();
 
             while (true) {
                 // Check if there is a similar item that can be stacked before using free slots.
                 int firstPartial = lastPartial >= invSize ? -1 : firstPartial(inventory, item, lastPartial, modifiableSlots);
-                if (firstPartial == -1) {
-                    // Start adding items to left overs if there are no partial and empty slots
+                if (firstPartial == -1) { // No partial items found
+                    // Start adding items to leftovers if there are no partial and empty slots
                     // -1 means that there are no empty slots left.
                     if (lastEmpty != -1) lastEmpty = firstEmpty(inventory, lastEmpty, modifiableSlots);
                     if (lastEmpty == -1) {
@@ -1116,26 +1117,22 @@ public final class XItemStack {
 
                     // Avoid firstPartial() for checking again for no reason, since if we're already checking
                     // for free slots, that means there are no partials even left.
-                    lastPartial = invSize + 1;
+                    lastPartial = Integer.MAX_VALUE;
 
-                    int maxSize = split ? item.getMaxStackSize() : inventory.getMaxStackSize();
                     int amount = item.getAmount();
-                    if (amount <= maxSize) {
+                    if (amount <= maxAmount) {
                         inventory.setItem(lastEmpty, item);
                         break;
                     } else {
                         ItemStack copy = item.clone();
-                        copy.setAmount(maxSize);
+                        copy.setAmount(maxAmount);
                         inventory.setItem(lastEmpty, copy);
-                        item.setAmount(amount - maxSize);
+                        item.setAmount(amount - maxAmount);
                     }
                     if (++lastEmpty == invSize) lastEmpty = -1;
                 } else {
                     ItemStack partialItem = inventory.getItem(firstPartial);
-                    int maxAmount = split ? partialItem.getMaxStackSize() : inventory.getMaxStackSize();
-                    int partialAmount = partialItem.getAmount();
-                    int amount = item.getAmount();
-                    int sum = amount + partialAmount;
+                    int sum = item.getAmount() + partialItem.getAmount();
 
                     if (sum <= maxAmount) {
                         partialItem.setAmount(sum);
