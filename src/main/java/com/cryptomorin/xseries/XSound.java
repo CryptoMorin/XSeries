@@ -1858,6 +1858,21 @@ public enum XSound {
     }
 
     /**
+     * Checks if this sound is supported in the current version and
+     * returns itself if yes.
+     * <p>
+     * In the other case, the alternate sound will get returned,
+     * no matter if it is supported or not.
+     *
+     * @param alternateSound the sound to get if this one is not supported.
+     * @return this sound or the {@code alternateSound} if not supported.
+     */
+    @Nullable
+    public XSound or(@Nullable XSound alternateSound) {
+        return isSupported() ? this : alternateSound;
+    }
+
+    /**
      * Plays a sound repeatedly with the given delay at a moving target's location.
      *
      * @param plugin the plugin handling schedulers. (You can replace this with a static instance)

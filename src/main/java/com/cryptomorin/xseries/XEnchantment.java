@@ -295,6 +295,21 @@ public enum XEnchantment {
     }
 
     /**
+     * Checks if this enchantment is supported in the current version and
+     * returns itself if yes.
+     * <p>
+     * In the other case, the alternate enchantment will get returned,
+     * no matter if it is supported or not.
+     *
+     * @param alternateEnchantment the enchantment to get if this one is not supported.
+     * @return this enchantment or the {@code alternateEnchantment} if not supported.
+     */
+    @Nullable
+    public XEnchantment or(@Nullable XEnchantment alternateEnchantment) {
+        return isSupported() ? this : alternateEnchantment;
+    }
+
+    /**
      * In most cases you should be using {@link #name()} instead.
      *
      * @return a friendly readable string name.

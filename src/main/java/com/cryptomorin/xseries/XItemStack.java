@@ -182,7 +182,7 @@ public final class XItemStack {
                 }
             } else if (state instanceof CreatureSpawner) {
                 CreatureSpawner cs = (CreatureSpawner) state;
-                config.set("spawner", cs.getSpawnedType().name());
+                if (cs.getSpawnedType() != null) config.set("spawner", cs.getSpawnedType().name());
             }
         } else if (meta instanceof EnchantmentStorageMeta) {
             EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
