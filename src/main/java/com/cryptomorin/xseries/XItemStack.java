@@ -955,7 +955,7 @@ public final class XItemStack {
                     AttributeModifier modifier = new AttributeModifier(
                             id,
                             section.getString("name"),
-                            section.getInt("amount"),
+                            section.getDouble("amount"),
                             Enums.getIfPresent(AttributeModifier.Operation.class, section.getString("operation"))
                                     .or(AttributeModifier.Operation.ADD_NUMBER),
                             slot);
