@@ -170,7 +170,7 @@ public final class ReflectionUtils {
     public static Integer getLatestPatchNumberOf(int minorVersion) {
         if (minorVersion <= 0) throw new IllegalArgumentException("Minor version must be positive: " + minorVersion);
 
-        // https://minecraft.fandom.com/wiki/Java_Edition_version_history
+        // https://minecraft.wiki/w/Java_Edition_version_history
         // There are many ways to do this, but this is more visually appealing.
         int[] patches = {
                 /* 1 */ 1,

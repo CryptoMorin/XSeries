@@ -286,7 +286,7 @@ public final class NMSExtras {
     }
 
     /**
-     * https://minecraft.gamepedia.com/Damage#Lightning_damage
+     * https://minecraft.wiki/w/Damage#Lightning_damage
      * Lightnings deal 5 damage.
      *
      * @param players  the players to send the packet to.

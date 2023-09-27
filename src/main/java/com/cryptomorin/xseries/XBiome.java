@@ -38,11 +38,11 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * <b>XBiome</b> - Cross-version support for biome names.<br>
- * Biomes: https://minecraft.gamepedia.com/Biome
+ * Biomes: https://minecraft.wiki/w/Biome
  * Biome: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html
  * <p>
  * The ordering of this enum class matters and should not be changed due to
- * <a href="https://minecraft.fandom.com/wiki/Java_Edition_1.18">1.18 removed biomes issue.</a>
+ * <a href="https://minecraft.wiki/w/Java_Edition_1.18">1.18 removed biomes issue.</a>
  *
  * @author Crypto Morin
  * @version 6.1.1

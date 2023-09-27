@@ -99,7 +99,7 @@ import java.util.function.BooleanSupplier;
  * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html">Java {@link Math}</a><br>
  * Getting started with <a href="https://www.spigotmc.org/wiki/vector-programming-for-beginners/">Vectors</a><br>
  * Extra stuff if you want to read more: https://www.spigotmc.org/threads/418399/<br>
- * Particles: https://minecraft.gamepedia.com/Particles<br>
+ * Particles: https://minecraft.wiki/w/Particles<br>
  * <p>
  * This class also uses {@link BooleanSupplier} and {@link Runnable} for repeating/delayed tasks
  * in order to be compatible with other server softwares such as <a href="https://papermc.io/software/folia">Folia</a>.

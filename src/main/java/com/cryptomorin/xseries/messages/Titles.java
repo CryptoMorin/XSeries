@@ -42,7 +42,7 @@ import java.util.function.Function;
  * Messages are not colorized by default.
  * <p>
  * Titles are text messages that appear in the
- * middle of the players screen: https://minecraft.gamepedia.com/Commands/title
+ * middle of the players screen: https://minecraft.wiki/w/Commands/title
  * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
  *
  * @author Crypto Morin

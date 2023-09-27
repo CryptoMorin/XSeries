@@ -47,7 +47,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * Messages are not colorized by default.
  * <p>
  * Action bars are text messages that appear above
- * the player's <a href="https://minecraft.gamepedia.com/Heads-up_display">hotbar</a>
+ * the player's <a href="https://minecraft.wiki/w/Heads-up_display">hotbar</a>
  * Note that this is different from the text appeared when switching between items.
  * Those messages show the item's name and are different from action bars.
  * The only natural way of displaying action bars is when mounting.
