@@ -298,6 +298,20 @@ public final class ReflectionUtils {
     /**
      * Checks whether the server version is equal or greater than the given version.
      *
+     * @param minorNumber the minor version to compare the server version with.
+     * @param patchNumber the patch number to compare the server version with.
+     * @return true if the version is equal or newer, otherwise false.
+     * @see #MINOR_NUMBER
+     * @see #PATCH_NUMBER
+     * @since 7.1.0
+     */
+    public static boolean supports(int minorNumber, int patchNumber) {
+        return MINOR_NUMBER == minorNumber ? supportsPatch(patchNumber) : supports(minorNumber);
+    }
+
+    /**
+     * Checks whether the server version is equal or greater than the given version.
+     *
      * @param patchNumber the version to compare the server version with.
      * @return true if the version is equal or newer, otherwise false.
      * @see #PATCH_NUMBER

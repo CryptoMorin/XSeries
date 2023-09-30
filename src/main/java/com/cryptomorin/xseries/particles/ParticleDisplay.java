@@ -98,7 +98,8 @@ public class ParticleDisplay implements Cloneable {
      * instead of handling the direction in a specific axis.
      * This makes it easier for them as well and allows easier use of the {@link #rotation} API.
      */
-    private Supplier<Vector> direction;
+    private final Vector directionNormal = new Vector(0, 1, 0);
+    private Supplier<Vector> direction = () -> directionNormal;
     @Nonnull
     private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
     @Nullable

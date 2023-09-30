@@ -1442,20 +1442,24 @@ public final class XParticle {
     /**
      * Spawns animated helix shapes.
      *
-     * @param strings   the amount of helix strings. The rotation angle will split equally for each.
-     * @param radius    the radius of the helix.
-     * @param rate      the rate of helix points.
-     * @param extension the helix circle extension.
-     * @param length    the length of the helix.
-     * @param speed     the speed of the rate builder in each animation tick.
-     * @param fadeUp    helix radius will decrease to zero as it gets closer to the top.
-     * @param fadeDown  helix radius will increase to the original radius as it gets closer to the center.
+     * @param strings      the amount of helix strings. The rotation angle will split equally for each.
+     * @param radius       the radius of the helix.
+     * @param rate         the rate of helix points.
+     * @param extension    the helix circle extension.
+     * @param length       the length of the helix.
+     * @param speed        the amount of blocks the particles advances in one tick. Recommended is 0.5
+     * @param rotationRate The amount particles rotate around the circular reference, should be set depending on the amount of strings.
+     *                     5 is usually a good value.
+     * @param fadeUp       helix radius will decrease to zero as it gets closer to the top.
+     * @param fadeDown     helix radius will increase to the original radius as it gets closer to the center.
      * @return the animation runnable. It will return false when the animation is finished.
      * @see #dnaReplication(double, double, int, double, int, int, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BooleanSupplier helix(int strings, double radius, double rate, double extension, int length, int speed,
-                                        boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
+    public static BooleanSupplier helix(int strings, double radius, double rate, double extension,
+                                        double length, double speed, double rotationRate,
+                                        boolean fadeUp, boolean fadeDown,
+                                        ParticleDisplay display) {
         return new BooleanSupplier() {
             // If we look at a helix string from above, we'll see a circle tunnel.
             // To make this tunnel we're going to generate circles while moving
@@ -1467,17 +1471,13 @@ public final class XParticle {
             final double radiusDiv2 = fadeUp && fadeDown ? radiusDiv * 2 : radiusDiv;
             double dynamicRadius = fadeDown ? 0 : radius;
             boolean center = !fadeDown;
-            final double rotationRate = distanceBetweenEachCirclePoints / 5;
+            final double calculatedRotRate = distanceBetweenEachCirclePoints / rotationRate;
             double rotation = 0;
-            final boolean done = false;
+            double currentDistance = 0;
 
             @Override
             public boolean getAsBoolean() {
-                if (done) return false;
-
-//                int repeat = speed;
-//                while (repeat-- > 0) {
-//                    y += rate;
+                if (currentDistance >= length) return false;
 
                 if (!center) {
                     dynamicRadius += radiusDiv2;
@@ -1493,13 +1493,10 @@ public final class XParticle {
                     display.spawn(x, 0, z);
                 }
 
-                display.advanceInDirection(1);
-                rotation += rotationRate;
-//                if (y > length) {
-//                    done = true;
-//                    return false;
-//                }
-//                }
+                currentDistance += speed;
+                if (currentDistance < length) display.advanceInDirection(speed);
+                else display.advanceInDirection(speed - (currentDistance - length));
+                rotation += calculatedRotRate;
 
                 return true;
             }
@@ -1522,9 +1519,10 @@ public final class XParticle {
      * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask helix(Plugin plugin, int strings, double radius, double rate, double extension, int height, int speed,
+    public static BukkitTask helix(Plugin plugin, int strings, double radius, double rate,
+                                   double extension, double height, double speed, double rotationRate,
                                    boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
-        BooleanSupplier helix = helix(strings, radius, rate, extension, height, speed, fadeUp, fadeDown, display);
+        BooleanSupplier helix = helix(strings, radius, rate, extension, height, speed, rotationRate, fadeUp, fadeDown, display);
         return new BukkitRunnable() {
             @Override
             public void run() {
@@ -1603,7 +1601,7 @@ public final class XParticle {
      * @param hydrogenBondDist    the distance between each hydrogen bond (read inside method). This distance is also affected by rate.
      * @param display             display for strings.
      * @param hydrogenBondDisplay display for hydrogen bonds.
-     * @see #helix(Plugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
+     * @see #helix(int, double, double, double, double, double, double, boolean, boolean, ParticleDisplay)
      * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 1.0.0
      */

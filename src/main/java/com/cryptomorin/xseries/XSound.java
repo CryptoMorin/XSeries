@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 9.2.0
+ * @version 9.2.1
  * @see Sound
  */
 public enum XSound {
@@ -645,6 +645,12 @@ public enum XSound {
     BLOCK_SOUL_SOIL_HIT,
     BLOCK_SOUL_SOIL_PLACE,
     BLOCK_SOUL_SOIL_STEP,
+    BLOCK_SPONGE_ABSORB,
+    BLOCK_SPONGE_BREAK,
+    BLOCK_SPONGE_FALL,
+    BLOCK_SPONGE_HIT,
+    BLOCK_SPONGE_PLACE,
+    BLOCK_SPONGE_STEP,
     BLOCK_SPORE_BLOSSOM_BREAK,
     BLOCK_SPORE_BLOSSOM_FALL,
     BLOCK_SPORE_BLOSSOM_HIT,
@@ -707,6 +713,11 @@ public enum XSound {
     BLOCK_WET_GRASS_HIT,
     BLOCK_WET_GRASS_PLACE("BLOCK_WET_GRASS_HIT"),
     BLOCK_WET_GRASS_STEP("BLOCK_WET_GRASS_HIT"),
+    BLOCK_WET_SPONGE_BREAK,
+    BLOCK_WET_SPONGE_FALL,
+    BLOCK_WET_SPONGE_HIT,
+    BLOCK_WET_SPONGE_PLACE,
+    BLOCK_WET_SPONGE_STEP,
     BLOCK_WOODEN_BUTTON_CLICK_OFF("WOOD_CLICK", "BLOCK_WOOD_BUTTON_CLICK_OFF"),
     BLOCK_WOODEN_BUTTON_CLICK_ON("WOOD_CLICK", "BLOCK_WOOD_BUTTON_CLICK_ON"),
     BLOCK_WOODEN_DOOR_CLOSE("DOOR_CLOSE"),

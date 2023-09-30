@@ -21,6 +21,8 @@ public class DifferenceHelper {
      */
     public static void versionDifference() {
         Path serverFolder = Bukkit.getWorldContainer().toPath();
+        System.out.println("Server container: " + serverFolder.toAbsolutePath());
+
         Path materials = serverFolder.resolve("XMaterial.txt"),
                 sounds = serverFolder.resolve("XSound.txt"),
                 xPotion = serverFolder.resolve("XPotion.txt"),

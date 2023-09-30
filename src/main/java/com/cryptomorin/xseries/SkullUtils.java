@@ -294,11 +294,30 @@ public class SkullUtils {
 
         if (profile != null && !profile.getProperties().get("textures").isEmpty()) {
             for (Property property : profile.getProperties().get("textures")) {
-                if (!property.getValue().isEmpty()) return property.getValue();
+                String value = getPropertyValue(property);
+                if (!value.isEmpty()) return value;
             }
         }
 
         return null;
+    }
+
+    /**
+     * They changed {@link Property} to a Java record in 1.20.2
+     *
+     * @since 4.0.1
+     */
+    private static String getPropertyValue(Property property) {
+        if (ReflectionUtils.supports(12, 2)) {
+            return property.value();
+        } else {
+            try {
+                //noinspection JavaReflectionMemberAccess
+                return (String) Property.class.getMethod("getValue").invoke(property);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
