@@ -195,7 +195,7 @@ public class SkullUtils {
 
     @Nonnull
     public static GameProfile profileFromBase64(String value) {
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", value));
         return profile;
     }
