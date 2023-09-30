@@ -193,7 +193,7 @@ public final class ReflectionUtils {
                 /* 17 */ 1,//            \_!_/
                 /* 18 */ 2,
                 /* 19 */ 4,
-                /* 20 */ 0,
+                /* 20 */ 2,
         };
 
         if (minorVersion > patches.length) return null;
@@ -228,7 +228,13 @@ public final class ReflectionUtils {
     static {
         Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
         Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
-        Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
+        Class<?> playerConnection = playerConnection = getNMSClass("server.network", "PlayerConnection");
+        Class<?> playerCommonConnection;
+        if (supports(20) && supportsPatch(2)) {
+            playerCommonConnection = getNMSClass("server.network", "ServerCommonPacketListenerImpl");
+        } else {
+            playerCommonConnection = playerConnection;
+        }
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodHandle sendPacket = null, getHandle = null, connection = null;
@@ -237,8 +243,8 @@ public final class ReflectionUtils {
             connection = lookup.findGetter(entityPlayer,
                     v(20, "c").v(17, "b").orElse("playerConnection"), playerConnection);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerConnection,
-                    v(18, "a").orElse("sendPacket"),
+            sendPacket = lookup.findVirtual(playerCommonConnection,
+                    v(20, 2, "b").v(18, "a").orElse("sendPacket"),
                     MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
@@ -260,6 +266,15 @@ public final class ReflectionUtils {
      */
     public static <T> VersionHandler<T> v(int version, T handle) {
         return new VersionHandler<>(version, handle);
+    }
+
+    /**
+     * Overload for {@link #v(int, T)} that supports patch versions
+     *
+     * @since 9.5.0
+     */
+    public static <T> VersionHandler<T> v(int version, int patch, T handle) {
+        return new VersionHandler<>(version, patch, handle);
     }
 
     public static <T> CallableVersionHandler<T> v(int version, Callable<T> handle) {
@@ -423,20 +438,31 @@ public final class ReflectionUtils {
 
     public static final class VersionHandler<T> {
         private int version;
+        private int patch;
         private T handle;
 
         private VersionHandler(int version, T handle) {
-            if (supports(version)) {
+            this(version, 0, handle);
+        }
+
+        private VersionHandler(int version, int patch, T handle) {
+            if (supports(version) && supportsPatch(patch)) {
                 this.version = version;
+                this.patch = patch;
                 this.handle = handle;
             }
         }
 
         public VersionHandler<T> v(int version, T handle) {
-            if (version == this.version)
-                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
-            if (version > this.version && supports(version)) {
+            return v(version, 0, handle);
+        }
+
+        public VersionHandler<T> v(int version, int patch, T handle) {
+            if (version == this.version && patch == this.patch)
+                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version + '.' + patch);
+            if (version > this.version && supports(version) && patch >= this.patch && supportsPatch(patch)) {
                 this.version = version;
+                this.patch = patch;
                 this.handle = handle;
             }
             return this;
