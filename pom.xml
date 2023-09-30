@@ -68,7 +68,7 @@
 
     <properties>
         <!-- Latest version -->
-        <spigotVersion>1.20.1-R0.1-SNAPSHOT</spigotVersion>
+        <spigotVersion>1.20.2-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
     <dependencies>

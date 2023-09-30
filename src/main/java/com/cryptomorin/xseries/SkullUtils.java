@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
  * either by ID, name or encoded textures URL property.
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
@@ -195,6 +195,8 @@ public class SkullUtils {
 
     @Nonnull
     public static GameProfile profileFromBase64(String value) {
+        // Use an empty string instead of null for the name parameter because it's now null-checked since 1.20.2.
+        // It doesn't seem to affect functionality.
         GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", value));
         return profile;

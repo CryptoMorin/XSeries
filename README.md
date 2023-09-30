@@ -1,5 +1,5 @@
 # XSeries
-[![Bukkit Version](https://img.shields.io/badge/bukkit-1.19-dark_green.svg)](https://shields.io/)
+[![Bukkit Version](https://img.shields.io/badge/bukkit-1.20-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)

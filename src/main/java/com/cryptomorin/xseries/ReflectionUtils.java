@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.1.0
  */
 public final class ReflectionUtils {
     /**
@@ -150,6 +150,7 @@ public final class ReflectionUtils {
 
     /**
      * Gets the full version information of the server. Useful for including in errors.
+     *
      * @since 7.0.0
      */
     public static String getVersionInformation() {
@@ -228,9 +229,10 @@ public final class ReflectionUtils {
     static {
         Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
         Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
-        Class<?> playerConnection = playerConnection = getNMSClass("server.network", "PlayerConnection");
+        Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
         Class<?> playerCommonConnection;
         if (supports(20) && supportsPatch(2)) {
+            // The packet send method has been abstracted from ServerGamePacketListenerImpl to ServerCommonPacketListenerImpl in 1.20.2
             playerCommonConnection = getNMSClass("server.network", "ServerCommonPacketListenerImpl");
         } else {
             playerCommonConnection = playerConnection;
