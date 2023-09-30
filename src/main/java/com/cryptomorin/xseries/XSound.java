@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * 1.8: <a href="http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html">Sound Enum</a>
  * Latest: <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html">Sound Enum</a>
  * Basics: <a href="https://bukkit.org/threads/151517/">Bukkit Thread</a>
- * play command: <a href="https://minecraft.gamepedia.com/Commands/play">minecraft.gamepedia.com</a>
+ * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
  * @version 9.2.0

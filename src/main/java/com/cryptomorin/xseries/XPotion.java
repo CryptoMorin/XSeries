@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
  * Amplifier: The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
  * <p>
  * EssentialsX Potions: https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/com/earth2me/essentials/Potions.java
- * Status Effect: https://minecraft.gamepedia.com/Status_effect
- * Potions: https://minecraft.gamepedia.com/Potion
+ * Status Effect: https://minecraft.wiki/w/Status_effect
+ * Potions: https://minecraft.wiki/w/Potion
  *
  * @author Crypto Morin
  * @version 3.1.0
