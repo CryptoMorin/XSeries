@@ -261,9 +261,11 @@ public final class ReflectionUtils {
     }
 
     /**
-     * This method is purely for readability.
-     * No performance is gained.
+     * Gives the {@code handle} object if the server version is equal or greater than the given version.
+     * This method is purely for readability and should be always used with {@link VersionHandler#orElse(Object)}.
      *
+     * @see #v(int, int, Object)
+     * @see VersionHandler#orElse(Object)
      * @since 5.0.0
      */
     public static <T> VersionHandler<T> v(int version, T handle) {
@@ -324,19 +326,25 @@ public final class ReflectionUtils {
     /**
      * Get a NMS (net.minecraft.server) class which accepts a package for 1.17 compatibility.
      *
-     * @param newPackage the 1.17 package name.
-     * @param name       the name of the class.
+     * @param packageName the 1.17+ package name of this class.
+     * @param name        the name of the class.
      * @return the NMS class or null if not found.
      * @since 4.0.0
      */
     @Nullable
-    public static Class<?> getNMSClass(@Nonnull String newPackage, @Nonnull String name) {
-        if (supports(17)) name = newPackage + '.' + name;
-        return getNMSClass(name);
+    public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String name) {
+        if (packageName != null && supports(17)) name = packageName + '.' + name;
+
+        try {
+            return Class.forName(NMS_PACKAGE + name);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     /**
-     * Get a NMS (net.minecraft.server) class.
+     * Get a NMS {@link #NMS_PACKAGE} class.
      *
      * @param name the name of the class.
      * @return the NMS class or null if not found.
@@ -344,12 +352,7 @@ public final class ReflectionUtils {
      */
     @Nullable
     public static Class<?> getNMSClass(@Nonnull String name) {
-        try {
-            return Class.forName(NMS_PACKAGE + name);
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
-        }
+        return getNMSClass(null, name);
     }
 
     /**
@@ -433,6 +436,10 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * @deprecated Use {@link #toArrayClass(Class)} instead.
+     */
+    @Deprecated
     public static Class<?> getArrayClass(String clazz, boolean nms) {
         clazz = "[L" + (nms ? NMS_PACKAGE : CRAFTBUKKIT_PACKAGE) + clazz + ';';
         try {
@@ -443,6 +450,15 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * Gives an array version of a class. For example if you wanted {@code EntityPlayer[]} you'd use:
+     * <pre>{@code
+     *     Class EntityPlayer = ReflectionUtils.getNMSClass("...", "EntityPlayer");
+     *     Class EntityPlayerArray = ReflectionUtils.toArrayClass(EntityPlayer);
+     * }</pre>
+     *
+     * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
+     */
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
@@ -453,8 +469,7 @@ public final class ReflectionUtils {
     }
 
     public static final class VersionHandler<T> {
-        private int version;
-        private int patch;
+        private int version, patch;
         private T handle;
 
         private VersionHandler(int version, T handle) {
@@ -484,6 +499,9 @@ public final class ReflectionUtils {
             return this;
         }
 
+        /**
+         * If none of the previous version checks matched, it'll return this object.
+         */
         public T orElse(T handle) {
             return this.version == 0 ? handle : this.handle;
         }
