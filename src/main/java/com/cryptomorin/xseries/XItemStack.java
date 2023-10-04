@@ -767,75 +767,85 @@ public final class XItemStack {
                     }
                 }
             }
-        } else if (supports(17)) {
-            if (meta instanceof AxolotlBucketMeta) {
-                AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                String variantStr = config.getString("color");
-                if (variantStr != null) {
-                    Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
-                    bucket.setVariant(variant);
-                }
-            }
-        } else if (supports(16)) {
-            if (meta instanceof CompassMeta) {
-                CompassMeta compass = (CompassMeta) meta;
-                compass.setLodestoneTracked(config.getBoolean("tracked"));
-
-                ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
-                if (lodestone != null) {
-                    World world = Bukkit.getWorld(lodestone.getString("world"));
-                    double x = lodestone.getDouble("x");
-                    double y = lodestone.getDouble("y");
-                    double z = lodestone.getDouble("z");
-                    compass.setLodestone(new Location(world, x, y, z));
-                }
-            }
-        } else if (supports(15)) {
-            if (meta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                for (String effects : config.getStringList("effects")) {
-                    XPotion.Effect effect = XPotion.parseEffect(effects);
-                    if (effect.hasChance()) stew.addCustomEffect(effect.getEffect(), true);
-                }
-            }
-        } else if (supports(14)) {
-            if (meta instanceof CrossbowMeta) {
-                CrossbowMeta crossbow = (CrossbowMeta) meta;
-                for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
-                    ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
-                    crossbow.addChargedProjectile(projectile);
-                }
-            } else if (meta instanceof TropicalFishBucketMeta) {
-                TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
-                DyeColor color = Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE);
-                DyeColor patternColor = Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE);
-                TropicalFish.Pattern pattern = Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY);
-
-                tropical.setBodyColor(color);
-                tropical.setPatternColor(patternColor);
-                tropical.setPattern(pattern);
-            }
-            // Apparently Suspicious Stew was never added in 1.14
-        } else if (!supports(13)) {
-            // Spawn Eggs
-            if (supports(11)) {
-                if (meta instanceof SpawnEggMeta) {
-                    String creatureName = config.getString("creature");
-                    if (!Strings.isNullOrEmpty(creatureName)) {
-                        SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
-                        com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                        if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+        } else {
+            if (supports(17)) {
+                if (meta instanceof AxolotlBucketMeta) {
+                    AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
+                    String variantStr = config.getString("color");
+                    if (variantStr != null) {
+                        Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
+                        bucket.setVariant(variant);
                     }
                 }
-            } else {
-                MaterialData data = item.getData();
-                if (data instanceof SpawnEgg) {
-                    String creatureName = config.getString("creature");
-                    if (!Strings.isNullOrEmpty(creatureName)) {
-                        SpawnEgg spawnEgg = (SpawnEgg) data;
-                        com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                        if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
-                        item.setData(data);
+            }
+
+            if (supports(16)) {
+                if (meta instanceof CompassMeta) {
+                    CompassMeta compass = (CompassMeta) meta;
+                    compass.setLodestoneTracked(config.getBoolean("tracked"));
+
+                    ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
+                    if (lodestone != null) {
+                        World world = Bukkit.getWorld(lodestone.getString("world"));
+                        double x = lodestone.getDouble("x");
+                        double y = lodestone.getDouble("y");
+                        double z = lodestone.getDouble("z");
+                        compass.setLodestone(new Location(world, x, y, z));
+                    }
+                }
+            }
+
+            if (supports(15)) {
+                if (meta instanceof SuspiciousStewMeta) {
+                    SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
+                    for (String effects : config.getStringList("effects")) {
+                        XPotion.Effect effect = XPotion.parseEffect(effects);
+                        if (effect.hasChance()) stew.addCustomEffect(effect.getEffect(), true);
+                    }
+                }
+            }
+
+            if (supports(14)) {
+                if (meta instanceof CrossbowMeta) {
+                    CrossbowMeta crossbow = (CrossbowMeta) meta;
+                    for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
+                        ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
+                        crossbow.addChargedProjectile(projectile);
+                    }
+                } else if (meta instanceof TropicalFishBucketMeta) {
+                    TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
+                    DyeColor color = Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE);
+                    DyeColor patternColor = Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE);
+                    TropicalFish.Pattern pattern = Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY);
+
+                    tropical.setBodyColor(color);
+                    tropical.setPatternColor(patternColor);
+                    tropical.setPattern(pattern);
+                }
+            }
+
+            // Apparently Suspicious Stew was never added in 1.14
+            if (!supports(13)) {
+                // Spawn Eggs
+                if (supports(11)) {
+                    if (meta instanceof SpawnEggMeta) {
+                        String creatureName = config.getString("creature");
+                        if (!Strings.isNullOrEmpty(creatureName)) {
+                            SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
+                            com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
+                            if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+                        }
+                    }
+                } else {
+                    MaterialData data = item.getData();
+                    if (data instanceof SpawnEgg) {
+                        String creatureName = config.getString("creature");
+                        if (!Strings.isNullOrEmpty(creatureName)) {
+                            SpawnEgg spawnEgg = (SpawnEgg) data;
+                            com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
+                            if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+                            item.setData(data);
+                        }
                     }
                 }
             }
