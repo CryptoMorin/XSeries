@@ -61,7 +61,7 @@ import java.util.*;
  */
 public final class XEntity {
     /**
-     * A list of entity types that are considered <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
+     * A list of entity types that are considered <a href="https://minecraft.wiki/w/Undead">undead</a>.
      *
      * @since 2.0.0
      */
@@ -99,7 +99,7 @@ public final class XEntity {
     }
 
     /**
-     * Checks if an entity is an <a href="https://minecraft.gamepedia.com/Undead">undead</a>.
+     * Checks if an entity is an <a href="https://minecraft.wiki/w/Undead">undead</a>.
      *
      * @param type the entity type.
      * @return true if the entity is an undead.

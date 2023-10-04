@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.1.0
  */
 public final class ReflectionUtils {
     /**
@@ -150,6 +150,7 @@ public final class ReflectionUtils {
 
     /**
      * Gets the full version information of the server. Useful for including in errors.
+     *
      * @since 7.0.0
      */
     public static String getVersionInformation() {
@@ -170,7 +171,7 @@ public final class ReflectionUtils {
     public static Integer getLatestPatchNumberOf(int minorVersion) {
         if (minorVersion <= 0) throw new IllegalArgumentException("Minor version must be positive: " + minorVersion);
 
-        // https://minecraft.fandom.com/wiki/Java_Edition_version_history
+        // https://minecraft.wiki/w/Java_Edition_version_history
         // There are many ways to do this, but this is more visually appealing.
         int[] patches = {
                 /* 1 */ 1,
@@ -193,7 +194,7 @@ public final class ReflectionUtils {
                 /* 17 */ 1,//            \_!_/
                 /* 18 */ 2,
                 /* 19 */ 4,
-                /* 20 */ 0,
+                /* 20 */ 2,
         };
 
         if (minorVersion > patches.length) return null;
@@ -229,6 +230,13 @@ public final class ReflectionUtils {
         Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
         Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
         Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
+        Class<?> playerCommonConnection;
+        if (supports(20) && supportsPatch(2)) {
+            // The packet send method has been abstracted from ServerGamePacketListenerImpl to ServerCommonPacketListenerImpl in 1.20.2
+            playerCommonConnection = getNMSClass("server.network", "ServerCommonPacketListenerImpl");
+        } else {
+            playerCommonConnection = playerConnection;
+        }
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodHandle sendPacket = null, getHandle = null, connection = null;
@@ -237,8 +245,8 @@ public final class ReflectionUtils {
             connection = lookup.findGetter(entityPlayer,
                     v(20, "c").v(17, "b").orElse("playerConnection"), playerConnection);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerConnection,
-                    v(18, "a").orElse("sendPacket"),
+            sendPacket = lookup.findVirtual(playerCommonConnection,
+                    v(20, 2, "b").v(18, "a").orElse("sendPacket"),
                     MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
@@ -253,13 +261,24 @@ public final class ReflectionUtils {
     }
 
     /**
-     * This method is purely for readability.
-     * No performance is gained.
+     * Gives the {@code handle} object if the server version is equal or greater than the given version.
+     * This method is purely for readability and should be always used with {@link VersionHandler#orElse(Object)}.
      *
+     * @see #v(int, int, Object)
+     * @see VersionHandler#orElse(Object)
      * @since 5.0.0
      */
     public static <T> VersionHandler<T> v(int version, T handle) {
         return new VersionHandler<>(version, handle);
+    }
+
+    /**
+     * Overload for {@link #v(int, T)} that supports patch versions
+     *
+     * @since 9.5.0
+     */
+    public static <T> VersionHandler<T> v(int version, int patch, T handle) {
+        return new VersionHandler<>(version, patch, handle);
     }
 
     public static <T> CallableVersionHandler<T> v(int version, Callable<T> handle) {
@@ -281,6 +300,20 @@ public final class ReflectionUtils {
     /**
      * Checks whether the server version is equal or greater than the given version.
      *
+     * @param minorNumber the minor version to compare the server version with.
+     * @param patchNumber the patch number to compare the server version with.
+     * @return true if the version is equal or newer, otherwise false.
+     * @see #MINOR_NUMBER
+     * @see #PATCH_NUMBER
+     * @since 7.1.0
+     */
+    public static boolean supports(int minorNumber, int patchNumber) {
+        return MINOR_NUMBER == minorNumber ? supportsPatch(patchNumber) : supports(minorNumber);
+    }
+
+    /**
+     * Checks whether the server version is equal or greater than the given version.
+     *
      * @param patchNumber the version to compare the server version with.
      * @return true if the version is equal or newer, otherwise false.
      * @see #PATCH_NUMBER
@@ -293,19 +326,25 @@ public final class ReflectionUtils {
     /**
      * Get a NMS (net.minecraft.server) class which accepts a package for 1.17 compatibility.
      *
-     * @param newPackage the 1.17 package name.
-     * @param name       the name of the class.
+     * @param packageName the 1.17+ package name of this class.
+     * @param name        the name of the class.
      * @return the NMS class or null if not found.
      * @since 4.0.0
      */
     @Nullable
-    public static Class<?> getNMSClass(@Nonnull String newPackage, @Nonnull String name) {
-        if (supports(17)) name = newPackage + '.' + name;
-        return getNMSClass(name);
+    public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String name) {
+        if (packageName != null && supports(17)) name = packageName + '.' + name;
+
+        try {
+            return Class.forName(NMS_PACKAGE + name);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     /**
-     * Get a NMS (net.minecraft.server) class.
+     * Get a NMS {@link #NMS_PACKAGE} class.
      *
      * @param name the name of the class.
      * @return the NMS class or null if not found.
@@ -313,12 +352,7 @@ public final class ReflectionUtils {
      */
     @Nullable
     public static Class<?> getNMSClass(@Nonnull String name) {
-        try {
-            return Class.forName(NMS_PACKAGE + name);
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
-        }
+        return getNMSClass(null, name);
     }
 
     /**
@@ -402,6 +436,10 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * @deprecated Use {@link #toArrayClass(Class)} instead.
+     */
+    @Deprecated
     public static Class<?> getArrayClass(String clazz, boolean nms) {
         clazz = "[L" + (nms ? NMS_PACKAGE : CRAFTBUKKIT_PACKAGE) + clazz + ';';
         try {
@@ -412,6 +450,15 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * Gives an array version of a class. For example if you wanted {@code EntityPlayer[]} you'd use:
+     * <pre>{@code
+     *     Class EntityPlayer = ReflectionUtils.getNMSClass("...", "EntityPlayer");
+     *     Class EntityPlayerArray = ReflectionUtils.toArrayClass(EntityPlayer);
+     * }</pre>
+     *
+     * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
+     */
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
@@ -422,26 +469,39 @@ public final class ReflectionUtils {
     }
 
     public static final class VersionHandler<T> {
-        private int version;
+        private int version, patch;
         private T handle;
 
         private VersionHandler(int version, T handle) {
-            if (supports(version)) {
+            this(version, 0, handle);
+        }
+
+        private VersionHandler(int version, int patch, T handle) {
+            if (supports(version) && supportsPatch(patch)) {
                 this.version = version;
+                this.patch = patch;
                 this.handle = handle;
             }
         }
 
         public VersionHandler<T> v(int version, T handle) {
-            if (version == this.version)
-                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
-            if (version > this.version && supports(version)) {
+            return v(version, 0, handle);
+        }
+
+        public VersionHandler<T> v(int version, int patch, T handle) {
+            if (version == this.version && patch == this.patch)
+                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version + '.' + patch);
+            if (version > this.version && supports(version) && patch >= this.patch && supportsPatch(patch)) {
                 this.version = version;
+                this.patch = patch;
                 this.handle = handle;
             }
             return this;
         }
 
+        /**
+         * If none of the previous version checks matched, it'll return this object.
+         */
         public T orElse(T handle) {
             return this.version == 0 ? handle : this.handle;
         }

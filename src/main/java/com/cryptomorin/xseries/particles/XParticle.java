@@ -99,13 +99,13 @@ import java.util.function.BooleanSupplier;
  * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html">Java {@link Math}</a><br>
  * Getting started with <a href="https://www.spigotmc.org/wiki/vector-programming-for-beginners/">Vectors</a><br>
  * Extra stuff if you want to read more: https://www.spigotmc.org/threads/418399/<br>
- * Particles: https://minecraft.gamepedia.com/Particles<br>
+ * Particles: https://minecraft.wiki/w/Particles<br>
  * <p>
  * This class also uses {@link BooleanSupplier} and {@link Runnable} for repeating/delayed tasks
  * in order to be compatible with other server softwares such as <a href="https://papermc.io/software/folia">Folia</a>.
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 7.0.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -338,7 +338,6 @@ public final class XParticle {
      * @param rate       the rate of the 3D ellipses circle points.
      * @param radiusRate the rate of the circle radius change.
      * @param extend     the extension for each ellipse.
-     *
      * @return the animation runnable.
      * @see #magicCircles(double, double, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -378,7 +377,6 @@ public final class XParticle {
      * @param rate       the rate of the 3D ellipses circle points.
      * @param radiusRate the rate of the circle radius change.
      * @param extend     the extension for each ellipse.
-     *
      * @return the animation handler.
      * @see #magicCircles(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -448,13 +446,12 @@ public final class XParticle {
      * @param mass1      the mass of the first pendulum. Recommended is 50
      * @param mass2      the mass of the second pendulum. Recommended is 50
      * @param dimension3 if it should enter 3D mode.
-     *
      * @return the animation runnable.
      * @since 4.0.0
      */
     public static Runnable chaoticDoublePendulum(double radius, double gravity, double length, double length2,
-                                                   double mass1, double mass2,
-                                                   boolean dimension3, int speed, ParticleDisplay display) {
+                                                 double mass1, double mass2,
+                                                 boolean dimension3, int speed, ParticleDisplay display) {
         // If you want the particles to stay. But it's gonna lag a lot.
         //Map<Vector, Vector> locs = new HashMap<>();
 
@@ -542,7 +539,6 @@ public final class XParticle {
      * @param mass2      the mass of the second pendulum. Recommended is 50
      * @param dimension3 if it should enter 3D mode.
      * @param speed      the speed of the animation.
-     *
      * @return the animation handler.
      * @since 4.0.0
      */
@@ -559,7 +555,6 @@ public final class XParticle {
      * @param rate       the rate of circle points.
      * @param radiusRate the circle radius change rate.
      * @param distance   the distance between each circle.
-     *
      * @return the animation handler.
      * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -595,7 +590,6 @@ public final class XParticle {
      * @param rate       the rate of circle points.
      * @param radiusRate the circle radius change rate.
      * @param distance   the distance between each circle.
-     *
      * @return the animation handler.
      * @see #circularBeam(Plugin, double, double, double, double, ParticleDisplay)
      * @since 3.0.0
@@ -649,6 +643,20 @@ public final class XParticle {
     }
 
     /**
+     * An example of a shash particle.
+     *
+     * @since 7.0.0
+     */
+    public static void slash(ParticleDisplay display) {
+        XParticle.ellipse(
+                0, Math.PI,
+                Math.PI / 30,
+                3, 4,
+                display
+        );
+    }
+
+    /**
      * Spawn an ellipse.
      *
      * @see #circle(double, double, ParticleDisplay)
@@ -659,8 +667,8 @@ public final class XParticle {
         // ellipses use a different radius for one of their axis.
         for (double theta = start; theta <= end; theta += rate) {
             double x = radius * Math.cos(theta);
-            double y = otherRadius * Math.sin(theta);
-            display.spawn(x, y, 0);
+            double z = otherRadius * Math.sin(theta);
+            display.spawn(x, 0, z);
         }
     }
 
@@ -742,7 +750,6 @@ public final class XParticle {
      * @param rate   the rate of the blackhole circle points.
      * @param mode   blackhole mode. There are 5 modes.
      * @param time   the amount of ticks to keep the blackhole.
-     *
      * @since 3.0.0
      */
     public static BukkitTask blackhole(Plugin plugin, int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
@@ -915,7 +922,6 @@ public final class XParticle {
      * @param plugin the timer handler.
      * @param points the points of the vortex.
      * @param rate   the speed of the vortex.
-     *
      * @return the task handling the animation.
      * @since 2.0.0
      */
@@ -948,14 +954,13 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the display references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
     public static Runnable moveRotatingAround(double rate, double offsetx, double offsety, double offsetz,
-                                                Runnable runnable, ParticleDisplay... displays) {
+                                              Runnable runnable, ParticleDisplay... displays) {
         return new Runnable() {
             double rotation = 180;
 
@@ -1005,14 +1010,13 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the display references used to spawn particles in the runnable.
-     *
      * @return the runnable handling the movement.
      * @see #rotateAround(double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
     public static Runnable moveAround(double rate, double endRate, double offsetx, double offsety, double offsetz,
-                                        Runnable runnable, ParticleDisplay... displays) {
+                                      Runnable runnable, ParticleDisplay... displays) {
         return new Runnable() {
             double multiplier = 0;
             boolean opposite = false;
@@ -1048,7 +1052,6 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the display references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
@@ -1078,14 +1081,13 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the displays references used to spawn particles in the runnable.
-     *
      * @return the runnable handling the movement.
      * @see #moveRotatingAround(double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(double, double, double, double, Runnable, ParticleDisplay...)
      * @since 1.0.0
      */
     public static Runnable rotateAround(double rate, double offsetx, double offsety, double offsetz,
-                                          Runnable runnable, ParticleDisplay... displays) {
+                                        Runnable runnable, ParticleDisplay... displays) {
         return new Runnable() {
             double rotation = 180;
 
@@ -1112,7 +1114,6 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the displays references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #moveRotatingAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @see #guard(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
@@ -1144,7 +1145,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static Runnable guard(double rate, double offsetx, double offsety, double offsetz,
-                                   Runnable runnable, ParticleDisplay... displays) {
+                                 Runnable runnable, ParticleDisplay... displays) {
         return new Runnable() {
             double rotation = 180;
 
@@ -1159,7 +1160,7 @@ public final class XParticle {
                 ParticleDisplay.rotateAround(vector, x, y, z);
 
                 for (ParticleDisplay display : displays) {
-                    display.setRotation(new Vector(x, y, z));
+                    display.withRotation(new Vector(x, y, z));
                     display.getLocation().add(vector);
                 }
                 runnable.run();
@@ -1185,7 +1186,6 @@ public final class XParticle {
      * @param rate     the distance between each location. Recommended value is 5.
      * @param runnable the particles to spawn.
      * @param displays the displays references used to spawn particles in the runnable.
-     *
      * @return the async task handling the movement.
      * @see #rotateAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
      * @see #moveRotatingAround(Plugin, long, double, double, double, double, Runnable, ParticleDisplay...)
@@ -1312,13 +1312,11 @@ public final class XParticle {
      * @param rate      rate of spike line points.
      * @param start     start location of spikes.
      * @param originEnd end location of spikes.
-     *
      * @return the runnable. It will return false when the amount of spikes has been reached.
-     *
      * @since 1.0.0
      */
     public static BooleanSupplier spread(int amount, int rate, Location start, Location originEnd,
-                                    double offsetx, double offsety, double offsetz, ParticleDisplay display) {
+                                         double offsetx, double offsety, double offsetz, ParticleDisplay display) {
         return new BooleanSupplier() {
             int count = amount;
             boolean done = false;
@@ -1419,7 +1417,7 @@ public final class XParticle {
                 double z = radius * Math.sin(theta);
 
                 for (double angle = 0; orbital > 0; angle += dist) {
-                    orbit.setRotation(new Vector(0, 0, angle));
+                    orbit.withRotation(new Vector(0, 0, angle));
                     orbit.spawn(x, 0, z);
                     orbital--;
                 }
@@ -1434,7 +1432,6 @@ public final class XParticle {
      * @param orbits the orbits of the atom.
      * @param radius the radius of the atom orbits.
      * @param rate   the rate of orbit points.
-     *
      * @see #atom(int, double, double, ParticleDisplay, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1445,66 +1442,61 @@ public final class XParticle {
     /**
      * Spawns animated helix shapes.
      *
-     * @param strings   the amount of helix strings. The rotation angle will split equally for each.
-     * @param radius    the radius of the helix.
-     * @param rate      the rate of helix points.
-     * @param extension the helix circle extension.
-     * @param height    the height of the helix.
-     * @param speed     the speed of the rate builder in each animation tick.
-     * @param fadeUp    helix radius will decrease to zero as it gets closer to the top.
-     * @param fadeDown  helix radius will increase to the original radius as it gets closer to the center.
-     *
+     * @param strings      the amount of helix strings. The rotation angle will split equally for each.
+     * @param radius       the radius of the helix.
+     * @param rate         the rate of helix points.
+     * @param extension    the helix circle extension.
+     * @param length       the length of the helix.
+     * @param speed        the amount of blocks the particles advances in one tick. Recommended is 0.5
+     * @param rotationRate The amount particles rotate around the circular reference, should be set depending on the amount of strings.
+     *                     5 is usually a good value.
+     * @param fadeUp       helix radius will decrease to zero as it gets closer to the top.
+     * @param fadeDown     helix radius will increase to the original radius as it gets closer to the center.
      * @return the animation runnable. It will return false when the animation is finished.
      * @see #dnaReplication(double, double, int, double, int, int, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BooleanSupplier helix(int strings, double radius, double rate, double extension, int height, int speed,
-                                   boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
+    public static BooleanSupplier helix(int strings, double radius, double rate, double extension,
+                                        double length, double speed, double rotationRate,
+                                        boolean fadeUp, boolean fadeDown,
+                                        ParticleDisplay display) {
         return new BooleanSupplier() {
             // If we look at a helix string from above, we'll see a circle tunnel.
             // To make this tunnel we're going to generate circles while moving
             // upwards to get a curvy tunnel.
             // Since we're generating this string infinitely we don't need
             // to use radians or degrees.
-            final double dist = PII / strings;
-            final double radiusDiv = radius / (height / rate);
+            final double distanceBetweenEachCirclePoints = XParticle.PII / strings;
+            final double radiusDiv = radius / (length / rate);
             final double radiusDiv2 = fadeUp && fadeDown ? radiusDiv * 2 : radiusDiv;
             double dynamicRadius = fadeDown ? 0 : radius;
             boolean center = !fadeDown;
-            double y = 0;
-            boolean done = false;
+            final double calculatedRotRate = distanceBetweenEachCirclePoints / rotationRate;
+            double rotation = 0;
+            double currentDistance = 0;
 
             @Override
             public boolean getAsBoolean() {
-                if (done) return false;
+                if (currentDistance >= length) return false;
 
-                int repeat = speed;
-                while (repeat-- > 0) {
-                    y += rate;
+                if (!center) {
+                    dynamicRadius += radiusDiv2;
+                    if (dynamicRadius >= radius) center = true;
+                } else if (fadeUp) dynamicRadius -= radiusDiv2;
 
+                // Now we're going to copy our points and rotate them.
+                for (double i = 0; i < strings; i++) {
                     // 2D cirlce points.
-                    double x = dynamicRadius * Math.cos(extension * y);
-                    double z = dynamicRadius * Math.sin(extension * y);
-
-                    if (!center) {
-                        dynamicRadius += radiusDiv2;
-                        if (dynamicRadius >= radius) center = true;
-                    } else if (fadeUp) dynamicRadius -= radiusDiv2;
-
-                    // Now we're going to copy our points and rotate them.
-                    int tempString = strings;
-                    for (double angle = 0; tempString > 0; angle += dist) {
-                        display.rotate(0, angle, 0);
-                        display.spawn(x, y, z);
-                        display.rotate(0, -angle, 0);
-                        tempString--;
-                    }
-
-                    if (y > height) {
-                        done = true;
-                        return false;
-                    }
+                    double angle = i * distanceBetweenEachCirclePoints * extension + rotation;
+                    double x = dynamicRadius * Math.cos(angle);
+                    double z = dynamicRadius * Math.sin(angle);
+                    display.spawn(x, 0, z);
                 }
+
+                currentDistance += speed;
+                if (currentDistance < length) display.advanceInDirection(speed);
+                else display.advanceInDirection(speed - (currentDistance - length));
+                rotation += calculatedRotRate;
 
                 return true;
             }
@@ -1523,14 +1515,14 @@ public final class XParticle {
      * @param speed     the speed of the rate builder in each animation tick.
      * @param fadeUp    helix radius will decrease to zero as it gets closer to the top.
      * @param fadeDown  helix radius will increase to the original radius as it gets closer to the center.
-     *
      * @return the animation task.
      * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 3.0.0
      */
-    public static BukkitTask helix(Plugin plugin, int strings, double radius, double rate, double extension, int height, int speed,
+    public static BukkitTask helix(Plugin plugin, int strings, double radius, double rate,
+                                   double extension, double height, double speed, double rotationRate,
                                    boolean fadeUp, boolean fadeDown, ParticleDisplay display) {
-        BooleanSupplier helix = helix(strings, radius, rate, extension, height, speed, fadeUp, fadeDown, display);
+        BooleanSupplier helix = helix(strings, radius, rate, extension, height, speed, rotationRate, fadeUp, fadeDown, display);
         return new BukkitRunnable() {
             @Override
             public void run() {
@@ -1609,7 +1601,7 @@ public final class XParticle {
      * @param hydrogenBondDist    the distance between each hydrogen bond (read inside method). This distance is also affected by rate.
      * @param display             display for strings.
      * @param hydrogenBondDisplay display for hydrogen bonds.
-     * @see #helix(Plugin, int, double, double, double, int, int, boolean, boolean, ParticleDisplay)
+     * @see #helix(int, double, double, double, double, double, double, boolean, boolean, ParticleDisplay)
      * @see #dnaReplication(Plugin, double, double, int, double, int, int, ParticleDisplay)
      * @since 1.0.0
      */
@@ -1652,13 +1644,12 @@ public final class XParticle {
      * @param extension        the extension of the DNA helix sin/cos waves.
      * @param height           the height of the DNA strings.
      * @param hydrogenBondDist the distance between two DNA string helix points in a single string for each hydrogen bond to be formed.
-     *
      * @return the runnable handling the animation. It will return false when the animation is finished.
      * @see #dna(double, double, double, int, int, ParticleDisplay, ParticleDisplay)
      * @since 3.0.0
      */
     public static BooleanSupplier dnaReplication(double radius, double rate, int speed, double extension,
-                                                               int height, int hydrogenBondDist, ParticleDisplay display) {
+                                                 int height, int hydrogenBondDist, ParticleDisplay display) {
         // We'll use the common nucleotide colors.
         ParticleDisplay adenine = ParticleDisplay.colored(null, java.awt.Color.BLUE, 1); // Blue
         ParticleDisplay thymine = ParticleDisplay.colored(null, java.awt.Color.YELLOW, 1); // Yellow
@@ -1731,7 +1722,6 @@ public final class XParticle {
      * @param extension        the extension of the DNA helix sin/cos waves.
      * @param height           the height of the DNA strings.
      * @param hydrogenBondDist the distance between two DNA string helix points in a single string for each hydrogen bond to be formed.
-     *
      * @return the timer handling the animation.
      * @see #dna(double, double, double, int, int, ParticleDisplay, ParticleDisplay)
      * @since 3.0.0
@@ -1766,9 +1756,8 @@ public final class XParticle {
     /**
      * A simple method to spawn animated clouds effect.
      *
-     * @param cloud  recommended particle is {@link Particle#CLOUD} or {@link Particle#SMOKE_LARGE} and the offset xyz should be higher than 2
-     * @param rain   recommended particle is {@link Particle#WATER_DROP} or {@link Particle#FALLING_LAVA} and the offset xyz should be the same as cloud.
-     *
+     * @param cloud recommended particle is {@link Particle#CLOUD} or {@link Particle#SMOKE_LARGE} and the offset xyz should be higher than 2
+     * @param rain  recommended particle is {@link Particle#WATER_DROP} or {@link Particle#FALLING_LAVA} and the offset xyz should be the same as cloud.
      * @return the runnable handling the animation.
      * @since 1.0.0
      */
@@ -2089,11 +2078,10 @@ public final class XParticle {
      * https://en.wikipedia.org/wiki/Tesseract
      * https://en.wikipedia.org/wiki/Rotation_matrix
      *
-     * @param size   the size of the tesseract. Recommended is 4
-     * @param rate   the rate of the tesseract points. Recommended is 0.3
-     * @param speed  the speed of the tesseract matrix motion. Recommended is 0.01
-     * @param ticks  the amount of ticks to keep the animation.
-     *
+     * @param size  the size of the tesseract. Recommended is 4
+     * @param rate  the rate of the tesseract points. Recommended is 0.3
+     * @param speed the speed of the tesseract matrix motion. Recommended is 0.01
+     * @param ticks the amount of ticks to keep the animation.
      * @return the animation runnable. It will return false when the animation is over.
      * @see #hypercube(Location, Location, double, double, int, ParticleDisplay)
      * @since 4.0.0
@@ -2233,7 +2221,6 @@ public final class XParticle {
      * @param rate   the rate of the tesseract points. Recommended is 0.3
      * @param speed  the speed of the tesseract matrix motion. Recommended is 0.01
      * @param ticks  the amount of ticks to keep the animation.
-     *
      * @see #hypercube(Location, Location, double, double, int, ParticleDisplay)
      * @since 4.0.0
      */
@@ -2371,13 +2358,12 @@ public final class XParticle {
      *                    The value is used in small ranges for when prototype mode is enabled. Usually between 0.01 and 0.1
      * @param prototype   if the spikes of the star should use helix instead of a random generator.
      * @param speed       the speed of animation. Smoothest/slowest is 1
-     *
      * @return a list of runnables. They will return false when the animation is done.
      * @see #spikeSphere(double, double, int, double, double, ParticleDisplay)
      * @since 3.0.0
      */
     public static List<BooleanSupplier> star(int points, int spikes, double rate, double spikeLength, double coreRadius,
-                            double neuron, boolean prototype, int speed, ParticleDisplay display) {
+                                             double neuron, boolean prototype, int speed, ParticleDisplay display) {
         double pointsRate = PII / points;
         double rateDiv = Math.PI / rate;
         ThreadLocalRandom random = prototype ? null : ThreadLocalRandom.current();
@@ -2445,12 +2431,11 @@ public final class XParticle {
      *                    The value is used in small ranges for when prototype mode is enabled. Usually between 0.01 and 0.1
      * @param prototype   if the spikes of the star should use helix instead of a random generator.
      * @param speed       the speed of animation. Smoothest/slowest is 1
-     *
      * @see #spikeSphere(double, double, int, double, double, ParticleDisplay)
      * @since 3.0.0
      */
     public static List<BukkitTask> star(Plugin plugin, int points, int spikes, double rate, double spikeLength, double coreRadius,
-                            double neuron, boolean prototype, int speed, ParticleDisplay display) {
+                                        double neuron, boolean prototype, int speed, ParticleDisplay display) {
         List<BukkitTask> tasks = new ArrayList<>();
         for (BooleanSupplier task : star(points, spikes, rate, spikeLength, coreRadius, neuron, prototype, speed, display)) {
             tasks.add(new BukkitRunnable() {
@@ -2565,7 +2550,7 @@ public final class XParticle {
     public static void atom(int orbits, double radius, double rate, ParticleDisplay orbit, ParticleDisplay nucleus) {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
-            orbit.setRotation(new Vector(0, 0, angle));
+            orbit.withRotation(new Vector(0, 0, angle));
             circle(radius, rate, orbit);
             orbits--;
         }
@@ -2607,7 +2592,6 @@ public final class XParticle {
      * in a totally different shape.
      *
      * @param size the shape of the explosion circle. Recommended value is 6
-     *
      * @see #polygon(int, int, double, double, double, ParticleDisplay)
      * @see #circle(double, double, ParticleDisplay)
      * @since 1.0.0
@@ -2629,7 +2613,6 @@ public final class XParticle {
      * Source: https://www.youtube.com/watch?v=n8W7RxW5KB4
      *
      * @param rate the distance between each cos/sin lines.
-     *
      * @return the animation runnable. It will return false when it's done.
      * @since 1.0.0
      */
@@ -2671,7 +2654,6 @@ public final class XParticle {
      * Source: https://www.youtube.com/watch?v=n8W7RxW5KB4
      *
      * @param rate the distance between each cos/sin lines.
-     *
      * @since 1.0.0
      */
     public static BukkitTask explosionWave(Plugin plugin, double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
@@ -2810,7 +2792,7 @@ public final class XParticle {
      * @since 1.0.0
      */
     public static BooleanSupplier displayRenderedImage(Map<double[], Color> render, Callable<Location> location,
-                                                  int repeat, int quality, int speed, float size) {
+                                                       int repeat, int quality, int speed, float size) {
         return new BooleanSupplier() {
             int times = repeat;
             boolean done = false;
@@ -2845,7 +2827,6 @@ public final class XParticle {
      * @param quality  the quality of the image is exactly the number of particles display for each pixel. Recommended value is 1
      * @param speed    the speed is exactly the same value as the speed of particles. Recommended amount is 0
      * @param size     the size of the particle. Recommended amount is 0.8
-     *
      * @return the async bukkit task displaying the image.
      * @since 1.0.0
      */

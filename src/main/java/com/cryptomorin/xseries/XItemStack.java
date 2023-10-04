@@ -152,7 +152,7 @@ public final class XItemStack {
             config.set("flags", flagNames);
         }
 
-        // Attributes - https://minecraft.gamepedia.com/Attribute
+        // Attributes - https://minecraft.wiki/w/Attribute
         if (supports(13)) {
             Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
             if (attributes != null) {
@@ -938,7 +938,7 @@ public final class XItemStack {
                 meta.addItemFlags(ITEM_FLAGS);
         }
 
-        // Atrributes - https://minecraft.gamepedia.com/Attribute
+        // Atrributes - https://minecraft.wiki/w/Attribute
         if (supports(13)) {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {

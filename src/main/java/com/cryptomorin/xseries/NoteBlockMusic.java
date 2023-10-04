@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 /**
  * <b>NoteBlockMusic</b> - Write music scripts for Minecraft.<br>
- * You can write small text scripts for Minecraft <a href="https://minecraft.gamepedia.com/Note_Block">note blocks</a>
+ * You can write small text scripts for Minecraft <a href="https://minecraft.wiki/w/Note_Block">note blocks</a>
  * without needing to use any redstone or building to make your music.
  * This class is independent of XSound.
  *
@@ -126,7 +126,7 @@ public final class NoteBlockMusic {
      * The character paseed to this method is assumed to be uppercase,
      * otherwise it needs to be {@code ch & 0x5f} manually.
      * <p>
-     * https://minecraft.gamepedia.com/Note_Block#Notes
+     * https://minecraft.wiki/w/Note_Block#Notes
      *
      * @param ch the character of the note tone.
      * @return the note tone or null if not found.

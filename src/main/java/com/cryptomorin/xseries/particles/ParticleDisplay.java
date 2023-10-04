@@ -31,6 +31,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * By default the particle xyz offsets and speed aren't 0, but
@@ -58,7 +60,7 @@ import java.util.function.Predicate;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 7.2.0
+ * @version 8.0.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -85,11 +87,19 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     private Particle particle = DEFAULT_PARTICLE;
     @Nullable
-    private Location location;
+    private Location location, lastLocation;
     @Nullable
     private Callable<Location> locationCaller;
     @Nullable
-    private Vector rotation, offset = new Vector();
+    private Vector offset = new Vector();
+    private Supplier<Vector> rotation;
+    /**
+     * The direction is mostly used for APIs to call {@link #advanceInDirection(double)}
+     * instead of handling the direction in a specific axis.
+     * This makes it easier for them as well and allows easier use of the {@link #rotation} API.
+     */
+    private final Vector directionNormal = new Vector(0, 1, 0);
+    private Supplier<Vector> direction = () -> directionNormal;
     @Nonnull
     private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
     @Nullable
@@ -293,7 +303,8 @@ public class ParticleDisplay implements Cloneable {
                 double x = Math.toRadians(toDouble(rotations.get(0)));
                 double y = Math.toRadians(toDouble(rotations.get(1)));
                 double z = Math.toRadians(toDouble(rotations.get(2)));
-                display.rotation = new Vector(x, y, z);
+                Vector rotationVect = new Vector(x, y, z);
+                display.rotation = () -> rotationVect;
             }
         }
 
@@ -409,7 +420,7 @@ public class ParticleDisplay implements Cloneable {
         }
 
         if (display.rotation != null) {
-            Vector rotation = display.rotation;
+            Vector rotation = display.rotation.get();
             section.set("rotation", Math.toDegrees(rotation.getX()) + ", " +
                     Math.toDegrees(rotation.getY()) + ", " +
                     Math.toDegrees(rotation.getZ()));
@@ -549,6 +560,45 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * @see #direction
+     * @since 8.0.0
+     */
+    @Nullable
+    public Supplier<Vector> getDirection() {
+        return direction;
+    }
+
+    /**
+     * Changes the current {@link #location} in {@link #direction} by {@code distance} blocks.
+     *
+     * @since 8.0.0
+     */
+    public void advanceInDirection(double distance) {
+        Objects.requireNonNull(direction, "Cannot advance with null direction");
+        if (distance == 0) return;
+        this.location.add(this.direction.get().clone().multiply(distance));
+    }
+
+    /**
+     * @see #direction
+     * @since 8.0.0
+     */
+    public ParticleDisplay withDirection(@Nullable Vector direction) {
+        Vector newDir = direction.clone().normalize();
+        this.direction = () -> newDir;
+        return this;
+    }
+
+    /**
+     * @see #direction
+     * @since 8.0.0
+     */
+    public ParticleDisplay withDirection(@Nullable Supplier<Vector> direction) {
+        this.direction = direction;
+        return this;
+    }
+
+    /**
      * Get the particle.
      *
      * @return the particle.
@@ -592,6 +642,8 @@ public class ParticleDisplay implements Cloneable {
     @Override
     public String toString() {
         Location location = getLocation();
+        Vector rotation = this.rotation == null ? null : this.rotation.get();
+
         return "ParticleDisplay:[" +
                 "Particle=" + particle + ", " +
                 "Count=" + count + ", " +
@@ -845,6 +897,87 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * Adjusts the rotation settings to face the entity's direction.
+     * Only some of the shapes support this method.
+     *
+     * @param entity the entity to face.
+     * @return the same particle display.
+     * @see #rotate(Vector)
+     * @since 8.0.0
+     */
+    @Nonnull
+    public ParticleDisplay faceDynamically(@Nonnull Entity entity) {
+        Objects.requireNonNull(entity, "Cannot face null entity");
+
+        this.rotation = () -> new Vector(
+                Math.toRadians(entity.getLocation().getPitch() + 90),
+                Math.toRadians(-entity.getLocation().getYaw()),
+                0);
+        this.direction = () -> entity.getLocation().getDirection().clone().normalize();
+        return this;
+    }
+
+    /**
+     * Adjusts the rotation settings to face the entity's direction.
+     * Only some of the shapes support this method.
+     *
+     * @param entity the entity to face.
+     * @return the same particle display.
+     * @see #rotate(Vector)
+     * @since 8.0.0
+     */
+    @Nonnull
+    public ParticleDisplay follow(@Nonnull Entity entity) {
+        Objects.requireNonNull(entity, "Cannot face null entity");
+
+        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Location.java#310
+        this.direction = () -> entity.getLocation().subtract(getLastLocation()).toVector().normalize();
+        this.rotation = () -> {
+            Vector currentDirection = this.direction.get();
+            float[] yawPitch = getYawPitch(currentDirection);
+            float yaw = yawPitch[0], pitch = yawPitch[1];
+            return new Vector(Math.toRadians(pitch + 90), Math.toRadians(-yaw), 0);
+        };
+        return this;
+    }
+
+    /**
+     * Gets yaw and pitch from a given direction.
+     *
+     * @return the first element is the yaw and the second is the pitch.
+     * @since 8.0.0
+     */
+    public static float[] getYawPitch(Vector vector) {
+        /*
+         * Sin = Opp / Hyp
+         * Cos = Adj / Hyp
+         * Tan = Opp / Adj
+         *
+         * x = -Opp
+         * z = Adj
+         */
+        final double _2PI = 2 * Math.PI;
+        final double x = vector.getX();
+        final double z = vector.getZ();
+        float pitch, yaw;
+
+        if (x == 0 && z == 0) {
+            yaw = 0;
+            pitch = vector.getY() > 0 ? -90 : 90;
+        } else {
+            double theta = Math.atan2(-x, z);
+            yaw = (float) Math.toDegrees((theta + _2PI) % _2PI);
+
+            double x2 = NumberConversions.square(x);
+            double z2 = NumberConversions.square(z);
+            double xz = Math.sqrt(x2 + z2);
+            pitch = (float) Math.toDegrees(Math.atan(-vector.getY() / xz));
+        }
+
+        return new float[]{yaw, pitch};
+    }
+
+    /**
      * Adjusts the rotation settings to face the locations pitch and yaw.
      * Only some of the shapes support this method.
      *
@@ -857,7 +990,10 @@ public class ParticleDisplay implements Cloneable {
     public ParticleDisplay face(@Nonnull Location location) {
         Objects.requireNonNull(location, "Cannot face null location");
         // We add 90 degrees to compensate for the non-standard use of pitch degrees in Minecraft.
-        this.rotation = new Vector(Math.toRadians(location.getPitch() + 90), Math.toRadians(-location.getYaw()), 0);
+        Vector rotation = new Vector(Math.toRadians(location.getPitch() + 90), Math.toRadians(-location.getYaw()), 0);
+        Vector dir = location.getDirection().clone().normalize();
+        this.rotation = () -> rotation;
+        this.direction = () -> dir;
         return this;
     }
 
@@ -922,7 +1058,7 @@ public class ParticleDisplay implements Cloneable {
                 .forceSpawn(force).onSpawn(onSpawn);
 
         if (location != null) display.location = cloneLocation(location);
-        if (rotation != null) display.rotation = this.rotation.clone();
+        if (rotation != null) display.rotation = this.rotation;
         display.rotationOrder = this.rotationOrder;
         display.data = data;
         return display;
@@ -938,8 +1074,11 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay rotate(@Nonnull Vector vector) {
         Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
-        if (rotation == null) rotation = vector;
-        else rotation.add(vector);
+        if (rotation == null) rotation = () -> vector;
+        else {
+            Supplier<Vector> previousFunc = this.rotation;
+            rotation = () -> previousFunc.get().clone().add(vector);
+        }
         return this;
     }
 
@@ -957,6 +1096,15 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * @return the location of the last particle spawned with this object.
+     * @since 8.0.0
+     */
+    @Nullable
+    public Location getLastLocation() {
+        return lastLocation == null ? getLocation() : lastLocation;
+    }
+
+    /**
      * Rotates the given xyz with the given rotation radians and
      * adds them to the specified location.
      *
@@ -969,6 +1117,7 @@ public class ParticleDisplay implements Cloneable {
         if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
         if (rotation == null) return cloneLocation(location).add(x, y, z);
 
+        Vector rotation = this.rotation.get();
         Vector rotate = new Vector(x, y, z);
         rotateAround(rotate, rotationOrder[0], rotation);
         rotateAround(rotate, rotationOrder[1], rotation);
@@ -1015,7 +1164,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 6.1.0
      */
     @Nullable
-    public Vector getRotation() {
+    public Supplier<Vector> getRotation() {
         return rotation;
     }
 
@@ -1025,8 +1174,20 @@ public class ParticleDisplay implements Cloneable {
      * @param rotation the new rotation.
      * @since 7.0.0
      */
-    public void setRotation(@Nullable Vector rotation) {
+    public ParticleDisplay withRotation(@Nullable Vector rotation) {
+        this.rotation = () -> rotation;
+        return this;
+    }
+
+    /**
+     * Sets a new rotation vector ignoring previous ones.
+     *
+     * @param rotation the new rotation.
+     * @since 8.0.0
+     */
+    public ParticleDisplay withRotation(@Nullable Supplier<Vector> rotation) {
         this.rotation = rotation;
+        return this;
     }
 
     /**
@@ -1172,6 +1333,7 @@ public class ParticleDisplay implements Cloneable {
                 player.spawnParticle(particle, loc, count, offsetx, offsety, offsetz, extra, datas);
         }
 
+        this.lastLocation = loc;
         return loc;
     }
 

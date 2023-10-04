@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
  * either by ID, name or encoded textures URL property.
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
@@ -195,7 +195,9 @@ public class SkullUtils {
 
     @Nonnull
     public static GameProfile profileFromBase64(String value) {
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        // Use an empty string instead of null for the name parameter because it's now null-checked since 1.20.2.
+        // It doesn't seem to affect functionality.
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "");
         profile.getProperties().put("textures", new Property("textures", value));
         return profile;
     }
@@ -292,11 +294,30 @@ public class SkullUtils {
 
         if (profile != null && !profile.getProperties().get("textures").isEmpty()) {
             for (Property property : profile.getProperties().get("textures")) {
-                if (!property.getValue().isEmpty()) return property.getValue();
+                String value = getPropertyValue(property);
+                if (!value.isEmpty()) return value;
             }
         }
 
         return null;
+    }
+
+    /**
+     * They changed {@link Property} to a Java record in 1.20.2
+     *
+     * @since 4.0.1
+     */
+    private static String getPropertyValue(Property property) {
+        if (ReflectionUtils.supports(12, 2)) {
+            return property.value();
+        } else {
+            try {
+                //noinspection JavaReflectionMemberAccess
+                return (String) Property.class.getMethod("getValue").invoke(property);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**

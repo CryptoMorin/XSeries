@@ -2339,7 +2339,7 @@ public final class XTag<T extends Enum<T>> {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <E> List<Matcher<E>> stringMatcher(@Nullable Collection<String> elements,
-                                              @Nullable Collection<Matcher.Error> errors) {
+                                                     @Nullable Collection<Matcher.Error> errors) {
         if (elements == null || elements.isEmpty()) return new ArrayList<>();
         List<Matcher<E>> matchers = new ArrayList<>(elements.size());
 
