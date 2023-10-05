@@ -301,6 +301,18 @@ public final class XItemStack {
                 }
             }
         } else {
+            if (supports(20)) {
+                if (meta instanceof ArmorMeta) {
+                    ArmorMeta armorMeta = (ArmorMeta) meta;
+                    if (armorMeta.hasTrim()) {
+                        ArmorTrim trim = armorMeta.getTrim();
+                        ConfigurationSection trimConfig = config.createSection("trim");
+                        trimConfig.set("material", trim.getMaterial().getKey().getNamespace() + ":" + trim.getMaterial().getKey().getKey());
+                        trimConfig.set("pattern", trim.getPattern().getKey().getNamespace() + ":" + trim.getPattern().getKey().getKey());
+                    }
+                }
+            }
+
             if (supports(17)) {
                 if (meta instanceof AxolotlBucketMeta) {
                     AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
@@ -784,8 +796,8 @@ public final class XItemStack {
                     ArmorMeta armorMeta = (ArmorMeta) meta;
                     if (config.isSet("trim")) {
                         ConfigurationSection trim = config.getConfigurationSection("trim");
-                        TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.minecraft(trim.getString("material")));
-                        TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.minecraft(trim.getString("pattern")));
+                        TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.fromString(trim.getString("material")));
+                        TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(trim.getString("pattern")));
                         armorMeta.setTrim(new ArmorTrim(trimMaterial, trimPattern));
                     }
                 }
