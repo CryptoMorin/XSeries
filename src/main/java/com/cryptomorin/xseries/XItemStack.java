@@ -45,6 +45,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
@@ -768,6 +771,18 @@ public final class XItemStack {
                 }
             }
         } else {
+            if (supports(20)) {
+                if (meta instanceof ArmorMeta) {
+                    ArmorMeta armorMeta = (ArmorMeta) meta;
+                    if (config.isSet("trim")) {
+                        ConfigurationSection trim = config.getConfigurationSection("trim");
+                        TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.minecraft(trim.getString("material")));
+                        TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.minecraft(trim.getString("pattern")));
+                        armorMeta.setTrim(new ArmorTrim(trimMaterial, trimPattern));
+                    }
+                }
+            }
+
             if (supports(17)) {
                 if (meta instanceof AxolotlBucketMeta) {
                     AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
