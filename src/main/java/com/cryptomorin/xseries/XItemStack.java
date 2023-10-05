@@ -300,60 +300,68 @@ public final class XItemStack {
                     view.set("unlimited-tracking", mapView.isUnlimitedTracking());
                 }
             }
-        } else if (supports(17)) {
-            if (meta instanceof AxolotlBucketMeta) {
-                AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                if (bucket.hasVariant()) config.set("color", bucket.getVariant().toString());
-            }
-        } else if (supports(16)) {
-            if (meta instanceof CompassMeta) {
-                CompassMeta compass = (CompassMeta) meta;
-                ConfigurationSection subSection = config.createSection("lodestone");
-                subSection.set("tracked", compass.isLodestoneTracked());
-                if (compass.hasLodestone()) {
-                    Location location = compass.getLodestone();
-                    subSection.set("location.world", location.getWorld().getName());
-                    subSection.set("location.x", location.getX());
-                    subSection.set("location.y", location.getY());
-                    subSection.set("location.z", location.getZ());
+        } else {
+            if (supports(17)) {
+                if (meta instanceof AxolotlBucketMeta) {
+                    AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
+                    if (bucket.hasVariant()) config.set("color", bucket.getVariant().toString());
                 }
             }
-        } else if (supports(14)) {
-            if (meta instanceof CrossbowMeta) {
-                CrossbowMeta crossbow = (CrossbowMeta) meta;
-                int i = 0;
-                for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
-                    serialize(projectiles, config.getConfigurationSection("projectiles." + i));
-                    i++;
-                }
-            } else if (meta instanceof TropicalFishBucketMeta) {
-                TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
-                config.set("pattern", tropical.getPattern().name());
-                config.set("color", tropical.getBodyColor().name());
-                config.set("pattern-color", tropical.getPatternColor().name());
-            } else if (meta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                List<PotionEffect> customEffects = stew.getCustomEffects();
-                List<String> effects = new ArrayList<>(customEffects.size());
 
-                for (PotionEffect effect : customEffects) {
-                    effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+            if (supports(16)) {
+                if (meta instanceof CompassMeta) {
+                    CompassMeta compass = (CompassMeta) meta;
+                    ConfigurationSection subSection = config.createSection("lodestone");
+                    subSection.set("tracked", compass.isLodestoneTracked());
+                    if (compass.hasLodestone()) {
+                        Location location = compass.getLodestone();
+                        subSection.set("location.world", location.getWorld().getName());
+                        subSection.set("location.x", location.getX());
+                        subSection.set("location.y", location.getY());
+                        subSection.set("location.z", location.getZ());
+                    }
                 }
-
-                config.set("effects", effects);
             }
-        } else if (!supports(13)) {
-            // Spawn Eggs
-            if (supports(11)) {
-                if (meta instanceof SpawnEggMeta) {
-                    SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
-                    config.set("creature", spawnEgg.getSpawnedType().getName());
+
+            if (supports(14)) {
+                if (meta instanceof CrossbowMeta) {
+                    CrossbowMeta crossbow = (CrossbowMeta) meta;
+                    int i = 0;
+                    for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
+                        serialize(projectiles, config.getConfigurationSection("projectiles." + i));
+                        i++;
+                    }
+                } else if (meta instanceof TropicalFishBucketMeta) {
+                    TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
+                    config.set("pattern", tropical.getPattern().name());
+                    config.set("color", tropical.getBodyColor().name());
+                    config.set("pattern-color", tropical.getPatternColor().name());
+                } else if (meta instanceof SuspiciousStewMeta) {
+                    SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
+                    List<PotionEffect> customEffects = stew.getCustomEffects();
+                    List<String> effects = new ArrayList<>(customEffects.size());
+
+                    for (PotionEffect effect : customEffects) {
+                        effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+                    }
+
+                    config.set("effects", effects);
                 }
-            } else {
-                MaterialData data = item.getData();
-                if (data instanceof SpawnEgg) {
-                    SpawnEgg spawnEgg = (SpawnEgg) data;
-                    config.set("creature", spawnEgg.getSpawnedType().getName());
+            }
+
+            if (!supports(13)) {
+                // Spawn Eggs
+                if (supports(11)) {
+                    if (meta instanceof SpawnEggMeta) {
+                        SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
+                        config.set("creature", spawnEgg.getSpawnedType().getName());
+                    }
+                } else {
+                    MaterialData data = item.getData();
+                    if (data instanceof SpawnEgg) {
+                        SpawnEgg spawnEgg = (SpawnEgg) data;
+                        config.set("creature", spawnEgg.getSpawnedType().getName());
+                    }
                 }
             }
         }
