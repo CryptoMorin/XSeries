@@ -45,6 +45,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
@@ -297,60 +300,80 @@ public final class XItemStack {
                     view.set("unlimited-tracking", mapView.isUnlimitedTracking());
                 }
             }
-        } else if (supports(17)) {
-            if (meta instanceof AxolotlBucketMeta) {
-                AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                if (bucket.hasVariant()) config.set("color", bucket.getVariant().toString());
-            }
-        } else if (supports(16)) {
-            if (meta instanceof CompassMeta) {
-                CompassMeta compass = (CompassMeta) meta;
-                ConfigurationSection subSection = config.createSection("lodestone");
-                subSection.set("tracked", compass.isLodestoneTracked());
-                if (compass.hasLodestone()) {
-                    Location location = compass.getLodestone();
-                    subSection.set("location.world", location.getWorld().getName());
-                    subSection.set("location.x", location.getX());
-                    subSection.set("location.y", location.getY());
-                    subSection.set("location.z", location.getZ());
+        } else {
+            if (supports(20)) {
+                if (meta instanceof ArmorMeta) {
+                    ArmorMeta armorMeta = (ArmorMeta) meta;
+                    if (armorMeta.hasTrim()) {
+                        ArmorTrim trim = armorMeta.getTrim();
+                        ConfigurationSection trimConfig = config.createSection("trim");
+                        trimConfig.set("material", trim.getMaterial().getKey().getNamespace() + ":" + trim.getMaterial().getKey().getKey());
+                        trimConfig.set("pattern", trim.getPattern().getKey().getNamespace() + ":" + trim.getPattern().getKey().getKey());
+                    }
                 }
             }
-        } else if (supports(14)) {
-            if (meta instanceof CrossbowMeta) {
-                CrossbowMeta crossbow = (CrossbowMeta) meta;
-                int i = 0;
-                for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
-                    serialize(projectiles, config.getConfigurationSection("projectiles." + i));
-                    i++;
-                }
-            } else if (meta instanceof TropicalFishBucketMeta) {
-                TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
-                config.set("pattern", tropical.getPattern().name());
-                config.set("color", tropical.getBodyColor().name());
-                config.set("pattern-color", tropical.getPatternColor().name());
-            } else if (meta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                List<PotionEffect> customEffects = stew.getCustomEffects();
-                List<String> effects = new ArrayList<>(customEffects.size());
 
-                for (PotionEffect effect : customEffects) {
-                    effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+            if (supports(17)) {
+                if (meta instanceof AxolotlBucketMeta) {
+                    AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
+                    if (bucket.hasVariant()) config.set("color", bucket.getVariant().toString());
                 }
-
-                config.set("effects", effects);
             }
-        } else if (!supports(13)) {
-            // Spawn Eggs
-            if (supports(11)) {
-                if (meta instanceof SpawnEggMeta) {
-                    SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
-                    config.set("creature", spawnEgg.getSpawnedType().getName());
+
+            if (supports(16)) {
+                if (meta instanceof CompassMeta) {
+                    CompassMeta compass = (CompassMeta) meta;
+                    ConfigurationSection subSection = config.createSection("lodestone");
+                    subSection.set("tracked", compass.isLodestoneTracked());
+                    if (compass.hasLodestone()) {
+                        Location location = compass.getLodestone();
+                        subSection.set("location.world", location.getWorld().getName());
+                        subSection.set("location.x", location.getX());
+                        subSection.set("location.y", location.getY());
+                        subSection.set("location.z", location.getZ());
+                    }
                 }
-            } else {
-                MaterialData data = item.getData();
-                if (data instanceof SpawnEgg) {
-                    SpawnEgg spawnEgg = (SpawnEgg) data;
-                    config.set("creature", spawnEgg.getSpawnedType().getName());
+            }
+
+            if (supports(14)) {
+                if (meta instanceof CrossbowMeta) {
+                    CrossbowMeta crossbow = (CrossbowMeta) meta;
+                    int i = 0;
+                    for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
+                        serialize(projectiles, config.getConfigurationSection("projectiles." + i));
+                        i++;
+                    }
+                } else if (meta instanceof TropicalFishBucketMeta) {
+                    TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
+                    config.set("pattern", tropical.getPattern().name());
+                    config.set("color", tropical.getBodyColor().name());
+                    config.set("pattern-color", tropical.getPatternColor().name());
+                } else if (meta instanceof SuspiciousStewMeta) {
+                    SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
+                    List<PotionEffect> customEffects = stew.getCustomEffects();
+                    List<String> effects = new ArrayList<>(customEffects.size());
+
+                    for (PotionEffect effect : customEffects) {
+                        effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+                    }
+
+                    config.set("effects", effects);
+                }
+            }
+
+            if (!supports(13)) {
+                // Spawn Eggs
+                if (supports(11)) {
+                    if (meta instanceof SpawnEggMeta) {
+                        SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
+                        config.set("creature", spawnEgg.getSpawnedType().getName());
+                    }
+                } else {
+                    MaterialData data = item.getData();
+                    if (data instanceof SpawnEgg) {
+                        SpawnEgg spawnEgg = (SpawnEgg) data;
+                        config.set("creature", spawnEgg.getSpawnedType().getName());
+                    }
                 }
             }
         }
@@ -767,75 +790,97 @@ public final class XItemStack {
                     }
                 }
             }
-        } else if (supports(17)) {
-            if (meta instanceof AxolotlBucketMeta) {
-                AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
-                String variantStr = config.getString("color");
-                if (variantStr != null) {
-                    Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
-                    bucket.setVariant(variant);
-                }
-            }
-        } else if (supports(16)) {
-            if (meta instanceof CompassMeta) {
-                CompassMeta compass = (CompassMeta) meta;
-                compass.setLodestoneTracked(config.getBoolean("tracked"));
-
-                ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
-                if (lodestone != null) {
-                    World world = Bukkit.getWorld(lodestone.getString("world"));
-                    double x = lodestone.getDouble("x");
-                    double y = lodestone.getDouble("y");
-                    double z = lodestone.getDouble("z");
-                    compass.setLodestone(new Location(world, x, y, z));
-                }
-            }
-        } else if (supports(15)) {
-            if (meta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
-                for (String effects : config.getStringList("effects")) {
-                    XPotion.Effect effect = XPotion.parseEffect(effects);
-                    if (effect.hasChance()) stew.addCustomEffect(effect.getEffect(), true);
-                }
-            }
-        } else if (supports(14)) {
-            if (meta instanceof CrossbowMeta) {
-                CrossbowMeta crossbow = (CrossbowMeta) meta;
-                for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
-                    ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
-                    crossbow.addChargedProjectile(projectile);
-                }
-            } else if (meta instanceof TropicalFishBucketMeta) {
-                TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
-                DyeColor color = Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE);
-                DyeColor patternColor = Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE);
-                TropicalFish.Pattern pattern = Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY);
-
-                tropical.setBodyColor(color);
-                tropical.setPatternColor(patternColor);
-                tropical.setPattern(pattern);
-            }
-            // Apparently Suspicious Stew was never added in 1.14
-        } else if (!supports(13)) {
-            // Spawn Eggs
-            if (supports(11)) {
-                if (meta instanceof SpawnEggMeta) {
-                    String creatureName = config.getString("creature");
-                    if (!Strings.isNullOrEmpty(creatureName)) {
-                        SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
-                        com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                        if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+        } else {
+            if (supports(20)) {
+                if (meta instanceof ArmorMeta) {
+                    ArmorMeta armorMeta = (ArmorMeta) meta;
+                    if (config.isSet("trim")) {
+                        ConfigurationSection trim = config.getConfigurationSection("trim");
+                        TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.fromString(trim.getString("material")));
+                        TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(trim.getString("pattern")));
+                        armorMeta.setTrim(new ArmorTrim(trimMaterial, trimPattern));
                     }
                 }
-            } else {
-                MaterialData data = item.getData();
-                if (data instanceof SpawnEgg) {
-                    String creatureName = config.getString("creature");
-                    if (!Strings.isNullOrEmpty(creatureName)) {
-                        SpawnEgg spawnEgg = (SpawnEgg) data;
-                        com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                        if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
-                        item.setData(data);
+            }
+
+            if (supports(17)) {
+                if (meta instanceof AxolotlBucketMeta) {
+                    AxolotlBucketMeta bucket = (AxolotlBucketMeta) meta;
+                    String variantStr = config.getString("color");
+                    if (variantStr != null) {
+                        Axolotl.Variant variant = Enums.getIfPresent(Axolotl.Variant.class, variantStr.toUpperCase(Locale.ENGLISH)).or(Axolotl.Variant.BLUE);
+                        bucket.setVariant(variant);
+                    }
+                }
+            }
+
+            if (supports(16)) {
+                if (meta instanceof CompassMeta) {
+                    CompassMeta compass = (CompassMeta) meta;
+                    compass.setLodestoneTracked(config.getBoolean("tracked"));
+
+                    ConfigurationSection lodestone = config.getConfigurationSection("lodestone");
+                    if (lodestone != null) {
+                        World world = Bukkit.getWorld(lodestone.getString("world"));
+                        double x = lodestone.getDouble("x");
+                        double y = lodestone.getDouble("y");
+                        double z = lodestone.getDouble("z");
+                        compass.setLodestone(new Location(world, x, y, z));
+                    }
+                }
+            }
+
+            if (supports(15)) {
+                if (meta instanceof SuspiciousStewMeta) {
+                    SuspiciousStewMeta stew = (SuspiciousStewMeta) meta;
+                    for (String effects : config.getStringList("effects")) {
+                        XPotion.Effect effect = XPotion.parseEffect(effects);
+                        if (effect.hasChance()) stew.addCustomEffect(effect.getEffect(), true);
+                    }
+                }
+            }
+
+            if (supports(14)) {
+                if (meta instanceof CrossbowMeta) {
+                    CrossbowMeta crossbow = (CrossbowMeta) meta;
+                    for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
+                        ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
+                        crossbow.addChargedProjectile(projectile);
+                    }
+                } else if (meta instanceof TropicalFishBucketMeta) {
+                    TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
+                    DyeColor color = Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.WHITE);
+                    DyeColor patternColor = Enums.getIfPresent(DyeColor.class, config.getString("pattern-color")).or(DyeColor.WHITE);
+                    TropicalFish.Pattern pattern = Enums.getIfPresent(TropicalFish.Pattern.class, config.getString("pattern")).or(TropicalFish.Pattern.BETTY);
+
+                    tropical.setBodyColor(color);
+                    tropical.setPatternColor(patternColor);
+                    tropical.setPattern(pattern);
+                }
+            }
+
+            // Apparently Suspicious Stew was never added in 1.14
+            if (!supports(13)) {
+                // Spawn Eggs
+                if (supports(11)) {
+                    if (meta instanceof SpawnEggMeta) {
+                        String creatureName = config.getString("creature");
+                        if (!Strings.isNullOrEmpty(creatureName)) {
+                            SpawnEggMeta spawnEgg = (SpawnEggMeta) meta;
+                            com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
+                            if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+                        }
+                    }
+                } else {
+                    MaterialData data = item.getData();
+                    if (data instanceof SpawnEgg) {
+                        String creatureName = config.getString("creature");
+                        if (!Strings.isNullOrEmpty(creatureName)) {
+                            SpawnEgg spawnEgg = (SpawnEgg) data;
+                            com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
+                            if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+                            item.setData(data);
+                        }
                     }
                 }
             }
@@ -955,7 +1000,7 @@ public final class XItemStack {
                     AttributeModifier modifier = new AttributeModifier(
                             id,
                             section.getString("name"),
-                            section.getInt("amount"),
+                            section.getDouble("amount"),
                             Enums.getIfPresent(AttributeModifier.Operation.class, section.getString("operation"))
                                     .or(AttributeModifier.Operation.ADD_NUMBER),
                             slot);
