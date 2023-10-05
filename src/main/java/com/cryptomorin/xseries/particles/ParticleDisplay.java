@@ -44,12 +44,18 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * By default the particle xyz offsets and speed aren't 0, but
+ * Represents how particles should be spawned. The simplest use case would be the following code
+ * which spawns a single particle in front of the player:
+ * <pre>{@code
+ * ParticleDisplay.of(Particle.FLAME).spawn(player.getEyeLocation());
+ * }</pre>
+ * This class is disposable by {@link XParticle} methods.
+ * It should not be used across multiple methods. I.e. it should not be
+ * used even to spawn a simple particle after it was used by one of {@link XParticle} methods.
+ * <p>
+ * By default, the particle xyz offsets and speed aren't 0, but
  * everything will be 0 by default in this class.
  * Particles are spawned to a location. So all the nearby players can see it.
- * <p>
- * The fields of this class are publicly accessible for ease of use.
- * All the fields can be null except the particle type.
  * <p>
  * For cross-version compatibility, instead of Bukkit's {@link org.bukkit.Color}
  * the java awt {@link Color} class is used.
@@ -60,7 +66,7 @@ import java.util.function.Supplier;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 8.0.0
+ * @version 8.1.0
  * @see XParticle
  */
 public class ParticleDisplay implements Cloneable {
@@ -100,6 +106,11 @@ public class ParticleDisplay implements Cloneable {
      */
     private final Vector directionNormal = new Vector(0, 1, 0);
     private Supplier<Vector> direction = () -> directionNormal;
+    /**
+     * The xyz axis order of how the particle's matrix should be rotated.
+     * Yes, it matters which axis you rotate first as it'll have an impact on the
+     * other rotations.
+     */
     @Nonnull
     private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
     @Nullable
@@ -505,6 +516,7 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * Rotates the given location vector around a certain axis.
+     * It simply uses the <a href="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</a>.
      *
      * @param location the location to rotate.
      * @param axis     the axis to rotate the location around.
@@ -840,10 +852,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Sets the rotation order that the particles should be rotated.
-     * Yes,it matters which axis you rotate first as it'll have an impact on the
-     * other rotations.
-     *
+     * @see #rotationOrder
      * @since 7.0.0
      */
     public ParticleDisplay rotationOrder(@Nonnull Axis first, @Nonnull Axis second, @Nonnull Axis third) {
@@ -856,7 +865,20 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
+     * This array should not be modified directed at all. Use {@link #rotationOrder(Axis, Axis, Axis)} instead.
+     * @see #rotationOrder
+     * @since 8.1.0
+     */
+    @Nonnull
+    public Axis[] getRotationOrder() {
+        return rotationOrder;
+    }
+
+    /**
      * Gets the location of an entity if specified or the constant location.
+     * <p>
+     * This method is usually the center of the shape if the algorithm which uses
+     * it supports the use of {@link #advanceInDirection(double)}.
      *
      * @return the location of the particle.
      * @since 3.1.0
@@ -1054,6 +1076,7 @@ public class ParticleDisplay implements Cloneable {
     public ParticleDisplay clone() {
         ParticleDisplay display = ParticleDisplay.of(particle)
                 .withLocationCaller(locationCaller)
+                .withDirection(direction)
                 .withCount(count).offset(offset.clone())
                 .forceSpawn(force).onSpawn(onSpawn);
 
