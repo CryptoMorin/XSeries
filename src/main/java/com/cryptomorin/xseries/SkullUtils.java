@@ -59,7 +59,7 @@ import java.util.regex.Pattern;
  * either by ID, name or encoded textures URL property.
  *
  * @author Crypto Morin
- * @version 4.0.2
+ * @version 4.0.3
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
@@ -87,6 +87,16 @@ public class SkullUtils {
      * It doesn't seem like uppercase characters are used either.
      */
     private static final Pattern MOJANG_SHA256_APPROX = Pattern.compile("[0-9a-z]{60,70}");
+
+    /**
+     * In v1.20.2 there were some changes to the mojang API.
+     */
+    private static final boolean NULLABILITY_RECORD_UPDATE = ReflectionUtils.supports(20, 2);
+    /**
+     * Does using a random UUID have any advantage?
+     */
+    private static final UUID GAME_PROFILE_EMPTY_UUID = NULLABILITY_RECORD_UPDATE ? new UUID(0, 0) : null;
+    private static final String GAME_PROFILE_EMPTY_NAME = NULLABILITY_RECORD_UPDATE ? "" : null;
 
     /**
      * The value after this URL is probably an SHA-252 value that Mojang uses to unique identify player skins.
@@ -130,6 +140,7 @@ public class SkullUtils {
 
         if (!ReflectionUtils.supports(20, 2)) {
             try {
+                //noinspection JavaLangInvokeHandleSignature
                 propGetval = lookup.findVirtual(Property.class, "getValue", MethodType.methodType(String.class));
             } catch (Throwable ex) {
                 ex.printStackTrace();
@@ -204,11 +215,11 @@ public class SkullUtils {
     }
 
     @Nonnull
-    public static GameProfile profileFromBase64(String value) {
+    public static GameProfile profileFromBase64(String base64) {
         // Use an empty string instead of null for the name parameter because it's now null-checked since 1.20.2.
         // It doesn't seem to affect functionality.
-        GameProfile profile = new GameProfile(UUID.randomUUID(), "");
-        profile.getProperties().put("textures", new Property("textures", value));
+        GameProfile profile = new GameProfile(GAME_PROFILE_EMPTY_UUID, GAME_PROFILE_EMPTY_NAME);
+        profile.getProperties().put("textures", new Property("textures", base64));
         return profile;
     }
 
@@ -221,8 +232,8 @@ public class SkullUtils {
     public static GameProfile detectProfileFromString(String identifier) {
         // @formatter:off sometimes programming is just art that a machine can't understand :)
         switch (detectSkullValueType(identifier)) {
-            case UUID:         return new GameProfile(UUID.fromString(               identifier), null);
-            case NAME:         return new GameProfile(null,                          identifier);
+            case UUID:         return new GameProfile(UUID.fromString(               identifier), GAME_PROFILE_EMPTY_NAME);
+            case NAME:         return new GameProfile(GAME_PROFILE_EMPTY_UUID,       identifier);
             case BASE64:       return profileFromBase64(                             identifier);
             case TEXTURE_URL:  return profileFromBase64(encodeTexturesURL(           identifier));
             case TEXTURE_HASH: return profileFromBase64(encodeTexturesURL(TEXTURES + identifier));
@@ -318,7 +329,7 @@ public class SkullUtils {
      * @since 4.0.1
      */
     private static String getPropertyValue(Property property) {
-        if (ReflectionUtils.supports(20, 2)) {
+        if (NULLABILITY_RECORD_UPDATE) {
             return property.value();
         } else {
             try {
