@@ -76,7 +76,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.3.2
+ * @version 7.3.3
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -725,15 +725,17 @@ public final class XItemStack {
                             .or(FireworkEffect.Type.STAR));
 
                     ConfigurationSection colorsSection = fw.getConfigurationSection("colors");
-                    List<String> fwColors = colorsSection.getStringList("base");
-                    List<Color> colors = new ArrayList<>(fwColors.size());
-                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
-                    builder.withColor(colors);
+                    if (colorsSection != null) {
+                        List<String> fwColors = colorsSection.getStringList("base");
+                        List<Color> colors = new ArrayList<>(fwColors.size());
+                        for (String colorStr : fwColors) colors.add(parseColor(colorStr));
+                        builder.withColor(colors);
 
-                    fwColors = colorsSection.getStringList("fade");
-                    colors = new ArrayList<>(fwColors.size());
-                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
-                    builder.withFade(colors);
+                        fwColors = colorsSection.getStringList("fade");
+                        colors = new ArrayList<>(fwColors.size());
+                        for (String colorStr : fwColors) colors.add(parseColor(colorStr));
+                        builder.withFade(colors);
+                    }
 
                     firework.addEffect(builder.build());
                 }
@@ -782,8 +784,10 @@ public final class XItemStack {
                             mapView.setUnlimitedTracking(view.getBoolean("unlimited-tracking"));
 
                             ConfigurationSection centerSection = view.getConfigurationSection("center");
-                            mapView.setCenterX(centerSection.getInt("x"));
-                            mapView.setCenterZ(centerSection.getInt("z"));
+                            if (centerSection != null) {
+                                mapView.setCenterX(centerSection.getInt("x"));
+                                mapView.setCenterZ(centerSection.getInt("z"));
+                            }
 
                             map.setMapView(mapView);
                         }
@@ -843,9 +847,12 @@ public final class XItemStack {
             if (supports(14)) {
                 if (meta instanceof CrossbowMeta) {
                     CrossbowMeta crossbow = (CrossbowMeta) meta;
-                    for (String projectiles : config.getConfigurationSection("projectiles").getKeys(false)) {
-                        ItemStack projectile = deserialize(config.getConfigurationSection("projectiles." + projectiles));
-                        crossbow.addChargedProjectile(projectile);
+                    ConfigurationSection projectiles = config.getConfigurationSection("projectiles");
+                    if (projectiles != null) {
+                        for (String projectile : projectiles.getKeys(false)) {
+                            ItemStack projectileItem = deserialize(config.getConfigurationSection("projectiles." + projectile));
+                            crossbow.addChargedProjectile(projectileItem);
+                        }
                     }
                 } else if (meta instanceof TropicalFishBucketMeta) {
                     TropicalFishBucketMeta tropical = (TropicalFishBucketMeta) meta;
