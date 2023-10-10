@@ -68,8 +68,7 @@ public final class XSeriesTests {
         print("Testing particles...");
         ParticleDisplay.of(Particle.CLOUD).
                 withLocation(new Location(null, 1, 1, 1))
-                .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true)
-                .rotationOrder(ParticleDisplay.Axis.X, ParticleDisplay.Axis.Y, ParticleDisplay.Axis.Z);
+                .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true);
 
         print("Testing XTag...");
         assertTrue(XTag.CORALS.isTagged(XMaterial.TUBE_CORAL));

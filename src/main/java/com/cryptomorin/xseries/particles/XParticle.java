@@ -49,6 +49,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 /**
  * <b>XParticle</b> - The most unique particle animation, text and image renderer.<br>
@@ -105,7 +106,7 @@ import java.util.function.BooleanSupplier;
  * in order to be compatible with other server softwares such as <a href="https://papermc.io/software/folia">Folia</a>.
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.1.0
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -136,7 +137,10 @@ public final class XParticle {
      * @see Math#toDegrees(double)
      * @since 1.0.0
      */
-    public static final double PII = 2 * Math.PI;
+    public static final double
+            PII = 2 * Math.PI,
+            R270 = Math.toRadians(270),
+            R90 = Math.PI / 2;
 
     private XParticle() {
     }
@@ -645,15 +649,36 @@ public final class XParticle {
     /**
      * An example of a shash particle.
      *
+     * @param size        1 would be approx the size of the player.
+     * @param useWideSide Whether to use the wide or narrow slash.
      * @since 7.0.0
      */
-    public static void slash(ParticleDisplay display) {
+    public static void slash(double size, boolean useWideSide, ParticleDisplay display) {
+        double start = useWideSide ? R90 : 0;
+        double end = useWideSide ? R270 : Math.PI;
         XParticle.ellipse(
-                0, Math.PI,
+                start, end,
                 Math.PI / 30,
-                3, 4,
+                size, size + 2,
                 display
         );
+    }
+
+    public static void slash(Plugin plugin, double distance, boolean useWideSide,
+                             Supplier<Double> size, Supplier<Double> speed, ParticleDisplay display) {
+        new BukkitRunnable() {
+            double distanceTraveled = 0;
+
+            @Override
+            public void run() {
+                slash(size.get(), useWideSide, display);
+                double speedConst = speed.get();
+                distanceTraveled += speedConst;
+
+                if (distanceTraveled >= distance) cancel();
+                else display.advanceInDirection(speedConst);
+            }
+        }.runTaskTimerAsynchronously(plugin, 1L, 1L);
     }
 
     /**
@@ -1160,7 +1185,7 @@ public final class XParticle {
                 ParticleDisplay.rotateAround(vector, x, y, z);
 
                 for (ParticleDisplay display : displays) {
-                    display.withRotation(new Vector(x, y, z));
+                    display.rotate(new Vector(x, y, z));
                     display.getLocation().add(vector);
                 }
                 runnable.run();
@@ -1417,7 +1442,7 @@ public final class XParticle {
                 double z = radius * Math.sin(theta);
 
                 for (double angle = 0; orbital > 0; angle += dist) {
-                    orbit.withRotation(new Vector(0, 0, angle));
+                    orbit.rotate(new Vector(0, 0, angle));
                     orbit.spawn(x, 0, z);
                     orbital--;
                 }
@@ -2521,7 +2546,9 @@ public final class XParticle {
             // Extend value is a little complicated Idk how to explain it.
             // Might be related: https://en.wikipedia.org/wiki/Hypercube
             for (double pos = 0; pos < 1 + extend; pos += rate) {
-                display.spawn(x + (deltaX * pos), 0, z + (deltaZ * pos));
+                double x1 = x + (deltaX * pos);
+                double z1 = z + (deltaZ * pos);
+                display.spawn(x1, 0, z1);
             }
         }
     }
@@ -2550,7 +2577,7 @@ public final class XParticle {
     public static void atom(int orbits, double radius, double rate, ParticleDisplay orbit, ParticleDisplay nucleus) {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
-            orbit.withRotation(new Vector(0, 0, angle));
+            orbit.rotate(new Vector(0, 0, angle));
             circle(radius, rate, orbit);
             orbits--;
         }

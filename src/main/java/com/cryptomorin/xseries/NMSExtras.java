@@ -45,14 +45,16 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.3.0
+ * @version 5.3.1
  */
 public final class NMSExtras {
+    public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
     public static final MethodHandle EXP_PACKET;
     public static final MethodHandle ENTITY_PACKET;
     public static final MethodHandle WORLD_HANDLE, ENTITY_HANDLE;
     public static final MethodHandle LIGHTNING_ENTITY;
     public static final MethodHandle VEC3D;
+    public static final MethodHandle GET_DATA_WATCHER, DATA_WATCHER_GET_ITEM, DATA_WATCHER_SET_ITEM;
     public static final MethodHandle PACKET_PLAY_OUT_OPEN_SIGN_EDITOR, PACKET_PLAY_OUT_BLOCK_CHANGE;
 
     public static final MethodHandle ANIMATION_PACKET, ANIMATION_TYPE, ANIMATION_ENTITY_ID;
@@ -94,7 +96,7 @@ public final class NMSExtras {
         MethodHandle tileEntitySign = null, tileEntitySign_getUpdatePacket = null, tileEntitySign_setLine = null, signText = null;
 
         MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
-                shortsOrInfo = null, setBlockData = null;
+                shortsOrInfo = null, setBlockData = null, getDataWatcher = null, dataWatcherGetItem = null, dataWatcherSetItem = null;
 
         try {
             Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
@@ -109,6 +111,13 @@ public final class NMSExtras {
             Class<?> IChatBaseComponent = getNMSClass("network.chat", "IChatBaseComponent");
             Class<?> TileEntitySign = getNMSClass("world.level.block.entity", "TileEntitySign");
             Class<?> PacketPlayOutTileEntityData = getNMSClass("network.protocol.game", "PacketPlayOutTileEntityData");
+            Class<?> DataWatcherClass = getNMSClass("network.syncher", "DataWatcher");
+            Class<?> DataWatcherItemClass = getNMSClass("network.syncher", "DataWatcher$Item");
+            Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
+
+//            getDataWatcher = lookup.findVirtual(EntityLivingClass, "al", MethodType.methodType(DataWatcherClass));
+//            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, "b", MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+//            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, "b", MethodType.methodType(void.class, DataWatcherItemClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
             entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
@@ -236,6 +245,9 @@ public final class NMSExtras {
             ex.printStackTrace();
         }
 
+        GET_DATA_WATCHER = getDataWatcher;
+        DATA_WATCHER_GET_ITEM = dataWatcherGetItem;
+        DATA_WATCHER_SET_ITEM = dataWatcherSetItem;
         EXP_PACKET = expPacket;
         ENTITY_PACKET = entityPacket;
         WORLD_HANDLE = worldHandle;
@@ -327,6 +339,67 @@ public final class NMSExtras {
         }
     }
 
+    public static void getData(LivingEntity entity, DataWatcherItemType id) {
+        try {
+            Object dataWatcher = GET_DATA_WATCHER.invoke(entity);
+            DATA_WATCHER_GET_ITEM.invoke(dataWatcher, id);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object setData(LivingEntity entity, DataWatcherItemType id, Object value) {
+        try {
+            Object dataWatcher = GET_DATA_WATCHER.invoke(entity);
+            return DATA_WATCHER_SET_ITEM.invoke(dataWatcher, id, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object getStaticField(Class<?> clazz, String name) {
+        try {
+            Field field = clazz.getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(null);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public enum DataWatcherItemType {
+        // protected static final DataWatcherObject<Byte> DATA_LIVING_ENTITY_FLAGS = DataWatcher.defineId(EntityLiving.class, DataWatcherRegistry.BYTE);
+        DATA_LIVING_ENTITY_FLAGS(getStaticField(EntityLivingClass, "t"));
+
+        private final Object id;
+
+        DataWatcherItemType(Object DataWatcherObject) {
+            try {
+                // public int a() { return this.a; }
+                // Method idMethod = DataWatcherObject.getClass().getMethod("a");
+                this.id = DataWatcherObject;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public Object getId() {
+            return id;
+        }
+    }
+
+    public static void spinEntity(LivingEntity entity, float ticks) {
+        // https://wiki.vg/Entity_metadata#Living_Entity
+        // Referenced as "Riptiding" or "AutoSpinAttack" modes in code.
+        // EntityLiving.r(int ticks) doesn't exist in newer versions.
+//        EntityLiving entityLiv = ((CraftPlayer) entity).getHandle();
+//        DataWatcher dataWatcher = entityLiv.al();
+//        dataWatcher.b((DataWatcherObject<Byte>) DataWatcherItemType.DATA_LIVING_ENTITY_FLAGS.getId(), (byte) 0x04);
+    }
+
+    /**
+     * For the trident riptide animation use {@link #spinEntity(LivingEntity, float)} instead.
+     */
     public static void animation(Collection<? extends Player> players, LivingEntity entity, Animation animation) {
         try {
             // https://wiki.vg/Protocol#Entity_Animation_.28clientbound.29

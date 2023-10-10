@@ -40,8 +40,10 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Represents how particles should be spawned. The simplest use case would be the following code
@@ -66,9 +68,10 @@ import java.util.function.Supplier;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 8.1.0
+ * @version 9.0.0
  * @see XParticle
  */
+@SuppressWarnings("CallToSimpleGetterFromWithinClass")
 public class ParticleDisplay implements Cloneable {
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustOptions}
@@ -84,8 +87,13 @@ public class ParticleDisplay implements Cloneable {
      * @since 8.6.0.0.1
      */
     private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.getParticle("DUST_COLOR_TRANSITION") != null;
-    private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
-    private static final Particle DEFAULT_PARTICLE = Particle.CLOUD;
+    // private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
+    /**
+     * Flames seem to be the simplest particles that allows you to get a good visual
+     * on how precise shapes that depend on complex algorithms play out.
+     */
+    @Nonnull
+    private static final Particle DEFAULT_PARTICLE = Particle.FLAME;
 
     public int count = 1;
     public double extra;
@@ -95,28 +103,45 @@ public class ParticleDisplay implements Cloneable {
     @Nullable
     private Location location, lastLocation;
     @Nullable
-    private Callable<Location> locationCaller;
-    @Nullable
     private Vector offset = new Vector();
-    private Supplier<Vector> rotation;
     /**
      * The direction is mostly used for APIs to call {@link #advanceInDirection(double)}
      * instead of handling the direction in a specific axis.
-     * This makes it easier for them as well and allows easier use of the {@link #rotation} API.
+     * This makes it easier for them as well and allows easier use of the {@link #rotations} API.
      */
-    private final Vector directionNormal = new Vector(0, 1, 0);
-    private Supplier<Vector> direction = () -> directionNormal;
+    @Nonnull
+    private Vector direction = new Vector(0, 1, 0);
     /**
      * The xyz axis order of how the particle's matrix should be rotated.
      * Yes, it matters which axis you rotate first as it'll have an impact on the
      * other rotations.
+     * <p>
+     * Check <a href="https://stackoverflow.com/questions/11819644/pitch-yaw-roll-angle-independency">this stackoverflow question.</a>
+     * Quaternions are a solution to this problem which is already present in {@link org.bukkit.entity.Display} entities API.
+     * See <a href="https://www.youtube.com/watch?v=zjMuIxRvygQ">this 3Blue1Brown YouTube video.</a>
+     * <p>
+     * You could use an axis two times such as yaw -> roll -> yaw sequence which is the canonical Euler sequence.
+     * But here for the standard {@link XParticle} methods, we're going to be using Tait–Bryan angles.
+     * Minecraft Euler angles use XYZ order.
+     * <a href="https://www.spigotmc.org/threads/euler-angles-strange-behavior.377072/">Source</a>
+     * <a href="https://www.youtube.com/watch?v=zc8b2Jo7mno">Gimbal lock</a>.
+     * <p>
+     * For 2D shapes, it's recommended that your algorithm uses the x and z axis and leave y as 0.
      */
     @Nonnull
-    private Axis[] rotationOrder = DEFAULT_ROTATION_ORDER;
+    public List<Pair<Double, Vector>> rotations = new ArrayList<>();
+    @Nullable
+    private Quaternion cachedFinalRotationQuaternion;
     @Nullable
     private Object data;
     @Nullable
     private Predicate<Location> onSpawn;
+    @Nullable
+    private Consumer<Vector> onCalculation;
+    @Nullable
+    private Function<Double, Double> onAdvance;
+    @Nullable
+    private Set<Player> players;
 
     /**
      * Builds a simple ParticleDisplay object with cross-version
@@ -132,6 +157,38 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
         return ParticleDisplay.simple(location, Particle.REDSTONE).withColor(r, g, b, size);
+    }
+
+    /**
+     * @return the players that this particle will be visible to or null if it's visible to all.
+     * @since 9.0.0
+     */
+    @Nullable
+    public Set<Player> getPlayers() {
+        return players;
+    }
+
+    /**
+     * Makes this particle only visible to certain players.
+     *
+     * @since 9.0.0
+     */
+    public ParticleDisplay onlyVisibleTo(Collection<Player> players) {
+        if (players.isEmpty()) return this;
+        if (this.players == null) this.players = Collections.newSetFromMap(new WeakHashMap<>());
+        this.players.addAll(players);
+        return this;
+    }
+
+    /**
+     * @see #onlyVisibleTo(Collection)
+     * @since 9.0.0
+     */
+    public ParticleDisplay onlyVisibleTo(Player... players) {
+        if (players.length == 0) return this;
+        if (this.players == null) this.players = Collections.newSetFromMap(new WeakHashMap<>());
+        Collections.addAll(this.players, players);
+        return this;
     }
 
     /**
@@ -307,26 +364,34 @@ public class ParticleDisplay implements Cloneable {
             }
         }
 
-        String rotation = config.getString("rotation");
-        if (rotation != null) {
-            List<String> rotations = split(rotation.replace(" ", ""), ',');
-            if (rotations.size() >= 3) {
-                double x = Math.toRadians(toDouble(rotations.get(0)));
-                double y = Math.toRadians(toDouble(rotations.get(1)));
-                double z = Math.toRadians(toDouble(rotations.get(2)));
-                Vector rotationVect = new Vector(x, y, z);
-                display.rotation = () -> rotationVect;
-            }
+        List<String> rotations = config.getStringList("rotations");
+        if (!rotations.isEmpty()) {
+            display.rotations = rotations.stream()
+                    .map(Quaternion::rotationFromString)
+                    .collect(Collectors.toList());
         }
 
-        String rotationOrder = config.getString("rotation-order");
-        if (rotationOrder != null) {
-            rotationOrder = rotationOrder.replace(" ", "").toUpperCase(Locale.ENGLISH);
-            display.rotationOrder(
-                    Axis.valueOf(String.valueOf(rotationOrder.charAt(0))),
-                    Axis.valueOf(String.valueOf(rotationOrder.charAt(1))),
-                    Axis.valueOf(String.valueOf(rotationOrder.charAt(2)))
-            );
+        {
+            String rotation = config.getString("rotation");
+            if (rotation != null) {
+                List<String> rotationsSplit = split(rotation.replace(" ", ""), ',');
+                if (rotationsSplit.size() >= 3) {
+                    double x = Math.toRadians(toDouble(rotationsSplit.get(0)));
+                    double y = Math.toRadians(toDouble(rotationsSplit.get(1)));
+                    double z = Math.toRadians(toDouble(rotationsSplit.get(2)));
+
+                    String rotationOrder = config.getString("rotation-order");
+                    if (rotationOrder != null) {
+                        rotationOrder = rotationOrder.replace(" ", "").toUpperCase(Locale.ENGLISH);
+                        display
+                                .rotate(Math.toRadians(x), Axis.valueOf(String.valueOf(rotationOrder.charAt(0))))
+                                .rotate(Math.toRadians(y), Axis.valueOf(String.valueOf(rotationOrder.charAt(1))))
+                                .rotate(Math.toRadians(z), Axis.valueOf(String.valueOf(rotationOrder.charAt(2))));
+                    } else {
+                        display.rotate(x, y, z);
+                    }
+                }
+            }
         }
 
         String color = config.getString("color"); // array-like "R, G, B"
@@ -430,16 +495,10 @@ public class ParticleDisplay implements Cloneable {
             section.set("offset", offset.getX() + ", " + offset.getY() + ", " + offset.getZ());
         }
 
-        if (display.rotation != null) {
-            Vector rotation = display.rotation.get();
-            section.set("rotation", Math.toDegrees(rotation.getX()) + ", " +
-                    Math.toDegrees(rotation.getY()) + ", " +
-                    Math.toDegrees(rotation.getZ()));
-        }
-
-        if (display.rotationOrder != DEFAULT_ROTATION_ORDER) {
-            Axis[] order = display.rotationOrder;
-            section.set("rotation-order", order[0].name() + order[1].name() + order[2].name());
+        if (!display.rotations.isEmpty()) {
+            section.set("rotations", display.rotations.stream()
+                    .map(x -> Math.toDegrees(x.key) + ", " + x.value.getX() + ", " + x.value.getY() + ", " + x.value.getZ())
+                    .collect(Collectors.toList()));
         }
 
         if (display.data instanceof float[]) {
@@ -520,6 +579,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location to rotate.
      * @param axis     the axis to rotate the location around.
+     * @param angle    the rotation angle in radians.
      * @since 7.0.0
      */
     public static Vector rotateAround(@Nonnull Vector location, @Nonnull Axis axis, double angle) {
@@ -552,8 +612,8 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * A simple event that is called after the final calculations of each particle location are applied.
-     * You can modify the given location. It's NOT a copy.
+     * Called after the final calculations of each particle location are applied.
+     * You may modify the object, this is called before the particle is actually spawned.
      *
      * @param onSpawn a predicate that if returns false, it'll not spawn that particle.
      * @return the same particle display.
@@ -561,6 +621,31 @@ public class ParticleDisplay implements Cloneable {
      */
     public ParticleDisplay onSpawn(@Nullable Predicate<Location> onSpawn) {
         this.onSpawn = onSpawn;
+        return this;
+    }
+
+    /**
+     * Called before rotation is applied to the xyz spawn location. The xyz provided
+     * in this method is implementation-specific, but it should be the xyz values that
+     * are going to be {@link Location#add(Vector)} to {@link #getLocation()}.
+     *
+     * @return the same particle display.
+     * @since 9.0.0
+     */
+    public ParticleDisplay onCalculation(@Nullable Consumer<Vector> onCalculation) {
+        this.onCalculation = onCalculation;
+        return this;
+    }
+
+    /**
+     * Called when {@link #advanceInDirection(double)} is called.
+     *
+     * @param onAdvance The argument and the return values are the amount of blocks to advance.
+     * @return the same particle display.
+     * @since 9.0.0
+     */
+    public ParticleDisplay onAdvance(@Nullable Function<Double, Double> onAdvance) {
+        this.onAdvance = onAdvance;
         return this;
     }
 
@@ -575,8 +660,8 @@ public class ParticleDisplay implements Cloneable {
      * @see #direction
      * @since 8.0.0
      */
-    @Nullable
-    public Supplier<Vector> getDirection() {
+    @Nonnull
+    public Vector getDirection() {
         return direction;
     }
 
@@ -588,7 +673,8 @@ public class ParticleDisplay implements Cloneable {
     public void advanceInDirection(double distance) {
         Objects.requireNonNull(direction, "Cannot advance with null direction");
         if (distance == 0) return;
-        this.location.add(this.direction.get().clone().multiply(distance));
+        if (this.onAdvance != null) distance = onAdvance.apply(distance);
+        this.location.add(this.direction.clone().multiply(distance));
     }
 
     /**
@@ -596,17 +682,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 8.0.0
      */
     public ParticleDisplay withDirection(@Nullable Vector direction) {
-        Vector newDir = direction.clone().normalize();
-        this.direction = () -> newDir;
-        return this;
-    }
-
-    /**
-     * @see #direction
-     * @since 8.0.0
-     */
-    public ParticleDisplay withDirection(@Nullable Supplier<Vector> direction) {
-        this.direction = direction;
+        this.direction = direction.clone().normalize();
         return this;
     }
 
@@ -653,24 +729,16 @@ public class ParticleDisplay implements Cloneable {
 
     @Override
     public String toString() {
-        Location location = getLocation();
-        Vector rotation = this.rotation == null ? null : this.rotation.get();
-
         return "ParticleDisplay:[" +
                 "Particle=" + particle + ", " +
                 "Count=" + count + ", " +
                 "Offset:{" + offset.getX() + ", " + offset.getY() + ", " + offset.getZ() + "}, " +
 
                 (location != null ? (
-                        "Location:{" + location.getWorld().getName() + location.getX() + ", " + location.getY() + ", " + location.getZ() + "} " +
-                                '(' + (locationCaller == null ? "Static" : "Dynamic") + "), "
+                        "Location:{" + location.getWorld().getName() + location.getX() + ", " + location.getY() + ", " + location.getZ() + "}, "
                 ) : "") +
 
-                (rotation != null ? (
-                        "Rotation:{" + Math.toDegrees(rotation.getX()) + ", " + Math.toRadians(rotation.getY()) + ", " + Math.toDegrees(rotation.getZ()) + "}, "
-                ) : "") +
-
-                (rotationOrder != DEFAULT_ROTATION_ORDER ? ("RotationOrder:" + Arrays.toString(rotationOrder) + ", ") : "") +
+                "Rotation:" + this.rotations + ", " +
 
                 "Extra=" + extra + ", " +
                 "Force=" + force + ", " +
@@ -707,7 +775,7 @@ public class ParticleDisplay implements Cloneable {
      * A displayed particle with force can be seen further
      * away for all player regardless of their particle
      * settings. Force has no effect if specific players
-     * are added with {@link #spawn(Location, Player...)}.
+     * are added with {@link #spawn(Location)}.
      *
      * @param force the force argument.
      * @return the same particle display, but modified.
@@ -847,31 +915,14 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
-        this.locationCaller = locationCaller;
+        this.onCalculation = (loc) -> {
+            try {
+                this.location = locationCaller.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
         return this;
-    }
-
-    /**
-     * @see #rotationOrder
-     * @since 7.0.0
-     */
-    public ParticleDisplay rotationOrder(@Nonnull Axis first, @Nonnull Axis second, @Nonnull Axis third) {
-        Objects.requireNonNull(first, "First rotation order axis is null");
-        Objects.requireNonNull(second, "Second rotation order axis is null");
-        Objects.requireNonNull(third, "Third rotation order axis is null");
-
-        this.rotationOrder = new Axis[]{first, second, third};
-        return this;
-    }
-
-    /**
-     * This array should not be modified directed at all. Use {@link #rotationOrder(Axis, Axis, Axis)} instead.
-     * @see #rotationOrder
-     * @since 8.1.0
-     */
-    @Nonnull
-    public Axis[] getRotationOrder() {
-        return rotationOrder;
     }
 
     /**
@@ -885,12 +936,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nullable
     public Location getLocation() {
-        try {
-            return locationCaller == null ? location : locationCaller.call();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return location;
-        }
+        return location;
     }
 
     /**
@@ -919,87 +965,6 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adjusts the rotation settings to face the entity's direction.
-     * Only some of the shapes support this method.
-     *
-     * @param entity the entity to face.
-     * @return the same particle display.
-     * @see #rotate(Vector)
-     * @since 8.0.0
-     */
-    @Nonnull
-    public ParticleDisplay faceDynamically(@Nonnull Entity entity) {
-        Objects.requireNonNull(entity, "Cannot face null entity");
-
-        this.rotation = () -> new Vector(
-                Math.toRadians(entity.getLocation().getPitch() + 90),
-                Math.toRadians(-entity.getLocation().getYaw()),
-                0);
-        this.direction = () -> entity.getLocation().getDirection().clone().normalize();
-        return this;
-    }
-
-    /**
-     * Adjusts the rotation settings to face the entity's direction.
-     * Only some of the shapes support this method.
-     *
-     * @param entity the entity to face.
-     * @return the same particle display.
-     * @see #rotate(Vector)
-     * @since 8.0.0
-     */
-    @Nonnull
-    public ParticleDisplay follow(@Nonnull Entity entity) {
-        Objects.requireNonNull(entity, "Cannot face null entity");
-
-        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Location.java#310
-        this.direction = () -> entity.getLocation().subtract(getLastLocation()).toVector().normalize();
-        this.rotation = () -> {
-            Vector currentDirection = this.direction.get();
-            float[] yawPitch = getYawPitch(currentDirection);
-            float yaw = yawPitch[0], pitch = yawPitch[1];
-            return new Vector(Math.toRadians(pitch + 90), Math.toRadians(-yaw), 0);
-        };
-        return this;
-    }
-
-    /**
-     * Gets yaw and pitch from a given direction.
-     *
-     * @return the first element is the yaw and the second is the pitch.
-     * @since 8.0.0
-     */
-    public static float[] getYawPitch(Vector vector) {
-        /*
-         * Sin = Opp / Hyp
-         * Cos = Adj / Hyp
-         * Tan = Opp / Adj
-         *
-         * x = -Opp
-         * z = Adj
-         */
-        final double _2PI = 2 * Math.PI;
-        final double x = vector.getX();
-        final double z = vector.getZ();
-        float pitch, yaw;
-
-        if (x == 0 && z == 0) {
-            yaw = 0;
-            pitch = vector.getY() > 0 ? -90 : 90;
-        } else {
-            double theta = Math.atan2(-x, z);
-            yaw = (float) Math.toDegrees((theta + _2PI) % _2PI);
-
-            double x2 = NumberConversions.square(x);
-            double z2 = NumberConversions.square(z);
-            double xz = Math.sqrt(x2 + z2);
-            pitch = (float) Math.toDegrees(Math.atan(-vector.getY() / xz));
-        }
-
-        return new float[]{yaw, pitch};
-    }
-
-    /**
      * Adjusts the rotation settings to face the locations pitch and yaw.
      * Only some of the shapes support this method.
      *
@@ -1011,11 +976,9 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay face(@Nonnull Location location) {
         Objects.requireNonNull(location, "Cannot face null location");
-        // We add 90 degrees to compensate for the non-standard use of pitch degrees in Minecraft.
-        Vector rotation = new Vector(Math.toRadians(location.getPitch() + 90), Math.toRadians(-location.getYaw()), 0);
-        Vector dir = location.getDirection().clone().normalize();
-        this.rotation = () -> rotation;
-        this.direction = () -> dir;
+        rotate(Math.toRadians(location.getYaw()), Axis.Y);
+        rotate(Math.toRadians(-location.getPitch()), Axis.X);
+        this.direction = location.getDirection().clone().normalize();
         return this;
     }
 
@@ -1075,47 +1038,149 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay clone() {
         ParticleDisplay display = ParticleDisplay.of(particle)
-                .withLocationCaller(locationCaller)
                 .withDirection(direction)
                 .withCount(count).offset(offset.clone())
                 .forceSpawn(force).onSpawn(onSpawn);
 
         if (location != null) display.location = cloneLocation(location);
-        if (rotation != null) display.rotation = this.rotation;
-        display.rotationOrder = this.rotationOrder;
+        if (!rotations.isEmpty()) {
+            display.rotations = this.rotations.stream()
+                    .map(ParticleDisplay::cloneRotation)
+                    .collect(Collectors.toList());
+        }
         display.data = data;
         return display;
     }
 
     /**
-     * Rotates the particle position based on this vector.
+     * @see #getPrincipalAxesRotation(float, float, float)
+     */
+    public static Vector getPrincipalAxesRotation(Location location) {
+        return getPrincipalAxesRotation(location.getPitch(), location.getYaw(), 0);
+    }
+
+    /**
+     * Taken from <a href="https://en.wikipedia.org/wiki/Aircraft_principal_axes">Aircraft principal axes.</a>
      *
-     * @param vector the vector to rotate from. The xyz values of this vector must be radians.
+     * @return The vector representating how a point should be rotated to face these axes.
+     * @since 8.1.0
+     */
+    public static Vector getPrincipalAxesRotation(float pitch, float yaw, float roll) {
+        // First the pitch has to be rotated around the x-axis because if we were to rotate the yaw around
+        // the y-axis first, the point could be facing either x or z axis and rotating the pitch around the
+        // x-axis would no longer be viable. But when we start from zero rotations, the point would be facing
+        // towards positive z-axis (why?) and rotating the pitch around the x-axis now works fine. After that,
+        // rotating the yaw around the y-axis would always work no matter the pitch of the point.
+        // https://danceswithcode.net/engineeringnotes/rotations_in_3d/rotations_in_3d_part2.html
+        return new Vector(
+                // We add 90 degrees to compensate for the non-standard use of pitch degrees in Minecraft.
+                Math.toRadians(pitch + 90),
+                Math.toRadians(-yaw),
+                roll
+        );
+    }
+
+    /**
+     * Gets yaw and pitch from a given direction.
+     *
+     * @return the first element is the yaw and the second is the pitch.
+     * @since 8.0.0
+     */
+    public static float[] getYawPitch(Vector vector) {
+        /*
+         * Sin = Opp / Hyp
+         * Cos = Adj / Hyp
+         * Tan = Opp / Adj
+         *
+         * x = -Opp
+         * z = Adj
+         */
+        final double _2PI = 2 * Math.PI;
+        final double x = vector.getX();
+        final double z = vector.getZ();
+        float pitch, yaw;
+
+        if (x == 0 && z == 0) {
+            yaw = 0;
+            pitch = vector.getY() > 0 ? -90 : 90;
+        } else {
+            double theta = Math.atan2(-x, z);
+            yaw = (float) Math.toDegrees((theta + _2PI) % _2PI);
+
+            double x2 = NumberConversions.square(x);
+            double z2 = NumberConversions.square(z);
+            double xz = Math.sqrt(x2 + z2);
+            pitch = (float) Math.toDegrees(Math.atan(-vector.getY() / xz));
+        }
+
+        return new float[]{yaw, pitch};
+    }
+
+    /**
+     * Gets the final calculated rotation.
+     *
+     * @param forceUpdate whether to update the cached rotation quaternion.
+     *                    Used when a new rotation is added.
+     * @since 9.0.0
+     */
+    public Quaternion getRotation(boolean forceUpdate) {
+        if (this.rotations.isEmpty()) return null;
+        if (forceUpdate) cachedFinalRotationQuaternion = null;
+        if (cachedFinalRotationQuaternion == null) {
+            for (Pair<Double, Vector> rotation : this.rotations) {
+                Quaternion q = Quaternion.rotation(rotation.key, rotation.value);
+                if (cachedFinalRotationQuaternion == null) cachedFinalRotationQuaternion = q;
+                else cachedFinalRotationQuaternion = cachedFinalRotationQuaternion.mul(q);
+            }
+        }
+        return cachedFinalRotationQuaternion;
+    }
+
+    public static Pair<Double, Vector> cloneRotation(Pair<Double, Vector> rotation) {
+        return new Pair<>(rotation.key, rotation.value.clone());
+    }
+
+    /**
+     * Rotates the particle position based on this XYZ vector without overriding previous rotations.
+     * The xyz values must be <b>radians</b> which represent the angles
+     * to rotate the particle around x, y and then z axis in that order.
+     *
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
     @Nonnull
-    public ParticleDisplay rotate(@Nonnull Vector vector) {
+    public ParticleDisplay rotate(double x, double y, double z) {
+        return rotate(x, Axis.X)
+                .rotate(y, Axis.Y)
+                .rotate(z, Axis.Z);
+    }
+
+    /**
+     * @see #rotate(double, double, double)
+     * @since 3.0.0
+     */
+    @Nonnull
+    public ParticleDisplay rotate(@Nonnull Vector angles) {
+        Objects.requireNonNull(angles, "Cannot rotate ParticleDisplay with null angles");
+        return rotate(angles.getX(), angles.getY(), angles.getZ());
+    }
+
+    /**
+     * @since 9.0.0
+     */
+    public ParticleDisplay rotate(double radians, @Nonnull Vector vector) {
         Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
-        if (rotation == null) rotation = () -> vector;
-        else {
-            Supplier<Vector> previousFunc = this.rotation;
-            rotation = () -> previousFunc.get().clone().add(vector);
-        }
+        if (radians != 0) this.rotations.add(Pair.of(radians, vector));
         return this;
     }
 
     /**
-     * Rotates the particle position based on the xyz radians.
-     * Rotations are only supported for some shapes in {@link XParticle}.
-     * Rotating some of them can result in weird shapes.
-     *
-     * @see #rotate(Vector)
-     * @since 3.0.0
+     * @see #rotate(double, Vector)
+     * @since 9.0.0
      */
-    @Nonnull
-    public ParticleDisplay rotate(double x, double y, double z) {
-        return rotate(new Vector(x, y, z));
+    public ParticleDisplay rotate(double radians, @Nonnull Axis axis) {
+        Objects.requireNonNull(axis, "Cannot rotate ParticleDisplay around null axis");
+        return rotate(radians, axis.vector);
     }
 
     /**
@@ -1136,17 +1201,19 @@ public class ParticleDisplay implements Cloneable {
      * @since 3.0.0
      */
     @Nonnull
-    public Location rotate(@Nonnull Location location, double x, double y, double z) {
+    public Location finalizeLocation(@Nonnull Location location, double x, double y, double z) {
         if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
-        if (rotation == null) return cloneLocation(location).add(x, y, z);
+        if (rotations.isEmpty()) return cloneLocation(location).add(x, y, z);
 
-        Vector rotation = this.rotation.get();
-        Vector rotate = new Vector(x, y, z);
-        rotateAround(rotate, rotationOrder[0], rotation);
-        rotateAround(rotate, rotationOrder[1], rotation);
-        rotateAround(rotate, rotationOrder[2], rotation);
+        Vector local = new Vector(x, y, z);
+        if (this.onCalculation != null) this.onCalculation.accept(local);
+        // This isn't supposed to give the same result?
+//        for (Pair<Double, Vector> rotation : this.rotations) {
+//            local = Quaternion.rotate(local, Quaternion.rotation(rotation.key, rotation.value));
+//        }
+        local = Quaternion.rotate(local, getRotation(false));
 
-        return cloneLocation(location).add(rotate);
+        return cloneLocation(location).add(local);
     }
 
     /**
@@ -1178,39 +1245,6 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     public ParticleDisplay offset(double offset) {
         return offset(offset, offset, offset);
-    }
-
-    /**
-     * Gets the rotation vector of this particle once spawned.
-     *
-     * @return a rotation that will be applied.
-     * @since 6.1.0
-     */
-    @Nullable
-    public Supplier<Vector> getRotation() {
-        return rotation;
-    }
-
-    /**
-     * Sets a new rotation vector ignoring previous ones.
-     *
-     * @param rotation the new rotation.
-     * @since 7.0.0
-     */
-    public ParticleDisplay withRotation(@Nullable Vector rotation) {
-        this.rotation = () -> rotation;
-        return this;
-    }
-
-    /**
-     * Sets a new rotation vector ignoring previous ones.
-     *
-     * @param rotation the new rotation.
-     * @since 8.0.0
-     */
-    public ParticleDisplay withRotation(@Nullable Supplier<Vector> rotation) {
-        this.rotation = rotation;
-        return this;
     }
 
     /**
@@ -1270,7 +1304,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public Location spawn(double x, double y, double z) {
-        return spawn(rotate(getLocation(), x, y, z));
+        return spawn(finalizeLocation(getLocation(), x, y, z));
     }
 
     /**
@@ -1279,24 +1313,10 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param loc the location to display the particle at.
      * @see #spawn(double, double, double)
-     * @since 2.1.0
-     */
-    @Nonnull
-    public Location spawn(@Nonnull Location loc) {
-        return spawn(loc, (Player[]) null);
-    }
-
-    /**
-     * Displays the particle in the specified location.
-     * This method does not support rotations if used directly.
-     *
-     * @param loc     the location to display the particle at.
-     * @param players if this particle should only be sent to specific players. Shouldn't be empty.
-     * @see #spawn(double, double, double)
      * @since 5.0.0
      */
     @Nonnull
-    public Location spawn(Location loc, @Nullable Player... players) {
+    public Location spawn(Location loc) {
         if (loc == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
         if (onSpawn != null) {
             if (!onSpawn.test(loc)) return loc;
@@ -1365,5 +1385,113 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 7.0.0
      */
-    public enum Axis {X, Y, Z}
+    public enum Axis {
+        X(new Vector(1, 0, 0)), Y(new Vector(0, 1, 0)), Z(new Vector(0, 0, 1));
+
+        private final Vector vector;
+
+        Axis(Vector vector) {
+            this.vector = vector;
+        }
+
+        public Vector getVector() {
+            return vector;
+        }
+    }
+
+    public static class Pair<K, V> {
+        public K key;
+        public V value;
+
+        public Pair(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public static <K, V> Pair<K, V> of(K key, V value) {
+            return new Pair<>(key, value);
+        }
+    }
+
+    public static class Quaternion implements Cloneable {
+        /**
+         * Only change these values directly if you know what you're doing.
+         */
+        public final double w, x, y, z;
+
+        public Quaternion(double w, double x, double y, double z) {
+            this.w = w;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        @Override
+        public Quaternion clone() {
+            return new Quaternion(w, x, y, z);
+        }
+
+        // Rotate a vector using a rotation quaternion.
+        public static Vector rotate(Vector vector, Quaternion rotation) {
+            return rotation.mul(Quaternion.from(vector)).mul(rotation.inverse()).toVector();
+        }
+
+        // Rotate a vector theta degrees around an axis.
+        public static Vector rotate(Vector vector, Vector axis, double deg) {
+            return Quaternion.rotate(vector, Quaternion.rotation(deg, axis));
+        }
+
+        // Create quaternion from a vector.
+        public static Quaternion from(Vector vector) {
+            return new Quaternion(0, vector.getX(), vector.getY(), vector.getZ());
+        }
+
+        public static Quaternion rotation(double degrees, Vector vector) {
+            vector = vector.normalize();
+            degrees = degrees / 2;
+            double sin = Math.sin(degrees);
+            return new Quaternion(Math.cos(degrees), vector.getX() * sin, vector.getY() * sin, vector.getZ() * sin);
+        }
+
+        public String getInverseString() {
+            double rads = Math.acos(this.w);
+            double deg = Math.toDegrees(rads) * 2;
+            double sin = Math.sin(rads);
+            Vector axis = new Vector(this.x / sin, this.y / sin, this.z / sin);
+
+            return deg + ", " + axis.getX() + ", " + axis.getY() + ", " + axis.getZ();
+        }
+
+        public static Pair<Double, Vector> rotationFromString(String str) {
+            String[] components = str.split(",");
+            double[] numberComps = Arrays.stream(components)
+                    .mapToDouble(Double::parseDouble)
+                    .toArray();
+            return Pair.of(Math.toRadians(numberComps[0]), new Vector(numberComps[1], numberComps[2], numberComps[3]));
+        }
+
+        public Vector toVector() {
+            return new Vector(x, y, z);
+        }
+
+        public Quaternion inverse() {
+            double l = w * w + x * x + y * y + z * z;
+            return new Quaternion(w / l, -x / l, -y / l, -z / l);
+        }
+
+        public Quaternion conjugate() {
+            return new Quaternion(w, -x, -y, -z);
+        }
+
+        // Multiply this quaternion and another.
+        // Returns the Hamilton product of this quaternion and r.
+        public Quaternion mul(Quaternion r) {
+            double n0 = r.w * w - r.x * x - r.y * y - r.z * z;
+            double n1 = r.w * x + r.x * w + r.y * z - r.z * y;
+            double n2 = r.w * y - r.x * z + r.y * w + r.z * x;
+            double n3 = r.w * z + r.x * y - r.y * x + r.z * w;
+            return new Quaternion(n0, n1, n2, n3);
+        }
+    }
 }

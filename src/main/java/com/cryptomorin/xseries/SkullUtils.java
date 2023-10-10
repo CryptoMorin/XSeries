@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Base64;
@@ -58,7 +59,7 @@ import java.util.regex.Pattern;
  * either by ID, name or encoded textures URL property.
  *
  * @author Crypto Morin
- * @version 4.0.1
+ * @version 4.0.2
  * @see XMaterial
  * @see ReflectionUtils
  * @see SkullCacheListener
@@ -66,7 +67,7 @@ import java.util.regex.Pattern;
 public class SkullUtils {
     protected static final MethodHandle
             CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
-            CRAFT_META_SKULL_BLOCK_SETTER;
+            CRAFT_META_SKULL_BLOCK_SETTER, PROPERTY_GETVALUE;
 
     /**
      * Some people use this without quotes surrounding the keys, not sure what that'd work.
@@ -97,7 +98,7 @@ public class SkullUtils {
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle profileSetter = null, profileGetter = null, blockSetter = null;
+        MethodHandle profileSetter = null, profileGetter = null, blockSetter = null, propGetval = null;
 
         try {
             Class<?> CraftMetaSkull = ReflectionUtils.getCraftClass("inventory.CraftMetaSkull");
@@ -113,7 +114,7 @@ public class SkullUtils {
             } catch (NoSuchMethodException e) {
                 profileSetter = lookup.unreflectSetter(profile);
             }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
@@ -127,6 +128,15 @@ public class SkullUtils {
             e.printStackTrace();
         }
 
+        if (!ReflectionUtils.supports(20, 2)) {
+            try {
+                propGetval = lookup.findVirtual(Property.class, "getValue", MethodType.methodType(String.class));
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        PROPERTY_GETVALUE = propGetval;
         CRAFT_META_SKULL_PROFILE_SETTER = profileSetter;
         CRAFT_META_SKULL_PROFILE_GETTER = profileGetter;
         CRAFT_META_SKULL_BLOCK_SETTER = blockSetter;
@@ -308,12 +318,11 @@ public class SkullUtils {
      * @since 4.0.1
      */
     private static String getPropertyValue(Property property) {
-        if (ReflectionUtils.supports(12, 2)) {
+        if (ReflectionUtils.supports(20, 2)) {
             return property.value();
         } else {
             try {
-                //noinspection JavaReflectionMemberAccess
-                return (String) Property.class.getMethod("getValue").invoke(property);
+                return (String) PROPERTY_GETVALUE.invoke(property);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
