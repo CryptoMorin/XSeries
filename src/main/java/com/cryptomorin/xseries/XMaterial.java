@@ -1330,7 +1330,7 @@ public enum XMaterial {
     SPIDER_EYE,
     SPIDER_SPAWN_EGG(52, "MONSTER_EGG"),
     SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
-    SPLASH_POTION,
+    SPLASH_POTION("POTION"),
     SPONGE,
     SPORE_BLOSSOM,
     SPRUCE_BOAT("BOAT_SPRUCE"),
@@ -2097,6 +2097,10 @@ public enum XMaterial {
 
         item.setType(material);
         if (!Data.ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
+        // Splash Potions weren't an official material pre-flattening.
+        if (!Data.ISFLAT && this == SPLASH_POTION) {
+            item.setDurability((short) 16384); // Hard-coded as 'data' is only a byte.
+        }
         return item;
     }
 
@@ -2187,7 +2191,12 @@ public enum XMaterial {
     public ItemStack parseItem() {
         Material material = this.parseMaterial();
         if (material == null) return null;
-        return Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        ItemStack base = Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        // Splash Potions weren't an official material pre-flattening.
+        if (!Data.ISFLAT && this == SPLASH_POTION) {
+            base.setDurability((short) 16384); // Hard-coded as 'data' is only a byte.
+        }
+        return base;
     }
 
     /**
@@ -2212,6 +2221,10 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
+        // Special case for splash potions.
+        if (this == SPLASH_POTION) {
+            return Data.ISFLAT || item.getDurability() == (short) 16384;
+        }
         return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() > 0;
     }
 
