@@ -338,8 +338,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(NMS_PACKAGE + name);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
+            throw new RuntimeException(ex);
         }
     }
 
@@ -431,8 +430,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(CRAFTBUKKIT_PACKAGE + name);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
+            throw new RuntimeException(ex);
         }
     }
 

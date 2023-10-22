@@ -19,8 +19,9 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.SkullUtils;
+import com.cryptomorin.xseries.XMaterial;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -54,7 +55,7 @@ final class SkullCacheListener {
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
         SkullMeta meta = (SkullMeta) head;
-        return SkullUtils.setSkullBase64(meta, base64);
+        return SkullUtils.setSkullBase64(meta, base64, null);
     }
 
     /**
@@ -139,7 +140,7 @@ final class SkullCacheListener {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         try {
-            SkullUtils.CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
+            // SkullUtils.CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }

@@ -14,7 +14,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 public final class XSeriesTests {
-    private XSeriesTests() {}
+    private XSeriesTests() {
+    }
 
     private static void print(String str) {
         System.out.println(str);
@@ -39,7 +40,8 @@ public final class XSeriesTests {
         assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
         assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
         assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
-        for (Material material : Material.values()) if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
+        for (Material material : Material.values())
+            if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
 
         print("Testing XPotion...");
         assertPresent(XPotion.matchXPotion("INVIS"));
@@ -76,7 +78,7 @@ public final class XSeriesTests {
         assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
 
         print("Testing reflection...");
-        print("Version pack: " + ReflectionUtils.NMS_VERSION + " (" + ReflectionUtils.MINOR_NUMBER + ')');
+        print("Version pack: " + ReflectionUtils.getVersionInformation());
         initializeReflection();
 
         print("\n\n\nTest end...");
@@ -84,6 +86,7 @@ public final class XSeriesTests {
 
     private static void initializeReflection() {
         try {
+            Class.forName("com.cryptomorin.xseries.XWorldBorder");
             Class.forName("com.cryptomorin.xseries.messages.ActionBar");
             Class.forName("com.cryptomorin.xseries.messages.Titles");
             Class.forName("com.cryptomorin.xseries.SkullUtils");

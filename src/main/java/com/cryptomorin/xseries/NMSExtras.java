@@ -26,9 +26,11 @@ import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -49,6 +51,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  */
 public final class NMSExtras {
     public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
+    private static final MethodHandle GET_ENTITY_HANDLE;
     public static final MethodHandle EXP_PACKET;
     public static final MethodHandle ENTITY_PACKET;
     public static final MethodHandle WORLD_HANDLE, ENTITY_HANDLE;
@@ -96,9 +99,11 @@ public final class NMSExtras {
         MethodHandle tileEntitySign = null, tileEntitySign_getUpdatePacket = null, tileEntitySign_setLine = null, signText = null;
 
         MethodHandle playOutMultiBlockChange = null, multiBlockChangeInfo = null, chunkWrapper = null, chunkWrapperSet = null,
-                shortsOrInfo = null, setBlockData = null, getDataWatcher = null, dataWatcherGetItem = null, dataWatcherSetItem = null;
+                shortsOrInfo = null, setBlockData = null, getDataWatcher = null, dataWatcherGetItem = null,
+                dataWatcherSetItem = null, getHandle = null;
 
         try {
+            Class<?> CraftEntityClass = getCraftClass("entity.CraftEntity");
             Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
             Class<?> nmsEntity = getNMSClass("world.entity", "Entity");
             Class<?> craftEntity = getCraftClass("entity.CraftEntity");
@@ -115,9 +120,10 @@ public final class NMSExtras {
             Class<?> DataWatcherItemClass = getNMSClass("network.syncher", "DataWatcher$Item");
             Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
 
-//            getDataWatcher = lookup.findVirtual(EntityLivingClass, "al", MethodType.methodType(DataWatcherClass));
-//            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, "b", MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
-//            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, "b", MethodType.methodType(void.class, DataWatcherItemClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+            getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
+            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 2, "al").v(19, "aj").v(18, "ai").orElse("getDataWatcher"), MethodType.methodType(DataWatcherClass)); // getEntityData()
+            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("get"), MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("set"), MethodType.methodType(void.class, DataWatcherObjectClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
             entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
@@ -245,6 +251,7 @@ public final class NMSExtras {
             ex.printStackTrace();
         }
 
+        GET_ENTITY_HANDLE = getHandle;
         GET_DATA_WATCHER = getDataWatcher;
         DATA_WATCHER_GET_ITEM = dataWatcherGetItem;
         DATA_WATCHER_SET_ITEM = dataWatcherSetItem;
@@ -339,48 +346,127 @@ public final class NMSExtras {
         }
     }
 
-    public static void getData(LivingEntity entity, DataWatcherItemType id) {
+    public static Object getData(Object dataWatcher, Object dataWatcherObject) {
         try {
-            Object dataWatcher = GET_DATA_WATCHER.invoke(entity);
-            DATA_WATCHER_GET_ITEM.invoke(dataWatcher, id);
+            return DATA_WATCHER_GET_ITEM.invoke(dataWatcher, dataWatcherObject);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Object setData(LivingEntity entity, DataWatcherItemType id, Object value) {
+    @Nullable
+    public static Object getEntityHandle(Entity entity) {
+        Objects.requireNonNull(entity, "Cannot get handle of null entity");
         try {
-            Object dataWatcher = GET_DATA_WATCHER.invoke(entity);
-            return DATA_WATCHER_SET_ITEM.invoke(dataWatcher, id, value);
+            return GET_ENTITY_HANDLE.invoke(entity);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Object getDataWatcher(Object handle) {
+        try {
+            return GET_DATA_WATCHER.invoke(handle);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Object getStaticField(Class<?> clazz, String name) {
+    public static Object setData(Object dataWatcher, Object dataWatcherObject, Object value) {
+        try {
+            return DATA_WATCHER_SET_ITEM.invoke(dataWatcher, dataWatcherObject, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object getStaticFieldIgnored(Class<?> clazz, String name) {
+        return getStaticField(clazz, name, true);
+    }
+
+    public static Object getStaticField(Class<?> clazz, String name, boolean silent) {
         try {
             Field field = clazz.getDeclaredField(name);
             field.setAccessible(true);
             return field.get(null);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            if (!silent) throw new RuntimeException(e);
+            else return null;
+        }
+    }
+
+    public enum EntityPose {
+        STANDING("a"),
+        FALL_FLYING("b"),
+        SLEEPING("c"),
+        SWIMMING("d"),
+        SPIN_ATTACK("e"),
+        CROUCHING("f"),
+        LONG_JUMPING("g"),
+        DYING("h"),
+        CROAKING("i"),
+        USING_TONGUE("j"),
+        SITTING("k"),
+        ROARING("l"),
+        SNIFFING("m"),
+        EMERGING("n"),
+        DIGGING("o"),
+        ;
+
+        public final Object enumValue;
+        private final boolean supported;
+
+        EntityPose(String fieldName) {
+            boolean supported = true;
+            Object enumValue = null;
+
+            try {
+                Class<?> entityPose = getNMSClass("world.entity", "EntityPose");
+                enumValue = entityPose.getDeclaredField(v(17, fieldName).orElse(name())).get(null);
+            } catch (Throwable e) {
+                supported = false;
+            }
+
+            this.supported = supported;
+            this.enumValue = enumValue;
+        }
+
+        public boolean isSupported() {
+            return supported;
+        }
+
+        public Object getEnumValue() {
+            return enumValue;
         }
     }
 
     public enum DataWatcherItemType {
         // protected static final DataWatcherObject<Byte> DATA_LIVING_ENTITY_FLAGS = DataWatcher.defineId(EntityLiving.class, DataWatcherRegistry.BYTE);
-        DATA_LIVING_ENTITY_FLAGS(getStaticField(EntityLivingClass, "t"));
+        DATA_LIVING_ENTITY_FLAGS(getStaticFieldIgnored(EntityLivingClass, "t"));
 
         private final Object id;
 
+        private final boolean supported;
+
         DataWatcherItemType(Object DataWatcherObject) {
+            boolean supported = true;
+            Object id = null;
+
             try {
                 // public int a() { return this.a; }
                 // Method idMethod = DataWatcherObject.getClass().getMethod("a");
-                this.id = DataWatcherObject;
+                id = DataWatcherObject;
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                supported = false;
             }
+
+            this.supported = supported;
+            this.id = id;
+        }
+
+        public boolean isSupported() {
+            return supported;
         }
 
         public Object getId() {
@@ -388,17 +474,68 @@ public final class NMSExtras {
         }
     }
 
-    public static void spinEntity(LivingEntity entity, float ticks) {
+    public enum LivingEntityFlags {
+        SPIN_ATTACK(0x04);
+
+        private final byte bit;
+
+        LivingEntityFlags(int bit) {
+            this.bit = (byte) bit;
+        }
+
+        public byte getBit() {
+            return bit;
+        }
+    }
+
+    public static void spinEntity(LivingEntity entity, boolean enabled) {
+        if (!EntityPose.SPIN_ATTACK.isSupported()) {
+            throw new UnsupportedOperationException("Spin attacks are not supported in " + getVersionInformation());
+        }
+
+        // https://www.spigotmc.org/threads/trident-spinning-animation-riptide.426086/
+        // https://www.spigotmc.org/threads/using-the-riptide-animation.469207/
         // https://wiki.vg/Entity_metadata#Living_Entity
         // Referenced as "Riptiding" or "AutoSpinAttack" modes in code.
         // EntityLiving.r(int ticks) doesn't exist in newer versions.
-//        EntityLiving entityLiv = ((CraftPlayer) entity).getHandle();
-//        DataWatcher dataWatcher = entityLiv.al();
-//        dataWatcher.b((DataWatcherObject<Byte>) DataWatcherItemType.DATA_LIVING_ENTITY_FLAGS.getId(), (byte) 0x04);
+
+        // EntityLiving entityLiv = ((CraftPlayer) entity).getHandle();
+        // DataWatcher dataWatcher = entityLiv.al();
+        // dataWatcher.b((DataWatcherObject<Byte>) DataWatcherItemType.DATA_LIVING_ENTITY_FLAGS.getId(), (byte) 0x04);
+
+        setLivingEntityFlag(entity, LivingEntityFlags.SPIN_ATTACK.getBit(), enabled);
+    }
+
+    public static void setLivingEntityFlag(Entity entity, int index, boolean flag) {
+        Object handle = getEntityHandle(entity);
+        Object dataWatcher = getDataWatcher(handle);
+
+        Object flagItem = DataWatcherItemType.DATA_LIVING_ENTITY_FLAGS.getId();
+        byte currentFlags = (byte) getData(dataWatcher, flagItem);
+        int newFlags;
+
+        if (flag) {
+            newFlags = currentFlags | index;
+        } else {
+            newFlags = currentFlags & ~index;
+        }
+
+        setData(dataWatcher, flagItem, (byte) newFlags);
+    }
+
+    public static boolean hasLivingEntityFlag(Entity entity, int index) {
+        Object handle = getEntityHandle(entity);
+        Object dataWatcher = getDataWatcher(handle);
+        byte flags = (byte) getData(dataWatcher, DataWatcherItemType.DATA_LIVING_ENTITY_FLAGS.getId());
+        return (flags & index) != 0;
+    }
+
+    public boolean isAutoSpinAttack(LivingEntity entity) {
+        return hasLivingEntityFlag(entity, LivingEntityFlags.SPIN_ATTACK.getBit());
     }
 
     /**
-     * For the trident riptide animation use {@link #spinEntity(LivingEntity, float)} instead.
+     * For the trident riptide animation use {@link #spinEntity(LivingEntity, boolean)} instead.
      */
     public static void animation(Collection<? extends Player> players, LivingEntity entity, Animation animation) {
         try {

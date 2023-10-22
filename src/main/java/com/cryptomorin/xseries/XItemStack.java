@@ -307,8 +307,8 @@ public final class XItemStack {
                     if (armorMeta.hasTrim()) {
                         ArmorTrim trim = armorMeta.getTrim();
                         ConfigurationSection trimConfig = config.createSection("trim");
-                        trimConfig.set("material", trim.getMaterial().getKey().getNamespace() + ":" + trim.getMaterial().getKey().getKey());
-                        trimConfig.set("pattern", trim.getPattern().getKey().getNamespace() + ":" + trim.getPattern().getKey().getKey());
+                        trimConfig.set("material", trim.getMaterial().getKey().getNamespace() + ':' + trim.getMaterial().getKey().getKey());
+                        trimConfig.set("pattern", trim.getPattern().getKey().getNamespace() + ':' + trim.getPattern().getKey().getKey());
                     }
                 }
             }
@@ -606,7 +606,6 @@ public final class XItemStack {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");
 
-            //System.out.println("patters v2: "  + patterns);
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
                     PatternType type = PatternType.getByIdentifier(pattern);
@@ -693,7 +692,6 @@ public final class XItemStack {
                     banner.setBaseColor(DyeColor.WHITE);
                 }
 
-                //System.out.println("patterns are "  + patterns);
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
                         PatternType type = PatternType.getByIdentifier(pattern);
