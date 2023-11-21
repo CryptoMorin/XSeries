@@ -40,6 +40,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -98,8 +99,10 @@ public class SkullUtils {
 
     /**
      * The ID and name of the GameProfiles are immutable, so we're good to cache them.
+     * The key is the SHA value.
      */
     private static final Map<String, GameProfile> MOJANG_SHA_FAKE_PROFILES = new HashMap<>();
+    private static final Map<String, GameProfile> NULL_PLAYERS = new HashMap<>();
 
     /**
      * In v1.20.2 there were some changes to the mojang API.
@@ -109,6 +112,7 @@ public class SkullUtils {
      */
     private static final boolean NULLABILITY_RECORD_UPDATE = ReflectionUtils.supports(20, 2);
     private static final UUID IDENTITY_UUID = new UUID(0, 0);
+    private static final GameProfile NULL_PROFILE = new GameProfile(IDENTITY_UUID, "");
     /**
      * Does using a random UUID have any advantage?
      */
@@ -176,8 +180,9 @@ public class SkullUtils {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-        if (SUPPORTS_UUID) meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
-        else meta.setOwner(Bukkit.getOfflinePlayer(id).getName());
+        OfflinePlayer player = Bukkit.getOfflinePlayer(id);
+        if (SUPPORTS_UUID) meta.setOwningPlayer(player);
+        else meta.setOwner(player.getName());
 
         head.setItemMeta(meta);
         return head;
@@ -201,14 +206,36 @@ public class SkullUtils {
     }
 
     @SuppressWarnings("deprecation")
+    private static SkullMeta applySkinFromName(SkullMeta head, String name) {
+        GameProfile nullPlayer = NULL_PLAYERS.get(name);
+        if (nullPlayer == NULL_PROFILE) {
+            // There's no point in changing anything.
+            return head;
+        } else {
+            // CraftServer#getOfflinePlayer() trick
+            OfflinePlayer player = Bukkit.getOfflinePlayer(name);
+            UUID nullUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
+
+            if (player.getUniqueId().equals(nullUUID)) {
+                NULL_PLAYERS.put(name, NULL_PROFILE);
+                return head;
+            } else {
+                return applySkin(head, player);
+            }
+        }
+    }
+
+    /**
+     * @param identifier Can be a player name, player UUID, Base64, or a minecraft.net skin link.
+     */
     @Nonnull
     public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String identifier) {
         SkullMeta meta = (SkullMeta) head;
         // @formatter:off
         StringSkullCache result = detectSkullValueType(identifier);
         switch (result.valueType) {
-            case UUID: return applySkin(head, Bukkit.getOfflinePlayer((UUID) result.object));
-            case NAME: return applySkin(head, Bukkit.getOfflinePlayer(identifier));
+            case UUID: return applySkin(meta, Bukkit.getOfflinePlayer((UUID) result.object));
+            case NAME: return applySkinFromName(meta, identifier);
             case BASE64:       return setSkullBase64(meta, identifier,                               extractMojangSHAFromBase64((String) result.object));
             case TEXTURE_URL:  return setSkullBase64(meta, encodeTexturesURL(identifier),            extractMojangSHAFromBase64(identifier));
             case TEXTURE_HASH: return setSkullBase64(meta, encodeTexturesURL(TEXTURES + identifier), identifier);
