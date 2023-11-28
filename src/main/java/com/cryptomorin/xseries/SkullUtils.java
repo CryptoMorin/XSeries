@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 5.0.0
+ * @version 6.0.0
  * @see XMaterial
  * @see ReflectionUtils
  */
@@ -306,8 +306,8 @@ public class SkullUtils {
         if (isUsername(identifier)) return new StringSkullCache(ValueType.NAME);
         if (identifier.contains("textures.minecraft.net")) return new StringSkullCache(ValueType.TEXTURE_URL);
         if (identifier.length() > 100) {
-            byte[] decoded = isBase64(identifier);
-            if (decoded != null) return new StringSkullCache(ValueType.BASE64, new String(decoded));
+            String decoded = decodeBase64(identifier);
+            if (decoded != null) return new StringSkullCache(ValueType.BASE64, decoded);
         }
 
         // We'll just "assume" that it's a textures.minecraft.net hash without the URL part.
@@ -340,16 +340,17 @@ public class SkullUtils {
 
     @Nonnull
     private static String encodeBase64(@Nonnull String str) {
-        return Base64.getEncoder().encodeToString(str.getBytes());
+        return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * While RegEx is a little faster for small strings, this always checks strings with a length
      * greater than 100, so it'll perform a lot better.
      */
-    private static byte[] isBase64(@Nonnull String base64) {
+    private static String decodeBase64(@Nonnull String base64) {
         try {
-            return Base64.getDecoder().decode(base64);
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            return new String(bytes, StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ignored) {
             return null;
         }

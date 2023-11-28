@@ -98,6 +98,22 @@ public final class XItemStack {
         return DEFAULT_MATERIAL.isSimilar(item);
     }
 
+    private static BlockState safeBlockState(BlockStateMeta meta) {
+        // Due to a bug in the latest paper v1.9-1.10 (and some older v1.11) versions.
+        // java.lang.IllegalStateException: Missing blockState for BREWING_STAND_ITEM
+        // BREWING_STAND_ITEM, ENCHANTMENT_TABLE, REDSTONE_COMPARATOR
+        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=b6ad714e853042def52620befe9bc85d0137cd71
+        try {
+            return meta.getBlockState();
+        } catch (IllegalStateException ex) {
+            if (ex.getMessage().toLowerCase(Locale.ENGLISH).contains("missing blockstate")) {
+                return null;
+            } else {
+                throw ex;
+            }
+        }
+    }
+
     /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
@@ -173,7 +189,7 @@ public final class XItemStack {
         }
 
         if (meta instanceof BlockStateMeta) {
-            BlockState state = ((BlockStateMeta) meta).getBlockState();
+            BlockState state = safeBlockState((BlockStateMeta) meta);
 
             if (supports(11) && state instanceof ShulkerBox) {
                 ShulkerBox box = (ShulkerBox) state;
@@ -661,7 +677,7 @@ public final class XItemStack {
             }
         } else if (meta instanceof BlockStateMeta) {
             BlockStateMeta bsm = (BlockStateMeta) meta;
-            BlockState state = bsm.getBlockState();
+            BlockState state = safeBlockState(bsm);
 
             if (state instanceof CreatureSpawner) {
                 // Do we still need this? XMaterial handles it, doesn't it?
