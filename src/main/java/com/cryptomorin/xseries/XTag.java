@@ -1578,7 +1578,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.LARGE_FERN,
                 XMaterial.LILAC,
                 XMaterial.ROSE_BUSH,
-                XMaterial.GRASS);
+                XMaterial.SHORT_GRASS);
         SMALL_DRIPLEAF_PLACEABLE = new XTag<>(XMaterial.CLAY,
                 XMaterial.MOSS_BLOCK);
         NON_FLAMMABLE_WOOD = new XTag<>(XMaterial.CRIMSON_PLANKS,
@@ -2240,7 +2240,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.SMALL_DRIPLEAF,
                 XMaterial.LOOM,
                 XMaterial.BEEHIVE,
-                XMaterial.GRASS,
+                XMaterial.SHORT_GRASS,
                 XMaterial.HANGING_ROOTS,
                 XMaterial.CHORUS_FLOWER,
                 XMaterial.ATTACHED_PUMPKIN_STEM,

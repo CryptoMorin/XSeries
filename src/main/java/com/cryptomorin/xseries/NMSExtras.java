@@ -47,7 +47,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.3.1
+ * @version 5.4.0
  */
 public final class NMSExtras {
     public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
@@ -121,7 +121,7 @@ public final class NMSExtras {
             Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
-            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 2, "al").v(19, "aj").v(18, "ai").orElse("getDataWatcher"), MethodType.methodType(DataWatcherClass)); // getEntityData()
+            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 4, "an").v(20, 2, "al").v(19, "aj").v(18, "ai").orElse("getDataWatcher"), MethodType.methodType(DataWatcherClass)); // getEntityData()
             dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("get"), MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
             dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("set"), MethodType.methodType(void.class, DataWatcherObjectClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
 
@@ -228,7 +228,7 @@ public final class NMSExtras {
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
                 tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign,
-                        v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
+                        v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
                         MethodType.methodType(PacketPlayOutTileEntityData));
 
                 if (supports(20)) {

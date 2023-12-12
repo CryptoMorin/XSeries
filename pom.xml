@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>9.7.0</version>
+    <version>9.8.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -58,6 +58,7 @@
         <repository>
             <id>nms-repo</id>
             <url>https://repo.codemc.org/repository/nms/</url>
+ <!--            https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/-->
         </repository>
 <!--        <repository>-->
 <!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
@@ -68,7 +69,7 @@
 
     <properties>
         <!-- Latest version -->
-        <spigotVersion>1.20.2-R0.1-SNAPSHOT</spigotVersion>
+        <spigotVersion>1.20.4-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
     <dependencies>

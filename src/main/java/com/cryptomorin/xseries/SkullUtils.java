@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 6.0.0
+ * @version 6.0.0.1
  * @see XMaterial
  * @see ReflectionUtils
  */
@@ -93,7 +93,7 @@ public class SkullUtils {
      * They don't seem to use anything complicated, but the length is inconsistent for some reasons.
      * It doesn't seem like uppercase characters are used either.
      */
-    private static final Pattern MOJANG_SHA256_APPROX = Pattern.compile("[0-9a-z]{60,70}");
+    private static final Pattern MOJANG_SHA256_APPROX = Pattern.compile("[0-9a-z]{55,70}");
 
     private static final AtomicLong MOJANG_SHA_FAKE_ID_ENUMERATOR = new AtomicLong(1);
 
