@@ -558,8 +558,23 @@ public final class NMSExtras {
         Location location = chest.getLocation();
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
-            Object position = v(19, BLOCK_POSITION.invoke(location.getBlockX(), location.getBlockY(), location.getBlockZ()))
-                    .orElse(BLOCK_POSITION.invoke(location.getX(), location.getY(), location.getZ()));
+            Object position = v(19,
+                    () ->
+                    {
+                        try {
+                            return BLOCK_POSITION.invoke(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }).orElse(
+                    () ->
+                    {
+                        try {
+                            return BLOCK_POSITION.invoke(location.getX(), location.getY(), location.getZ());
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
             Object block = GET_BLOCK.invoke(GET_BLOCK_TYPE.invoke(world, position));
             PLAY_BLOCK_ACTION.invoke(world, position, block, 1, open ? 1 : 0);
         } catch (Throwable throwable) {
