@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 9.3.0
+ * @version 9.4.0
  * @see Sound
  */
 public enum XSound {
@@ -2101,7 +2101,7 @@ public enum XSound {
     /**
      * Used for data that need to be accessed during enum initialization.
      *
-     * @since 5.0.0
+     * @since 6.0.0
      */
     private static final class Data {
         /**
@@ -2133,7 +2133,7 @@ public enum XSound {
         public final float volume, pitch;
         public boolean playAtLocation;
         @Nullable
-        public Player player;
+        public Set<Player> players = new HashSet<>(10);
         @Nullable
         public Location location;
 
@@ -2147,18 +2147,23 @@ public enum XSound {
 
         public Record(@Nonnull XSound sound, @Nullable Player player, @Nullable Location location, float volume, float pitch, boolean playAtLocation) {
             this.sound = Objects.requireNonNull(sound, "Sound cannot be null");
-            this.player = player;
+            addSinglePlayer(player);
             this.location = location;
             this.volume = volume;
             this.pitch = pitch;
             this.playAtLocation = playAtLocation;
         }
 
+        private void addSinglePlayer(Player player) {
+            this.players.clear();
+            if (player != null) this.players.add(player);
+        }
+
         /**
          * Plays the sound only for a single player and no one else can hear it.
          */
         public Record forPlayer(@Nullable Player player) {
-            this.player = player;
+            addSinglePlayer(player);
             return this;
         }
 
@@ -2170,15 +2175,40 @@ public enum XSound {
             return this;
         }
 
-        /**
-         * Plays the sound only for a single player and no on else can hear it.
-         * The source of the sound is different and players using headphones may
-         * hear the sound with a <a href="https://en.wikipedia.org/wiki/3D_audio_effect">3D audio effect</a>.
-         */
-        public Record forPlayerAtLocation(@Nullable Player player, @Nullable Location location) {
-            this.player = player;
-            this.location = location;
+        public Record forPlayers(@Nullable Collection<Player> players) {
+            this.players.clear();
+            this.players.addAll(players);
             return this;
+        }
+
+        public Collection<Player> getHearingPlayers() {
+            if (location == null) return players;
+            return getHearingPlayers(location, volume);
+        }
+
+        public static Collection<Player> getHearingPlayers(Location location, double volume) {
+            // Increase the amount of blocks for volumes higher than 1
+            volume = volume > 1.0F ? (16.0F * volume) : 16.0;
+            double powerVolume = volume * volume;
+
+            List<Player> playersInWorld = location.getWorld().getPlayers();
+            List<Player> hearing = new ArrayList<>(playersInWorld.size());
+
+            double x = location.getX();
+            double y = location.getY();
+            double z = location.getZ();
+
+            for (Player player : playersInWorld) {
+                Location loc = player.getLocation();
+                double deltaX = x - loc.getX();
+                double deltaY = y - loc.getY();
+                double deltaZ = z - loc.getZ();
+
+                double length = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+                if (length < powerVolume) hearing.add(player);
+            }
+
+            return hearing;
         }
 
         /**
@@ -2187,9 +2217,9 @@ public enum XSound {
          * @since 3.0.0
          */
         public void play() {
-            if (player == null && location == null)
+            if (players.isEmpty() && location == null)
                 throw new IllegalStateException("Cannot play sound when there is no location available");
-            play(player == null ? location : player.getLocation());
+            play(players.size() != 1 ? location : players.iterator().next().getLocation());
         }
 
         /**
@@ -2200,9 +2230,14 @@ public enum XSound {
          */
         public void play(@Nonnull Location updatedLocation) {
             Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
-            if (playAtLocation || player == null) {
-                location.getWorld().playSound(updatedLocation, sound.parseSound(), volume, pitch);
-            } else {
+            if (playAtLocation || players.isEmpty()) {
+                if (players.size() != 1) {
+                    players.clear();
+                    players.addAll(getHearingPlayers());
+                }
+            }
+
+            for (Player player : players) {
                 player.playSound(updatedLocation, sound.parseSound(), volume, pitch);
             }
         }
@@ -2219,11 +2254,11 @@ public enum XSound {
          */
         public void stopSound() {
             if (playAtLocation) {
-                for (Entity entity : location.getWorld().getNearbyEntities(location, volume, volume, volume)) {
-                    if (entity instanceof Player) ((Player) entity).stopSound(sound.parseSound());
+                for (Player player : getHearingPlayers()) {
+                    player.stopSound(sound.parseSound());
                 }
             }
-            if (player != null) player.stopSound(sound.parseSound());
+            players.forEach(x -> x.stopSound(sound.parseSound()));
         }
 
         public String rebuild() {
@@ -2233,14 +2268,16 @@ public enum XSound {
         @SuppressWarnings("MethodDoesntCallSuperMethod")
         @Override
         public Record clone() {
-            return new Record(
+            Record record = new Record(
                     sound,
-                    player,
+                    null,
                     location,
                     volume,
                     pitch,
                     playAtLocation
             );
+            record.players.addAll(this.players);
+            return record;
         }
     }
 }

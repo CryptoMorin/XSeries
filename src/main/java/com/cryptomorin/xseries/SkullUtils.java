@@ -67,11 +67,11 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 6.0.0.1
+ * @version 6.0.1
  * @see XMaterial
  * @see ReflectionUtils
  */
-public class SkullUtils {
+public final class SkullUtils {
     protected static final MethodHandle
             CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
             CRAFT_META_SKULL_BLOCK_SETTER, PROPERTY_GETVALUE;
@@ -86,7 +86,7 @@ public class SkullUtils {
      * We'll just return an x shaped hardcoded skull.
      * https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross
      */
-    private static final String INVALID_BASE64 =
+    private static final String INVALID_SKULL_VALUE =
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzEwNTkxZTY5MDllNmEyODFiMzcxODM2ZTQ2MmQ2N2EyYzc4ZmEwOTUyZTkxMGYzMmI0MWEyNmM0OGMxNzU3YyJ9fX0=";
 
     /**
@@ -239,7 +239,7 @@ public class SkullUtils {
             case BASE64:       return setSkullBase64(meta, identifier,                               extractMojangSHAFromBase64((String) result.object));
             case TEXTURE_URL:  return setSkullBase64(meta, encodeTexturesURL(identifier),            extractMojangSHAFromBase64(identifier));
             case TEXTURE_HASH: return setSkullBase64(meta, encodeTexturesURL(TEXTURES + identifier), identifier);
-            case UNKNOWN:      return setSkullBase64(meta, INVALID_BASE64,                           INVALID_BASE64);
+            case UNKNOWN:      return setSkullBase64(meta, INVALID_SKULL_VALUE,                           INVALID_SKULL_VALUE);
             default: throw new AssertionError("Unknown skull value");
         }
         // @formatter:on
@@ -249,14 +249,22 @@ public class SkullUtils {
     public static SkullMeta setSkullBase64(@Nonnull SkullMeta head, @Nonnull String value, String MojangSHA) {
         if (value == null || value.isEmpty()) throw new IllegalArgumentException("Skull value cannot be null or empty");
         GameProfile profile = profileFromBase64(value, MojangSHA);
+        setProfile(head, profile);
+        return head;
+    }
 
+    /**
+     * Setting the profile directly is not compatible with {@link SkullMeta#setOwningPlayer(OfflinePlayer)}
+     * and should be reset with {@code setProfile(head, null)} before anything.
+     * <p>
+     * It seems like the Profile is prioritized over UUID/name.
+     */
+    public static void setProfile(SkullMeta head, GameProfile profile) {
         try {
             CRAFT_META_SKULL_PROFILE_SETTER.invoke(head, profile);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
-
-        return head;
     }
 
     @Nonnull
@@ -289,7 +297,7 @@ public class SkullUtils {
             case BASE64:       return profileFromBase64(                             identifier,  extractMojangSHAFromBase64((String) result.object));
             case TEXTURE_URL:  return profileFromBase64(encodeTexturesURL(           identifier), extractMojangSHAFromBase64(identifier));
             case TEXTURE_HASH: return profileFromBase64(encodeTexturesURL(TEXTURES + identifier), identifier);
-            case UNKNOWN:      return profileFromBase64(INVALID_BASE64,                           INVALID_BASE64); // This can't be cached because the caller might change it.
+            case UNKNOWN:      return profileFromBase64(INVALID_SKULL_VALUE,                           INVALID_SKULL_VALUE); // This can't be cached because the caller might change it.
             default: throw new AssertionError("Unknown skull value");
         }
         // @formatter:on
