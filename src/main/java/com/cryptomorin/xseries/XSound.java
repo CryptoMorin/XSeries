@@ -23,10 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
-import org.bukkit.Instrument;
-import org.bukkit.Location;
-import org.bukkit.Note;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -36,7 +33,9 @@ import org.bukkit.scheduler.BukkitTask;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +54,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 9.4.0
+ * @version 10.0.0
  * @see Sound
  */
 public enum XSound {
@@ -1632,6 +1631,7 @@ public enum XSound {
     public static final XSound[] VALUES = values();
 
     public static final float DEFAULT_VOLUME = 1.0f, DEFAULT_PITCH = 1.0f;
+    private static final Pattern VALID_SOUND_KEY = Pattern.compile("(?<namespace>[a-z0-9._-]+):(?<key>[a-z0-9/._-]+)");
 
     @Nullable
     private final Sound sound;
@@ -1721,7 +1721,7 @@ public enum XSound {
     }
 
     private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
-        List<String> list = new ArrayList<>(5);
+        List<String> list = new ArrayList<>(4);
         boolean match = false, lastMatch = false;
         int len = str.length();
         int start = 0;
@@ -1750,6 +1750,33 @@ public enum XSound {
     }
 
     /**
+     * A short handy method to play a sound from configs.
+     * E.g.
+     * <pre>
+     *     play("BURP, 1, 1", x -> x.forPlayers(player));
+     * </pre>
+     *
+     * @param soundPlayer The player used if the sound is corretly parsed. No need to call {@link SoundPlayer#play()}
+     * @see #parse(String)
+     * @since 10.0.0
+     */
+    @Nullable
+    public static Record play(@Nullable String sound, Consumer<SoundPlayer> soundPlayer) {
+        Record record;
+        try {
+            record = parse(sound);
+        } catch (Throwable ex) {
+            return null;
+        }
+        if (record == null) return null;
+
+        SoundPlayer player = record.soundPlayer();
+        soundPlayer.accept(player);
+        player.play();
+        return record;
+    }
+
+    /**
      * Just an extra feature that loads sounds from strings.
      * Useful for getting sounds from config files.
      * Sounds are thread safe.
@@ -1765,14 +1792,14 @@ public enum XSound {
      * <p>
      * This will also ignore {@code none} and {@code null} strings.
      * <p>
-     * <b>Format:</b> [~]Sound, [Volume], [Pitch]<br>
+     * <b>Format:</b> [~]Sound@Category, [Volume], [Pitch]<br>
      * Where {@code ~} prefix will play the sound at the location even if a player is specified.
      * A sound played at a location will be heard by everyone around.
      * <p>
      * <b>Examples:</b>
      * <p>
      * <pre>
-     *     ~ENTITY_PLAYER_BURP, 2.5f, 0.5
+     *     ~ENTITY_PLAYER_BURP@MASTER, 2.5f, 0.5f
      *     ENTITY_PLAYER_BURP, 0.5, 1f
      *     BURP, 0.5f, 1
      *     MUSIC_END, 10f
@@ -1790,32 +1817,70 @@ public enum XSound {
         if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return null;
         @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern") List<String> split = split(sound.replace(" ", ""), ',');
 
+        Record record = new Record();
         String name = split.get(0);
-        boolean playAtLocation;
         if (name.charAt(0) == '~') {
             name = name.substring(1);
-            playAtLocation = true;
-        } else playAtLocation = false;
+            record.publicSound(true);
+        } else {
+            record.publicSound(false);
+        }
 
         if (name.isEmpty()) throw new IllegalArgumentException("No sound name specified: " + sound);
-        Optional<XSound> soundType = matchXSound(name);
-        if (!soundType.isPresent()) throw new IllegalArgumentException("Unknown sound: " + name);
+        {
+            String soundName;
+            int atIndex = name.indexOf('@');
+            if (atIndex != -1) {
+                String category = name.substring(0, atIndex);
+                soundName = name.substring(atIndex + 1);
 
-        float volume = DEFAULT_VOLUME;
-        float pitch = DEFAULT_PITCH;
+                SoundCategory soundCategory = Enums.getIfPresent(SoundCategory.class, category.toUpperCase(Locale.ENGLISH)).orNull();
+                if (soundCategory == null)
+                    throw new IllegalArgumentException("Unknown sound category '" + category + "' in: " + sound);
+                else record.inCategory(soundCategory);
+            } else {
+                soundName = name;
+            }
+
+            if (soundName.isEmpty()) {
+                throw new IllegalArgumentException("No sound name specified: " + name);
+            }
+
+            Optional<XSound> soundType = matchXSound(soundName);
+            if (!soundType.isPresent()) {
+                if (soundName.indexOf(':') != -1) {
+                    soundName = soundName.toLowerCase(Locale.ENGLISH);
+                    if (!VALID_SOUND_KEY.matcher(soundName).matches()) {
+                        throw new IllegalArgumentException("Unknown sound '" + soundName + "', invalid namespace characters: " + name);
+                    } else {
+                        record.withSound(soundName);
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown sound: " + name);
+                }
+            } else {
+                record.withSound(soundType.get());
+            }
+        }
 
         try {
-            if (split.size() > 1) volume = Float.parseFloat(split.get(1));
+            if (split.size() > 1) record.withVolume(Float.parseFloat(split.get(1)));
         } catch (NumberFormatException ex) {
             throw new NumberFormatException("Invalid number '" + split.get(1) + "' for sound volume '" + sound + '\'');
         }
         try {
-            if (split.size() > 2) pitch = Float.parseFloat(split.get(2));
+            if (split.size() > 2) record.withPitch(Float.parseFloat(split.get(2)));
         } catch (NumberFormatException ex) {
             throw new NumberFormatException("Invalid number '" + split.get(2) + "' for sound pitch '" + sound + '\'');
         }
 
-        return new Record(soundType.get(), null, null, volume, pitch, playAtLocation);
+        try {
+            if (split.size() > 3) record.withSeed(Long.parseLong(split.get(3)));
+        } catch (NumberFormatException ex) {
+            throw new NumberFormatException("Invalid number '" + split.get(3) + "' for sound seed '" + sound + '\'');
+        }
+
+        return record;
     }
 
     /**
@@ -1949,8 +2014,10 @@ public enum XSound {
      * @return the async task handling this operation.
      * @see #play(Location, float, float)
      * @since 2.0.0
+     * @deprecated Won't work for Folia, use {@link SoundPlayer} manually instead.
      */
     @Nonnull
+    @Deprecated
     public BukkitTask playRepeatedly(@Nonnull Plugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
         return playRepeatedly(plugin, Collections.singleton(entity), volume, pitch, repeat, delay);
     }
@@ -1967,8 +2034,10 @@ public enum XSound {
      * @return the async task handling this operation.
      * @see #play(Location, float, float)
      * @since 2.0.0
+     * @deprecated Won't work for Folia, use {@link SoundPlayer} manually instead.
      */
     @Nonnull
+    @Deprecated
     public BukkitTask playRepeatedly(@Nonnull Plugin plugin, @Nonnull Iterable<? extends Entity> entities, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entities, "Cannot play repeating sound at null locations");
@@ -2006,44 +2075,15 @@ public enum XSound {
     /**
      * A quick async way to play a sound from the config.
      *
-     * @param player the player to play the sound to.
-     * @param sound  the sound to play to the player.
-     * @see #play(Location, String)
-     * @since 1.0.0
-     */
-    @Nonnull
-    @Deprecated
-    public static CompletableFuture<Record> play(@Nonnull Player player, @Nullable String sound) {
-        Objects.requireNonNull(player, "Cannot play sound to null player");
-        return CompletableFuture.supplyAsync(() -> {
-            Record record;
-            try {
-                record = parse(sound);
-            } catch (Throwable ex) {
-                return null;
-            }
-            if (record == null) return null;
-            record.forPlayer(player).play();
-            return record;
-        }).exceptionally(x -> {
-            x.printStackTrace();
-            return null;
-        });
-    }
-
-    /**
-     * A quick async way to play a sound from the config.
-     *
      * @see #play(Location, String)
      * @since 3.0.0
+     * @deprecated use {@link #play(String, Consumer)} instead.
      */
     @Nullable
+    @Deprecated
     public static Record play(@Nonnull Location location, @Nullable String sound) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
-        Record record = parse(sound);
-        if (record == null) return null;
-        record.atLocation(location).play();
-        return record;
+        return play(sound, x -> x.atLocation(location));
     }
 
     /**
@@ -2051,7 +2091,9 @@ public enum XSound {
      *
      * @param entity the entity to play the sound to.
      * @since 1.0.0
+     * @deprecated use {@link SoundPlayer} instead.
      */
+    @Deprecated
     public void play(@Nonnull Entity entity) {
         play(entity, DEFAULT_VOLUME, DEFAULT_PITCH);
     }
@@ -2063,7 +2105,9 @@ public enum XSound {
      * @param volume the volume of the sound, 1 is normal.
      * @param pitch  the pitch of the sound, 0 is normal.
      * @since 1.0.0
+     * @deprecated use {@link SoundPlayer} instead.
      */
+    @Deprecated
     public void play(@Nonnull Entity entity, float volume, float pitch) {
         Objects.requireNonNull(entity, "Cannot play sound to a null entity");
         if (entity instanceof Player) {
@@ -2079,7 +2123,9 @@ public enum XSound {
      *
      * @param location the location to play the sound in.
      * @since 2.0.0
+     * @deprecated use {@link SoundPlayer} instead.
      */
+    @Deprecated
     public void play(@Nonnull Location location) {
         play(location, DEFAULT_VOLUME, DEFAULT_PITCH);
     }
@@ -2091,7 +2137,9 @@ public enum XSound {
      * @param volume   the volume of the sound, 1 is normal.
      * @param pitch    the pitch of the sound, 0 is normal.
      * @since 2.0.0
+     * @deprecated use {@link SoundPlayer} instead.
      */
+    @Deprecated
     public void play(@Nonnull Location location, float volume, float pitch) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         Sound sound = this.parseSound();
@@ -2101,6 +2149,7 @@ public enum XSound {
     /**
      * Used for data that need to be accessed during enum initialization.
      *
+     * @version 1.0.0
      * @since 6.0.0
      */
     private static final class Data {
@@ -2123,69 +2172,111 @@ public enum XSound {
     }
 
     /**
-     * A class to help caching sound properties parsed from config.
-     *
-     * @since 3.0.0
+     * @since 10.0.0
      */
-    public static class Record implements Cloneable {
-        @Nonnull
-        public final XSound sound;
-        public final float volume, pitch;
-        public boolean playAtLocation;
-        @Nullable
-        public Set<Player> players = new HashSet<>(10);
+    public Record record() {
+        return new Record().withSound(this);
+    }
+
+    public static class SoundPlayer {
+        private static final byte SUPPORTED_METHOD_LEVEL;
+
+        static {
+            byte level;
+            try {
+                Player.class.getDeclaredMethod("playSound", Location.class, String.class, SoundCategory.class, float.class, float.class, long.class);
+                level = 3;
+            } catch (Throwable e) {
+                try {
+                    Player.class.getDeclaredMethod("playSound", Location.class, String.class, SoundCategory.class, float.class, float.class);
+                    level = 2;
+                } catch (Throwable ee) {
+                    try {
+                        Player.class.getDeclaredMethod("playSound", Location.class, Sound.class, float.class, float.class);
+                        level = 1;
+                    } catch (Throwable eee) {
+                        throw new RuntimeException("None of sound methods are supported", eee);
+                    }
+                }
+            }
+
+            SUPPORTED_METHOD_LEVEL = level;
+        }
+
+        public Record record;
+        public Set<UUID> players = new HashSet<>(10);
+        public Set<UUID> heard = new HashSet<>();
+
         @Nullable
         public Location location;
 
-        public Record(@Nonnull XSound sound) {
-            this(sound, DEFAULT_VOLUME, DEFAULT_PITCH);
+        public SoundPlayer(Record record) {
+            withRecord(record);
         }
 
-        public Record(@Nonnull XSound sound, float volume, float pitch) {
-            this(sound, null, null, volume, pitch, false);
-        }
-
-        public Record(@Nonnull XSound sound, @Nullable Player player, @Nullable Location location, float volume, float pitch, boolean playAtLocation) {
-            this.sound = Objects.requireNonNull(sound, "Sound cannot be null");
-            addSinglePlayer(player);
-            this.location = location;
-            this.volume = volume;
-            this.pitch = pitch;
-            this.playAtLocation = playAtLocation;
-        }
-
-        private void addSinglePlayer(Player player) {
-            this.players.clear();
-            if (player != null) this.players.add(player);
+        public SoundPlayer withRecord(Record record) {
+            this.record = Objects.requireNonNull(record, "Cannot play a null record");
+            return this;
         }
 
         /**
          * Plays the sound only for a single player and no one else can hear it.
          */
-        public Record forPlayer(@Nullable Player player) {
-            addSinglePlayer(player);
+        public SoundPlayer forPlayers(@Nullable Player... players) {
+            this.players.clear();
+            if (players != null && players.length > 0) {
+                this.players.addAll(Arrays.stream(players).map(Entity::getUniqueId).collect(Collectors.toSet()));
+            }
             return this;
         }
 
         /**
          * Plays the sound to all the nearby players (based on the specified volume)
          */
-        public Record atLocation(@Nullable Location location) {
+        public SoundPlayer atLocation(@Nullable Location location) {
             this.location = location;
             return this;
         }
 
-        public Record forPlayers(@Nullable Collection<Player> players) {
+        /**
+         * Play the sound for the given players.
+         */
+        public SoundPlayer forPlayers(@Nullable Collection<Player> players) {
             this.players.clear();
-            this.players.addAll(players);
+            this.players.addAll(players.stream().map(Entity::getUniqueId).collect(Collectors.toList()));
             return this;
         }
 
+        /**
+         * Gets a list of players who can hear this sound.
+         */
         public Collection<Player> getHearingPlayers() {
-            if (location == null) return players;
-            return getHearingPlayers(location, volume);
+            if (record.publicSound || players.isEmpty()) {
+                Location loc;
+                if (location == null) {
+                    if (players.size() != 1)
+                        throw new IllegalStateException("Cannot play public sound when no location is specified: " + this);
+
+                    Player player = Bukkit.getPlayer(players.iterator().next());
+                    if (player == null) return new ArrayList<>();
+                    else loc = player.getEyeLocation();
+                } else {
+                    loc = this.location;
+                }
+                return getHearingPlayers(loc, record.volume);
+            } else {
+                return toOnlinePlayers(this.players, Collectors.toList());
+            }
         }
 
+        /**
+         * Gets a list of players that can hear this sound at the given location and volume.
+         * This method pretty much uses the default algorithm used by Bukkit.
+         *
+         * @param location The location which the sound is going to be played.
+         * @param volume   The volume of the sound being played. Also see {@link Record#volume}
+         * @return
+         */
         public static Collection<Player> getHearingPlayers(Location location, double volume) {
             // Increase the amount of blocks for volumes higher than 1
             volume = volume > 1.0F ? (16.0F * volume) : 16.0;
@@ -2217,28 +2308,73 @@ public enum XSound {
          * @since 3.0.0
          */
         public void play() {
-            if (players.isEmpty() && location == null)
-                throw new IllegalStateException("Cannot play sound when there is no location available");
-            play(players.size() != 1 ? location : players.iterator().next().getLocation());
+            Location loc;
+            if (location == null) {
+                if (players.size() == 1) {
+                    UUID first = players.iterator().next();
+                    Player player = Bukkit.getPlayer(first);
+                    if (player == null) return;
+                    loc = player.getEyeLocation();
+                } else {
+                    throw new IllegalStateException("Cannot play sound when there is no location available");
+                }
+            } else {
+                loc = location;
+            }
+
+            play(loc);
         }
 
         /**
          * Plays the sound with the updated location.
+         * Uses PacketPlayOutNamedSoundEffect.
          *
          * @param updatedLocation the updated location.
          * @since 3.0.0
          */
         public void play(@Nonnull Location updatedLocation) {
+            Collection<Player> hearing = getHearingPlayers();
+            this.heard = hearing.stream().map(Entity::getUniqueId).collect(Collectors.toSet());
+
+            if (hearing.isEmpty()) return;
+            play(hearing, updatedLocation);
+        }
+
+        private static <A, R> R toOnlinePlayers(Collection<UUID> players, Collector<Player, A, R> collector) {
+            return players.stream()
+                    .map(Bukkit::getPlayer)
+                    .filter(Objects::nonNull)
+                    .collect(collector);
+        }
+
+        public void play(Collection<Player> players, @Nonnull Location updatedLocation) {
             Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
-            if (playAtLocation || players.isEmpty()) {
-                if (players.size() != 1) {
-                    players.clear();
-                    players.addAll(getHearingPlayers());
-                }
-            }
+
+            Sound objSound = record.sound instanceof XSound ? ((XSound) record.sound).parseSound() : null;
+            String strSound = record.sound instanceof String ? (String) record.sound : null;
 
             for (Player player : players) {
-                player.playSound(updatedLocation, sound.parseSound(), volume, pitch);
+                // https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/Player.html#playSound(org.bukkit.Location,java.lang.String,org.bukkit.SoundCategory,float,float,long)
+
+                switch (SUPPORTED_METHOD_LEVEL) {
+                    case 3:
+                        if (objSound != null)
+                            player.playSound(updatedLocation, objSound, record.category, record.volume, record.pitch, record.generateSeed());
+                        else
+                            player.playSound(updatedLocation, strSound, record.category, record.volume, record.pitch, record.generateSeed());
+                        break;
+                    case 2:
+                        if (objSound != null)
+                            player.playSound(updatedLocation, objSound, record.category, record.volume, record.pitch);
+                        else player.playSound(updatedLocation, strSound, record.category, record.volume, record.pitch);
+                        break;
+                    case 1:
+                        if (objSound != null) player.playSound(updatedLocation, objSound, record.volume, record.pitch);
+                        else player.playSound(updatedLocation, strSound, record.volume, record.pitch);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown format: " + SUPPORTED_METHOD_LEVEL);
+                }
             }
         }
 
@@ -2253,30 +2389,163 @@ public enum XSound {
          * @since 7.0.2
          */
         public void stopSound() {
-            if (playAtLocation) {
-                for (Player player : getHearingPlayers()) {
-                    player.stopSound(sound.parseSound());
-                }
-            }
-            players.forEach(x -> x.stopSound(sound.parseSound()));
+            if (heard == null || heard.isEmpty()) return;
+
+            List<Player> heardOnline = toOnlinePlayers(this.heard, Collectors.toList());
+            heardOnline.forEach(x -> {
+                if (record.sound instanceof XSound) x.stopSound(((XSound) record.sound).parseSound(), record.category);
+                else x.stopSound((String) record.sound, record.category);
+            });
+        }
+    }
+
+    /**
+     * A class to help caching and playing sound properties parsed from config.
+     *
+     * @since 3.0.0
+     */
+    public static class Record implements Cloneable {
+        private static final Random RANDOM = new Random();
+
+        private Object sound;
+
+        @Nonnull
+        private SoundCategory category = SoundCategory.MASTER;
+
+        @Nullable
+        private Long seed;
+
+        /**
+         * The default value is 1.0 and the range of the volume can be controlled from
+         * 0.0 to 1.0, any values higher than 1.0 will affect the distance in blocks which
+         * the player can hear the sound from.
+         *
+         * @see SoundPlayer#getHearingPlayers(Location, double)
+         */
+        private float volume = DEFAULT_VOLUME;
+        private float pitch = DEFAULT_PITCH;
+        private boolean publicSound;
+
+        @Nullable
+        public Long getSeed() {
+            return seed;
+        }
+
+        public Object getSound() {
+            return sound;
+        }
+
+        @Nonnull
+        public SoundCategory getCategory() {
+            return category;
+        }
+
+        public float getVolume() {
+            return volume;
+        }
+
+        public float getPitch() {
+            return pitch;
+        }
+
+        public Record inCategory(SoundCategory category) {
+            this.category = Objects.requireNonNull(category, "Sound category cannot be null");
+            return this;
+        }
+
+        /**
+         * @return a new {@link SoundPlayer} object.
+         */
+        public SoundPlayer soundPlayer() {
+            return new SoundPlayer(this);
+        }
+
+        public Record withSound(@Nonnull XSound sound) {
+            Objects.requireNonNull(sound, "Cannot play a null sound");
+            this.sound = sound;
+            return this;
+        }
+
+        /**
+         * The sound including the namespace and the key.
+         * E.g. for {@link #ENTITY_PLAYER_HURT} it'd be {@code minecraft:entity_player_hurt}
+         * you can use other namespaces instead of "minecraft" to use sounds from resource packs.
+         */
+        public Record withSound(@Nonnull String sound) {
+            Objects.requireNonNull(sound, "Cannot play a null sound");
+            sound = sound.toLowerCase(Locale.ENGLISH);
+
+            if (sound.indexOf(':') < 0) throw new IllegalArgumentException(
+                    "Raw sound name doesn't contain both namespace and key: " + sound);
+
+            this.sound = sound;
+            return this;
+        }
+
+        public long generateSeed() {
+            return seed == null ? RANDOM.nextLong() : seed;
+        }
+
+        public Record withVolume(float volume) {
+            this.volume = volume;
+            return this;
+        }
+
+        /**
+         * Whether to play this sound to all nearby players or
+         * just the players specified in the {@link SoundPlayer#players} list.
+         */
+        public Record publicSound(boolean publicSound) {
+            this.publicSound = publicSound;
+            return this;
+        }
+
+        public Record withPitch(float pitch) {
+            this.pitch = pitch;
+            return this;
+        }
+
+        /**
+         * Some sounds have different variations. Using a static seed will always play
+         * the same variation for that sound.
+         *
+         * @param seed Randomizes the variation of null.
+         */
+        public Record withSeed(Long seed) {
+            this.seed = seed;
+            return this;
         }
 
         public String rebuild() {
-            return (playAtLocation ? "~" : "") + sound.sound + ", " + volume + ", " + pitch;
+            String str = "";
+            if (publicSound) str += "~";
+            if (category != SoundCategory.MASTER) str += category.name();
+            str += sound + ", " + volume + ", " + pitch;
+            if (seed != null) str += ", " + seed;
+            return str;
+        }
+
+        @Override
+        public String toString() {
+            return "Record{" +
+                    "sound=" + sound +
+                    ", category=" + category +
+                    ", seed=" + seed +
+                    ", volume=" + volume +
+                    ", pitch=" + pitch +
+                    ", publicSound=" + publicSound +
+                    '}';
         }
 
         @SuppressWarnings("MethodDoesntCallSuperMethod")
         @Override
         public Record clone() {
-            Record record = new Record(
-                    sound,
-                    null,
-                    location,
-                    volume,
-                    pitch,
-                    playAtLocation
-            );
-            record.players.addAll(this.players);
+            Record record = new Record();
+            record.sound = sound;
+            record.volume = volume;
+            record.pitch = pitch;
+            record.publicSound = publicSound;
+            record.seed = seed;
             return record;
         }
     }

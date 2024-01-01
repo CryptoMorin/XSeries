@@ -122,7 +122,18 @@ public final class NMSExtras {
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
             getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 4, "an").v(20, 2, "al").v(19, "aj").v(18, "ai").orElse("getDataWatcher"), MethodType.methodType(DataWatcherClass)); // getEntityData()
-            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("get"), MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+
+
+            // public <T> T b(DataWatcherObject<T> datawatcherobject) {
+            //        return this.c(datawatcherobject).b();
+            // }
+            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, v(20, "b").v(19, "a").v(18, "b").orElse("get"), MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+
+            /*
+                public <T> void b(DataWatcherObject<T> datawatcherobject, T t0) {
+                    this.a(datawatcherobject, t0, false);
+                }
+             */
             dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("set"), MethodType.methodType(void.class, DataWatcherObjectClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
@@ -323,7 +334,7 @@ public final class NMSExtras {
                 Object packet = ENTITY_PACKET.invoke(lightningBolt);
 
                 for (Player player : players) {
-                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
+                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
                     sendPacket(player, packet);
                 }
             } else {
@@ -337,7 +348,7 @@ public final class NMSExtras {
                 Object packet = ENTITY_PACKET.invoke(lightningBoltID, lightningBoltUUID, location.getX(), location.getY(), location.getZ(), 0F, 0F, lightningType, 0, vec3D);
 
                 for (Player player : players) {
-                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.play(player);
+                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
                     sendPacket(player, packet);
                 }
             }
