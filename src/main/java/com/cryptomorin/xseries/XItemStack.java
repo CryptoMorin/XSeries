@@ -231,7 +231,7 @@ public final class XItemStack {
                     effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
                 }
 
-                config.set("effects", effects);
+                if (!effects.isEmpty()) config.set("effects", effects);
                 PotionData potionData = potion.getBasePotionData();
                 config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
 
