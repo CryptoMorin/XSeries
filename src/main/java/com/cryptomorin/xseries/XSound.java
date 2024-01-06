@@ -25,6 +25,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -2091,11 +2092,18 @@ public enum XSound {
      *
      * @param entity the entity to play the sound to.
      * @since 1.0.0
-     * @deprecated use {@link SoundPlayer} instead.
      */
-    @Deprecated
     public void play(@Nonnull Entity entity) {
-        play(entity, DEFAULT_VOLUME, DEFAULT_PITCH);
+        Objects.requireNonNull(entity, "Cannot play sound for null entity");
+        SoundPlayer soundPlayer = this.record().soundPlayer();
+        if (entity instanceof Player) {
+            soundPlayer.forPlayers((Player) entity);
+        } else if (entity instanceof LivingEntity) {
+            soundPlayer.atLocation(((LivingEntity) entity).getEyeLocation());
+        } else {
+            soundPlayer.atLocation(entity.getLocation());
+        }
+        soundPlayer.play();
     }
 
     /**
@@ -2123,11 +2131,10 @@ public enum XSound {
      *
      * @param location the location to play the sound in.
      * @since 2.0.0
-     * @deprecated use {@link SoundPlayer} instead.
      */
-    @Deprecated
     public void play(@Nonnull Location location) {
-        play(location, DEFAULT_VOLUME, DEFAULT_PITCH);
+        Objects.requireNonNull(location, "Cannot play sound at null location");
+        this.record().soundPlayer().atLocation(location).play();
     }
 
     /**
