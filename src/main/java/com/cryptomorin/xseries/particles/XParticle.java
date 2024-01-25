@@ -106,7 +106,7 @@ import java.util.function.Supplier;
  * in order to be compatible with other server softwares such as <a href="https://papermc.io/software/folia">Folia</a>.
  *
  * @author Crypto Morin
- * @version 7.1.0
+ * @version 7.1.1
  * @see ParticleDisplay
  * @see Particle
  * @see Location
@@ -460,7 +460,6 @@ public final class XParticle {
         //Map<Vector, Vector> locs = new HashMap<>();
 
         return new Runnable() {
-            final Vector rotation = new Vector(Math.PI / 33, Math.PI / 44, Math.PI / 55);
             double theta = Math.PI / 2;
             double theta2 = Math.PI / 2;
             double thetaPrime = 0;
@@ -470,7 +469,7 @@ public final class XParticle {
             public void run() {
                 int repeat = speed;
                 while (repeat-- != 0) {
-                    if (dimension3) display.rotate(rotation);
+                    if (dimension3) display.rotate(Math.PI / 33, Math.PI / 44, Math.PI / 55);
                     double totalMass = mass1 + mass2;
                     double totalMassDouble = 2 * totalMass;
                     double deltaTheta = theta - theta2;
@@ -1123,8 +1122,7 @@ public final class XParticle {
                 double y = Math.toRadians((60 + rotation) * offsety);
                 double z = Math.toRadians((30 + rotation) * offsetz);
 
-                Vector vector = new Vector(x, y, z);
-                for (ParticleDisplay display : displays) display.rotate(vector);
+                for (ParticleDisplay display : displays) display.rotate(x, y, z);
                 runnable.run();
             }
         };
@@ -1185,7 +1183,7 @@ public final class XParticle {
                 ParticleDisplay.rotateAround(vector, x, y, z);
 
                 for (ParticleDisplay display : displays) {
-                    display.rotate(new Vector(x, y, z));
+                    display.rotate(x, y, z);
                     display.getLocation().add(vector);
                 }
                 runnable.run();
@@ -1442,7 +1440,7 @@ public final class XParticle {
                 double z = radius * Math.sin(theta);
 
                 for (double angle = 0; orbital > 0; angle += dist) {
-                    orbit.rotate(new Vector(0, 0, angle));
+                    orbit.rotate(ParticleDisplay.Rotation.of(angle, ParticleDisplay.Axis.Z));
                     orbit.spawn(x, 0, z);
                     orbital--;
                 }
@@ -2577,7 +2575,7 @@ public final class XParticle {
     public static void atom(int orbits, double radius, double rate, ParticleDisplay orbit, ParticleDisplay nucleus) {
         double dist = Math.PI / orbits;
         for (double angle = 0; orbits > 0; angle += dist) {
-            orbit.rotate(new Vector(0, 0, angle));
+            orbit.rotate(ParticleDisplay.Rotation.of(angle, ParticleDisplay.Axis.Z));
             circle(radius, rate, orbit);
             orbits--;
         }

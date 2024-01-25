@@ -42,7 +42,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +67,7 @@ import java.util.stream.Collectors;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 9.0.0
+ * @version 10.0.0
  * @see XParticle
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
@@ -127,17 +126,21 @@ public class ParticleDisplay implements Cloneable {
      * <a href="https://www.youtube.com/watch?v=zc8b2Jo7mno">Gimbal lock</a>.
      * <p>
      * For 2D shapes, it's recommended that your algorithm uses the x and z axis and leave y as 0.
+     * <p>
+     * Each list within the main list represents the rotations that are going to be applied individually in order.
+     * While it's true that in order to combine multiple quaternion rotations you'd have to multiply them,
+     * quaternion multiplication is not commutative and some rotations should be done separately.
      */
     @Nonnull
-    public List<Pair<Double, Vector>> rotations = new ArrayList<>();
+    public List<List<Rotation>> rotations = new ArrayList<>();
     @Nullable
-    private Quaternion cachedFinalRotationQuaternion;
+    private List<Quaternion> cachedFinalRotationQuaternions;
     @Nullable
     private Object data;
     @Nullable
-    private Predicate<Location> onSpawn;
+    private Consumer<CalculationContext> preCalculation;
     @Nullable
-    private Consumer<Vector> onCalculation;
+    private Consumer<CalculationContext> postCalculation;
     @Nullable
     private Function<Double, Double> onAdvance;
     @Nullable
@@ -153,8 +156,10 @@ public class ParticleDisplay implements Cloneable {
      * @return a redstone colored dust.
      * @see #simple(Location, Particle)
      * @since 1.0.0
+     * @deprecated use {@link #withColor(float, float, float, float)}
      */
     @Nonnull
+    @Deprecated
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
         return ParticleDisplay.simple(location, Particle.REDSTONE).withColor(r, g, b, size);
     }
@@ -196,15 +201,15 @@ public class ParticleDisplay implements Cloneable {
      * compatible {@link org.bukkit.Particle.DustOptions} properties.
      * Only REDSTONE particle type can be colored like this.
      *
-     * @param location the location of the display.
-     * @param color    the color of the particle.
-     * @param size     the size of the dust.
+     * @param color the color of the particle.
+     * @param size  the size of the dust.
      * @return a redstone colored dust.
-     * @see #colored(Location, int, int, int, float)
      * @since 3.0.0
+     * @deprecated use {@link #withColor(Color, float)}
      */
     @Nonnull
-    public static ParticleDisplay colored(@Nullable Location location, @Nonnull Color color, float size) {
+    @Deprecated
+    public static ParticleDisplay colored(Location location, @Nonnull Color color, float size) {
         return colored(location, color.getRed(), color.getGreen(), color.getBlue(), size);
     }
 
@@ -220,8 +225,10 @@ public class ParticleDisplay implements Cloneable {
      * @param particle the particle of the display.
      * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
+     * @deprecated use {@link #of(Particle)} and {@link #withLocation(Location)}
      */
     @Nonnull
+    @Deprecated
     public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
         ParticleDisplay display = new ParticleDisplay();
@@ -250,8 +257,10 @@ public class ParticleDisplay implements Cloneable {
      * @param particle the particle to show.
      * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
+     * @deprecated use {@link #of(Particle)} and {@link #withLocation(Location)}
      */
-    @Nonnull
+    @Nullable
+    @Deprecated
     public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(location, "Cannot display particle in null location");
         ParticleDisplay display = simple(location, particle);
@@ -364,33 +373,45 @@ public class ParticleDisplay implements Cloneable {
             }
         }
 
-        List<String> rotations = config.getStringList("rotations");
-        if (!rotations.isEmpty()) {
-            display.rotations = rotations.stream()
-                    .map(Quaternion::rotationFromString)
-                    .collect(Collectors.toList());
-        }
+        ConfigurationSection rotations = config.getConfigurationSection("rotations");
+        if (rotations != null) {
+            /*
+            rotations:
+              group-1:
+                0:
+                  angle: 3.14
+                  axis: "Y"
+                1:
+                  angle: 4
+                  axis: "3, 5, 3.4"
+              group-2:
+                0:
+                  angle: 1.6
+                  axis: "6, 4, 2"
+             */
 
-        {
-            String rotation = config.getString("rotation");
-            if (rotation != null) {
-                List<String> rotationsSplit = split(rotation.replace(" ", ""), ',');
-                if (rotationsSplit.size() >= 3) {
-                    double x = Math.toRadians(toDouble(rotationsSplit.get(0)));
-                    double y = Math.toRadians(toDouble(rotationsSplit.get(1)));
-                    double z = Math.toRadians(toDouble(rotationsSplit.get(2)));
+            for (String rotationGroupName : rotations.getKeys(false)) {
+                ConfigurationSection rotationGroup = rotations.getConfigurationSection(rotationGroupName);
 
-                    String rotationOrder = config.getString("rotation-order");
-                    if (rotationOrder != null) {
-                        rotationOrder = rotationOrder.replace(" ", "").toUpperCase(Locale.ENGLISH);
-                        display
-                                .rotate(Math.toRadians(x), Axis.valueOf(String.valueOf(rotationOrder.charAt(0))))
-                                .rotate(Math.toRadians(y), Axis.valueOf(String.valueOf(rotationOrder.charAt(1))))
-                                .rotate(Math.toRadians(z), Axis.valueOf(String.valueOf(rotationOrder.charAt(2))));
+                List<Rotation> grouped = new ArrayList<>();
+                for (String rotationName : rotationGroup.getKeys(false)) {
+                    ConfigurationSection rotation = rotationGroup.getConfigurationSection(rotationName);
+                    double angle = rotation.getDouble("angle");
+                    Vector axis;
+
+                    String axisStr = rotation.getString("vector").toUpperCase(Locale.ENGLISH).replace(" ", "");
+                    if (axisStr.length() == 1) {
+                        axis = Axis.valueOf(axisStr).vector;
                     } else {
-                        display.rotate(x, y, z);
+                        String[] split = axisStr.split(",");
+                        axis = new Vector(Math.toRadians(Double.parseDouble(split[0])),
+                                Math.toRadians(Double.parseDouble(split[1])),
+                                Math.toRadians(Double.parseDouble(split[2])));
                     }
+
+                    grouped.add(Rotation.of(angle, axis));
                 }
+                display.rotations.add(grouped);
             }
         }
 
@@ -496,9 +517,30 @@ public class ParticleDisplay implements Cloneable {
         }
 
         if (!display.rotations.isEmpty()) {
-            section.set("rotations", display.rotations.stream()
-                    .map(x -> Math.toDegrees(x.key) + ", " + x.value.getX() + ", " + x.value.getY() + ", " + x.value.getZ())
-                    .collect(Collectors.toList()));
+            ConfigurationSection rotations = section.createSection("rotations");
+
+            int index = 1;
+            for (List<Rotation> rotationGroup : display.rotations) {
+                ConfigurationSection rotationGroupSection = rotations.createSection("group-" + index++);
+
+                int groupIndex = 1;
+                for (Rotation rotation : rotationGroup) {
+                    ConfigurationSection rotationSection = rotationGroupSection.createSection(
+                            String.valueOf(groupIndex++));
+
+                    rotationSection.set("angle", rotation.angle);
+                    Vector axis = rotation.axis;
+                    Optional<Axis> mainAxis = Arrays.stream(Axis.values())
+                            .filter(x -> x.vector.equals(axis))
+                            .findFirst();
+
+                    if (mainAxis.isPresent()) {
+                        rotationSection.set("axis", mainAxis.get().name());
+                    } else {
+                        rotationSection.set("axis", axis.getX() + ", " + axis.getY() + ", " + axis.getZ());
+                    }
+                }
+            }
         }
 
         if (display.data instanceof float[]) {
@@ -612,28 +654,31 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Called after the final calculations of each particle location are applied.
-     * You may modify the object, this is called before the particle is actually spawned.
-     *
-     * @param onSpawn a predicate that if returns false, it'll not spawn that particle.
-     * @return the same particle display.
-     * @since 7.0.0
-     */
-    public ParticleDisplay onSpawn(@Nullable Predicate<Location> onSpawn) {
-        this.onSpawn = onSpawn;
-        return this;
-    }
-
-    /**
      * Called before rotation is applied to the xyz spawn location. The xyz provided
      * in this method is implementation-specific, but it should be the xyz values that
      * are going to be {@link Location#add(Vector)} to {@link #getLocation()}.
+     * <p>
+     * The provided xyz local coordinates vector might be null.
      *
      * @return the same particle display.
      * @since 9.0.0
      */
-    public ParticleDisplay onCalculation(@Nullable Consumer<Vector> onCalculation) {
-        this.onCalculation = onCalculation;
+    public ParticleDisplay preCalculation(@Nullable Consumer<CalculationContext> preCalculation) {
+        this.preCalculation = preCalculation;
+        return this;
+    }
+
+    /**
+     * Called after rotation is applied to the xyz spawn location. This is the final
+     * location that's going to spawn a single particle.
+     * <p>
+     * The provided xyz local coordinates vector might be null.
+     *
+     * @return the same particle display.
+     * @since 10.0.0
+     */
+    public ParticleDisplay postCalculation(@Nullable Consumer<CalculationContext> postCalculation) {
+        this.postCalculation = postCalculation;
         return this;
     }
 
@@ -805,8 +850,10 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * @since 7.1.0
+     * @deprecated use {@link #withColor(Color, float)}
      */
     @Nonnull
+    @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {
         this.data = new float[]{red, green, blue, size};
         return this;
@@ -817,23 +864,32 @@ public class ParticleDisplay implements Cloneable {
      * The particle must be {@link Particle#DUST_COLOR_TRANSITION}
      * to get custom colors.
      *
-     * @param color1 the RGB color of the particle on spawn.
-     * @param size   the size of the particle.
-     * @param color2 the RGB color of the particle at the end.
+     * @param fromColor the RGB color of the particle on spawn.
+     * @param size      the size of the particle.
+     * @param toColor   the RGB color of the particle at the end.
      * @return the same particle display, but modified.
      * @see #colored(Location, Color, float)
      * @since 8.6.0.0.1
      */
     @Nonnull
-    public ParticleDisplay withTransitionColor(@Nonnull Color color1, float size, @Nonnull Color color2) {
-        return withTransitionColor(color1.getRed(), color1.getGreen(), color1.getBlue(), size, color2.getRed(), color2.getGreen(), color2.getBlue());
+    public ParticleDisplay withTransitionColor(@Nonnull Color fromColor, float size, @Nonnull Color toColor) {
+        this.data = new float[]{
+                fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue(),
+                size,
+                toColor.getRed(), toColor.getGreen(), toColor.getBlue()
+        };
+        return this;
     }
 
     /**
      * @since 8.6.0.0.1
+     * @deprecated use {@link #withTransitionColor(Color, float, Color)}
      */
     @Nonnull
-    public ParticleDisplay withTransitionColor(float red1, float green1, float blue1, float size, float red2, float green2, float blue2) {
+    @Deprecated
+    public ParticleDisplay withTransitionColor(float red1, float green1, float blue1,
+                                               float size,
+                                               float red2, float green2, float blue2) {
         this.data = new float[]{red1, green1, blue1, size, red2, green2, blue2};
         return this;
     }
@@ -915,7 +971,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
-        this.onCalculation = (loc) -> {
+        this.preCalculation = (loc) -> {
             try {
                 this.location = locationCaller.call();
             } catch (Exception e) {
@@ -956,7 +1012,6 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param entity the entity to face.
      * @return the same particle display.
-     * @see #rotate(Vector)
      * @since 3.0.0
      */
     @Nonnull
@@ -970,14 +1025,15 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param location the location to face.
      * @return the same particle display.
-     * @see #rotate(Vector)
      * @since 6.1.0
      */
     @Nonnull
     public ParticleDisplay face(@Nonnull Location location) {
         Objects.requireNonNull(location, "Cannot face null location");
-        rotate(Math.toRadians(location.getYaw()), Axis.Y);
-        rotate(Math.toRadians(-location.getPitch()), Axis.X);
+        rotate(
+                Rotation.of(Math.toRadians(location.getYaw()), Axis.Y),
+                Rotation.of(Math.toRadians(-location.getPitch()), Axis.X)
+        );
         this.direction = location.getDirection().clone().normalize();
         return this;
     }
@@ -1040,13 +1096,13 @@ public class ParticleDisplay implements Cloneable {
         ParticleDisplay display = ParticleDisplay.of(particle)
                 .withDirection(direction)
                 .withCount(count).offset(offset.clone())
-                .forceSpawn(force).onSpawn(onSpawn);
+                .forceSpawn(force)
+                .preCalculation(this.preCalculation)
+                .postCalculation(this.postCalculation);
 
         if (location != null) display.location = cloneLocation(location);
         if (!rotations.isEmpty()) {
-            display.rotations = this.rotations.stream()
-                    .map(ParticleDisplay::cloneRotation)
-                    .collect(Collectors.toList());
+            display.rotations = new ArrayList<>(this.rotations);
         }
         display.data = data;
         return display;
@@ -1123,21 +1179,25 @@ public class ParticleDisplay implements Cloneable {
      *                    Used when a new rotation is added.
      * @since 9.0.0
      */
-    public Quaternion getRotation(boolean forceUpdate) {
-        if (this.rotations.isEmpty()) return null;
-        if (forceUpdate) cachedFinalRotationQuaternion = null;
-        if (cachedFinalRotationQuaternion == null) {
-            for (Pair<Double, Vector> rotation : this.rotations) {
-                Quaternion q = Quaternion.rotation(rotation.key, rotation.value);
-                if (cachedFinalRotationQuaternion == null) cachedFinalRotationQuaternion = q;
-                else cachedFinalRotationQuaternion = cachedFinalRotationQuaternion.mul(q);
+    @Nonnull
+    public List<Quaternion> getRotation(boolean forceUpdate) {
+        if (this.rotations.isEmpty()) return new ArrayList<>();
+        if (forceUpdate) cachedFinalRotationQuaternions = null;
+        if (cachedFinalRotationQuaternions == null) {
+            this.cachedFinalRotationQuaternions = new ArrayList<>();
+
+            for (List<Rotation> rotationGroup : this.rotations) {
+                Quaternion groupedQuat = null;
+                for (Rotation rotation : rotationGroup) {
+                    Quaternion q = Quaternion.rotation(rotation.angle, rotation.axis);
+                    if (groupedQuat == null) groupedQuat = q;
+                    else groupedQuat = groupedQuat.mul(q);
+                }
+                this.cachedFinalRotationQuaternions.add(groupedQuat);
             }
         }
-        return cachedFinalRotationQuaternion;
-    }
 
-    public static Pair<Double, Vector> cloneRotation(Pair<Double, Vector> rotation) {
-        return new Pair<>(rotation.key, rotation.value.clone());
+        return cachedFinalRotationQuaternions;
     }
 
     /**
@@ -1150,37 +1210,41 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay rotate(double x, double y, double z) {
-        return rotate(x, Axis.X)
-                .rotate(y, Axis.Y)
-                .rotate(z, Axis.Z);
+        return rotate(
+                Rotation.of(x, Axis.X),
+                Rotation.of(y, Axis.Y),
+                Rotation.of(z, Axis.Z)
+        );
     }
 
     /**
-     * @see #rotate(double, double, double)
-     * @since 3.0.0
+     * @since 10.0.0
      */
-    @Nonnull
-    public ParticleDisplay rotate(@Nonnull Vector angles) {
-        Objects.requireNonNull(angles, "Cannot rotate ParticleDisplay with null angles");
-        return rotate(angles.getX(), angles.getY(), angles.getZ());
-    }
+    public ParticleDisplay rotate(Rotation... rotations) {
+        Objects.requireNonNull(rotations, "Null rotations");
 
-    /**
-     * @since 9.0.0
-     */
-    public ParticleDisplay rotate(double radians, @Nonnull Vector vector) {
-        Objects.requireNonNull(vector, "Cannot rotate ParticleDisplay with null vector");
-        if (radians != 0) this.rotations.add(Pair.of(radians, vector));
+        if (rotations.length != 0) {
+            List<Rotation> finalRots = Arrays.stream(rotations).filter(x -> x.angle != 0).collect(Collectors.toList());
+            if (!finalRots.isEmpty()) {
+                this.rotations.add(finalRots);
+                if (this.cachedFinalRotationQuaternions != null) this.cachedFinalRotationQuaternions.clear();
+            }
+        }
+
         return this;
     }
 
     /**
-     * @see #rotate(double, Vector)
-     * @since 9.0.0
+     * @since 10.0.0
      */
-    public ParticleDisplay rotate(double radians, @Nonnull Axis axis) {
-        Objects.requireNonNull(axis, "Cannot rotate ParticleDisplay around null axis");
-        return rotate(radians, axis.vector);
+    public ParticleDisplay rotate(Rotation rotation) {
+        Objects.requireNonNull(rotation, "Null rotation");
+        if (rotation.angle != 0) {
+            this.rotations.add(Collections.singletonList(rotation));
+            if (this.cachedFinalRotationQuaternions != null) this.cachedFinalRotationQuaternions.clear();
+        }
+
+        return this;
     }
 
     /**
@@ -1193,27 +1257,78 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Rotates the given xyz with the given rotation radians and
-     * adds them to the specified location.
+     * Runs {@link #preCalculation}, rotates the given xyz with the given rotation radians and
+     * adds them to the specified location, and then calls {@link #postCalculation}.
      *
-     * @param location the location to add the rotated axis.
      * @return a cloned rotated location.
      * @since 3.0.0
      */
-    @Nonnull
-    public Location finalizeLocation(@Nonnull Location location, double x, double y, double z) {
+    @Nullable
+    public Location finalizeLocation(@Nullable Vector local) {
+        CalculationContext preContext = new CalculationContext(location, local);
+
+        if (this.preCalculation != null) this.preCalculation.accept(preContext);
+        if (!preContext.shouldSpawn) return null;
+
+        local = preContext.local;
+        Location location = preContext.location;
+
+        if (local != null && !rotations.isEmpty()) {
+            List<Quaternion> rotations = getRotation(false);
+            for (Quaternion grouped : rotations) {
+                local = Quaternion.rotate(local, grouped);
+            }
+        }
+
         if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
-        if (rotations.isEmpty()) return cloneLocation(location).add(x, y, z);
+        // Exception check after onCalculation to account for dynamic location callers from withEntity()
 
-        Vector local = new Vector(x, y, z);
-        if (this.onCalculation != null) this.onCalculation.accept(local);
-        // This isn't supposed to give the same result?
-//        for (Pair<Double, Vector> rotation : this.rotations) {
-//            local = Quaternion.rotate(local, Quaternion.rotation(rotation.key, rotation.value));
-//        }
-        local = Quaternion.rotate(local, getRotation(false));
 
-        return cloneLocation(location).add(local);
+        location = cloneLocation(location);
+        if (local != null) location.add(local);
+
+        CalculationContext postContext = new CalculationContext(location, local);
+        if (this.postCalculation != null) this.postCalculation.accept(postContext);
+        if (!postContext.shouldSpawn) return null;
+
+        return location;
+    }
+
+    public final class CalculationContext {
+        private Location location;
+        private Vector local;
+        private boolean shouldSpawn = true;
+
+        public CalculationContext(Location location, Vector local) {
+            this.location = location;
+            this.local = local;
+        }
+
+        @Nullable
+        public Location getLocation() {
+            return location;
+        }
+
+        @Nullable
+        public Vector getLocal() {
+            return local;
+        }
+
+        public void setLocal(Vector local) {
+            this.local = local;
+        }
+
+        public void setLocation(Location location) {
+            this.location = location;
+        }
+
+        public void dontSpawn() {
+            this.shouldSpawn = false;
+        }
+
+        public ParticleDisplay getDisplay() {
+            return ParticleDisplay.this;
+        }
     }
 
     /**
@@ -1280,21 +1395,21 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 2.0.1
      */
-    public void spawn() {
-        spawn(getLocation());
+    @Nullable
+    public Location spawn() {
+        return spawn(finalizeLocation(null));
     }
 
     /**
      * Adds xyz of the given vector to the cloned location before
      * spawning particles.
      *
-     * @param location the xyz to add.
+     * @param local the xyz to add.
      * @since 1.0.0
      */
-    @Nonnull
-    public Location spawn(@Nonnull Vector location) {
-        Objects.requireNonNull(location, "Cannot add xyz of null vector to ParticleDisplay");
-        return spawn(location.getX(), location.getY(), location.getZ());
+    @Nullable
+    public Location spawn(@Nullable Vector local) {
+        return spawn(finalizeLocation(local));
     }
 
     /**
@@ -1302,9 +1417,9 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 1.0.0
      */
-    @Nonnull
+    @Nullable
     public Location spawn(double x, double y, double z) {
-        return spawn(finalizeLocation(getLocation(), x, y, z));
+        return spawn(finalizeLocation(new Vector(x, y, z)));
     }
 
     /**
@@ -1315,12 +1430,9 @@ public class ParticleDisplay implements Cloneable {
      * @see #spawn(double, double, double)
      * @since 5.0.0
      */
-    @Nonnull
+    @Nullable
     public Location spawn(Location loc) {
-        if (loc == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
-        if (onSpawn != null) {
-            if (!onSpawn.test(loc)) return loc;
-        }
+        if (loc == null) return null;
 
         World world = loc.getWorld();
         double offsetx = offset.getX();
@@ -1399,17 +1511,27 @@ public class ParticleDisplay implements Cloneable {
         }
     }
 
-    public static class Pair<K, V> {
-        public K key;
-        public V value;
+    public static class Rotation implements Cloneable {
+        public double angle;
+        public Vector axis;
 
-        public Pair(K key, V value) {
-            this.key = key;
-            this.value = value;
+        public Rotation(double angle, Vector axis) {
+            this.angle = angle;
+            this.axis = axis;
         }
 
-        public static <K, V> Pair<K, V> of(K key, V value) {
-            return new Pair<>(key, value);
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        @Override
+        public Object clone() {
+            return new Rotation(angle, axis.clone());
+        }
+
+        public static Rotation of(double angle, Vector axis) {
+            return new Rotation(angle, axis);
+        }
+
+        public static Rotation of(double angle, Axis axis) {
+            return new Rotation(angle, axis.vector);
         }
     }
 
@@ -1463,14 +1585,6 @@ public class ParticleDisplay implements Cloneable {
             return deg + ", " + axis.getX() + ", " + axis.getY() + ", " + axis.getZ();
         }
 
-        public static Pair<Double, Vector> rotationFromString(String str) {
-            String[] components = str.split(",");
-            double[] numberComps = Arrays.stream(components)
-                    .mapToDouble(Double::parseDouble)
-                    .toArray();
-            return Pair.of(Math.toRadians(numberComps[0]), new Vector(numberComps[1], numberComps[2], numberComps[3]));
-        }
-
         public Vector toVector() {
             return new Vector(x, y, z);
         }
@@ -1492,6 +1606,28 @@ public class ParticleDisplay implements Cloneable {
             double n2 = r.w * y - r.x * z + r.y * w + r.z * x;
             double n3 = r.w * z + r.x * y - r.y * x + r.z * w;
             return new Quaternion(n0, n1, n2, n3);
+        }
+
+        public Vector mul(Vector point) {
+            // https://github.com/Unity-Technologies/UnityCsReference/blob/7c95a72366b5ed9b6d9e804de8b5e869c962f5a9/Runtime/Export/Math/Quaternion.cs#L96-L117
+            double x = this.x * 2;
+            double y = this.y * 2;
+            double z = this.z * 2;
+            double xx = this.x * x;
+            double yy = this.y * y;
+            double zz = this.z * z;
+            double xy = this.x * y;
+            double xz = this.x * z;
+            double yz = this.y * z;
+            double wx = this.w * x;
+            double wy = this.w * y;
+            double wz = this.w * z;
+
+            double vx = (1F - (yy + zz)) * point.getX() + (xy - wz) * point.getY() + (xz + wy) * point.getZ();
+            double vy = (xy + wz) * point.getX() + (1F - (xx + zz)) * point.getY() + (yz - wx) * point.getZ();
+            double vz = (xz - wy) * point.getX() + (yz + wx) * point.getY() + (1F - (xx + yy)) * point.getZ();
+
+            return new Vector(vx, vy, vz);
         }
     }
 }
