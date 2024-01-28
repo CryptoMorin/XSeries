@@ -697,8 +697,9 @@ public class ParticleDisplay implements Cloneable {
     /**
      * @since 7.0.0
      */
-    public void withParticle(@Nonnull Particle particle) {
+    public ParticleDisplay withParticle(@Nonnull Particle particle) {
         this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
+        return this;
     }
 
     /**

@@ -63,6 +63,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.cryptomorin.xseries.XMaterial.supports;
 
@@ -76,7 +77,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.3.3
+ * @version 7.4.0
  * @see XMaterial
  * @see XPotion
  * @see SkullUtils
@@ -115,15 +116,25 @@ public final class XItemStack {
     }
 
     /**
+     * @see #serialize(ItemStack, ConfigurationSection, Function)
+     * @since 1.0.0
+     */
+    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+        serialize(item, config, Function.identity());
+    }
+
+    /**
      * Writes an ItemStack object into a config.
      * The config file will not save after the object is written.
      *
-     * @param item   the ItemStack to serialize.
-     * @param config the config section to write this item to.
-     * @since 1.0.0
+     * @param item       the ItemStack to serialize.
+     * @param config     the config section to write this item to.
+     * @param translator the function applied to item name and each lore lines.
+     * @since 7.4.0
      */
     @SuppressWarnings("deprecation")
-    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config,
+                                 @Nonnull Function<String, String> translator) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
 
@@ -147,8 +158,8 @@ public final class XItemStack {
         }
 
         // Display Name & Lore
-        if (meta.hasDisplayName()) config.set("name", meta.getDisplayName());
-        if (meta.hasLore()) config.set("lore", meta.getLore());
+        if (meta.hasDisplayName()) config.set("name", translator.apply(meta.getDisplayName()));
+        if (meta.hasLore()) config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
 
         if (supports(14)) {
             if (meta.hasCustomModelData()) config.set("custom-model-data", meta.getCustomModelData());
@@ -196,7 +207,7 @@ public final class XItemStack {
                 ConfigurationSection shulker = config.createSection("contents");
                 int i = 0;
                 for (ItemStack itemInBox : box.getInventory().getContents()) {
-                    if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)));
+                    if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)), translator);
                     i++;
                 }
             } else if (state instanceof CreatureSpawner) {
@@ -356,7 +367,7 @@ public final class XItemStack {
                     CrossbowMeta crossbow = (CrossbowMeta) meta;
                     int i = 0;
                     for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
-                        serialize(projectiles, config.getConfigurationSection("projectiles." + i));
+                        serialize(projectiles, config.getConfigurationSection("projectiles." + i), translator);
                         i++;
                     }
                 } else if (meta instanceof TropicalFishBucketMeta) {
@@ -537,7 +548,9 @@ public final class XItemStack {
     /**
      * Deserialize an ItemStack from the config.
      *
-     * @param config the config section to deserialize the ItemStack object from.
+     * @param config     the config section to deserialize the ItemStack object from.
+     * @param translator the function applied to item name and each lore line.
+     * @param restart    the function called when an error occurs while deserializing one of the properties.
      * @return an edited ItemStack.
      * @since 1.0.0
      */
