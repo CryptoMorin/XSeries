@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Crypto Morin
+ * Copyright (c) 2024 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +49,7 @@ import java.util.regex.Pattern;
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
  *
  * @author Crypto Morin
- * @version 7.1.0.0.1
+ * @version 8.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -64,10 +63,17 @@ public final class ReflectionUtils {
      * Performance is not a concern for these specific statically initialized values.
      * <p>
      * <a href="https://www.spigotmc.org/wiki/spigot-nms-and-minecraft-versions-legacy/">Versions Legacy</a>
+     * <p>
+     * This will no longer work because of
+     * <a href="https://forums.papermc.io/threads/paper-velocity-1-20-4.998/#post-2955">Paper no-relocation</a>
+     * strategy.
      */
-    public static final String NMS_VERSION;
+    @Nullable
+    public static final String NMS_VERSION = findNMSVersionString();
 
-    static { // This needs to be right below VERSION because of initialization order.
+    @Nullable
+    public static String findNMSVersionString() {
+        // This needs to be right below VERSION because of initialization order.
         // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
         // which allows easier testing as well.
         String found = null;
@@ -91,11 +97,11 @@ public final class ReflectionUtils {
                 }
             }
         }
-        if (found == null)
-            throw new IllegalArgumentException("Failed to parse server version. Could not find any package starting with name: 'org.bukkit.craftbukkit.v'");
-        NMS_VERSION = found;
+
+        return found;
     }
 
+    public static final int MAJOR_NUMBER;
     /**
      * The raw minor version number.
      * E.g. {@code v1_17_R1} to {@code 17}
@@ -124,6 +130,7 @@ public final class ReflectionUtils {
     public static final int PATCH_NUMBER;
 
     static {
+        /* Old way of doing this.
         String[] split = NMS_VERSION.substring(1).split("_");
         if (split.length < 1) {
             throw new IllegalStateException("Version number division error: " + Arrays.toString(split) + ' ' + getVersionInformation());
@@ -137,19 +144,27 @@ public final class ReflectionUtils {
         } catch (Throwable ex) {
             throw new RuntimeException("Failed to parse minor number: " + minorVer + ' ' + getVersionInformation(), ex);
         }
+         */
 
-        // Bukkit.getBukkitVersion() = "1.12.2-R0.1-SNAPSHOT"
-        Matcher bukkitVer = Pattern.compile("^\\d+\\.\\d+\\.(\\d+)").matcher(Bukkit.getBukkitVersion());
+        // NMS_VERSION               = v1_20_R3
+        // Bukkit.getBukkitVersion() = 1.20.4-R0.1-SNAPSHOT
+        // Bukkit.getVersion()       = git-Paper-364 (MC: 1.20.4)
+        Matcher bukkitVer = Pattern
+                // <patch> is optional for first releases like "1.8-R0.1-SNAPSHOT"
+                .compile("^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?")
+                .matcher(Bukkit.getBukkitVersion());
         if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
             try {
                 // group(0) gives the whole matched string, we just want the captured group.
-                PATCH_NUMBER = Integer.parseInt(bukkitVer.group(1));
+                String patch = bukkitVer.group("patch");
+                MAJOR_NUMBER = Integer.parseInt(bukkitVer.group("major"));
+                MINOR_NUMBER = Integer.parseInt(bukkitVer.group("minor"));
+                PATCH_NUMBER = Integer.parseInt((patch == null || patch.isEmpty()) ? "0" : patch);
             } catch (Throwable ex) {
                 throw new RuntimeException("Failed to parse minor number: " + bukkitVer + ' ' + getVersionInformation(), ex);
             }
         } else {
-            // 1.8-R0.1-SNAPSHOT
-            PATCH_NUMBER = 0;
+            throw new IllegalStateException("Cannot parse server version: \"" + Bukkit.getBukkitVersion() + '"');
         }
     }
 
@@ -159,7 +174,9 @@ public final class ReflectionUtils {
      * @since 7.0.0
      */
     public static String getVersionInformation() {
+        // Bukkit.getServer().getMinecraftVersion() is for Paper
         return "(NMS: " + NMS_VERSION + " | " +
+                "Parsed: " + MAJOR_NUMBER + '.' + MINOR_NUMBER + '.' + PATCH_NUMBER + " | " +
                 "Minecraft: " + Bukkit.getVersion() + " | " +
                 "Bukkit: " + Bukkit.getBukkitVersion() + ')';
     }
@@ -210,7 +227,7 @@ public final class ReflectionUtils {
      * Mojang remapped their NMS in 1.17: <a href="https://www.spigotmc.org/threads/spigot-bungeecord-1-17.510208/#post-4184317">Spigot Thread</a>
      */
     public static final String
-            CRAFTBUKKIT_PACKAGE = "org.bukkit.craftbukkit." + NMS_VERSION + '.',
+            CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
             NMS_PACKAGE = v(17, "net.minecraft.").orElse("net.minecraft.server." + NMS_VERSION + '.');
     /**
      * A nullable public accessible field only available in {@code EntityPlayer}.
@@ -334,9 +351,11 @@ public final class ReflectionUtils {
      * @param packageName the 1.17+ package name of this class.
      * @param name        the name of the class.
      * @return the NMS class or null if not found.
+     * @throws RuntimeException if the class could not be found.
+     * @see #getNMSClass(String)
      * @since 4.0.0
      */
-    @Nullable
+    @Nonnull
     public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String name) {
         if (packageName != null && supports(17)) name = packageName + '.' + name;
 
@@ -352,9 +371,11 @@ public final class ReflectionUtils {
      *
      * @param name the name of the class.
      * @return the NMS class or null if not found.
+     * @throws RuntimeException if the class could not be found.
+     * @see #getNMSClass(String, String)
      * @since 1.0.0
      */
-    @Nullable
+    @Nonnull
     public static Class<?> getNMSClass(@Nonnull String name) {
         return getNMSClass(null, name);
     }
@@ -428,28 +449,15 @@ public final class ReflectionUtils {
      *
      * @param name the name of the class to load.
      * @return the CraftBukkit class or null if not found.
+     * @throws RuntimeException if the class could not be found.
      * @since 1.0.0
      */
-    @Nullable
+    @Nonnull
     public static Class<?> getCraftClass(@Nonnull String name) {
         try {
-            return Class.forName(CRAFTBUKKIT_PACKAGE + name);
+            return Class.forName(CRAFTBUKKIT_PACKAGE + '.' + name);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * @deprecated Use {@link #toArrayClass(Class)} instead.
-     */
-    @Deprecated
-    public static Class<?> getArrayClass(String clazz, boolean nms) {
-        clazz = "[L" + (nms ? NMS_PACKAGE : CRAFTBUKKIT_PACKAGE) + clazz + ';';
-        try {
-            return Class.forName(clazz);
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
         }
     }
 
@@ -461,13 +469,14 @@ public final class ReflectionUtils {
      * }</pre>
      *
      * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
+     * @throws RuntimeException if the class could not be found.
      */
+    @Nonnull
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
+            throw new RuntimeException("Cannot find array class for class: " + clazz, ex);
         }
     }
 

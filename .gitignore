@@ -22,7 +22,7 @@ $RECYCLE.BIN/
 # Operating System Files
 # =========================
 
-ChangeLog.txt
+ChangeLog.md
 *.iml
 .idea/
 .gradle/

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Crypto Morin
+ * Copyright (c) 2024 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.4.0
+ * @version 5.4.0.0.0.1
  */
 public final class NMSExtras {
     public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
@@ -121,13 +121,20 @@ public final class NMSExtras {
             Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
-            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 4, "an").v(20, 2, "al").v(19, "aj").v(18, "ai").orElse("getDataWatcher"), MethodType.methodType(DataWatcherClass)); // getEntityData()
+            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 4, "an")
+                            .v(20, 2, "al")
+                            .v(19, "aj")
+                            .v(18, "ai")
+                            .orElse("getDataWatcher"),
+                    MethodType.methodType(DataWatcherClass)); // getEntityData()
 
 
-            // public <T> T b(DataWatcherObject<T> datawatcherobject) {
-            //        return this.c(datawatcherobject).b();
+            // public <T> T get(DataWatcherObject<T> datawatcherobject) {
+            //     return this.b(datawatcherobject).b();
             // }
-            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass, v(20, "b").v(19, "a").v(18, "b").orElse("get"), MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass,
+                    v(20, "b").v(18, "a").orElse("get"),
+                    MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
 
             /*
                 public <T> void b(DataWatcherObject<T> datawatcherobject, T t0) {
