@@ -929,7 +929,7 @@ public final class XItemStack {
             meta.setDisplayName(" "); // For GUI easy access configuration purposes
 
         // Unbreakable
-        if (supports(11) && config.contains("unbreakable")) meta.setUnbreakable(config.getBoolean("unbreakable"));
+        if (supports(11) && config.isSet("unbreakable")) meta.setUnbreakable(config.getBoolean("unbreakable"));
 
         // Custom Model Data
         if (supports(14)) {
