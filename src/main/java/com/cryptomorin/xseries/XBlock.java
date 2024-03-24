@@ -63,7 +63,7 @@ public final class XBlock {
             XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.BEETROOTS, XMaterial.SUGAR_CANE,
             XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO, XMaterial.CHORUS_PLANT,
             XMaterial.KELP, XMaterial.KELP_PLANT, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM,
-            XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM
+            XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM, XMaterial.COCOA, XMaterial.COCOA_BEANS
 
     ));
     public static final Set<XMaterial> DANGEROUS = Collections.unmodifiableSet(EnumSet.of(
