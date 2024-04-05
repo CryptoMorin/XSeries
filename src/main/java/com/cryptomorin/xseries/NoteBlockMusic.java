@@ -418,8 +418,7 @@ public final class NoteBlockMusic {
 
     @SuppressWarnings("StringBufferField")
     private static final class InstructionBuilder {
-        @Nonnull
-        final CharSequence script;
+        @Nonnull final CharSequence script;
         final int len;
         final StringBuilder
                 instrumentBuilder = new StringBuilder(10),
@@ -516,7 +515,7 @@ public final class NoteBlockMusic {
             int fermata = fermataBuilder.length() == 0 ? 0 : Integer.parseInt(fermataBuilder.toString());
             int restatement = restatementBuilder.length() == 0 ? 1 : Integer.parseInt(restatementBuilder.toString());
             int restatementFermata = restatementDelayBuilder.length() == 0 ? 0 : Integer.parseInt(restatementDelayBuilder.toString());
-            //if (restatement > 1 && restatementFermata <= 0) throw new IllegalStateException("No restatement fermata found at " + i + " with restatement: " + restatement);
+            // if (restatement > 1 && restatementFermata <= 0) throw new IllegalStateException("No restatement fermata found at " + i + " with restatement: " + restatement);
 
             Instruction instruction;
             if (isSequence) {

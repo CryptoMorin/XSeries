@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 10.0.0
+ * @version 10.1.0
  * @see Sound
  */
 public enum XSound {
@@ -1637,6 +1637,35 @@ public enum XSound {
     @Nullable
     private final Sound sound;
 
+    public enum Category {
+        MASTER, MUSIC, RECORDS, WEATHER, BLOCKS,
+        HOSTILE, NEUTRAL, PLAYERS, AMBIENT, VOICE;
+
+        private final Object bukkitObject;
+
+        public boolean isSupported() {
+            return this.bukkitObject != null;
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> T cast(Object any) {
+            return (T) any;
+        }
+
+        Category() {
+            Object sc = null;
+            try {
+                sc = Enums.getIfPresent(cast(Class.forName("org.bukkit.SoundCategory")), this.name()).orNull();
+            } catch (ClassNotFoundException ignored) {
+            }
+            this.bukkitObject = sc;
+        }
+
+        public Object getBukkitObject() {
+            return bukkitObject;
+        }
+    }
+
     XSound(@Nonnull String... legacies) {
         Sound bukkitSound = Data.BUKKIT_NAMES.get(this.name());
         if (bukkitSound == null) {
@@ -1835,7 +1864,7 @@ public enum XSound {
                 String category = name.substring(0, atIndex);
                 soundName = name.substring(atIndex + 1);
 
-                SoundCategory soundCategory = Enums.getIfPresent(SoundCategory.class, category.toUpperCase(Locale.ENGLISH)).orNull();
+                Category soundCategory = Enums.getIfPresent(Category.class, category.toUpperCase(Locale.ENGLISH)).orNull();
                 if (soundCategory == null)
                     throw new IllegalArgumentException("Unknown sound category '" + category + "' in: " + sound);
                 else record.inCategory(soundCategory);
@@ -2366,14 +2395,15 @@ public enum XSound {
                 switch (SUPPORTED_METHOD_LEVEL) {
                     case 3:
                         if (objSound != null)
-                            player.playSound(updatedLocation, objSound, record.category, record.volume, record.pitch, record.generateSeed());
+                            player.playSound(updatedLocation, objSound, (SoundCategory) record.category.getBukkitObject(), record.volume, record.pitch, record.generateSeed());
                         else
-                            player.playSound(updatedLocation, strSound, record.category, record.volume, record.pitch, record.generateSeed());
+                            player.playSound(updatedLocation, strSound, (SoundCategory) record.category.getBukkitObject(), record.volume, record.pitch, record.generateSeed());
                         break;
                     case 2:
                         if (objSound != null)
-                            player.playSound(updatedLocation, objSound, record.category, record.volume, record.pitch);
-                        else player.playSound(updatedLocation, strSound, record.category, record.volume, record.pitch);
+                            player.playSound(updatedLocation, objSound, (SoundCategory) record.category.getBukkitObject(), record.volume, record.pitch);
+                        else
+                            player.playSound(updatedLocation, strSound, (SoundCategory) record.category.getBukkitObject(), record.volume, record.pitch);
                         break;
                     case 1:
                         if (objSound != null) player.playSound(updatedLocation, objSound, record.volume, record.pitch);
@@ -2400,8 +2430,8 @@ public enum XSound {
 
             List<Player> heardOnline = toOnlinePlayers(this.heard, Collectors.toList());
             heardOnline.forEach(x -> {
-                if (record.sound instanceof XSound) x.stopSound(((XSound) record.sound).parseSound(), record.category);
-                else x.stopSound((String) record.sound, record.category);
+                if (record.sound instanceof XSound) x.stopSound(((XSound) record.sound).parseSound());
+                else x.stopSound((String) record.sound);
             });
         }
     }
@@ -2417,7 +2447,7 @@ public enum XSound {
         private Object sound;
 
         @Nonnull
-        private SoundCategory category = SoundCategory.MASTER;
+        private Category category = Category.MASTER;
 
         @Nullable
         private Long seed;
@@ -2443,7 +2473,7 @@ public enum XSound {
         }
 
         @Nonnull
-        public SoundCategory getCategory() {
+        public Category getCategory() {
             return category;
         }
 
@@ -2455,7 +2485,7 @@ public enum XSound {
             return pitch;
         }
 
-        public Record inCategory(SoundCategory category) {
+        public Record inCategory(Category category) {
             this.category = Objects.requireNonNull(category, "Sound category cannot be null");
             return this;
         }
@@ -2526,7 +2556,7 @@ public enum XSound {
         public String rebuild() {
             String str = "";
             if (publicSound) str += "~";
-            if (category != SoundCategory.MASTER) str += category.name();
+            if (category != Category.MASTER) str += category.name();
             str += sound + ", " + volume + ", " + pitch;
             if (seed != null) str += ", " + seed;
             return str;

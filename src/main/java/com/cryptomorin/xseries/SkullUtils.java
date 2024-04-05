@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 6.0.1
+ * @version 7.0.0
  * @see XMaterial
  * @see ReflectionUtils
  */
@@ -80,7 +80,7 @@ public final class SkullUtils {
      * Some people use this without quotes surrounding the keys, not sure what that'd work.
      */
     private static final String VALUE_PROPERTY = "{\"textures\":{\"SKIN\":{\"url\":\"";
-    private static final boolean SUPPORTS_UUID = ReflectionUtils.supports(12);
+    public static final boolean SUPPORTS_UUID = ReflectionUtils.supports(12);
 
     /**
      * We'll just return an x shaped hardcoded skull.
@@ -161,7 +161,7 @@ public final class SkullUtils {
 
         if (!ReflectionUtils.supports(20, 2)) {
             try {
-                //noinspection JavaLangInvokeHandleSignature
+                // noinspection JavaLangInvokeHandleSignature
                 propGetval = lookup.findVirtual(Property.class, "getValue", MethodType.methodType(String.class));
             } catch (Throwable ex) {
                 ex.printStackTrace();
@@ -326,19 +326,28 @@ public final class SkullUtils {
 
     public static void setSkin(@Nonnull Block block, @Nonnull String value) {
         Objects.requireNonNull(block, "Can't set skin of null block");
-
         BlockState state = block.getState();
-        if (!(state instanceof Skull)) return;
+        setSkin(state, value);
+        state.update(true);
+    }
+
+    public static void setSkin(@Nonnull BlockState state, @Nonnull String value) {
+        setSkin(state, detectProfileFromString(value));
+    }
+
+    public static void setSkin(@Nonnull BlockState state, @Nonnull GameProfile profile) {
+        Objects.requireNonNull(state, "Can't set skin of null block state");
+        Objects.requireNonNull(profile, "Can't set skin of block with null GameProfile");
+
+        if (!(state instanceof Skull))
+            throw new IllegalArgumentException("Cannot set skin of a block that is not a skull: " + state);
         Skull skull = (Skull) state;
 
-        GameProfile profile = detectProfileFromString(value);
         try {
             CRAFT_META_SKULL_BLOCK_SETTER.invoke(skull, profile);
         } catch (Throwable e) {
-            throw new RuntimeException("Error while setting block skin with value: " + value, e);
+            throw new RuntimeException("Error while setting block skin with value: " + state + " with profiel " + profile, e);
         }
-
-        skull.update(true);
     }
 
     public static String encodeTexturesURL(String url) {
@@ -362,7 +371,7 @@ public final class SkullUtils {
         } catch (IllegalArgumentException ignored) {
             return null;
         }
-        //return BASE64.matcher(base64).matches();
+        // return BASE64.matcher(base64).matches();
     }
 
     @Nullable
@@ -420,7 +429,7 @@ public final class SkullUtils {
         }
     }
 
-    private static final class StringSkullCache {
+    public static final class StringSkullCache {
         private final ValueType valueType;
         private final Object object;
 

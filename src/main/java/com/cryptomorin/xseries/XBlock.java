@@ -23,11 +23,11 @@ package com.cryptomorin.xseries;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.SkullType;
 import org.bukkit.TreeSpecies;
 import org.bukkit.block.Banner;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.Skull;
+import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.*;
@@ -46,7 +46,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 2.2.1
+ * @version 3.0.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -247,12 +247,19 @@ public final class XBlock {
         if (material == null) material = XMaterial.AIR;
         XMaterial smartConversion = ITEM_TO_BLOCK.get(material);
         if (smartConversion != null) material = smartConversion;
-        if (material.parseMaterial() == null) return false;
 
-        block.setType(material.parseMaterial(), applyPhysics);
+        Material parsedMat = material.parseMaterial();
+        if (parsedMat == null) return false;
+
+        String parsedName = parsedMat.name();
+
+        // SKULL_ITEM is for items and SKULL is for blocks.
+        SkullType skullType = getSkullType(material);
+        if (skullType != null) parsedMat = Material.valueOf("SKULL");
+
+        block.setType(parsedMat, applyPhysics);
         if (ISFLAT) return false;
 
-        String parsedName = material.parseMaterial().name();
         if (parsedName.endsWith("_ITEM")) {
             String blockName = parsedName.substring(0, parsedName.length() - "_ITEM".length());
             Material blockMaterial = Objects.requireNonNull(Material.getMaterial(blockName),
@@ -352,12 +359,51 @@ public final class XBlock {
                     throw new AssertionError("Unknown block type " + legacyMaterial + " for tree species: " + species);
             }
         } else if (material.getData() != 0) {
-            state.setRawData(material.getData());
+            if (skullType != null) {
+                boolean isWallSkull = material.name().contains("WALL");
+                state.setRawData((byte) (isWallSkull ? 0 : 1));
+            } else {
+                state.setRawData(material.getData());
+            }
             update = true;
         }
 
-        if (update) state.update(false, applyPhysics);
+        if (skullType != null) {
+            Skull skull = (Skull) state;
+            skull.setSkullType(skullType);
+            update = true;
+        }
+
+        if (update) state.update(true, applyPhysics);
         return update;
+    }
+
+    public static SkullType getSkullType(XMaterial material) {
+        switch (material) {
+            case PLAYER_HEAD:
+            case PLAYER_WALL_HEAD:
+                return SkullType.PLAYER;
+            case DRAGON_HEAD:
+            case DRAGON_WALL_HEAD:
+                return SkullType.DRAGON;
+            case ZOMBIE_HEAD:
+            case ZOMBIE_WALL_HEAD:
+                return SkullType.ZOMBIE;
+            case CREEPER_HEAD:
+            case CREEPER_WALL_HEAD:
+                return SkullType.CREEPER;
+            case SKELETON_SKULL:
+            case SKELETON_WALL_SKULL:
+                return SkullType.SKELETON;
+            case WITHER_SKELETON_SKULL:
+            case WITHER_SKELETON_WALL_SKULL:
+                return SkullType.WITHER;
+            case PIGLIN_HEAD:
+            case PIGLIN_WALL_HEAD:
+                return SkullType.PIGLIN;
+            default:
+                return null;
+        }
     }
 
     public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
@@ -726,14 +772,27 @@ public final class XBlock {
         Openable openable = (Openable) state.getData();
         openable.setOpen(opened);
         state.setData((MaterialData) openable);
-        state.update();
+        state.update(true, true);
     }
 
     public static BlockFace getRotation(Block block) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof org.bukkit.block.data.Rotatable)) return null;
-            org.bukkit.block.data.Rotatable rotatable = (org.bukkit.block.data.Rotatable) block.getBlockData();
-            return rotatable.getRotation();
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof org.bukkit.block.data.Rotatable) {
+                return ((org.bukkit.block.data.Rotatable) blockData).getRotation();
+            } else if (blockData instanceof org.bukkit.block.data.Directional) {
+                return ((org.bukkit.block.data.Directional) blockData).getFacing();
+            }
+        } else {
+            BlockState state = block.getState();
+            if (state instanceof Skull) {
+                return ((Skull) state).getRotation();
+            } else {
+                MaterialData data = state.getData();
+                if (data instanceof Directional) {
+                    return ((Directional) data).getFacing();
+                }
+            }
         }
 
         return null;
@@ -741,11 +800,33 @@ public final class XBlock {
 
     public static void setRotation(Block block, BlockFace facing) {
         if (ISFLAT) {
-            if (!(block.getBlockData() instanceof org.bukkit.block.data.Rotatable)) return;
-            BlockData data = block.getBlockData();
-            org.bukkit.block.data.Rotatable rotatable = (org.bukkit.block.data.Rotatable) data;
-            rotatable.setRotation(facing);
-            block.setBlockData(data, false);
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof org.bukkit.block.data.Rotatable) {
+                ((org.bukkit.block.data.Rotatable) blockData).setRotation(facing);
+            } else if (blockData instanceof org.bukkit.block.data.Directional) {
+                ((org.bukkit.block.data.Directional) blockData).setFacing(facing);
+            }
+            block.setBlockData(blockData, false);
+        } else {
+            BlockState state = block.getState();
+            if (state instanceof Skull) {
+                // Special case because the raw data is used for both rotation and
+                // whether the block should be considered a wall skull or a normal skull
+                // on the ground. Some of the raw data values represent wall skulls with
+                // various rotations, but only values that represent normal skull values
+                // on the ground only has one rotation.
+                // https://www.spigotmc.org/threads/getting-player-skull-to-spawn-on-top-of-fence.385083/
+                // https://www.spigotmc.org/threads/placing-skull-in-world.212900/
+                // https://www.spigotmc.org/threads/skull-position-above-block-1-13.343247/
+                // https://www.spigotmc.org/threads/solved-update-skull-rotation.47795/
+                ((Skull) state).setRotation(facing);
+            } else {
+                MaterialData data = state.getData();
+                if (!(data instanceof Directional)) return;
+                Directional directional = (Directional) data;
+                directional.setFacingDirection(facing);
+            }
+            state.update(true, true);
         }
     }
 

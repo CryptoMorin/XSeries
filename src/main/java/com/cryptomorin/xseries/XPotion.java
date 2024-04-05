@@ -116,7 +116,7 @@ public enum XPotion {
 
     static {
         for (XPotion pot : VALUES)
-            if (pot.type != null) //noinspection deprecation
+            if (pot.type != null)
                 POTIONEFFECTTYPE_MAPPING[pot.type.getId()] = pot;
     }
 

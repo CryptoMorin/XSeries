@@ -91,6 +91,18 @@ public final class XItemStack {
      * Because item metas cannot be applied to AIR, apparently.
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.NETHER_PORTAL;
+    private static final boolean SUPPORTS_POTION_COLOR;
+
+    static {
+        boolean supportsPotionColor = false;
+        try {
+            Class.forName("org.bukkit.inventory.meta.PotionMeta").getMethod("setColor", Color.class);
+            supportsPotionColor = true;
+        } catch (Throwable ignored) {
+        }
+
+        SUPPORTS_POTION_COLOR = supportsPotionColor;
+    }
 
     private XItemStack() {
     }
@@ -100,18 +112,21 @@ public final class XItemStack {
     }
 
     private static BlockState safeBlockState(BlockStateMeta meta) {
-        // Due to a bug in the latest paper v1.9-1.10 (and some older v1.11) versions.
-        // java.lang.IllegalStateException: Missing blockState for BREWING_STAND_ITEM
-        // BREWING_STAND_ITEM, ENCHANTMENT_TABLE, REDSTONE_COMPARATOR
-        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=b6ad714e853042def52620befe9bc85d0137cd71
         try {
             return meta.getBlockState();
         } catch (IllegalStateException ex) {
+            // Due to a bug in the latest paper v1.9-1.10 (and some older v1.11) versions.
+            // java.lang.IllegalStateException: Missing blockState for BREWING_STAND_ITEM
+            // BREWING_STAND_ITEM, ENCHANTMENT_TABLE, REDSTONE_COMPARATOR
+            // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/diff/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=b6ad714e853042def52620befe9bc85d0137cd71
             if (ex.getMessage().toLowerCase(Locale.ENGLISH).contains("missing blockstate")) {
                 return null;
             } else {
                 throw ex;
             }
+        } catch (ClassCastException ex) {
+            // java.lang.ClassCastException: net.minecraft.server.v1_9_R2.TileEntityDispenser cannot be cast to net.minecraft.server.v1_9_R2.TileEntityDropper
+            return null;
         }
     }
 
@@ -246,8 +261,7 @@ public final class XItemStack {
                 PotionData potionData = potion.getBasePotionData();
                 config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
 
-                if (potion.hasColor()) config.set("color", potion.getColor().asRGB());
-
+                if (SUPPORTS_POTION_COLOR && potion.hasColor()) config.set("color", potion.getColor().asRGB());
             } else {
                 // Check for water bottles in 1.8
                 if (item.getDurability() != 0) {
@@ -670,7 +684,7 @@ public final class XItemStack {
                     potion.setBasePotionData(potionData);
                 }
 
-                if (config.contains("color")) {
+                if (SUPPORTS_POTION_COLOR && config.contains("color")) {
                     potion.setColor(Color.fromRGB(config.getInt("color")));
                 }
             } else {

@@ -421,7 +421,7 @@ public final class XParticle {
     public static void filledCircle(double radius, double rate, double radiusRate, ParticleDisplay display) {
         double dynamicRate = 0;
         for (double i = 0.1; i < radius; i += radiusRate) {
-            //noinspection ConstantValue
+            // noinspection ConstantValue
             if (i > radius) i = radius;
             dynamicRate += rate / (radius / radiusRate);
             circle(i, dynamicRate, display);
@@ -457,7 +457,7 @@ public final class XParticle {
                                                  double mass1, double mass2,
                                                  boolean dimension3, int speed, ParticleDisplay display) {
         // If you want the particles to stay. But it's gonna lag a lot.
-        //Map<Vector, Vector> locs = new HashMap<>();
+        // Map<Vector, Vector> locs = new HashMap<>();
 
         return new Runnable() {
             double theta = Math.PI / 2;
@@ -1696,11 +1696,11 @@ public final class XParticle {
                     double x = radius * Math.cos(extension * y);
                     double z = radius * Math.sin(extension * y);
                     Location nucleotide1 = display.getLocation().clone().add(x, y, z);
-                    //display.spawn(x, y, z);
+                    // display.spawn(x, y, z);
                     circle(0.1, 10, display.cloneWithLocation(x, y, z));
                     Location nucleotide2 = display.getLocation().clone().subtract(x, -y, z);
                     circle(0.1, 10, display.cloneWithLocation(-x, y, -z));
-                    //display.spawn(-x, y, -z);
+                    // display.spawn(-x, y, -z);
 
                     // We're going to find the midpoint of the two nucleotides so we can
                     // form our hydrogen bond.
@@ -1831,7 +1831,7 @@ public final class XParticle {
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than
             // the length in the last loop.
-            //noinspection ConstantValue
+            // noinspection ConstantValue
             if (i > length) i = length;
             clone.spawn(x * i, y * i, z * i);
         }
@@ -2323,7 +2323,7 @@ public final class XParticle {
                 }
 
                 if (iteration != 0) continue;
-                //Color color = new Color(iteration | (iteration << 8));
+                // Color color = new Color(iteration | (iteration << 8));
                 display.spawn(x, y, 0);
             }
         }
@@ -2353,8 +2353,8 @@ public final class XParticle {
 
                 int i = colorScheme;
                 while (zx * zx + zy * zy < 4 && i > 0) {
-                    double xtemp = zx * zx - zy * zy + cx;//Math.pow((zx * zx + zy * zy), (n / 2)) * (Math.cos(n * Math.atan2(zy, zx))) + cx;
-                    zy = 2 * zx * zy + cy; //Math.pow((zx * zx + zy * zy), (n / 2)) * Math.sin(n * Math.atan2(zy, zx)) + cy;
+                    double xtemp = zx * zx - zy * zy + cx;// Math.pow((zx * zx + zy * zy), (n / 2)) * (Math.cos(n * Math.atan2(zy, zx))) + cx;
+                    zy = 2 * zx * zy + cy; // Math.pow((zx * zx + zy * zy), (n / 2)) * Math.sin(n * Math.atan2(zy, zx)) + cy;
                     zx = xtemp;
                     i--;
                 }
@@ -2661,7 +2661,7 @@ public final class XParticle {
 
                     theta = theta + Math.PI / 64;
                     x = times * Math.cos(theta);
-                    //y = 2 * Math.exp(-0.1 * times) * Math.sin(times) + 1.5;
+                    // y = 2 * Math.exp(-0.1 * times) * Math.sin(times) + 1.5;
                     z = times * Math.sin(theta);
                     secDisplay.spawn(x, y, z);
                 }
@@ -2786,9 +2786,9 @@ public final class XParticle {
                     // Transparency
                     if ((pixel >> 24) == 0x0) continue;
                     // 0 - 255
-                    //if ((pixel & 0xff000000) >>> 24 == 0) continue;
+                    // if ((pixel & 0xff000000) >>> 24 == 0) continue;
                     // 0.0 - 1.0
-                    //if (pixel == java.awt.Color.TRANSLUCENT) continue;
+                    // if (pixel == java.awt.Color.TRANSLUCENT) continue;
 
                     java.awt.Color color = new java.awt.Color(pixel);
                     int r = color.getRed();

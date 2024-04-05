@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>9.9.0</version>
+    <version>9.10.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -78,6 +78,11 @@
 <!--            <artifactId>authlib</artifactId>-->
 <!--            <version>1.5.25</version>-->
 <!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.jetbrains</groupId>-->
+<!--            <artifactId>annotations</artifactId>-->
+<!--            <version>24.1.0</version>-->
 <!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>

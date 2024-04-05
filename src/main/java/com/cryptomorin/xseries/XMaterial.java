@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
  * @see Material
  * @see ItemStack
  */
-public enum XMaterial {
+public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Material*/ {
     ACACIA_BOAT("BOAT_ACACIA"),
     ACACIA_BUTTON("WOOD_BUTTON"),
     ACACIA_CHEST_BOAT,
