@@ -47,9 +47,10 @@ import java.util.regex.Pattern;
  * by the server.
  * <p>
  * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
+ * Another one is <a href="https://mappings.cephx.dev/1.20.6/net/minecraft/server/network/ServerPlayerConnection.html">Cephx</a>.
  *
  * @author Crypto Morin
- * @version 8.0.0
+ * @version 9.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -216,7 +217,7 @@ public final class ReflectionUtils {
                 /* 17 */ 1,//            \_!_/
                 /* 18 */ 2,
                 /* 19 */ 4,
-                /* 20 */ 4,
+                /* 20 */ 6,
         };
 
         if (minorVersion > patches.length) return null;
@@ -249,26 +250,21 @@ public final class ReflectionUtils {
     private static final MethodHandle SEND_PACKET;
 
     static {
-        Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
+        // Was Paper remapper just broken in v1.20.6?
+        Class<?> entityPlayer = getNMSClass("server.level", /* v1.20.5 */ "ServerPlayer", "EntityPlayer");
         Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
-        Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
-        Class<?> playerCommonConnection;
-        if (supports(20) && supportsPatch(2)) {
-            // The packet send method has been abstracted from ServerGamePacketListenerImpl to ServerCommonPacketListenerImpl in 1.20.2
-            playerCommonConnection = getNMSClass("server.network", "ServerCommonPacketListenerImpl");
-        } else {
-            playerCommonConnection = playerConnection;
-        }
+        Class<?> playerConnection = getNMSClass("server.network", /* v1.20.5 */ "ServerPlayerConnection", "PlayerConnection");
+        Class<?> playerConnectionImpl = getNMSClass("server.network", /* v1.20.5 */ "ServerGamePacketListenerImpl", "PlayerConnection");
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodHandle sendPacket = null, getHandle = null, connection = null;
 
         try {
             connection = lookup.findGetter(entityPlayer,
-                    v(20, "c").v(17, "b").orElse("playerConnection"), playerConnection);
+                    v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"), playerConnectionImpl);
             getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerCommonConnection,
-                    v(20, 2, "b").v(18, "a").orElse("sendPacket"),
+            sendPacket = lookup.findVirtual(playerConnection,
+                    v(20, 5, "send").v(20, 2, "b").v(18, "a").orElse("sendPacket"),
                     MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
@@ -303,8 +299,12 @@ public final class ReflectionUtils {
         return new VersionHandler<>(version, patch, handle);
     }
 
-    public static <T> CallableVersionHandler<T> v(int version, Callable<T> handle) {
-        return new CallableVersionHandler<>(version, handle);
+    public static <T> VersionHandler<T> v(int version, Callable<T> handle) {
+        return new VersionHandler<>(version, handle);
+    }
+
+    public static <T> VersionHandler<T> v(int version, int patch, Callable<T> handle) {
+        return new VersionHandler<>(version, patch, handle);
     }
 
     /**
@@ -330,7 +330,7 @@ public final class ReflectionUtils {
      * @since 7.1.0
      */
     public static boolean supports(int minorNumber, int patchNumber) {
-        return MINOR_NUMBER == minorNumber ? supportsPatch(patchNumber) : supports(minorNumber);
+        return MINOR_NUMBER == minorNumber ? PATCH_NUMBER >= patchNumber : supports(minorNumber);
     }
 
     /**
@@ -340,7 +340,9 @@ public final class ReflectionUtils {
      * @return true if the version is equal or newer, otherwise false.
      * @see #PATCH_NUMBER
      * @since 7.0.0
+     * @deprecated use {@link #supports(int, int)}
      */
+    @Deprecated
     public static boolean supportsPatch(int patchNumber) {
         return PATCH_NUMBER >= patchNumber;
     }
@@ -364,6 +366,22 @@ public final class ReflectionUtils {
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Nonnull
+    public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String... names) {
+        RuntimeException error = null;
+
+        for (String name : names) {
+            try {
+                return getNMSClass(packageName, name);
+            } catch (Throwable ex) {
+                if (error == null) error = new RuntimeException("None of the classes were found.");
+                error.addSuppressed(ex);
+            }
+        }
+
+        throw error;
     }
 
     /**
@@ -483,27 +501,61 @@ public final class ReflectionUtils {
     public static final class VersionHandler<T> {
         private int version, patch;
         private T handle;
+        // private RuntimeException errors;
 
         private VersionHandler(int version, T handle) {
             this(version, 0, handle);
         }
 
         private VersionHandler(int version, int patch, T handle) {
-            if (supports(version) && supportsPatch(patch)) {
+            if (supports(version, patch)) {
                 this.version = version;
                 this.patch = patch;
                 this.handle = handle;
             }
         }
 
+        private VersionHandler(int version, int patch, Callable<T> handle) {
+            if (supports(version, patch)) {
+                this.version = version;
+                this.patch = patch;
+
+                try {
+                    this.handle = handle.call();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        private VersionHandler(int version, Callable<T> handle) {
+            this(version, 0, handle);
+        }
+
         public VersionHandler<T> v(int version, T handle) {
             return v(version, 0, handle);
         }
 
-        public VersionHandler<T> v(int version, int patch, T handle) {
+        private boolean checkVersion(int version, int patch) {
             if (version == this.version && patch == this.patch)
                 throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version + '.' + patch);
-            if (version > this.version && supports(version) && patch >= this.patch && supportsPatch(patch)) {
+            return version > this.version && patch >= this.patch && supports(version, patch);
+        }
+
+        public VersionHandler<T> v(int version, int patch, Callable<T> handle) {
+            if (!checkVersion(version, patch)) return this;
+
+            try {
+                this.handle = handle.call();
+            } catch (Exception ignored) {
+            }
+
+            this.version = version;
+            this.patch = patch;
+            return this;
+        }
+
+        public VersionHandler<T> v(int version, int patch, T handle) {
+            if (checkVersion(version, patch)) {
                 this.version = version;
                 this.patch = patch;
                 this.handle = handle;
@@ -516,37 +568,6 @@ public final class ReflectionUtils {
          */
         public T orElse(T handle) {
             return this.version == 0 ? handle : this.handle;
-        }
-    }
-
-    public static final class CallableVersionHandler<T> {
-        private int version;
-        private Callable<T> handle;
-
-        private CallableVersionHandler(int version, Callable<T> handle) {
-            if (supports(version)) {
-                this.version = version;
-                this.handle = handle;
-            }
-        }
-
-        public CallableVersionHandler<T> v(int version, Callable<T> handle) {
-            if (version == this.version)
-                throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version);
-            if (version > this.version && supports(version)) {
-                this.version = version;
-                this.handle = handle;
-            }
-            return this;
-        }
-
-        public T orElse(Callable<T> handle) {
-            try {
-                return (this.version == 0 ? handle : this.handle).call();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
         }
     }
 }

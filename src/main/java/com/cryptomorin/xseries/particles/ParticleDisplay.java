@@ -50,9 +50,9 @@ import java.util.stream.Collectors;
  * <pre>{@code
  * ParticleDisplay.of(Particle.FLAME).spawn(player.getEyeLocation());
  * }</pre>
- * This class is disposable by {@link XParticle} methods.
+ * This class is disposable by {@link Particles} methods.
  * It should not be used across multiple methods. I.e. it should not be
- * used even to spawn a simple particle after it was used by one of {@link XParticle} methods.
+ * used even to spawn a simple particle after it was used by one of {@link Particles} methods.
  * <p>
  * By default, the particle xyz offsets and speed aren't 0, but
  * everything will be 0 by default in this class.
@@ -67,8 +67,8 @@ import java.util.stream.Collectors;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 10.0.0
- * @see XParticle
+ * @version 11.0.0
+ * @see Particles
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
 public class ParticleDisplay implements Cloneable {
@@ -78,27 +78,27 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 1.0.0
      */
-    private static final boolean ISFLAT = XParticle.getParticle("FOOTSTEP") == null;
+    private static final boolean ISFLAT = XParticle.of("FOOTSTEP") == null;
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustTransition}
      * which is only available from 1.17+ (DUST_COLOR_TRANSITION was released in 1.17)
      *
      * @since 8.6.0.0.1
      */
-    private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.getParticle("DUST_COLOR_TRANSITION") != null;
+    private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.DUST_COLOR_TRANSITION.isSupported();
     // private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
     /**
      * Flames seem to be the simplest particles that allows you to get a good visual
      * on how precise shapes that depend on complex algorithms play out.
      */
     @Nonnull
-    private static final Particle DEFAULT_PARTICLE = Particle.FLAME;
+    private static final XParticle DEFAULT_PARTICLE = XParticle.FLAME;
 
     public int count = 1;
     public double extra;
     public boolean force;
     @Nonnull
-    private Particle particle = DEFAULT_PARTICLE;
+    private XParticle particle = DEFAULT_PARTICLE;
     @Nullable
     private Location location, lastLocation;
     @Nullable
@@ -120,7 +120,7 @@ public class ParticleDisplay implements Cloneable {
      * See <a href="https://www.youtube.com/watch?v=zjMuIxRvygQ">this 3Blue1Brown YouTube video.</a>
      * <p>
      * You could use an axis two times such as yaw -> roll -> yaw sequence which is the canonical Euler sequence.
-     * But here for the standard {@link XParticle} methods, we're going to be using Tait–Bryan angles.
+     * But here for the standard {@link Particles} methods, we're going to be using Tait–Bryan angles.
      * Minecraft Euler angles use XYZ order.
      * <a href="https://www.spigotmc.org/threads/euler-angles-strange-behavior.377072/">Source</a>
      * <a href="https://www.youtube.com/watch?v=zc8b2Jo7mno">Gimbal lock</a>.
@@ -161,7 +161,7 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     @Deprecated
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
-        return ParticleDisplay.simple(location, Particle.REDSTONE).withColor(r, g, b, size);
+        return ParticleDisplay.of(XParticle.DUST).withLocation(location).withColor(r, g, b, size);
     }
 
     /**
@@ -225,24 +225,35 @@ public class ParticleDisplay implements Cloneable {
      * @param particle the particle of the display.
      * @return a simple ParticleDisplay with count 1 and no offset, rotation etc.
      * @since 1.0.0
-     * @deprecated use {@link #of(Particle)} and {@link #withLocation(Location)}
+     * @deprecated use {@link #of(XParticle)} and {@link #withLocation(Location)}
      */
     @Nonnull
     @Deprecated
     public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
         ParticleDisplay display = new ParticleDisplay();
-        display.particle = particle;
+        display.particle = XParticle.of(particle);
         display.location = location;
         return display;
+    }
+
+    /**
+     * @deprecated use {@link #of(XParticle)} instead.
+     */
+    @Nonnull
+    @Deprecated
+    public static ParticleDisplay of(@Nonnull Particle particle) {
+        return of(XParticle.of(particle));
     }
 
     /**
      * @since 6.0.0.1
      */
     @Nonnull
-    public static ParticleDisplay of(@Nonnull Particle particle) {
-        return simple(null, particle);
+    public static ParticleDisplay of(@Nonnull XParticle particle) {
+        ParticleDisplay display = new ParticleDisplay();
+        display.particle = particle;
+        return display;
     }
 
     /**
@@ -352,7 +363,7 @@ public class ParticleDisplay implements Cloneable {
         Objects.requireNonNull(config, "Cannot parse ParticleDisplay from a null config section");
 
         String particleName = config.getString("particle");
-        Particle particle = particleName == null ? null : XParticle.getParticle(particleName);
+        XParticle particle = particleName == null ? null : XParticle.of(particleName);
 
         if (particle != null) display.particle = particle;
         if (config.isSet("count")) display.withCount(config.getInt("count"));
@@ -694,10 +705,14 @@ public class ParticleDisplay implements Cloneable {
         return this;
     }
 
+    public ParticleDisplay withParticle(@Nonnull Particle particle) {
+        return withParticle(XParticle.of(Objects.requireNonNull(particle, "Particle cannot be null")));
+    }
+
     /**
      * @since 7.0.0
      */
-    public ParticleDisplay withParticle(@Nonnull Particle particle) {
+    public ParticleDisplay withParticle(@Nonnull XParticle particle) {
         this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
         return this;
     }
@@ -738,7 +753,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the particle.
      */
     @Nonnull
-    public Particle getParticle() {
+    public XParticle getParticle() {
         return particle;
     }
 
@@ -835,7 +850,7 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * Adds color properties to the particle settings.
-     * The particle must be {@link Particle#REDSTONE}
+     * The particle must be {@link Particle#DUST}
      * to get custom colors.
      *
      * @param color the RGB color of the particle.
@@ -848,6 +863,19 @@ public class ParticleDisplay implements Cloneable {
     public ParticleDisplay withColor(@Nonnull Color color, float size) {
         return withColor(color.getRed(), color.getGreen(), color.getBlue(), size);
     }
+
+    @Nonnull
+    public ParticleDisplay withColor(@Nonnull Color color) {
+        // TODO separate withColor() and withSize()
+        return withColor(color, 1f);
+    }
+
+    // public ParticleDisplay withSize(float size) {
+    //     if (data == null) {
+    //         this.data = new float[]{red, green, blue, size};
+    //     }
+    //     return this;
+    // }
 
     /**
      * @since 7.1.0
@@ -896,7 +924,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adds data for {@link Particle#BLOCK_CRACK}, {@link Particle#BLOCK_DUST},
+     * Adds data for {@code BLOCK_CRACK}, {@code BLOCK_DUST},
      * {@link Particle#FALLING_DUST} and {@link Particle#BLOCK_MARKER} particles.
      * The displayed particle will depend on the given block data for its color.
      * <p>
@@ -914,11 +942,11 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adds data for {@link Particle#LEGACY_BLOCK_CRACK}, {@link Particle#LEGACY_BLOCK_DUST}
-     * and {@link Particle#LEGACY_FALLING_DUST} particles if the minecraft version is 1.13 or more.
+     * Adds data for {@code LEGACY_BLOCK_CRACK}, {@code LEGACY_BLOCK_DUST}
+     * and {@code LEGACY_FALLING_DUST} particles if the minecraft version is 1.13 or more.
      * <p>
-     * If version is at most 1.12, old particles {@link Particle#BLOCK_CRACK},
-     * {@link Particle#BLOCK_DUST} and {@link Particle#FALLING_DUST} will support this data.
+     * If version is at most 1.12, old particles {@code BLOCK_CRACK},
+     * {@code BLOCK_DUST} and {@code FALLING_DUST} will support this data.
      *
      * @param materialData the material data that will change the particle data.
      * @return the same particle display, but modified.
@@ -933,7 +961,7 @@ public class ParticleDisplay implements Cloneable {
     }
 
     /**
-     * Adds extra data for {@link Particle#ITEM_CRACK}
+     * Adds extra data for {@code ITEM_CRACK}
      * particle, depending on the given item stack.
      *
      * @param item the item stack that will change the particle data.
@@ -1435,6 +1463,7 @@ public class ParticleDisplay implements Cloneable {
     public Location spawn(Location loc) {
         if (loc == null) return null;
 
+        Particle particle = this.particle.get();
         World world = loc.getWorld();
         double offsetx = offset.getX();
         double offsety = offset.getY();

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * Potions: https://minecraft.wiki/w/Potion
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 4.0.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -60,34 +60,40 @@ public enum XPotion {
     BAD_OMEN("OMEN_BAD", "PILLAGER"),
     BLINDNESS("BLIND"),
     CONDUIT_POWER("CONDUIT", "POWER_CONDUIT"),
-    CONFUSION("NAUSEA", "SICKNESS", "SICK"),
-    DAMAGE_RESISTANCE("RESISTANCE", "ARMOR", "DMG_RESIST", "DMG_RESISTANCE"),
     DARKNESS,
     DOLPHINS_GRACE("DOLPHIN", "GRACE"),
-    FAST_DIGGING("HASTE", "SUPER_PICK", "DIGFAST", "DIG_SPEED", "QUICK_MINE", "SHARP"),
     FIRE_RESISTANCE("FIRE_RESIST", "RESIST_FIRE", "FIRE_RESISTANCE"),
     GLOWING("GLOW", "SHINE", "SHINY"),
-    HARM("INJURE", "DAMAGE", "HARMING", "INFLICT", "INSTANT_DAMAGE"),
-    HEAL("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "INSTANT_HEALTH"),
+    HASTE("FAST_DIGGING", "SUPER_PICK", "DIGFAST", "DIG_SPEED", "QUICK_MINE", "SHARP"),
     HEALTH_BOOST("BOOST_HEALTH", "BOOST", "HP"),
     HERO_OF_THE_VILLAGE("HERO", "VILLAGE_HERO"),
     HUNGER("STARVE", "HUNGRY"),
-    INCREASE_DAMAGE("STRENGTH", "BULL", "STRONG", "ATTACK"),
+    INFESTED,
+    INSTANT_DAMAGE("INJURE", "DAMAGE", "HARMING", "INFLICT", "HARM"),
+    INSTANT_HEALTH("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "HEAL"),
     INVISIBILITY("INVISIBLE", "VANISH", "INVIS", "DISAPPEAR", "HIDE"),
-    JUMP("LEAP", "JUMP_BOOST"),
+    JUMP_BOOST("LEAP", "JUMP"),
     LEVITATION("LEVITATE"),
     LUCK("LUCKY"),
+    MINING_FATIGUE("SLOW_DIGGING", "FATIGUE", "DULL", "DIGGING", "SLOW_DIG", "DIG_SLOW"),
+    NAUSEA("CONFUSION", "SICKNESS", "SICK"),
     NIGHT_VISION("VISION", "VISION_NIGHT"),
+    OOZING,
     POISON("VENOM"),
+    RAID_OMEN,
     REGENERATION("REGEN"),
+    RESISTANCE("DAMAGE_RESISTANCE", "ARMOR", "DMG_RESIST", "DMG_RESISTANCE"),
     SATURATION("FOOD"),
-    SLOW("SLOWNESS", "SLUGGISH"),
-    SLOW_DIGGING("FATIGUE", "DULL", "DIGGING", "SLOW_DIG", "DIG_SLOW"),
+    SLOWNESS("SLOW", "SLUGGISH"),
     SLOW_FALLING("SLOW_FALL", "FALL_SLOW"),
     SPEED("SPRINT", "RUNFAST", "SWIFT", "FAST"),
+    STRENGTH("INCREASE_DAMAGE", "BULL", "STRONG", "ATTACK"),
+    TRIAL_OMEN,
     UNLUCK("UNLUCKY"),
     WATER_BREATHING("WATER_BREATH", "UNDERWATER_BREATHING", "UNDERWATER_BREATH", "AIR"),
     WEAKNESS("WEAK"),
+    WEAVING,
+    WIND_CHARGED,
     WITHER("DECAY");
 
     /**
@@ -104,8 +110,8 @@ public enum XPotion {
      * @since 1.1.0
      */
     public static final Set<XPotion> DEBUFFS = Collections.unmodifiableSet(EnumSet.of(
-            BAD_OMEN, BLINDNESS, CONFUSION, HARM, HUNGER, LEVITATION, POISON,
-            SLOW, SLOW_DIGGING, UNLUCK, WEAKNESS, WITHER)
+            BAD_OMEN, BLINDNESS, NAUSEA, INSTANT_DAMAGE, HUNGER, LEVITATION, POISON,
+            SLOWNESS, MINING_FATIGUE, UNLUCK, WEAKNESS, WITHER)
     );
 
     /**
@@ -123,9 +129,15 @@ public enum XPotion {
     private final PotionEffectType type;
 
     XPotion(@Nonnull String... aliases) {
-        this.type = PotionEffectType.getByName(this.name());
+        PotionEffectType tempType = PotionEffectType.getByName(this.name());
         Data.NAMES.put(this.name(), this);
-        for (String legacy : aliases) Data.NAMES.put(legacy, this);
+        for (String legacy : aliases) {
+            Data.NAMES.put(legacy, this);
+            if (tempType == null) {
+                tempType = PotionEffectType.getByName(this.name());
+            }
+        }
+        this.type = tempType;
     }
 
     /**
@@ -183,6 +195,10 @@ public enum XPotion {
             return Optional.of(type);
         }
         return Optional.ofNullable(Data.NAMES.get(format(potion)));
+    }
+
+    public static XPotion matchXPotion(@Nonnull PotionType type) {
+        return matchXPotion(type.name()).orElseThrow(() -> new UnsupportedOperationException("PotionType " + type.name()));
     }
 
     /**
@@ -464,10 +480,8 @@ public enum XPotion {
      * @return a potion type for potions.
      * @see #getPotionEffectType()
      * @since 1.0.0
-     * @deprecated not for removal, but use {@link PotionEffectType} instead.
      */
     @Nullable
-    @Deprecated
     public PotionType getPotionType() {
         return type == null ? null : PotionType.getByEffect(type);
     }
@@ -476,7 +490,7 @@ public enum XPotion {
      * Builds a potion effect with the given duration and amplifier.
      *
      * @param duration  the duration of the potion effect in ticks.
-     * @param amplifier the amplifier of the potion effect (starting from 1).
+     * @param amplifier the level of the potion effect (starting from 1).
      * @return a potion effect.
      * @see #parseEffect(String)
      * @since 1.0.0

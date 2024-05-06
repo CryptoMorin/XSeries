@@ -24,6 +24,7 @@ package com.cryptomorin.xseries;
 import com.google.common.base.Enums;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
@@ -44,49 +45,52 @@ import java.util.stream.Collectors;
  * Enchanting: https://minecraft.wiki/w/Enchanting
  *
  * @author Crypto Morin
- * @version 2.3.0
+ * @version 3.0.0
  * @see Enchantment
  */
 public enum XEnchantment {
-    ARROW_DAMAGE("POWER", "ARROW_DAMAGE", "ARROW_POWER", "AD"),
-    ARROW_FIRE("FLAME", "FLAME_ARROW", "FIRE_ARROW", "AF"),
-    ARROW_INFINITE("INFINITY", "INF_ARROWS", "INFINITE_ARROWS", "INFINITE", "UNLIMITED", "UNLIMITED_ARROWS", "AI"),
-    ARROW_KNOCKBACK("PUNCH", "ARROW_KNOCKBACK", "ARROWKB", "ARROW_PUNCH", "AK"),
-    BINDING_CURSE(true, "BINDING_CURSE", "BIND_CURSE", "BINDING", "BIND"),
-    CHANNELING(true, "CHANNELLING", "CHANELLING", "CHANELING", "CHANNEL"),
-    DAMAGE_ALL("SHARPNESS", "ALL_DAMAGE", "ALL_DMG", "SHARP", "DAL"),
-    DAMAGE_ARTHROPODS("BANE_OF_ARTHROPODS", "ARDMG", "BANE_OF_ARTHROPOD", "ARTHROPOD", "DAR"),
-    DAMAGE_UNDEAD("SMITE", "UNDEAD_DAMAGE", "DU"),
-    DEPTH_STRIDER(true, "DEPTH", "STRIDER"),
-    DIG_SPEED("EFFICIENCY", "MINE_SPEED", "CUT_SPEED", "DS", "EFF"),
-    DURABILITY("UNBREAKING", "DURA"),
-    FIRE_ASPECT(true, "FIRE", "MELEE_FIRE", "MELEE_FLAME", "FA"),
-    FROST_WALKER(true, "FROST", "WALKER"),
-    IMPALING(true, "IMPALE", "OCEAN_DAMAGE", "OCEAN_DMG"),
-    KNOCKBACK(true, "K_BACK", "KB"),
-    LOOT_BONUS_BLOCKS("FORTUNE", "BLOCKS_LOOT_BONUS", "FORT", "LBB"),
-    LOOT_BONUS_MOBS("LOOTING", "MOB_LOOT", "MOBS_LOOT_BONUS", "LBM"),
-    LOYALTY(true, "LOYAL", "RETURN"),
-    LUCK("LUCK_OF_THE_SEA", "LUCK_OF_SEA", "LUCK_OF_SEAS", "ROD_LUCK"),
-    LURE(true, "ROD_LURE"),
-    MENDING(true),
-    MULTISHOT(true, "TRIPLE_SHOT"),
-    OXYGEN("RESPIRATION", "BREATH", "BREATHING", "O2", "O"),
-    PIERCING(true),
-    PROTECTION_ENVIRONMENTAL("PROTECTION", "PROTECT", "PROT"),
-    PROTECTION_EXPLOSIONS("BLAST_PROTECTION", "BLAST_PROTECT", "EXPLOSIONS_PROTECTION", "EXPLOSION_PROTECTION", "BLAST_PROTECTION", "PE"),
-    PROTECTION_FALL("FEATHER_FALLING", "FALL_PROT", "FEATHER_FALL", "FALL_PROTECTION", "FEATHER_FALLING", "PFA"),
-    PROTECTION_FIRE("FIRE_PROTECTION", "FIRE_PROT", "FIRE_PROTECT", "FIRE_PROTECTION", "FLAME_PROTECTION", "FLAME_PROTECT", "FLAME_PROT", "PF"),
-    PROTECTION_PROJECTILE("PROJECTILE_PROTECTION", "PROJECTILE_PROTECTION", "PROJ_PROT", "PP"),
-    QUICK_CHARGE(true, "QUICKCHARGE", "QUICK_DRAW", "FAST_CHARGE", "FAST_DRAW"),
-    RIPTIDE(true, "RIP", "TIDE", "LAUNCH"),
-    SILK_TOUCH(true, "SOFT_TOUCH", "ST"),
-    SOUL_SPEED(true, "SPEED_SOUL", "SOUL_RUNNER"),
+    AQUA_AFFINITY("WATER_WORKER", "WATER_WORKER", "AQUA_AFFINITY", "WATER_MINE"),
+    BANE_OF_ARTHROPODS("DAMAGE_ARTHROPODS", "ARDMG", "BANE_OF_ARTHROPOD", "ARTHROPOD"),
+    BINDING_CURSE("BINDING_CURSE", "BIND_CURSE", "BINDING", "BIND"),
+    BLAST_PROTECTION("PROTECTION_EXPLOSIONS", "BLAST_PROTECT", "EXPLOSIONS_PROTECTION", "EXPLOSION_PROTECTION", "BLAST_PROTECTION"),
+    BREACH,
+    CHANNELING("CHANNELLING", "CHANELLING", "CHANELING", "CHANNEL"),
+    DENSITY,
+    DEPTH_STRIDER("DEPTH", "STRIDER"),
+    EFFICIENCY("DIG_SPEED", "MINE_SPEED", "CUT_SPEED"),
+    FEATHER_FALLING("PROTECTION_FALL", "FALL_PROT", "FEATHER_FALL", "FALL_PROTECTION", "FEATHER_FALLING"),
+    FIRE_ASPECT("FIRE", "MELEE_FIRE", "MELEE_FLAME"),
+    FIRE_PROTECTION("PROTECTION_FIRE", "FIRE_PROT", "FIRE_PROTECT", "FIRE_PROTECTION", "FLAME_PROTECTION", "FLAME_PROTECT", "FLAME_PROT"),
+    FLAME("ARROW_FIRE", "FLAME_ARROW", "FIRE_ARROW"),
+    FORTUNE("LOOT_BONUS_BLOCKS", "BLOCKS_LOOT_BONUS", "FORT"),
+    FROST_WALKER("FROST", "WALKER"),
+    IMPALING("IMPALE", "OCEAN_DAMAGE", "OCEAN_DMG"),
+    INFINITY("ARROW_INFINITE", "INF_ARROWS", "INFINITE_ARROWS", "INFINITE", "UNLIMITED", "UNLIMITED_ARROWS"),
+    KNOCKBACK("K_BACK"),
+    LOOTING("LOOT_BONUS_MOBS", "MOB_LOOT", "MOBS_LOOT_BONUS"),
+    LOYALTY("LOYAL", "RETURN"),
+    LUCK_OF_THE_SEA("LUCK", "LUCK_OF_SEA", "LUCK_OF_SEAS", "ROD_LUCK"),
+    LURE("ROD_LURE"),
+    MENDING,
+    MULTISHOT("TRIPLE_SHOT"),
+    PIERCING,
+    POWER("ARROW_DAMAGE", "ARROW_POWER"),
+    PROJECTILE_PROTECTION("PROTECTION_PROJECTILE", "PROJECTILE_PROTECTION", "PROJ_PROT"),
+    PROTECTION("PROTECTION_ENVIRONMENTAL", "PROTECT"),
+    PUNCH("ARROW_KNOCKBACK", "ARROWKB", "ARROW_PUNCH"),
+    QUICK_CHARGE("QUICKCHARGE", "QUICK_DRAW", "FAST_CHARGE", "FAST_DRAW"),
+    RESPIRATION("OXYGEN", "BREATH", "BREATHING"),
+    RIPTIDE("RIP", "TIDE", "LAUNCH"),
+    SHARPNESS("DAMAGE_ALL", "ALL_DAMAGE", "ALL_DMG", "SHARP"),
+    SILK_TOUCH("SOFT_TOUCH"),
+    SMITE("DAMAGE_UNDEAD", "UNDEAD_DAMAGE"),
+    SOUL_SPEED("SPEED_SOUL", "SOUL_RUNNER"),
     SWEEPING_EDGE("SWEEPING", "SWEEPING_EDGE", "SWEEP_EDGE"),
-    SWIFT_SNEAK(true, "SNEAK_SWIFT"),
-    THORNS(true, "HIGHCRIT", "THORN", "HIGHERCRIT", "T"),
-    VANISHING_CURSE(true, "VANISHING_CURSE", "VANISH_CURSE", "VANISHING", "VANISH"),
-    WATER_WORKER("AQUA_AFFINITY", "WATER_WORKER", "AQUA_AFFINITY", "WATER_MINE", "WW");
+    SWIFT_SNEAK("SNEAK_SWIFT"),
+    THORNS("HIGHCRIT", "THORN", "HIGHERCRIT"),
+    UNBREAKING("DURABILITY", "DURA"),
+    VANISHING_CURSE("VANISHING_CURSE", "VANISH_CURSE", "VANISHING", "VANISH"),
+    WIND_BURST;
 
     /**
      * Cached list of {@link XEnchantment#values()} to avoid allocating memory for
@@ -96,14 +100,14 @@ public enum XEnchantment {
     public static final XEnchantment[] VALUES = values();
 
     /**
-     * Entity types that {@link #DAMAGE_UNDEAD} enchantment is effective against.
+     * Entity types that {@link #SMITE} enchantment is effective against.
      * This set is unmodifiable.
      *
      * @since 1.2.0
      */
     public static final Set<EntityType> EFFECTIVE_SMITE_ENTITIES;
     /**
-     * Entity types that {@link #DAMAGE_ARTHROPODS} enchantment is effective against.
+     * Entity types that {@link #BANE_OF_ARTHROPODS} enchantment is effective against.
      * This set is unmodifiable.
      *
      * @since 1.2.0
@@ -136,31 +140,39 @@ public enum XEnchantment {
     @Nullable
     private final Enchantment enchantment;
 
-    XEnchantment(@Nonnull String... names) {
-        this(false, names);
-    }
-
     /**
-     * If an enchantment has {@code self} as true, it means that
+     * If an enchantment has {@code self} as it means that
      * the vanilla enchantment name matches the Bukkit name.
      *
      * @see NamespacedKey#getKey()
      */
-    @SuppressWarnings("deprecation")
-    XEnchantment(boolean self, @Nonnull String... aliases) {
-        Data.NAMES.put(this.name(), this);
-        for (String legacy : aliases) Data.NAMES.put(legacy, this);
+    XEnchantment(@Nonnull String... aliases) {
+        Enchantment enchantment = getBukkitEnchant(this.name());
 
-        Enchantment enchantment;
-        if (Data.ISFLAT) {
-            String vanilla = self ? this.name() : aliases[0];
-            enchantment = Enchantment.getByKey(NamespacedKey.minecraft(vanilla.toLowerCase(Locale.ENGLISH)));
-        } else enchantment = Enchantment.getByName(this.name());
+        Data.NAMES.put(this.name(), this);
+        for (String legacy : aliases) {
+            Data.NAMES.put(legacy, this);
+            if (enchantment == null) {
+                enchantment = getBukkitEnchant(legacy);
+            }
+        }
+
         this.enchantment = enchantment;
     }
 
+    @SuppressWarnings("deprecation")
+    private static Enchantment getBukkitEnchant(String name) {
+        if (Data.IS_SUPER_FLAT) {
+            return Registry.ENCHANTMENT.get(NamespacedKey.minecraft(name.toLowerCase(Locale.ENGLISH)));
+        } else if (Data.ISFLAT) {
+            return Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase(Locale.ENGLISH)));
+        } else {
+            return Enchantment.getByName(name);
+        }
+    }
+
     /**
-     * Checks if {@link #DAMAGE_UNDEAD Smite} is effective
+     * Checks if {@link #SMITE Smite} is effective
      * against this type of mob.
      *
      * @param type the type of the mob.
@@ -172,7 +184,7 @@ public enum XEnchantment {
     }
 
     /**
-     * Checks if {@link #DAMAGE_ARTHROPODS Bane of Arthropods} is effective
+     * Checks if {@link #BANE_OF_ARTHROPODS Bane of Arthropods} is effective
      * against this type of mob.
      *
      * @param type the type of the mob.
@@ -328,11 +340,11 @@ public enum XEnchantment {
      * @since 2.0.0
      */
     private static final class Data {
-        private static final boolean ISFLAT;
+        private static final boolean ISFLAT, IS_SUPER_FLAT;
         private static final Map<String, XEnchantment> NAMES = new HashMap<>();
 
         static {
-            boolean flat;
+            boolean flat, superFlat;
             try {
                 Class<?> namespacedKeyClass = Class.forName("org.bukkit.NamespacedKey");
                 Class<?> enchantmentClass = Class.forName("org.bukkit.enchantments.Enchantment");
@@ -341,7 +353,16 @@ public enum XEnchantment {
             } catch (ClassNotFoundException | NoSuchMethodException ex) {
                 flat = false;
             }
+
+            try {
+                Class.forName("org.bukkit.Registry");
+                superFlat = true;
+            } catch (ClassNotFoundException ex) {
+                superFlat = false;
+            }
+
             ISFLAT = flat;
+            IS_SUPER_FLAT = superFlat;
         }
     }
 }

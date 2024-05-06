@@ -51,13 +51,14 @@ public final class XSeriesTests {
         for (PotionEffectType effect : PotionEffectType.values()) {
             try {
                 XPotion.matchXPotion(effect);
-                assertPresent(XPotion.matchXPotion(effect.getName()));
+                assertPresent(XPotion.matchXPotion(effect.getKey().getKey()), "Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
             } catch (ArrayIndexOutOfBoundsException ex) {
                 err("Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
                 throw ex;
             }
         }
         for (Enchantment enchant : Enchantment.values()) {
+            assertNotNull(XEnchantment.matchXEnchantment(enchant), () -> "null for " + enchant);
             assertPresent(XEnchantment.matchXEnchantment(enchant.getName()), "Unknown enchantment: " + enchant.getName());
         }
 

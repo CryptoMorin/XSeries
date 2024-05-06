@@ -2121,18 +2121,18 @@ public final class XTag<T extends Enum<T>> {
                 DIRT,
                 BASE_STONE_OVERWORLD);
 
-        ARMOR_ENCHANTS = new XTag<>(XEnchantment.PROTECTION_EXPLOSIONS,
+        ARMOR_ENCHANTS = new XTag<>(XEnchantment.BLAST_PROTECTION,
                 XEnchantment.BINDING_CURSE,
                 XEnchantment.VANISHING_CURSE,
-                XEnchantment.PROTECTION_FIRE,
+                XEnchantment.FIRE_PROTECTION,
                 XEnchantment.MENDING,
-                XEnchantment.PROTECTION_PROJECTILE,
-                XEnchantment.PROTECTION_ENVIRONMENTAL,
+                XEnchantment.PROJECTILE_PROTECTION,
+                XEnchantment.PROTECTION,
                 XEnchantment.THORNS,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
-        HELEMT_ENCHANTS = new XTag<>(XEnchantment.WATER_WORKER,
-                XEnchantment.OXYGEN);
+        HELEMT_ENCHANTS = new XTag<>(XEnchantment.AQUA_AFFINITY,
+                XEnchantment.RESPIRATION);
         HELEMT_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
 
         CHESTPLATE_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
@@ -2140,75 +2140,75 @@ public final class XTag<T extends Enum<T>> {
         LEGGINGS_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
 
         BOOTS_ENCHANTS = new XTag<>(XEnchantment.DEPTH_STRIDER,
-                XEnchantment.PROTECTION_FALL,
+                XEnchantment.FEATHER_FALLING,
                 XEnchantment.FROST_WALKER);
         BOOTS_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
 
         ELYTRA_ENCHANTS = new XTag<>(XEnchantment.BINDING_CURSE,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.MENDING,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
-        SWORD_ENCHANTS = new XTag<>(XEnchantment.DAMAGE_ARTHROPODS,
+        SWORD_ENCHANTS = new XTag<>(XEnchantment.BANE_OF_ARTHROPODS,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.FIRE_ASPECT,
                 XEnchantment.KNOCKBACK,
-                XEnchantment.LOOT_BONUS_MOBS,
+                XEnchantment.LOOTING,
                 XEnchantment.MENDING,
-                XEnchantment.DAMAGE_ALL,
-                XEnchantment.DAMAGE_UNDEAD,
+                XEnchantment.SHARPNESS,
+                XEnchantment.SMITE,
                 XEnchantment.SWEEPING_EDGE,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
-        AXE_ENCHANTS = new XTag<>(XEnchantment.DAMAGE_ARTHROPODS,
+        AXE_ENCHANTS = new XTag<>(XEnchantment.BANE_OF_ARTHROPODS,
                 XEnchantment.VANISHING_CURSE,
-                XEnchantment.DIG_SPEED,
-                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.EFFICIENCY,
+                XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
-                XEnchantment.DAMAGE_ALL,
+                XEnchantment.SHARPNESS,
                 XEnchantment.SILK_TOUCH,
-                XEnchantment.DAMAGE_UNDEAD,
-                XEnchantment.DURABILITY);
+                XEnchantment.SMITE,
+                XEnchantment.UNBREAKING);
 
         HOE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
-                XEnchantment.DIG_SPEED,
-                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.EFFICIENCY,
+                XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
         PICKAXE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
-                XEnchantment.DIG_SPEED,
-                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.EFFICIENCY,
+                XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
         SHOVEL_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
-                XEnchantment.DIG_SPEED,
-                XEnchantment.LOOT_BONUS_BLOCKS,
+                XEnchantment.EFFICIENCY,
+                XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
         SHEARS_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
-                XEnchantment.DIG_SPEED,
+                XEnchantment.EFFICIENCY,
                 XEnchantment.MENDING,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
         BOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
-                XEnchantment.ARROW_FIRE,
-                XEnchantment.ARROW_INFINITE,
+                XEnchantment.FLAME,
+                XEnchantment.INFINITY,
                 XEnchantment.MENDING,
-                XEnchantment.ARROW_KNOCKBACK,
-                XEnchantment.DURABILITY);
+                XEnchantment.PUNCH,
+                XEnchantment.UNBREAKING);
 
         CROSSBOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
                 XEnchantment.MENDING,
                 XEnchantment.MULTISHOT,
                 XEnchantment.PIERCING,
                 XEnchantment.QUICK_CHARGE,
-                XEnchantment.DURABILITY);
+                XEnchantment.UNBREAKING);
 
 
         MINEABLE_AXE = new XTag<>(XMaterial.COMPOSTER,

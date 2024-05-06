@@ -47,7 +47,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
  * All the parameters are non-null.
  *
  * @author Crypto Morin
- * @version 5.4.0.0.0.1
+ * @version 5.5.0
  */
 public final class NMSExtras {
     public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
@@ -121,7 +121,8 @@ public final class NMSExtras {
             Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
-            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 4, "an")
+            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 5, "ap")
+                            .v(20, 4, "an")
                             .v(20, 2, "al")
                             .v(19, "aj")
                             .v(18, "ai")
@@ -133,15 +134,17 @@ public final class NMSExtras {
             //     return this.b(datawatcherobject).b();
             // }
             dataWatcherGetItem = lookup.findVirtual(DataWatcherClass,
-                    v(20, "b").v(18, "a").orElse("get"),
-                    MethodType.methodType(Object.class, DataWatcherObjectClass)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+                    v(20, 5, "a").v(20, "b").v(18, "a").orElse("get"),
+                    MethodType.methodType(Object.class, DataWatcherObjectClass));
 
             /*
                 public <T> void b(DataWatcherObject<T> datawatcherobject, T t0) {
                     this.a(datawatcherobject, t0, false);
                 }
              */
-            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass, v(18, "b").orElse("set"), MethodType.methodType(void.class, DataWatcherObjectClass, Object.class)); //  private <T> Item<T> c(DataWatcherObject<T> datawatcherobject)
+            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass,
+                    v(20, 5, "a").v(18, "b").orElse("set"),
+                    MethodType.methodType(void.class, DataWatcherObjectClass, Object.class));
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
             entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
@@ -246,7 +249,7 @@ public final class NMSExtras {
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
                 tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign,
-                        v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
+                        v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
                         MethodType.methodType(PacketPlayOutTileEntityData));
 
                 if (supports(20)) {
