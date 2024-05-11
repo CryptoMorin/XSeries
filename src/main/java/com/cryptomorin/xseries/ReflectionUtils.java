@@ -23,12 +23,17 @@ package com.cryptomorin.xseries;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -229,7 +234,7 @@ public final class ReflectionUtils {
      */
     public static final String
             CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
-            NMS_PACKAGE = v(17, "net.minecraft.").orElse("net.minecraft.server." + NMS_VERSION + '.');
+            NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
     /**
      * A nullable public accessible field only available in {@code EntityPlayer}.
      * This can be null if the player is offline.
@@ -251,28 +256,38 @@ public final class ReflectionUtils {
 
     static {
         // Was Paper remapper just broken in v1.20.6?
-        Class<?> entityPlayer = getNMSClass("server.level", /* v1.20.5 */ "ServerPlayer", "EntityPlayer");
-        Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
-        Class<?> playerConnection = getNMSClass("server.network", /* v1.20.5 */ "ServerPlayerConnection", "PlayerConnection");
-        Class<?> playerConnectionImpl = getNMSClass("server.network", /* v1.20.5 */ "ServerGamePacketListenerImpl", "PlayerConnection");
+        MinecraftClassHandle entityPlayer = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.level")
+                .map(MinecraftMapping.MOJANG, "ServerPlayer")
+                .map(MinecraftMapping.SPIGOT, "EntityPlayer");
+        MinecraftClassHandle craftPlayer = ofMinecraft()
+                .inPackage(MinecraftPackage.CB, "entity")
+                .named("CraftPlayer");
+        MinecraftClassHandle playerConnection = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.network")
+                .map(MinecraftMapping.MOJANG, "ServerPlayerConnection")
+                .map(MinecraftMapping.SPIGOT, "PlayerConnection");
+        MinecraftClassHandle playerConnectionImpl = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.network")
+                .map(MinecraftMapping.MOJANG, "ServerGamePacketListenerImpl")
+                .map(MinecraftMapping.SPIGOT, "PlayerConnection");
+        MinecraftClassHandle packetClass = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "network.protocol")
+                .map(MinecraftMapping.SPIGOT, "Packet");
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle sendPacket = null, getHandle = null, connection = null;
-
-        try {
-            connection = lookup.findGetter(entityPlayer,
-                    v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"), playerConnectionImpl);
-            getHandle = lookup.findVirtual(craftPlayer, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerConnection,
-                    v(20, 5, "send").v(20, 2, "b").v(18, "a").orElse("sendPacket"),
-                    MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
-        } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
-
-        PLAYER_CONNECTION = connection;
-        SEND_PACKET = sendPacket;
-        GET_HANDLE = getHandle;
+        PLAYER_CONNECTION = entityPlayer
+                .getterField(v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"))
+                .returns(playerConnectionImpl)
+                .unreflect();
+        SEND_PACKET = playerConnection
+                .method(v(20, 5, "send").v(20, 2, "b").v(18, "a").orElse("sendPacket"))
+                .returns(void.class)
+                .parameters(packetClass)
+                .unreflect();
+        GET_HANDLE = craftPlayer
+                .method("getHandle")
+                .returns(entityPlayer)
+                .unreflect();
     }
 
     private ReflectionUtils() {
@@ -362,26 +377,10 @@ public final class ReflectionUtils {
         if (packageName != null && supports(17)) name = packageName + '.' + name;
 
         try {
-            return Class.forName(NMS_PACKAGE + name);
+            return Class.forName(NMS_PACKAGE + '.' + name);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    @Nonnull
-    public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String... names) {
-        RuntimeException error = null;
-
-        for (String name : names) {
-            try {
-                return getNMSClass(packageName, name);
-            } catch (Throwable ex) {
-                if (error == null) error = new RuntimeException("None of the classes were found.");
-                error.addSuppressed(ex);
-            }
-        }
-
-        throw error;
     }
 
     /**
@@ -498,6 +497,390 @@ public final class ReflectionUtils {
         }
     }
 
+    @ApiStatus.Experimental
+    public static MinecraftClassHandle ofMinecraft() {
+        return new MinecraftClassHandle();
+    }
+
+    public enum MinecraftMapping {
+        MOJANG, SPIGOT;
+    }
+
+    public enum MinecraftPackage {
+        NMS(NMS_PACKAGE), CB(CRAFTBUKKIT_PACKAGE);
+
+        private final String packageName;
+
+        MinecraftPackage(String packageName) {this.packageName = packageName;}
+    }
+
+    @ApiStatus.Experimental
+    public static class MinecraftClassHandle extends ClassHandle {
+
+        public MinecraftClassHandle inPackage(MinecraftPackage minecraftPackage, String packageName) {
+            this.packageName = minecraftPackage.packageName;
+            if (minecraftPackage != MinecraftPackage.NMS || supports(17)) this.packageName += '.' + packageName;
+            return this;
+        }
+
+        public MinecraftClassHandle named(String... clazzNames) {
+            super.named(clazzNames);
+            return this;
+        }
+
+        public MinecraftClassHandle map(MinecraftMapping mapping, String className) {
+            this.classNames.add(className);
+            return this;
+        }
+    }
+
+    public static final class AggregateClassHandle {
+        private final List<ClassHandle> handles = new ArrayList<>(5);
+
+        public AggregateClassHandle add(ClassHandle handle) {
+            this.handles.add(handle);
+            return this;
+        }
+
+        public boolean exists() {
+            return handles.stream().allMatch(ClassHandle::exists);
+        }
+
+        public Class<?> unreflect() {
+            try {
+                return reflect();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public Class<?> reflect() throws ClassNotFoundException {
+            ClassNotFoundException errors = null;
+
+            for (ClassHandle handle : handles) {
+                try {
+                    return handle.reflect();
+                } catch (ClassNotFoundException ex) {
+                    if (errors == null) errors = new ClassNotFoundException("None of the classes were found");
+                    errors.addSuppressed(ex);
+                }
+            }
+
+            throw errors;
+        }
+    }
+
+    public abstract static class MemberHandle {
+        protected boolean makeAccessible;
+        protected final ClassHandle clazz;
+        protected final MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+        protected MemberHandle(ClassHandle clazz) {this.clazz = clazz;}
+
+        public MemberHandle makeAccessible() {
+            this.makeAccessible = true;
+            return this;
+        }
+
+        public final MethodHandle unreflect() {
+            try {
+                return reflect();
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public abstract MethodHandle reflect() throws ReflectiveOperationException;
+
+        public abstract <T extends AccessibleObject & Member> T reflectJvm() throws ReflectiveOperationException;
+
+        protected <T extends AccessibleObject> T handleAccessible(T accessibleObject) {
+            if (this.makeAccessible) accessibleObject.setAccessible(true);
+            return accessibleObject;
+        }
+    }
+
+    public abstract static class NamedMemberHandle extends MemberHandle {
+        protected Class<?> returnType;
+        protected boolean isStatic;
+        protected final List<String> names = new ArrayList<>(5);
+
+        protected NamedMemberHandle(ClassHandle clazz) {
+            super(clazz);
+        }
+
+        public NamedMemberHandle asStatic() {
+            this.isStatic = true;
+            return this;
+        }
+
+        public NamedMemberHandle returns(Class<?> clazz) {
+            this.returnType = clazz;
+            return this;
+        }
+
+        public NamedMemberHandle returns(ClassHandle clazz) {
+            this.returnType = clazz.unreflect();
+            return this;
+        }
+
+        public MemberHandle named(String... names) {
+            this.names.addAll(Arrays.asList(names));
+            return this;
+        }
+    }
+
+    public static class ConstructorMemberHandle extends MemberHandle {
+        protected Class<?>[] parameterTypes = new Class[0];
+
+        protected ConstructorMemberHandle(ClassHandle clazz) {
+            super(clazz);
+        }
+
+        public ConstructorMemberHandle parameters(Class<?>... parameterTypes) {
+            this.parameterTypes = parameterTypes;
+            return this;
+        }
+
+        public ConstructorMemberHandle parameters(ClassHandle... parameterTypes) {
+            this.parameterTypes = Arrays.stream(parameterTypes).map(ClassHandle::unreflect).toArray(Class[]::new);
+            return this;
+        }
+
+
+        @Override
+        public MethodHandle reflect() throws NoSuchMethodException, IllegalAccessException {
+            if (makeAccessible) {
+                return lookup.unreflectConstructor(reflectJvm());
+            } else {
+                return lookup.findConstructor(clazz.unreflect(), MethodType.methodType(void.class, this.parameterTypes));
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Constructor<?> reflectJvm() throws NoSuchMethodException {
+            return handleAccessible(clazz.unreflect().getDeclaredConstructor(parameterTypes));
+        }
+    }
+
+    public static class MethodMemberHandle extends NamedMemberHandle {
+        protected Class<?>[] parameterTypes = new Class[0];
+
+        protected MethodMemberHandle(ClassHandle clazz) {
+            super(clazz);
+        }
+
+        public MethodMemberHandle parameters(ClassHandle... parameterTypes) {
+            this.parameterTypes = Arrays.stream(parameterTypes).map(ClassHandle::unreflect).toArray(Class[]::new);
+            return this;
+        }
+
+        public MethodMemberHandle returns(Class<?> clazz) {
+            super.returns(clazz);
+            return this;
+        }
+
+        public MethodMemberHandle parameters(Class<?>... parameterTypes) {
+            this.parameterTypes = parameterTypes;
+            return this;
+        }
+
+        @Override
+        public MethodHandle reflect() throws NoSuchMethodException, IllegalAccessException {
+            return lookup.unreflect(reflectJvm());
+        }
+
+        public MethodMemberHandle named(String... names) {
+            super.named(names);
+            return this;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Method reflectJvm() throws NoSuchMethodException {
+            NoSuchMethodException errors = null;
+            Method method = null;
+
+            Class<?> clazz = this.clazz.unreflect();
+            for (String name : this.names) {
+                try {
+                    method = clazz.getDeclaredMethod(name, parameterTypes);
+                    if (method.getReturnType() != this.returnType) {
+                        throw new NoSuchMethodException("Method named '" + name + "' was found but the types don't match: " + this.returnType + " != " + method);
+                    }
+                } catch (NoSuchMethodException ex) {
+                    method = null;
+                    if (errors == null) errors = new NoSuchMethodException("None of the fields were found");
+                    errors.addSuppressed(ex);
+                }
+            }
+
+            if (method == null) throw errors;
+            return handleAccessible(method);
+        }
+    }
+
+    public static class FieldMemberHandle extends NamedMemberHandle {
+        protected Boolean getter;
+
+        protected FieldMemberHandle(ClassHandle clazz) {
+            super(clazz);
+        }
+
+        public FieldMemberHandle named(String... names) {
+            super.named(names);
+            return this;
+        }
+
+        public FieldMemberHandle getter() {
+            this.getter = true;
+            return this;
+        }
+
+        public FieldMemberHandle setter() {
+            this.getter = false;
+            return this;
+        }
+
+        @Override
+        public FieldMemberHandle returns(Class<?> clazz) {
+            super.returns(clazz);
+            return this;
+        }
+
+        @Override
+        public FieldMemberHandle returns(ClassHandle clazz) {
+            super.returns(clazz);
+            return this;
+        }
+
+        @Override
+        public MethodHandle reflect() throws NoSuchFieldException, IllegalAccessException {
+            if (this.getter == null)
+                throw new IllegalStateException("Not specified whether the field is a getter or setter");
+
+            if (getter) {
+                return lookup.unreflectGetter(reflectJvm());
+            } else {
+                return lookup.unreflectSetter(reflectJvm());
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Field reflectJvm() throws NoSuchFieldException {
+            NoSuchFieldException errors = null;
+            Field field = null;
+
+            Class<?> clazz = this.clazz.unreflect();
+            for (String name : this.names) {
+                try {
+                    field = clazz.getDeclaredField(name);
+                    if (field.getType() != this.returnType) {
+                        throw new NoSuchFieldException("Field named '" + name + "' was found but the types don't match: " + this.returnType + " != " + field.getType());
+                    }
+                } catch (NoSuchFieldException ex) {
+                    field = null;
+                    if (errors == null) errors = new NoSuchFieldException("None of the fields were found");
+                    errors.addSuppressed(ex);
+                }
+            }
+
+            if (field == null) throw errors;
+            return handleAccessible(field);
+        }
+    }
+
+    @ApiStatus.Experimental
+    public static class ClassHandle {
+        protected String packageName;
+        protected final List<String> classNames = new ArrayList<>(5);
+        protected boolean array;
+
+        public ClassHandle inPackage(String packageName) {
+            this.packageName = packageName;
+            return this;
+        }
+
+        public ClassHandle named(String... clazzNames) {
+            this.classNames.addAll(Arrays.asList(clazzNames));
+            return this;
+        }
+
+        public ClassHandle asArray() {
+            this.array = true;
+            return this;
+        }
+
+        public MethodMemberHandle method(String... names) {
+            return new MethodMemberHandle(this).named(names);
+        }
+
+        public FieldMemberHandle getterField(String... names) {
+            return new FieldMemberHandle(this).named(names).getter();
+        }
+
+        public FieldMemberHandle setterField(String... names) {
+            return new FieldMemberHandle(this).named(names).setter();
+        }
+
+        public ConstructorMemberHandle constructor(Class<?>... parameters) {
+            return new ConstructorMemberHandle(this).parameters(parameters);
+        }
+
+        public ConstructorMemberHandle constructor(ClassHandle... parameters) {
+            return new ConstructorMemberHandle(this).parameters(parameters);
+        }
+
+        public String[] reflectClassNames() {
+            Objects.requireNonNull(packageName, "Package name is null");
+            String[] classNames = new String[this.classNames.size()];
+
+            for (int i = 0; i < this.classNames.size(); i++) {
+                @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
+                String clazz = packageName + '.' + this.classNames.get(i);
+                if (array) clazz = "[L" + clazz + ';';
+
+                classNames[i] = clazz;
+            }
+
+            return classNames;
+        }
+
+        public boolean exists() {
+            try {
+                reflect();
+                return true;
+            } catch (ClassNotFoundException ignored) {
+                return false;
+            }
+        }
+
+        public Class<?> unreflect() {
+            try {
+                return reflect();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public Class<?> reflect() throws ClassNotFoundException {
+            ClassNotFoundException errors = null;
+
+            for (String className : reflectClassNames()) {
+                try {
+                    return Class.forName(className);
+                } catch (ClassNotFoundException ex) {
+                    if (errors == null) errors = new ClassNotFoundException("None of the classes were found");
+                    errors.addSuppressed(ex);
+                }
+            }
+
+            throw errors;
+        }
+    }
+
     public static final class VersionHandler<T> {
         private int version, patch;
         private T handle;
@@ -568,6 +951,17 @@ public final class ReflectionUtils {
          */
         public T orElse(T handle) {
             return this.version == 0 ? handle : this.handle;
+        }
+
+        public T orElse(Callable<T> handle) {
+            if (this.version == 0) {
+                try {
+                    return handle.call();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return this.handle;
         }
     }
 }

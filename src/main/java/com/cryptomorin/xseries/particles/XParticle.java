@@ -181,7 +181,7 @@ public enum XParticle {
         }
 
         this.particle = testParticle;
-        Data.BUKKIT_MAPPING.put(particle, this);
+        if (particle != null) Data.BUKKIT_MAPPING.put(particle, this);
     }
 
     public Particle get() {

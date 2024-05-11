@@ -155,7 +155,7 @@ public enum XEntityType {
         }
 
         this.entityType = entityType;
-        Data.BUKKIT_MAPPING.put(entityType, this);
+        if (entityType != null) Data.BUKKIT_MAPPING.put(entityType, this);
     }
 
     public static final class Data {
