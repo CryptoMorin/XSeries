@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -415,18 +416,10 @@ public final class SkullUtils {
 
     private static String extractMojangSHAFromBase64(String decodedBase64) {
         // Example: {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/74133f6ac3be2e2499a784efadcfffeb9ace025c3646ada67f3414e5ef3394"}}}
-        int startIndex = decodedBase64.lastIndexOf('/');
-        int endIndex = decodedBase64.lastIndexOf('"');
-
-        if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
-            throw new IllegalArgumentException("Invalid Base64 skull value: " + decodedBase64);
-        }
-
-        try {
-            return decodedBase64.substring(startIndex + 1, endIndex);
-        } catch (IndexOutOfBoundsException ex) {
-            throw new IllegalArgumentException("Invalid Base64 skull value: " + decodedBase64, ex);
-        }
+        // Example: http://textures.minecraft.net/texture/e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db
+        Matcher matcher = MOJANG_SHA256_APPROX.matcher(decodedBase64);
+        if (matcher.find()) return matcher.group();
+        else throw new IllegalArgumentException("Invalid Base64 skull value: " + decodedBase64);
     }
 
     public static final class StringSkullCache {
