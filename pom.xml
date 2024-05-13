@@ -70,7 +70,9 @@
         <!-- Latest version -->
         <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
         <!-- 1.8.8-R0.1-SNAPSHOT -->
-        <spigotVersion>1.20.5-R0.1-SNAPSHOT</spigotVersion>
+        <!-- 1.9.4-R0.1-SNAPSHOT -->
+        <!-- 1.16.5-R0.1-SNAPSHOT -->
+        <spigotVersion>1.20.6-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
     <dependencies>

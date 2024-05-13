@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin
- * @version 11.0.0
+ * @version 11.0.1
  * @see Particles
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
@@ -78,7 +78,22 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 1.0.0
      */
-    private static final boolean ISFLAT = XParticle.of("FOOTSTEP") == null;
+    private static final boolean ISFLAT;
+
+    static {
+        boolean isFlat;
+        try {
+            World.class.getDeclaredMethod("spawnParticle", Particle.class, Location.class, int.class,
+                    double.class, double.class, double.class,
+                    double.class, Object.class, boolean.class
+            );
+            isFlat = true;
+        } catch (NoSuchMethodException e) {
+            isFlat = false;
+        }
+        ISFLAT = isFlat;
+    }
+
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustTransition}
      * which is only available from 1.17+ (DUST_COLOR_TRANSITION was released in 1.17)
@@ -1000,9 +1015,9 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
-        this.preCalculation = (loc) -> {
+        this.preCalculation = (context) -> {
             try {
-                this.location = locationCaller.call();
+                context.location = locationCaller.call();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -1299,19 +1314,17 @@ public class ParticleDisplay implements Cloneable {
         if (this.preCalculation != null) this.preCalculation.accept(preContext);
         if (!preContext.shouldSpawn) return null;
 
-        local = preContext.local;
         Location location = preContext.location;
+        if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
+        // Exception check after preCalculation to account for dynamic location callers from withEntity()
 
+        local = preContext.local;
         if (local != null && !rotations.isEmpty()) {
             List<Quaternion> rotations = getRotation(false);
             for (Quaternion grouped : rotations) {
                 local = Quaternion.rotate(local, grouped);
             }
         }
-
-        if (location == null) throw new IllegalStateException("Attempting to spawn particle when no location is set");
-        // Exception check after onCalculation to account for dynamic location callers from withEntity()
-
 
         location = cloneLocation(location);
         if (local != null) location.add(local);
@@ -1464,6 +1477,8 @@ public class ParticleDisplay implements Cloneable {
         if (loc == null) return null;
 
         Particle particle = this.particle.get();
+        Objects.requireNonNull(particle, () -> "Cannot unsupported particle: " + particle);
+
         World world = loc.getWorld();
         double offsetx = offset.getX();
         double offsety = offset.getY();

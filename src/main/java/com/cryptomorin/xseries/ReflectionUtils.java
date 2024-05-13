@@ -31,12 +31,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +53,7 @@ import java.util.regex.Pattern;
  * Another one is <a href="https://mappings.cephx.dev/1.20.6/net/minecraft/server/network/ServerPlayerConnection.html">Cephx</a>.
  *
  * @author Crypto Morin
- * @version 9.0.0
+ * @version 10.0.0
  */
 public final class ReflectionUtils {
     /**
@@ -235,6 +233,7 @@ public final class ReflectionUtils {
     public static final String
             CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
             NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
+    public static final MinecraftMapping SUPPORTED_MAPPING;
     /**
      * A nullable public accessible field only available in {@code EntityPlayer}.
      * This can be null if the player is offline.
@@ -255,7 +254,6 @@ public final class ReflectionUtils {
     private static final MethodHandle SEND_PACKET;
 
     static {
-        // Was Paper remapper just broken in v1.20.6?
         MinecraftClassHandle entityPlayer = ofMinecraft()
                 .inPackage(MinecraftPackage.NMS, "server.level")
                 .map(MinecraftMapping.MOJANG, "ServerPlayer")
@@ -275,17 +273,37 @@ public final class ReflectionUtils {
                 .inPackage(MinecraftPackage.NMS, "network.protocol")
                 .map(MinecraftMapping.SPIGOT, "Packet");
 
+        if (ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.level")
+                .map(MinecraftMapping.MOJANG, "ServerPlayer")
+                .exists()) {
+            SUPPORTED_MAPPING = MinecraftMapping.MOJANG;
+        } else if (ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.level")
+                .map(MinecraftMapping.MOJANG, "EntityPlayer")
+                .exists()) {
+            SUPPORTED_MAPPING = MinecraftMapping.SPIGOT;
+        } else {
+            throw new RuntimeException("Unknown Minecraft mapping " + getVersionInformation(), entityPlayer.catchError());
+        }
+
         PLAYER_CONNECTION = entityPlayer
-                .getterField(v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"))
+                // .getterField(v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"))
+                .getterField()
                 .returns(playerConnectionImpl)
+                .map(MinecraftMapping.MOJANG, "connection")
+                .map(MinecraftMapping.OBFUSCATED, v(20, "c").v(17, "b").orElse("playerConnection"))
                 .unreflect();
         SEND_PACKET = playerConnection
-                .method(v(20, 5, "send").v(20, 2, "b").v(18, "a").orElse("sendPacket"))
+                .method()
                 .returns(void.class)
                 .parameters(packetClass)
+                .map(MinecraftMapping.MOJANG, "send")
+                .map(MinecraftMapping.OBFUSCATED, v(20, 2, "b").v(18, "a").orElse("sendPacket"))
                 .unreflect();
         GET_HANDLE = craftPlayer
-                .method("getHandle")
+                .method()
+                .named("getHandle")
                 .returns(entityPlayer)
                 .unreflect();
     }
@@ -369,10 +387,12 @@ public final class ReflectionUtils {
      * @param name        the name of the class.
      * @return the NMS class or null if not found.
      * @throws RuntimeException if the class could not be found.
+     * @deprecated use {@link #ofMinecraft()} instead.
      * @see #getNMSClass(String)
      * @since 4.0.0
      */
     @Nonnull
+    @Deprecated
     public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String name) {
         if (packageName != null && supports(17)) name = packageName + '.' + name;
 
@@ -468,8 +488,10 @@ public final class ReflectionUtils {
      * @return the CraftBukkit class or null if not found.
      * @throws RuntimeException if the class could not be found.
      * @since 1.0.0
+     * @deprecated use {@link #ofMinecraft()} instead.
      */
     @Nonnull
+    @Deprecated
     public static Class<?> getCraftClass(@Nonnull String name) {
         try {
             return Class.forName(CRAFTBUKKIT_PACKAGE + '.' + name);
@@ -497,21 +519,74 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * @since v9.0.0
+     */
     @ApiStatus.Experimental
     public static MinecraftClassHandle ofMinecraft() {
         return new MinecraftClassHandle();
     }
 
+    /**
+     * @since v9.0.0
+     */
+    @ApiStatus.Experimental
+    public static ClassHandle classHandle() {
+        return new ClassHandle();
+    }
+
+    /**
+     * @since v9.0.0
+     */
+    @SafeVarargs
+    @ApiStatus.Experimental
+    public static <T, H extends Handle<T>> AggregateHandle<T, H> any(H... handles) {
+        return new AggregateHandle<>(Arrays.asList(handles));
+    }
+
+    /**
+     * Paper started using Mojang-mapped names since 1.20.5
+     */
     public enum MinecraftMapping {
-        MOJANG, SPIGOT;
+        MOJANG, OBFUSCATED, SPIGOT;
     }
 
     public enum MinecraftPackage {
-        NMS(NMS_PACKAGE), CB(CRAFTBUKKIT_PACKAGE);
+        NMS(NMS_PACKAGE), CB(CRAFTBUKKIT_PACKAGE), SPIGOT("org.spigotmc");
 
         private final String packageName;
 
         MinecraftPackage(String packageName) {this.packageName = packageName;}
+    }
+
+    public interface Handle<T> {
+        default boolean exists() {
+            try {
+                reflect();
+                return true;
+            } catch (ReflectiveOperationException ignored) {
+                return false;
+            }
+        }
+
+        default ReflectiveOperationException catchError() {
+            try {
+                reflect();
+                return null;
+            } catch (ReflectiveOperationException ex) {
+                return ex;
+            }
+        }
+
+        default T unreflect() {
+            try {
+                return reflect();
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        T reflect() throws ReflectiveOperationException;
     }
 
     @ApiStatus.Experimental
@@ -534,34 +609,40 @@ public final class ReflectionUtils {
         }
     }
 
-    public static final class AggregateClassHandle {
-        private final List<ClassHandle> handles = new ArrayList<>(5);
+    public static final class AggregateHandle<T, H extends Handle<T>> implements Handle<T> {
+        private final List<H> handles;
+        private Consumer<H> handleModifier;
 
-        public AggregateClassHandle add(ClassHandle handle) {
+        public AggregateHandle() {
+            this.handles = new ArrayList<>(5);
+        }
+
+        public AggregateHandle(Collection<H> handles) {
+            this.handles = new ArrayList<>(handles.size());
+            this.handles.addAll(handles);
+        }
+
+        public AggregateHandle<T, H> or(H handle) {
             this.handles.add(handle);
             return this;
         }
 
-        public boolean exists() {
-            return handles.stream().allMatch(ClassHandle::exists);
+        public AggregateHandle<T, H> modify(Consumer<H> handleModifier) {
+            this.handleModifier = handleModifier;
+            return this;
         }
 
-        public Class<?> unreflect() {
-            try {
-                return reflect();
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public Class<?> reflect() throws ClassNotFoundException {
+        @Override
+        public T reflect() throws ReflectiveOperationException {
             ClassNotFoundException errors = null;
 
-            for (ClassHandle handle : handles) {
+            for (H handle : handles) {
+                if (handleModifier != null) handleModifier.accept(handle);
                 try {
                     return handle.reflect();
                 } catch (ClassNotFoundException ex) {
-                    if (errors == null) errors = new ClassNotFoundException("None of the classes were found");
+                    if (errors == null)
+                        errors = new ClassNotFoundException("None of the aggregate handles were successful");
                     errors.addSuppressed(ex);
                 }
             }
@@ -570,7 +651,7 @@ public final class ReflectionUtils {
         }
     }
 
-    public abstract static class MemberHandle {
+    public abstract static class MemberHandle implements Handle<MethodHandle> {
         protected boolean makeAccessible;
         protected final ClassHandle clazz;
         protected final MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -607,6 +688,11 @@ public final class ReflectionUtils {
 
         protected NamedMemberHandle(ClassHandle clazz) {
             super(clazz);
+        }
+
+        public NamedMemberHandle map(MinecraftMapping mapping, String name) {
+            this.names.add(name);
+            return this;
         }
 
         public NamedMemberHandle asStatic() {
@@ -681,6 +767,11 @@ public final class ReflectionUtils {
             return this;
         }
 
+        public MethodMemberHandle asStatic() {
+            super.asStatic();
+            return this;
+        }
+
         public MethodMemberHandle parameters(Class<?>... parameterTypes) {
             this.parameterTypes = parameterTypes;
             return this;
@@ -735,6 +826,11 @@ public final class ReflectionUtils {
 
         public FieldMemberHandle getter() {
             this.getter = true;
+            return this;
+        }
+
+        public FieldMemberHandle asStatic() {
+            super.asStatic();
             return this;
         }
 
@@ -793,7 +889,7 @@ public final class ReflectionUtils {
     }
 
     @ApiStatus.Experimental
-    public static class ClassHandle {
+    public static class ClassHandle implements Handle<Class<?>> {
         protected String packageName;
         protected final List<String> classNames = new ArrayList<>(5);
         protected boolean array;
@@ -813,16 +909,16 @@ public final class ReflectionUtils {
             return this;
         }
 
-        public MethodMemberHandle method(String... names) {
-            return new MethodMemberHandle(this).named(names);
+        public MethodMemberHandle method() {
+            return new MethodMemberHandle(this);
         }
 
-        public FieldMemberHandle getterField(String... names) {
-            return new FieldMemberHandle(this).named(names).getter();
+        public FieldMemberHandle getterField() {
+            return new FieldMemberHandle(this).getter();
         }
 
-        public FieldMemberHandle setterField(String... names) {
-            return new FieldMemberHandle(this).named(names).setter();
+        public FieldMemberHandle setterField() {
+            return new FieldMemberHandle(this).setter();
         }
 
         public ConstructorMemberHandle constructor(Class<?>... parameters) {
@@ -848,23 +944,7 @@ public final class ReflectionUtils {
             return classNames;
         }
 
-        public boolean exists() {
-            try {
-                reflect();
-                return true;
-            } catch (ClassNotFoundException ignored) {
-                return false;
-            }
-        }
-
-        public Class<?> unreflect() {
-            try {
-                return reflect();
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+        @Override
         public Class<?> reflect() throws ClassNotFoundException {
             ClassNotFoundException errors = null;
 

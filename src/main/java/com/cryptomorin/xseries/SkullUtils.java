@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 7.0.0
+ * @version 7.0.1
  * @see XMaterial
  * @see ReflectionUtils
  */
@@ -233,7 +233,7 @@ public final class SkullUtils {
     public static SkullMeta applySkin(@Nonnull ItemMeta head, @Nonnull String identifier) {
         SkullMeta meta = (SkullMeta) head;
         // @formatter:off
-        StringSkullCache result = detectSkullValueType(identifier);
+        SkullValue result = detectSkullValueType(identifier);
         switch (result.valueType) {
             case UUID: return applySkin(meta, Bukkit.getOfflinePlayer((UUID) result.object));
             case NAME: return applySkinFromName(meta, identifier);
@@ -291,12 +291,12 @@ public final class SkullUtils {
     @Nonnull
     public static GameProfile detectProfileFromString(String identifier) {
         // @formatter:off sometimes programming is just art that a machine can't understand :)
-        StringSkullCache result = detectSkullValueType(identifier);
+        SkullValue result = detectSkullValueType(identifier);
         switch (result.valueType) {
             case UUID:         return new GameProfile((UUID) result.object,          GAME_PROFILE_EMPTY_NAME);
             case NAME:         return new GameProfile(GAME_PROFILE_EMPTY_UUID,       identifier);
-            case BASE64:       return profileFromBase64(                             identifier,  extractMojangSHAFromBase64((String) result.object));
-            case TEXTURE_URL:  return profileFromBase64(encodeTexturesURL(           identifier), extractMojangSHAFromBase64(identifier));
+            case BASE64:       return profileFromBase64(                             identifier, (String) result.object);
+            case TEXTURE_URL:  return profileFromBase64(encodeTexturesURL(           identifier), (String) result.object);
             case TEXTURE_HASH: return profileFromBase64(encodeTexturesURL(TEXTURES + identifier), identifier);
             case UNKNOWN:      return profileFromBase64(INVALID_SKULL_VALUE,                           INVALID_SKULL_VALUE); // This can't be cached because the caller might change it.
             default: throw new AssertionError("Unknown skull value");
@@ -305,24 +305,27 @@ public final class SkullUtils {
     }
 
     @Nonnull
-    public static StringSkullCache detectSkullValueType(@Nonnull String identifier) {
+    public static SkullValue detectSkullValueType(@Nonnull String identifier) {
         try {
             UUID id = UUID.fromString(identifier);
-            return new StringSkullCache(ValueType.UUID, id);
+            return new SkullValue(ValueType.UUID, id);
         } catch (IllegalArgumentException ignored) {
         }
 
-        if (isUsername(identifier)) return new StringSkullCache(ValueType.NAME);
-        if (identifier.contains("textures.minecraft.net")) return new StringSkullCache(ValueType.TEXTURE_URL);
+        if (isUsername(identifier)) return new SkullValue(ValueType.NAME, identifier);
+        if (identifier.contains("textures.minecraft.net")) {
+            return new SkullValue(ValueType.TEXTURE_URL, extractMojangSHAFromBase64(identifier));
+        }
         if (identifier.length() > 100) {
             String decoded = decodeBase64(identifier);
-            if (decoded != null) return new StringSkullCache(ValueType.BASE64, decoded);
+            if (decoded != null) return new SkullValue(ValueType.BASE64, decoded);
         }
 
         // We'll just "assume" that it's a textures.minecraft.net hash without the URL part.
-        if (MOJANG_SHA256_APPROX.matcher(identifier).matches()) return new StringSkullCache(ValueType.TEXTURE_HASH);
+        if (MOJANG_SHA256_APPROX.matcher(identifier).matches())
+            return new SkullValue(ValueType.TEXTURE_HASH, identifier);
 
-        return new StringSkullCache(ValueType.UNKNOWN);
+        return new SkullValue(ValueType.UNKNOWN, identifier);
     }
 
     public static void setSkin(@Nonnull Block block, @Nonnull String value) {
@@ -415,22 +418,18 @@ public final class SkullUtils {
     }
 
     private static String extractMojangSHAFromBase64(String decodedBase64) {
-        // Example: {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/74133f6ac3be2e2499a784efadcfffeb9ace025c3646ada67f3414e5ef3394"}}}
         // Example: http://textures.minecraft.net/texture/e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db
+        // Will not work reliably if NBT is passed: {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/74133f6ac3be2e2499a784efadcfffeb9ace025c3646ada67f3414e5ef3394"}}}
         Matcher matcher = MOJANG_SHA256_APPROX.matcher(decodedBase64);
         if (matcher.find()) return matcher.group();
         else throw new IllegalArgumentException("Invalid Base64 skull value: " + decodedBase64);
     }
 
-    public static final class StringSkullCache {
+    public static final class SkullValue {
         private final ValueType valueType;
         private final Object object;
 
-        private StringSkullCache(ValueType valueType) {
-            this(valueType, null);
-        }
-
-        private StringSkullCache(ValueType valueType, Object object) {
+        private SkullValue(ValueType valueType, Object object) {
             this.valueType = valueType;
             this.object = object;
         }

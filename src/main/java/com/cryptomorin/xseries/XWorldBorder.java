@@ -27,7 +27,7 @@ import static com.cryptomorin.xseries.ReflectionUtils.*;
 /**
  * Send different <a href="https://minecraft.fandom.com/wiki/World_border">World Border</a> data to each player.
  *
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class XWorldBorder implements Cloneable {
     private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, TRANSITION;
@@ -117,7 +117,7 @@ public class XWorldBorder implements Cloneable {
 
     public static XWorldBorder from(WorldBorder bukkitWb) {
         XWorldBorder wb = new XWorldBorder();
-        wb.world = bukkitWb.getWorld();
+        wb.world = bukkitWb.getCenter().getWorld(); // Don't use WorldBorder#getWorld() not supported in pre-1.17
         wb.centerX = bukkitWb.getCenter().getX();
         wb.centerZ = bukkitWb.getCenter().getZ();
         wb.size = bukkitWb.getSize();

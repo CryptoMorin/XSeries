@@ -133,9 +133,7 @@ public enum XPotion {
         Data.NAMES.put(this.name(), this);
         for (String legacy : aliases) {
             Data.NAMES.put(legacy, this);
-            if (tempType == null) {
-                tempType = PotionEffectType.getByName(this.name());
-            }
+            if (tempType == null) tempType = PotionEffectType.getByName(legacy);
         }
         this.type = tempType;
     }

@@ -149,13 +149,20 @@ public enum XEntityType {
         Data.NAME_MAPPING.put(this.name(), this);
 
         for (String alt : alts) {
-            if (entityType != null) break;
-            entityType = Enums.getIfPresent(EntityType.class, alt).orNull();
+            if (entityType == null) entityType = tryGetEntityType(alt);
             Data.NAME_MAPPING.put(alt, this);
         }
 
         this.entityType = entityType;
         if (entityType != null) Data.BUKKIT_MAPPING.put(entityType, this);
+    }
+
+    private static EntityType tryGetEntityType(String particle) {
+        try {
+            return EntityType.valueOf(particle);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     public static final class Data {
@@ -170,6 +177,10 @@ public enum XEntityType {
     public static XEntityType of(Entity entity) {
         Objects.requireNonNull(entity, "Cannot match entity type from null entity");
         return of(entity.getType());
+    }
+
+    public XEntityType or(XEntityType other) {
+        return this.isSupported() ? this : other;
     }
 
     public static XEntityType of(EntityType entityType) {

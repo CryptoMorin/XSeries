@@ -175,8 +175,7 @@ public enum XParticle {
         Data.NAME_MAPPING.put(this.name(), this);
 
         for (String alt : alts) {
-            if (testParticle != null) break;
-            testParticle = tryGetParticle(alt);
+            if (testParticle == null) testParticle = tryGetParticle(alt);
             Data.NAME_MAPPING.put(alt, this);
         }
 
@@ -203,6 +202,10 @@ public enum XParticle {
     public static final class Data {
         private static final Map<String, XParticle> NAME_MAPPING = new HashMap<>();
         private static final Map<Particle, XParticle> BUKKIT_MAPPING = new EnumMap<>(Particle.class);
+    }
+
+    public XParticle or(XParticle other) {
+        return this.isSupported() ? this : other;
     }
 
     public static XParticle of(Particle particle) {
