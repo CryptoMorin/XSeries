@@ -20,8 +20,8 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.cryptomorin.xseries.SkullUtils;
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSkull;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -55,7 +55,7 @@ final class SkullCacheListener {
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
         SkullMeta meta = (SkullMeta) head;
-        return SkullUtils.setSkullBase64(meta, base64, null);
+        return XSkull.applySkinFromBase64(meta, base64, null);
     }
 
     /**
@@ -88,7 +88,7 @@ final class SkullCacheListener {
 
                 if (mojangError(jObjectP)) return null;
                 JsonObject textureProperty = jObjectP.get("properties").getAsJsonArray().get(0).getAsJsonObject();
-                //String signature = textureProperty.get("signature").getAsString();
+                // String signature = textureProperty.get("signature").getAsString();
                 return textureProperty.get("value").getAsString();
             }
         } catch (IOException | IllegalStateException e) {

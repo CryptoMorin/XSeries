@@ -1,6 +1,6 @@
 # XSeries
-[![Bukkit Version](https://img.shields.io/badge/bukkit-1.20-dark_green.svg)](https://shields.io/)
-[![Java](https://img.shields.io/badge/java-8-dark_green.svg)](https://shields.io/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.6-dark_green.svg)](https://shields.io/)
+[![Java](https://img.shields.io/badge/Java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 [![CodeFactor](https://www.codefactor.io/repository/github/cryptomorin/xseries/badge)](https://www.codefactor.io/repository/github/cryptomorin/xseries)

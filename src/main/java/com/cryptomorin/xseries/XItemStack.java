@@ -78,7 +78,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @version 7.5.0
  * @see XMaterial
  * @see XPotion
- * @see SkullUtils
+ * @see XSkull
  * @see XEnchantment
  * @see ItemStack
  */
@@ -234,7 +234,7 @@ public final class XItemStack {
                 config.set(entry, enchant.getValue());
             }
         } else if (meta instanceof SkullMeta) {
-            String skull = SkullUtils.getSkinValue(meta);
+            String skull = XSkull.getSkinValue(meta);
             if (skull != null) config.set("skull", skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
@@ -652,7 +652,7 @@ public final class XItemStack {
         // Special Items
         if (meta instanceof SkullMeta) {
             String skull = config.getString("skull");
-            if (skull != null) SkullUtils.applySkin(meta, skull);
+            if (skull != null) XSkull.applySkin(meta, skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");

@@ -1,0 +1,43 @@
+package com.cryptomorin.xseries.reflection.jvm;
+
+import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public abstract class NamedMemberHandle extends MemberHandle {
+    protected Class<?> returnType;
+    protected boolean isStatic;
+    protected final List<String> names = new ArrayList<>(5);
+
+    protected NamedMemberHandle(ClassHandle clazz) {
+        super(clazz);
+    }
+
+    public NamedMemberHandle map(MinecraftMapping mapping, String name) {
+        this.names.add(name);
+        return this;
+    }
+
+    public NamedMemberHandle asStatic() {
+        this.isStatic = true;
+        return this;
+    }
+
+    public NamedMemberHandle returns(Class<?> clazz) {
+        this.returnType = clazz;
+        return this;
+    }
+
+    public NamedMemberHandle returns(ClassHandle clazz) {
+        this.returnType = clazz.unreflect();
+        return this;
+    }
+
+    public MemberHandle named(String... names) {
+        this.names.addAll(Arrays.asList(names));
+        return this;
+    }
+}

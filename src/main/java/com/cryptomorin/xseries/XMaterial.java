@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +59,7 @@ import java.util.stream.Collectors;
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 11.5.0
+ * @version 12.0.0
  * @see Material
  * @see ItemStack
  */
@@ -1683,14 +1682,6 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
     /**
-     * This is used for {@link #isOneOf(Collection)}
-     *
-     * @since 3.4.0
-     */
-    private static final Cache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
-            .expireAfterAccess(3, TimeUnit.HOURS)
-            .build();
-    /**
      * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
      * <a href="https://minecraftitemids.com/types/spawn-egg">Spawn Eggs</a>
      *
@@ -1955,29 +1946,6 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
     }
 
     /**
-     * Gets the XMaterial based on the material's ID (Magic Value) and data value.<br>
-     * You should avoid using this for performance issues.
-     *
-     * @param id   the ID (Magic value) of the material.
-     * @param data the data value of the material.
-     * @return a parsed XMaterial with the same ID and data value.
-     * @see #matchXMaterial(ItemStack)
-     * @since 2.0.0
-     * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
-     * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} cache yourself.
-     * This method obviously doesn't work for 1.13+ and will not be supported. This is only here for debugging purposes.
-     */
-    @Nonnull
-    @Deprecated
-    public static Optional<XMaterial> matchXMaterial(int id, byte data) {
-        if (id < 0 || id > MAX_ID || data < 0) return Optional.empty();
-        for (XMaterial materials : VALUES) {
-            if (materials.data == data && materials.getId() == id) return Optional.of(materials);
-        }
-        return Optional.empty();
-    }
-
-    /**
      * The main method that parses the given material name and data value as an XMaterial.
      * All the values passed to this method will not be null or empty and are formatted correctly.
      *
@@ -1985,7 +1953,6 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
      * @return an XMaterial (with the same data value if specified)
      * @see #matchXMaterial(Material)
-     * @see #matchXMaterial(int, byte)
      * @see #matchXMaterial(ItemStack)
      * @since 3.0.0
      */
@@ -2087,78 +2054,6 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
     }
 
     /**
-     * Checks if the list of given material names matches the given base material.
-     * Mostly used for configs.
-     * <p>
-     * Supports {@link String#contains} {@code CONTAINS:NAME} and Regular Expression {@code REGEX:PATTERN} formats.
-     * <p>
-     * <b>Example:</b>
-     * <blockquote><pre>
-     *     XMaterial material = {@link #matchXMaterial(ItemStack)};
-     *     if (material.isOneOf(plugin.getConfig().getStringList("disabled-items")) return;
-     * </pre></blockquote>
-     * <br>
-     * <b>{@code CONTAINS} Examples:</b>
-     * <pre>
-     *     {@code "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true}
-     *     {@code "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true}
-     * </pre>
-     * <p>
-     * <b>{@code REGEX} Examples</b>
-     * <pre>
-     *     {@code "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG}
-     *     {@code "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR}
-     * </pre>
-     * <p>
-     * The reason that there are tags for {@code CONTAINS} and {@code REGEX} is for the performance.
-     * Although RegEx patterns are cached in this method,
-     * please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag instead.
-     * It'll have a huge impact on performance.
-     * Please avoid using {@code (capturing groups)} there's no use for them in this case.
-     * If you want to use groups, use {@code (?: non-capturing groups)}. It's faster.
-     * <p>
-     * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
-     *
-     * @param materials the material names to check base material on.
-     * @return true if one of the given material names is similar to the base material.
-     * @since 3.1.1
-     * @deprecated Use XTag.stringMatcher() instead.
-     */
-    @Deprecated
-    public boolean isOneOf(@Nullable Collection<String> materials) {
-        if (materials == null || materials.isEmpty()) return false;
-        String name = this.name();
-
-        for (String comp : materials) {
-            String checker = comp.toUpperCase(Locale.ENGLISH);
-            if (checker.startsWith("CONTAINS:")) {
-                comp = format(checker.substring(9));
-                if (name.contains(comp)) return true;
-                continue;
-            }
-            if (checker.startsWith("REGEX:")) {
-                comp = comp.substring(6);
-                Pattern pattern = CACHED_REGEX.getIfPresent(comp);
-                if (pattern == null) {
-                    try {
-                        pattern = Pattern.compile(comp);
-                        CACHED_REGEX.put(comp, pattern);
-                    } catch (PatternSyntaxException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                if (pattern != null && pattern.matcher(name).matches()) return true;
-                continue;
-            }
-
-            // Direct Object Equals
-            Optional<XMaterial> xMat = matchXMaterial(comp);
-            if (xMat.isPresent() && xMat.get() == this) return true;
-        }
-        return false;
-    }
-
-    /**
      * Sets the {@link Material} (and data value on older versions) of an item.
      * Damageable materials will not have their durability changed.
      * <p>
@@ -2228,7 +2123,6 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * Spigot added material ID support back in 1.16+
      *
      * @return the ID of the material or <b>-1</b> if it's not a legacy material or the server doesn't support the material.
-     * @see #matchXMaterial(int, byte)
      * @since 2.2.0
      */
     @SuppressWarnings("deprecation")

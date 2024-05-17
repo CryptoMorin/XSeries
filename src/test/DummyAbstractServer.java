@@ -154,7 +154,7 @@ public abstract class DummyAbstractServer {
                 });
 
 //                DummyAbstractServer.print("Initializing server...");
-                //Bukkit.setServer(instance);
+                // Bukkit.setServer(instance);
 
                 DummyAbstractServer.print("Done!");
             });

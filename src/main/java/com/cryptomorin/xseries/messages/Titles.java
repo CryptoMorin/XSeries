@@ -21,19 +21,22 @@
  */
 package com.cryptomorin.xseries.messages;
 
-import com.cryptomorin.xseries.ReflectionUtils;
+import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Function;
+
+import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
+import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.sendPacket;
 
 /**
  * A reflection API for titles in Minecraft.
@@ -47,7 +50,7 @@ import java.util.function.Function;
  *
  * @author Crypto Morin
  * @version 3.1.0
- * @see ReflectionUtils
+ * @see XReflection
  */
 public final class Titles implements Cloneable {
     /**
@@ -93,9 +96,10 @@ public final class Titles implements Cloneable {
         SUPPORTS_TITLES = SUPPORTS_TITLES1;
 
         if (!SUPPORTS_TITLES) {
-            Class<?> chatComponentText = ReflectionUtils.getNMSClass("ChatComponentText");
-            Class<?> packet = ReflectionUtils.getNMSClass("PacketPlayOutTitle");
-            Class<?> titleTypes = packet.getDeclaredClasses()[0];
+            MinecraftClassHandle chatComponentText = ofMinecraft().inPackage(MinecraftPackage.NMS).named("ChatComponentText");
+            MinecraftClassHandle packet = ofMinecraft().inPackage(MinecraftPackage.NMS).named("PacketPlayOutTitle");
+            MinecraftClassHandle IChatBaseComponentClass = ofMinecraft().inPackage(MinecraftPackage.NMS).named("IChatBaseComponent");
+            Class<?> titleTypes = packet.unreflect().getDeclaredClasses()[0];
 
             for (Object type : titleTypes.getEnumConstants()) {
                 switch (type.toString()) {
@@ -113,14 +117,10 @@ public final class Titles implements Cloneable {
                 }
             }
 
-            MethodHandles.Lookup lookup = MethodHandles.lookup();
             try {
-                chatComp = lookup.findConstructor(chatComponentText, MethodType.methodType(void.class, String.class));
-
-                packetCtor = lookup.findConstructor(packet,
-                        MethodType.methodType(void.class, titleTypes,
-                                ReflectionUtils.getNMSClass("IChatBaseComponent"), int.class, int.class, int.class));
-            } catch (NoSuchMethodException | IllegalAccessException e) {
+                chatComp = chatComponentText.constructor(String.class).reflect();
+                packetCtor = packet.constructor(titleTypes, IChatBaseComponentClass.unreflect(), int.class, int.class, int.class).reflect();
+            } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
         }
@@ -176,15 +176,15 @@ public final class Titles implements Cloneable {
 
         try {
             Object timesPacket = PACKET_PLAY_OUT_TITLE.invoke(TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
-            ReflectionUtils.sendPacket(player, timesPacket);
+            sendPacket(player, timesPacket);
 
             if (title != null) {
                 Object titlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
-                ReflectionUtils.sendPacket(player, titlePacket);
+                sendPacket(player, titlePacket);
             }
             if (subtitle != null) {
                 Object subtitlePacket = PACKET_PLAY_OUT_TITLE.invoke(SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
-                ReflectionUtils.sendPacket(player, subtitlePacket);
+                sendPacket(player, subtitlePacket);
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -281,7 +281,7 @@ public final class Titles implements Cloneable {
      */
     public static void clearTitle(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
-        if (ReflectionUtils.supports(11)) {
+        if (XReflection.supports(11)) {
             player.resetTitle();
             return;
         }
@@ -294,7 +294,7 @@ public final class Titles implements Cloneable {
             return;
         }
 
-        ReflectionUtils.sendPacket(player, clearPacket);
+        sendPacket(player, clearPacket);
     }
 
     /**
@@ -315,15 +315,15 @@ public final class Titles implements Cloneable {
         Objects.requireNonNull(header, "Tab title header cannot be null");
         Objects.requireNonNull(footer, "Tab title footer cannot be null");
 
-        if (ReflectionUtils.supports(13)) {
+        if (XReflection.supports(13)) {
             // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/entity/Player.java?until=2975358a021fe25d52a8103f7d7aaeceb3abf245&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fentity%2FPlayer.java
             for (Player player : players) player.setPlayerListHeaderFooter(header, footer);
             return;
         }
 
         try {
-            Class<?> IChatBaseComponent = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
-            Class<?> PacketPlayOutPlayerListHeaderFooter = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
+            Class<?> IChatBaseComponent = XReflection.getNMSClass("network.chat", "IChatBaseComponent");
+            Class<?> PacketPlayOutPlayerListHeaderFooter = XReflection.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
 
             Method chatComponentBuilderMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");
@@ -339,7 +339,7 @@ public final class Titles implements Cloneable {
             footerField.setAccessible(true);
             footerField.set(packet, tabFooter);
 
-            for (Player player : players) ReflectionUtils.sendPacket(player, packet);
+            for (Player player : players) sendPacket(player, packet);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

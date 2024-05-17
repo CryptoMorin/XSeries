@@ -1,5 +1,9 @@
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -22,7 +26,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 
-import static com.cryptomorin.xseries.ReflectionUtils.*;
+import static com.cryptomorin.xseries.reflection.XReflection.*;
 
 /**
  * Send different <a href="https://minecraft.fandom.com/wiki/World_border">World Border</a> data to each player.
@@ -288,9 +292,14 @@ public class XWorldBorder implements Cloneable {
 
         boolean supportsSeperatePackets;
 
-        Class<?> wb = getNMSClass("world.level.border", "WorldBorder");
-        Class<?> worldServer = getNMSClass("server.level", "WorldServer");
-        Class<?> craftWorld = getCraftClass("CraftWorld");
+        MinecraftClassHandle wb = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "world.level.border")
+                .named("WorldBorder"); // Same mapping
+        MinecraftClassHandle worldServer = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "server.level")
+                .map(MinecraftMapping.MOJANG, "ServerLevel")
+                .map(MinecraftMapping.SPIGOT, "WorldServer");
+        MinecraftClassHandle craftWorld = ofMinecraft().inPackage(MinecraftPackage.CB).named("CraftWorld");
 
         try {
             if (!supports(17)) {
@@ -301,7 +310,7 @@ public class XWorldBorder implements Cloneable {
                     wbType = getNMSClass("PacketPlayOutWorldBorder$EnumWorldBorderAction");
                 }
 
-                packetInit = lookup.findConstructor(getNMSClass("PacketPlayOutWorldBorder"), MethodType.methodType(void.class, wb, wbType));
+                packetInit = lookup.findConstructor(getNMSClass("PacketPlayOutWorldBorder"), MethodType.methodType(void.class, wb.reflect(), wbType));
 
                 for (Object type : wbType.getEnumConstants()) {
                     if (type.toString().equals("INITIALIZE")) {
@@ -310,19 +319,6 @@ public class XWorldBorder implements Cloneable {
                     }
                 }
             }
-
-            world = lookup.findVirtual(craftWorld, "getHandle", MethodType.methodType(getNMSClass("server.level", "WorldServer")));
-            worldborder = lookup.findConstructor(wb, MethodType.methodType(void.class));
-            worldborderWorld = lookup.findSetter(wb, "world", worldServer); // name not obfuscated since it's added by craftbukkit
-            center = lookup.findVirtual(wb, v(18, "c").orElse("setCenter"), MethodType.methodType(void.class, double.class, double.class));
-            warnTime = lookup.findVirtual(wb, v(18, "b").orElse("setWarningTime"), MethodType.methodType(void.class, int.class));
-
-            // or setWarningBlocks
-            distance = lookup.findVirtual(wb, v(20, "c").v(18, "b").orElse("setWarningDistance"), MethodType.methodType(void.class, int.class));
-            size = lookup.findVirtual(wb, v(18, "a").orElse("setSize"), MethodType.methodType(void.class, double.class));
-
-            // Renamed to lerpSizeBetween(double d0, double d1, long i)
-            transition = lookup.findVirtual(wb, v(18, "a").orElse("transitionSizeBetween"), MethodType.methodType(void.class, double.class, double.class, long.class));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -332,8 +328,12 @@ public class XWorldBorder implements Cloneable {
             Function<String, MethodHandle> getPacket = (packet) ->
             {
                 try {
-                    return lookup.findConstructor(getNMSClass("network.protocol.game", packet), MethodType.methodType(void.class, wb));
-                } catch (NoSuchMethodException | IllegalAccessException e) {
+                    return ofMinecraft()
+                            .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                            .named(packet)
+                            .constructor(wb)
+                            .reflect();
+                } catch (ReflectiveOperationException e) {
                     throw new RuntimeException(e);
                 }
             };
@@ -349,7 +349,6 @@ public class XWorldBorder implements Cloneable {
             supportsSeperatePackets = false;
         }
 
-        WORLD_HANDLE = world;
         PACKET_INIT = packetInit;
         PACKET_SIZE = packetSize;
         PACKET_CENTER = packetCenter;
@@ -359,14 +358,32 @@ public class XWorldBorder implements Cloneable {
 
         SUPPORTS_SEPARATE_PACKETS = supportsSeperatePackets;
 
-        WORLDBORDER = worldborder;
-        WORLDBORDER_WORLD = worldborderWorld;
-        CENTER = center;
-        SIZE = size;
-        WARNING_TIME = warnTime;
-        WARNING_DISTANCE = distance;
-        TRANSITION = transition;
+        WORLD_HANDLE = craftWorld.method().named("getHandle").returns(worldServer).unreflect();
         INITIALIZE = initialize;
+        WORLDBORDER = wb.constructor().unreflect();
+        WORLDBORDER_WORLD = wb.setterField().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
+
+        CENTER = wb.method()
+                .named(v(18, "c").orElse("setCenter"))
+                .returns(void.class).parameters(double.class, double.class)
+                .unreflect();
+        SIZE = wb.method()
+                .named(v(18, "a").orElse("setSize"))
+                .returns(void.class).parameters(double.class)
+                .unreflect();
+        WARNING_TIME = wb.method()
+                .named(v(18, "b").orElse("setWarningTime"))
+                .returns(void.class).parameters(int.class)
+                .unreflect();
+        WARNING_DISTANCE = wb.method() // or setWarningBlocks
+                .named(v(20, "c").v(18, "b").orElse("setWarningDistance"))
+                .returns(void.class).parameters(int.class)
+                .unreflect();
+        // Renamed to lerpSizeBetween(double d0, double d1, long i)
+        TRANSITION = wb.method()
+                .named(v(18, "a").orElse("transitionSizeBetween"))
+                .returns(void.class).parameters(double.class, double.class, long.class)
+                .unreflect();
     }
 
     /**
@@ -419,7 +436,7 @@ public class XWorldBorder implements Cloneable {
                     component.setHandle(this);
                     packets[i++] = component.createPacket(this);
                 }
-                sendPacketSync(player, packets);
+                MinecraftConnection.sendPacket(player, packets);
             } else {
                 for (Component component : updateRequired) {
                     component.setHandle(this);
@@ -427,7 +444,7 @@ public class XWorldBorder implements Cloneable {
                 Object packet = supports(17) ?
                         PACKET_INIT.invoke(handle) :
                         PACKET_INIT.invoke(handle, INITIALIZE);
-                sendPacketSync(player, packet);
+                MinecraftConnection.sendPacket(player, packet);
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();

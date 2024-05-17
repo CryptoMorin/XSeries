@@ -1,4 +1,4 @@
-import com.cryptomorin.xseries.ReflectionUtils;
+import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.craftbukkit.Main;
 
 import java.io.IOException;
@@ -59,10 +59,11 @@ public final class TinyReflection {
     protected static String getMCVersion() {
         try {
             Class<?> GameVersionClass = Class.forName("com.mojang.bridge.game.GameVersion");
-            Object gameVersion = Arrays.stream(ReflectionUtils.getNMSClass("MinecraftVersion").getMethods())
+            Object gameVersion = Arrays.stream(XReflection.getNMSClass("MinecraftVersion").getMethods())
                     .filter(x -> x.getReturnType() == GameVersionClass).findFirst().get().invoke(null);
             return (String) gameVersion.getClass().getDeclaredMethod("getName").invoke(gameVersion);
-        } catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException e) {
+        } catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException |
+                 NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
@@ -78,7 +79,7 @@ public final class TinyReflection {
     @Deprecated
     protected static void bootstrap() {
         try {
-            ReflectionUtils.getNMSClass("server", "DispenserRegistry").getMethod("init").invoke(null);
+            XReflection.getNMSClass("server", "DispenserRegistry").getMethod("init").invoke(null);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

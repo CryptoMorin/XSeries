@@ -1,5 +1,6 @@
 import com.cryptomorin.xseries.*;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -79,7 +80,7 @@ public final class XSeriesTests {
         assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
 
         print("Testing reflection...");
-        print("Version pack: " + ReflectionUtils.getVersionInformation());
+        print("Version pack: " + XReflection.getVersionInformation());
         initializeReflection();
 
         print("\n\n\nTest end...");
@@ -90,8 +91,8 @@ public final class XSeriesTests {
             Class.forName("com.cryptomorin.xseries.XWorldBorder");
             Class.forName("com.cryptomorin.xseries.messages.ActionBar");
             Class.forName("com.cryptomorin.xseries.messages.Titles");
-            Class.forName("com.cryptomorin.xseries.SkullUtils");
-            Class.forName("com.cryptomorin.xseries.NMSExtras");
+            Class.forName("com.cryptomorin.xseries.XSkull");
+            Class.forName("com.cryptomorin.xseries.reflection.minecraft.NMSExtras");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
