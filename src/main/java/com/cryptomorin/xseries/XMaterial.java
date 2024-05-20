@@ -30,6 +30,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -2039,12 +2040,14 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
     }
 
     /**
+     * This is an internal API. Use {@link com.cryptomorin.xseries.reflection.XReflection#supports(int)} instead.
      * Checks if the specified version is the same version or higher than the current server version.
      *
      * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
      * @return true of the version is equal or higher than the current version.
      * @since 2.0.0
      */
+    @ApiStatus.Internal
     public static boolean supports(int version) {
         return Data.VERSION >= version;
     }
@@ -2292,6 +2295,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      *
      * @since 9.0.0
      */
+    @ApiStatus.Internal
     private static final class Data {
         /**
          * The current version of the server in the form of a major version.

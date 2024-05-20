@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>10.0.0</version>
+    <version>11.0.0-beta</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -45,6 +45,7 @@
 
     <distributionManagement>
         <snapshotRepository>
+            <!-- https://repo1.maven.org/maven2/com/github/cryptomorin/XSeries/ -->
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
