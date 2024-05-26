@@ -91,7 +91,7 @@ public final class XSeriesTests {
             Class.forName("com.cryptomorin.xseries.XWorldBorder");
             Class.forName("com.cryptomorin.xseries.messages.ActionBar");
             Class.forName("com.cryptomorin.xseries.messages.Titles");
-            Class.forName("com.cryptomorin.xseries.XSkull");
+            Class.forName("com.cryptomorin.xseries.skull.XSkull");
             Class.forName("com.cryptomorin.xseries.reflection.minecraft.NMSExtras");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
