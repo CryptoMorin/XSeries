@@ -222,31 +222,54 @@ public final class XSkull {
         CRAFT_SKULL_PROFILE_GETTER = craftProfile.getter().makeAccessible().unreflect();
     }
 
+    /**
+     * Creates an {@link Instruction} for an {@link ItemStack}.
+     *
+     * @param stack The {@link ItemStack} to set the profile for.
+     * @return An {@link Instruction} that sets the profile for the given {@link ItemStack}.
+     */
     public static Instruction<ItemStack> of(ItemStack stack) {
-        return new Instruction<>(
-            () -> XSkull.getProfile(stack),
-            (profile) -> XSkull.setProfile(stack, profile)
-        );
+        return new Instruction<>((profile) -> XSkull.setProfile(stack, profile));
     }
+
+    /**
+     * Creates an {@link Instruction} for an {@link ItemMeta}.
+     *
+     * @param meta The {@link ItemMeta} to set the profile for.
+     * @return An {@link Instruction} that sets the profile for the given {@link ItemMeta}.
+     */
     public static Instruction<ItemMeta> of(ItemMeta meta) {
-        return new Instruction<>(
-            () -> XSkull.getProfile(meta),
-            (profile) -> XSkull.setProfile(meta, profile)
-        );
+        return new Instruction<>((profile) -> XSkull.setProfile(meta, profile));
     }
 
+    /**
+     * Creates an {@link Instruction} for a {@link Block}.
+     *
+     * @param block The {@link Block} to set the profile for.
+     * @return An {@link Instruction} that sets the profile for the given {@link Block}.
+     */
     public static Instruction<Block> of(Block block) {
-        return new Instruction<>(
-            () -> XSkull.getProfile(block),
-            (profile -> XSkull.setProfile(block, profile)));
+        return new Instruction<>((profile -> XSkull.setProfile(block, profile)));
     }
 
+    /**
+     * Creates an {@link Instruction} for a {@link BlockState}.
+     *
+     * @param state The {@link BlockState} to set the profile for.
+     * @return An {@link Instruction} that sets the profile for the given {@link BlockState}.
+     */
     public static Instruction<BlockState> of(BlockState state) {
-        return new Instruction<>(
-            () -> XSkull.getProfile(state),
-            (profile -> XSkull.setProfile(state, profile)));
+        return new Instruction<>((profile -> XSkull.setProfile(state, profile)));
     }
 
+
+    /**
+     * Retrieves the skin value from the given {@link ItemMeta}.
+     *
+     * @param meta The {@link ItemMeta} to retrieve the skin value from.
+     * @return The skin value as a {@link String}, or {@code null} if not found.
+     * @throws NullPointerException if {@code meta} is {@code null}.
+     */
     @Nullable
     public static String getSkinValue(@Nonnull ItemMeta meta) {
         Objects.requireNonNull(meta, "Skull meta cannot be null");
@@ -254,6 +277,13 @@ public final class XSkull {
         return profile == null ? null : getSkinValue(profile);
     }
 
+    /**
+     * Retrieves the skin value from the given {@link BlockState}.
+     *
+     * @param state The {@link BlockState} to retrieve the skin value from.
+     * @return The skin value as a {@link String}, or {@code null} if not found.
+     * @throws NullPointerException if {@code state} is {@code null}.
+     */
     @Nullable
     public static String getSkinValue(@Nonnull BlockState state) {
         Objects.requireNonNull(state, "Block state cannot be null");
@@ -261,14 +291,46 @@ public final class XSkull {
         return profile == null ? null : getSkinValue(profile);
     }
 
+    /**
+     * Retrieves the skin value from the given {@link GameProfile}.
+     *
+     * @param profile The {@link GameProfile} to retrieve the skin value from.
+     * @return The skin value as a {@link String}, or {@code null} if not found.
+     * @throws NullPointerException if {@code profile} is {@code null}.
+     */
     @Nullable
     public static String getSkinValue(@Nonnull GameProfile profile) {
+        Objects.requireNonNull(profile, "Game profile cannot be null");
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get("textures"), null))
                 .map(XSkull::getPropertyValue).orElse(null);
     }
 
+    /**
+     * Retrieves a {@link GameProfile} based on the provided input string.
+     *
+     * @param input The input string to retrieve the profile for.
+     * @return The {@link GameProfile} corresponding to the input.
+     * @throws NullPointerException if {@code input} is {@code null}.
+     */
+    @Nonnull
+    public GameProfile getProfile(@Nonnull String input) {
+        Objects.requireNonNull(input, "Input cannot be null");
+        return getProfile(InputType.get(input), input);
+    }
+
+    /**
+     * Retrieves a {@link GameProfile} based on the provided input type and input string.
+     *
+     * @param type The type of the input.
+     * @param input The input string to retrieve the profile for.
+     * @return The {@link GameProfile} corresponding to the input type and input string.
+     *         Returns a profile with an invalid skull value if the type is {@code null}.
+     * @throws NullPointerException if {@code input} is {@code null}.
+     * @throws AssertionError if the input type is unknown.
+     */
     @Nonnull
     public static GameProfile getProfile(@Nullable InputType type, @Nonnull String input) {
+        Objects.requireNonNull(input, "Input cannot be null");
         if (type == null) return profileFromBase64(INVALID_SKULL_VALUE);
         switch (type) {
             case UUID:         return profileFromUUID(UUID.fromString(input));
@@ -280,14 +342,31 @@ public final class XSkull {
         }
     }
 
+    /**
+     * Retrieves a {@link GameProfile} from the given {@link ItemStack}.
+     *
+     * @param stack The {@link ItemStack} to retrieve the profile from.
+     * @return The {@link GameProfile} of the item, or {@code null} if not found.
+     * @throws NullPointerException if {@code stack} is {@code null}.
+     */
     @Nullable
+    @SuppressWarnings("DataFlowIssue")
     public static GameProfile getProfile(@Nonnull ItemStack stack) {
+        Objects.requireNonNull(stack, "Item stack cannot be null");
         ItemMeta meta = stack.getItemMeta();
-        return getProfile(Objects.requireNonNull(meta));
+        return getProfile(meta);
     }
 
+    /**
+     * Retrieves a {@link GameProfile} from the given {@link ItemMeta}.
+     *
+     * @param meta The {@link ItemMeta} to retrieve the profile from.
+     * @return The {@link GameProfile} of the item meta, or {@code null} if not found.
+     * @throws NullPointerException if {@code meta} is {@code null}.
+     */
     @Nullable
     public static GameProfile getProfile(@Nonnull ItemMeta meta) {
+        Objects.requireNonNull(meta, "Item meta cannot be null");
         try {
             return (GameProfile) CRAFT_META_SKULL_PROFILE_GETTER.invoke((SkullMeta) meta);
         } catch (Throwable throwable) {
@@ -296,14 +375,30 @@ public final class XSkull {
         return null;
     }
 
+    /**
+     * Retrieves a {@link GameProfile} from the given {@link Block}.
+     *
+     * @param block The {@link Block} to retrieve the profile from.
+     * @return The {@link GameProfile} of the block, or {@code null} if not found.
+     * @throws NullPointerException if {@code block} is {@code null}.
+     */
     @Nullable
     public static GameProfile getProfile(@Nonnull Block block) {
+        Objects.requireNonNull(block, "Block cannot be null");
         BlockState state = block.getState();
         return getProfile(state);
     }
 
+    /**
+     * Retrieves a {@link GameProfile} from the given {@link BlockState}.
+     *
+     * @param state The {@link BlockState} to retrieve the profile from.
+     * @return The {@link GameProfile} of the block state, or {@code null} if not found.
+     * @throws NullPointerException if {@code state} is {@code null}.
+     */
     @Nullable
     public static GameProfile getProfile(@Nonnull BlockState state) {
+        Objects.requireNonNull(state, "Block state cannot be null");
         try {
             return (GameProfile) CRAFT_SKULL_PROFILE_GETTER.invoke(state);
         } catch (Throwable throwable) {
@@ -312,13 +407,17 @@ public final class XSkull {
         return null;
     }
 
+    /**
+     * Sets the {@link GameProfile} on the given {@link ItemStack}.
+     *
+     * @param stack The {@link ItemStack} to set the profile on.
+     * @param profile The {@link GameProfile} to set.
+     * @return The {@link ItemStack} with the profile set.
+     * @throws NullPointerException if {@code stack} or {@code profile} is {@code null}.
+     */
     @Nonnull
-    public GameProfile getProfile(@Nonnull String input) {
-        return getProfile(InputType.get(input), input);
-    }
-
-    @Nonnull
-    public static ItemStack setProfile(@Nonnull ItemStack stack, @Nonnull GameProfile profile) {
+    public static ItemStack setProfile(@Nonnull ItemStack stack, @Nullable GameProfile profile) {
+        Objects.requireNonNull(stack, "Item stack cannot be null");
         ItemMeta meta = stack.getItemMeta();
         setProfile(Objects.requireNonNull(meta), profile);
         stack.setItemMeta(meta);
@@ -326,12 +425,21 @@ public final class XSkull {
     }
 
     /**
-     * Directly setting the profile is not compatible with {@link SkullMeta#setOwningPlayer(OfflinePlayer)},
-     * and should be reset by calling {@code setProfile(head, null)}.
+     * Directly sets the {@link GameProfile} on the given {@link ItemMeta}.
+     * <p>
+     * Note: Directly setting the profile is not compatible with {@link SkullMeta#setOwningPlayer(OfflinePlayer)},
+     * and should be reset by calling {@code setProfile(meta, null)}.
      * <br><br>
-     * Newer client versions give profiles a higher priority over UUID and name.
+     * Newer client versions give profiles a higher priority over UUID.
+     * </p>
+     *
+     * @param meta The {@link ItemMeta} to set the profile on.
+     * @param profile The {@link GameProfile} to set.
+     * @return The {@link ItemMeta} with the profile set.
+     * @throws NullPointerException if {@code meta} is {@code null}.
      */
-    public static ItemMeta setProfile(@Nonnull ItemMeta meta, @Nonnull GameProfile profile) {
+    public static ItemMeta setProfile(@Nonnull ItemMeta meta, @Nullable GameProfile profile) {
+        Objects.requireNonNull(meta, "Item meta cannot be null");
         try {
             CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
         } catch (Throwable throwable) {
@@ -340,14 +448,32 @@ public final class XSkull {
         return meta;
     }
 
-    public static Block setProfile(@Nonnull Block block, @Nonnull GameProfile profile) {
+    /**
+     * Sets the {@link GameProfile} on the given {@link Block}.
+     *
+     * @param block The {@link Block} to set the profile on.
+     * @param profile The {@link GameProfile} to set.
+     * @return The {@link Block} with the profile set.
+     * @throws NullPointerException if {@code block} is {@code null}.
+     */
+    public static Block setProfile(@Nonnull Block block, @Nullable GameProfile profile) {
+        Objects.requireNonNull(block, "Block cannot be null");
         BlockState state = block.getState();
         setProfile(state, profile);
         state.update(true);
         return block;
     }
 
-    public static BlockState setProfile(@Nonnull BlockState state, @Nonnull GameProfile profile) {
+    /**
+     * Sets the {@link GameProfile} on the given {@link BlockState}.
+     *
+     * @param state The {@link BlockState} to set the profile on.
+     * @param profile The {@link GameProfile} to set.
+     * @return The {@link BlockState} with the profile set.
+     * @throws NullPointerException if {@code state} is {@code null}.
+     */
+    public static BlockState setProfile(@Nonnull BlockState state, @Nullable GameProfile profile) {
+        Objects.requireNonNull(state, "Block state cannot be null");
         try {
             CRAFT_SKULL_PROFILE_SETTER.invoke((Skull) state, profile);
         } catch (Throwable throwable) {
@@ -356,6 +482,14 @@ public final class XSkull {
         return state;
     }
 
+
+    /**
+     * Retrieves or fetches a {@link GameProfile} based on the provided UUID.
+     * If the profile has a texture, returns the cached profile; otherwise, fetches the profile.
+     *
+     * @param uuid The UUID of the profile to retrieve or fetch.
+     * @return The {@link GameProfile} corresponding to the UUID.
+     */
     private static GameProfile profileFromUUID(UUID uuid) {
         GameProfile profile = getCachedProfileByUUID(uuid);
         if (hasTextures(profile)) return profile;
@@ -363,6 +497,13 @@ public final class XSkull {
         return profile;
     }
 
+    /**
+     * Retrieves or fetches a {@link GameProfile} based on the provided username.
+     * If the profile has a texture, returns the cached profile; otherwise, fetches the profile.
+     *
+     * @param name The username of the profile to retrieve or fetch.
+     * @return The {@link GameProfile} corresponding to the username.
+     */
     private static GameProfile profileFromUsername(String name) {
         GameProfile profile = getCachedProfileByUsername(name);
         if (hasTextures(profile)) return profile;
@@ -370,22 +511,48 @@ public final class XSkull {
         return profile;
     }
 
+    /**
+     * Retrieves a {@link GameProfile} based on the provided base64 string.
+     *
+     * @param base64 The base64 string representing the profile's textures.
+     * @return The {@link GameProfile} corresponding to the base64 string.
+     * @throws NullPointerException if the base64 string is not valid.
+     */
     private static GameProfile profileFromBase64(String base64) {
         String hash = decodeBase64(base64).map(XSkull::extractTextureHash).orElse(null);
         Objects.requireNonNull(hash, "Not a valid base64 string");
         return profileFromHashAndBase64(hash, base64);
     }
 
+    /**
+     * Retrieves a {@link GameProfile} based on the provided URL.
+     *
+     * @param url The URL representing the profile's textures.
+     * @return The {@link GameProfile} corresponding to the URL.
+     */
     private static GameProfile profileFromURL(String url) {
         String hash = extractTextureHash(url);
         return profileFromHash(hash);
     }
 
+    /**
+     * Retrieves a {@link GameProfile} based on the provided texture hash.
+     *
+     * @param hash The texture hash used to construct the profile's textures.
+     * @return The {@link GameProfile} corresponding to the texture hash.
+     */
     private static GameProfile profileFromHash(String hash) {
         String base64 = encodeBase64(VALUE_PROPERTY + TEXTURES + hash + "\"}}}");
         return profileFromHashAndBase64(hash, base64);
     }
 
+    /**
+     * Constructs a {@link GameProfile} using the provided texture hash and base64 string.
+     *
+     * @param hash The texture hash used to construct the profile's textures.
+     * @param base64 The base64 string representing the profile's textures.
+     * @return The constructed {@link GameProfile}.
+     */
     private static GameProfile profileFromHashAndBase64(String hash, String base64) {
         // Creates an id from its hash for consistency after restarts
         UUID uuid = UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
@@ -394,7 +561,14 @@ public final class XSkull {
         return profile;
     }
 
-    private static GameProfile getCachedProfileByUsername(@Nonnull String name) {
+    /**
+     * Retrieves a cached {@link GameProfile} by username from the user cache.
+     * If the profile is not found in the cache, creates a new profile with the provided name.
+     *
+     * @param name The username of the profile to retrieve from the cache.
+     * @return The cached {@link GameProfile} corresponding to the username, or a new profile if not found.
+     */
+    private static GameProfile getCachedProfileByUsername(String name) {
         try {
             @Nullable Object profile = GET_PROFILE_BY_NAME.invoke(USER_CACHE, name);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
@@ -405,17 +579,29 @@ public final class XSkull {
         }
     }
 
-    private static GameProfile getCachedProfileByUUID(@Nonnull UUID uuid) {
+    /**
+     * Retrieves a cached {@link GameProfile} by UUID from the user cache.
+     * If the profile is not found in the cache, creates a new profile with the provided UUID.
+     *
+     * @param uuid The UUID of the profile to retrieve from the cache.
+     * @return The cached {@link GameProfile} corresponding to the UUID, or a new profile if not found.
+     */
+    private static GameProfile getCachedProfileByUUID(UUID uuid) {
         try {
             @Nullable Object profile = GET_PROFILE_BY_UUID.invoke(USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
             return profile == null ? new GameProfile(uuid, PROFILE_DEFAULT_NAME) : sanitizeProfile((GameProfile) profile);
         } catch (Throwable throwable) {
-            LOGGER.debug("Unable to get profile by uuid", throwable);
+            LOGGER.debug("Unable to get profile by UUID", throwable);
             return profileFromBase64(INVALID_SKULL_VALUE);
         }
     }
 
+    /**
+     * Caches the provided {@link GameProfile} in the user cache.
+     *
+     * @param profile The {@link GameProfile} to cache.
+     */
     private static void cacheProfile(GameProfile profile) {
         try {
             CACHE_PROFILE.invoke(USER_CACHE, profile);
@@ -424,6 +610,12 @@ public final class XSkull {
         }
     }
 
+    /**
+     * Fetches additional properties for the given {@link GameProfile} if possible.
+     *
+     * @param profile The {@link GameProfile} for which properties are to be fetched.
+     * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
+     */
     private static GameProfile fetchProfile(GameProfile profile) {
         if (!NULLABILITY_RECORD_UPDATE) {
             try {
@@ -439,6 +631,13 @@ public final class XSkull {
         return sanitizeProfile(profile);
     }
 
+    /**
+     * Sanitizes the provided {@link GameProfile} by removing unnecessary timestamp data
+     * and caches the sanitized profile.
+     *
+     * @param profile The {@link GameProfile} to be sanitized.
+     * @return The sanitized {@link GameProfile}.
+     */
     @SuppressWarnings("deprecation")
     private static GameProfile sanitizeProfile(GameProfile profile) {
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get("textures"), null))
@@ -458,8 +657,10 @@ public final class XSkull {
     }
 
     /**
-     * They changed {@link Property} to a Java record in 1.20.2
+     * Retrieves the value of a {@link Property}, handling differences between versions.
      *
+     * @param property The {@link Property} from which to retrieve the value.
+     * @return The value of the {@link Property}.
      * @since 4.0.1
      */
     private static String getPropertyValue(Property property) {
@@ -472,6 +673,13 @@ public final class XSkull {
         return null;
     }
 
+    /**
+     * Extracts the texture hash from the provided input string.
+     *
+     * @param input The input string containing the texture hash.
+     * @return The extracted texture hash.
+     * @throws IllegalArgumentException if the input string does not contain a valid texture hash.
+     */
     private static String extractTextureHash(String input) {
         // Example: http://textures.minecraft.net/texture/e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db
         // Will not work reliably if NBT is passed: {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/74133f6ac3be2e2499a784efadcfffeb9ace025c3646ada67f3414e5ef3394"}}}
@@ -480,19 +688,33 @@ public final class XSkull {
         else throw new IllegalArgumentException("Invalid input: " + input);
     }
 
+    /**
+     * Checks if the provided {@link GameProfile} has a texture property.
+     *
+     * @param profile The {@link GameProfile} to check.
+     * @return {@code true} if the profile has a texture property, {@code false} otherwise.
+     */
     private static boolean hasTextures(GameProfile profile) {
         return Iterables.getFirst(profile.getProperties().get("textures"), null) != null;
     }
 
-    private static String encodeBase64(@Nonnull String str) {
+    /**
+     * Encodes the provided string into Base64 format.
+     *
+     * @param str The string to encode.
+     * @return The Base64 encoded string.
+     */
+    private static String encodeBase64(String str) {
         return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * Tries to decode the string as a Base64 value.
-     * @return the decoded Base64 string if it is a Base64 string.
+     *
+     * @param base64 The Base64 string to decode.
+     * @return An {@link Optional} containing the decoded Base64 string if it is a valid Base64 string, or empty if not.
      */
-    private static Optional<String> decodeBase64(@Nonnull String base64) {
+    private static Optional<String> decodeBase64(String base64) {
         try {
             byte[] bytes = Base64.getDecoder().decode(base64);
             return Optional.of(new String(bytes, StandardCharsets.UTF_8));
