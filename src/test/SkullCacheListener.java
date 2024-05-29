@@ -21,7 +21,7 @@
  */
 
 import com.cryptomorin.xseries.XMaterial;
-import com.cryptomorin.xseries.skull.XSkull;
+import com.cryptomorin.xseries.XSkull;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -54,7 +54,7 @@ final class SkullCacheListener {
     @Nonnull
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
-        return (SkullMeta) XSkull.of(head).profile(null).apply();
+        return (SkullMeta) XSkull.of(head).profile(XSkull.SkullInputType.BASE64, base64).apply();
     }
 
     /**

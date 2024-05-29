@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries;
 
-import com.cryptomorin.xseries.skull.XSkull;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
