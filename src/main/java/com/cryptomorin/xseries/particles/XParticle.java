@@ -29,11 +29,11 @@ public enum XParticle {
     SPLASH,
     FISHING,
     UNDERWATER,
+    CRIT,
     /**
-     * CRIT_MAGIC -> CRIT (v1.20.5)
+     * CRIT_MAGIC -> ENCHANTED_HIT (v1.20.5)
      */
-    CRIT("CRIT_MAGIC"),
-    ENCHANTED_HIT,
+    ENCHANTED_HIT("CRIT_MAGIC"),
     SMOKE,
     /**
      * SMOKE_LARGE -> LARGE_SMOKE (v1.20.5)
