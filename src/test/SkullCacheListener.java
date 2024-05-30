@@ -54,8 +54,7 @@ final class SkullCacheListener {
     @Nonnull
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
-        SkullMeta meta = (SkullMeta) head;
-        return XSkull.applySkinFromBase64(meta, base64, null);
+        return (SkullMeta) XSkull.of(head).profile(XSkull.SkullInputType.BASE64, base64).apply();
     }
 
     /**

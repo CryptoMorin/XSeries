@@ -652,7 +652,7 @@ public final class XItemStack {
         // Special Items
         if (meta instanceof SkullMeta) {
             String skull = config.getString("skull");
-            if (skull != null) XSkull.applySkin(meta, skull);
+            if (skull != null) XSkull.of(meta).profile(skull).apply();
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");
