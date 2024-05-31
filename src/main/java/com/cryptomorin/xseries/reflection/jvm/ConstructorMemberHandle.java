@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
@@ -30,10 +31,15 @@ public class ConstructorMemberHandle extends MemberHandle {
     public MethodHandle reflect() throws ReflectiveOperationException {
         if (isFinal) throw new UnsupportedOperationException("Constructor cannot be final: " + this);
         if (makeAccessible) {
-            return lookup.unreflectConstructor(reflectJvm());
+            return clazz.getNamespace().getLookup().unreflectConstructor(reflectJvm());
         } else {
-            return lookup.findConstructor(clazz.unreflect(), MethodType.methodType(void.class, this.parameterTypes));
+            return clazz.getNamespace().getLookup().findConstructor(clazz.unreflect(), MethodType.methodType(void.class, this.parameterTypes));
         }
+    }
+
+    @Override
+    public ConstructorMemberHandle signature(String declaration) {
+        return new ReflectionParser(declaration).parseConstructor(this);
     }
 
     @SuppressWarnings("unchecked")

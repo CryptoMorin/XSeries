@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.reflection.jvm;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
+import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -83,6 +84,11 @@ public class FieldMemberHandle extends NamedMemberHandle {
         return this;
     }
 
+    public FieldMemberHandle makeAccessible() {
+        super.makeAccessible();
+        return this;
+    }
+
     public FieldMemberHandle setter() {
         this.getter = false;
         return this;
@@ -104,10 +110,15 @@ public class FieldMemberHandle extends NamedMemberHandle {
     public MethodHandle reflect() throws ReflectiveOperationException {
         Field jvm = reflectJvm();
         if (getter) {
-            return lookup.unreflectGetter(jvm);
+            return clazz.getNamespace().getLookup().unreflectGetter(jvm);
         } else {
-            return lookup.unreflectSetter(jvm);
+            return clazz.getNamespace().getLookup().unreflectSetter(jvm);
         }
+    }
+
+    @Override
+    public FieldMemberHandle signature(String declaration) {
+        return new ReflectionParser(declaration).parseField(this);
     }
 
     @Override

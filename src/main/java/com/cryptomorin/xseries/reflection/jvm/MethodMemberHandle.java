@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
@@ -42,7 +43,12 @@ public class MethodMemberHandle extends NamedMemberHandle {
 
     @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
-        return lookup.unreflect(reflectJvm());
+        return clazz.getNamespace().getLookup().unreflect(reflectJvm());
+    }
+
+    @Override
+    public MethodMemberHandle signature(String declaration) {
+        return new ReflectionParser(declaration).parseMethod(this);
     }
 
     public MethodMemberHandle named(String... names) {

@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries.reflection;
 
+import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
@@ -433,6 +434,15 @@ public final class XReflection {
     @ApiStatus.Experimental
     public static StaticClassHandle of(Class<?> clazz) {
         return new StaticClassHandle(clazz);
+    }
+
+
+    /**
+     * @since v11.0.0
+     */
+    @ApiStatus.Experimental
+    public static ReflectiveNamespace namespaced() {
+        return new ReflectiveNamespace();
     }
 
     /**

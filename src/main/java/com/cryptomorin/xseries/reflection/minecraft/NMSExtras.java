@@ -261,11 +261,13 @@ public final class NMSExtras {
                     // }
                     tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(boolean.class, SignText, boolean.class));
 
+                    Class<?> IChatBaseComponentArray = XReflection.of(IChatBaseComponent).asArray().unreflect();
+
                     // public SignText(net.minecraft.network.chat.IChatBaseComponent[] var0, IChatBaseComponent[] var1,
                     // EnumColor var2, boolean var3) {
                     Class<?> EnumColor = getNMSClass("world.item.EnumColor");
                     signText = lookup.findConstructor(SignText, MethodType.methodType(void.class,
-                            IChatBaseComponent.arrayType(), IChatBaseComponent.arrayType(), EnumColor, boolean.class));
+                            IChatBaseComponentArray, IChatBaseComponentArray, EnumColor, boolean.class));
                 } else {
                     tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(void.class, int.class, IChatBaseComponent, IChatBaseComponent));
                 }

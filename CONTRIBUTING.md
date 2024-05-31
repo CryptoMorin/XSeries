@@ -35,3 +35,16 @@ if it's unrelated to adding support for that version since your changes are like
 * Do not attempt to support versions older than 1.8 even if it can be fixed with a single line.
 * Do not use one-liner if statements if it doesn't fit the screen.
 * Try to avoid streams. Mostly for frequently used methods.
+
+# Special Thanks
+
+I'd like to express my profound gratitude to the following people for really helping this project to grow:
+
+* @Condordito: [SkullUtils/XSkull revamp](https://github.com/CryptoMorin/XSeries/issues/254)
+* @HSGamer: [XParticle/ParticleDisplay issues](https://github.com/CryptoMorin/XSeries/commits?author=HSGamer)
+* @DeadSilenceIV: [XItemStack issues](https://github.com/CryptoMorin/XSeries/commits?author=DeadSilenceIV)
+* @AV3RG: [XTag](https://github.com/CryptoMorin/XSeries/commit/988fee3a0fc80697f99804ca7c13108976f26acd)
+* @SirLeezus [XItemStack issues](https://github.com/CryptoMorin/XSeries/commits?author=SirLeezus)
+* @datatags: For responding to various issues and reporting them.
+
+I hope that I didn't forget anyone ;)

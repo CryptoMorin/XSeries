@@ -22,6 +22,10 @@ public class DynamicClassHandle extends ClassHandle {
         return this;
     }
 
+    public List<String> getClassNames() {
+        return classNames;
+    }
+
     public String[] reflectClassNames() {
         Objects.requireNonNull(packageName, "Package name is null");
         String[] classNames = new String[this.classNames.size()];

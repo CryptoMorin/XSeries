@@ -2305,6 +2305,10 @@ public final class XTag<T extends Enum<T>> {
         this.values = Collections.unmodifiableSet(EnumSet.copyOf(Arrays.asList(values)));
     }
 
+    public static <E> List<Matcher<E>> stringMatcher(@Nullable Collection<String> elements) {
+        return stringMatcher(elements, null);
+    }
+
     /**
      * Compiles a list of string checkers for various classes like {@link XMaterial}, {@link XSound}, etc.
      * Mostly used for configs.
@@ -2374,6 +2378,10 @@ public final class XTag<T extends Enum<T>> {
         }
 
         return matchers;
+    }
+
+    public static <T> boolean anyMatchString(T target, Collection<String> matchers) {
+        return anyMatch(target, stringMatcher(matchers));
     }
 
     public static <T> boolean anyMatch(T target, Collection<Matcher<T>> matchers) {

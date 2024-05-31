@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import java.lang.reflect.Array;
+import java.util.Objects;
 
 public class StaticClassHandle extends ClassHandle {
     protected Class<?> clazz;
@@ -8,15 +9,15 @@ public class StaticClassHandle extends ClassHandle {
     public StaticClassHandle(Class<?> clazz) {this.clazz = clazz;}
 
     private Class<?> purifyClass() {
-        Class<?> pureClazz = null;
+        Class<?> pureClazz = clazz;
 
         while (true) {
-            Class<?> component = clazz.getComponentType();
+            Class<?> component = pureClazz.getComponentType();
             if (component != null) pureClazz = component;
             else break;
         }
 
-        return pureClazz;
+        return Objects.requireNonNull(pureClazz);
     }
 
     public StaticClassHandle asArray(int dimension) {
