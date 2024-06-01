@@ -25,7 +25,11 @@ import com.google.common.base.Strings;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Note;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -595,7 +599,7 @@ public final class NoteBlockMusic {
     public static class Sound extends Instruction {
         public XSound sound;
         /**
-         * In Minecraft you have no control over note
+         * In Minecraft, you have no control over note
          * <a href="https://en.wikipedia.org/wiki/Duration_(music)">durations</a>.
          * A note, has a tone, and a tone is a named <a href="https://en.wikipedia.org/wiki/Pitch_(music)">pitch</a>
          * with a specific (constant) <a href="https://en.wikipedia.org/wiki/Timbre">timbre</a>.
@@ -646,6 +650,40 @@ public final class NoteBlockMusic {
             return "Sound:{sound=" + sound + ", pitch=" + pitch + ", volume=" + volume +
                     ", restatement=" + restatement + ", restatementFermata=" + restatementFermata + ", fermata=" + fermata + '}';
         }
+    }
+
+    /**
+     * Plays an instrument's notes in an ascending form.
+     * This method is not really relevant to this utility class, but a nice feature.
+     *
+     * @param plugin      the plugin handling schedulers.
+     * @param player      the player to play the note from.
+     * @param playTo      the entity to play the note to.
+     * @param instrument  the instrument.
+     * @param ascendLevel the ascend level of notes. Can only be positive and not higher than 7
+     * @param delay       the delay between each play.
+     * @return the async task handling the operation.
+     * @since 2.0.0
+     */
+    @Nonnull
+    public static BukkitTask playAscendingNote(@Nonnull Plugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument,
+                                               int ascendLevel, int delay) {
+        Objects.requireNonNull(player, "Cannot play note from null player");
+        Objects.requireNonNull(playTo, "Cannot play note to null entity");
+
+        if (ascendLevel <= 0) throw new IllegalArgumentException("Note ascend level cannot be lower than 1");
+        if (ascendLevel > 7) throw new IllegalArgumentException("Note ascend level cannot be greater than 7");
+        if (delay <= 0) throw new IllegalArgumentException("Delay ticks must be at least 1");
+
+        return new BukkitRunnable() {
+            int repeating = ascendLevel;
+
+            @Override
+            public void run() {
+                player.playNote(playTo.getLocation(), instrument, Note.natural(1, Note.Tone.values()[ascendLevel - repeating]));
+                if (repeating-- == 0) cancel();
+            }
+        }.runTaskTimerAsynchronously(plugin, 0, delay);
     }
 
     /**
