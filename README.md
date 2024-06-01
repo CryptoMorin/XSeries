@@ -1,7 +1,7 @@
 # XSeries
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20.6-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/Java-8-dark_green.svg)](https://shields.io/)
-[![Build Status](https://travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://travis-ci.com/CryptoMorin/XSeries)
+[![Build Status](https://api.travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://app.travis-ci.com/github/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 [![CodeFactor](https://www.codefactor.io/repository/github/cryptomorin/xseries/badge)](https://www.codefactor.io/repository/github/cryptomorin/xseries)
 
@@ -72,7 +72,7 @@ To shade the library, add the following under your maven plugins:
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-shade-plugin</artifactId>
-    <version>3.4.1</version>
+    <version>3.6.0</version>
     <configuration>
         <relocations>
             <relocation>
@@ -114,7 +114,7 @@ Gradle (Kotlin DSL)
 ```kotlin
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version ("7.1.2")
+    id("com.github.johnrengelman.shadow") version ("8.1.1")
 }
 
 tasks {
@@ -127,7 +127,7 @@ tasks {
 Gradle (Groovy)
 ```groovy
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
 }
 
