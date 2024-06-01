@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.reflection.jvm;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
 import java.lang.invoke.MethodHandle;
@@ -119,6 +120,11 @@ public class FieldMemberHandle extends NamedMemberHandle {
     @Override
     public FieldMemberHandle signature(String declaration) {
         return new ReflectionParser(declaration).parseField(this);
+    }
+
+    public FieldMemberHandle map(MinecraftMapping mapping, String name) {
+        super.map(mapping, name);
+        return this;
     }
 
     @Override

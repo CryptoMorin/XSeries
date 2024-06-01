@@ -190,10 +190,9 @@ public final class XSkull {
                         "public GameProfile fillProfileProperties(GameProfile profile, boolean flag);"
                 ).reflect();
             }
-            MethodMemberHandle profileByName = GameProfileCache.method()
-                    .named("getProfile", "a");
-            MethodMemberHandle profileByUUID = GameProfileCache.method()
-                    .named("a").parameters(UUID.class);
+
+            MethodMemberHandle profileByName = GameProfileCache.method().named("getProfile", "a");
+            MethodMemberHandle profileByUUID = GameProfileCache.method().named("a");
             try {
                 getProfileByName = profileByName.signature("public GameProfile get(String username);").reflect();
                 getProfileByUUID = profileByUUID.signature("public GameProfile get(UUID id);").reflect();

@@ -44,7 +44,7 @@ I'd like to express my profound gratitude to the following people for really hel
 * @HSGamer: [XParticle/ParticleDisplay issues](https://github.com/CryptoMorin/XSeries/commits?author=HSGamer)
 * @DeadSilenceIV: [XItemStack issues](https://github.com/CryptoMorin/XSeries/commits?author=DeadSilenceIV)
 * @AV3RG: [XTag](https://github.com/CryptoMorin/XSeries/commit/988fee3a0fc80697f99804ca7c13108976f26acd)
-* @SirLeezus [XItemStack issues](https://github.com/CryptoMorin/XSeries/commits?author=SirLeezus)
+* @SirLeezus: [XItemStack issues](https://github.com/CryptoMorin/XSeries/commits?author=SirLeezus)
 * @datatags: For responding to various issues and reporting them.
 
 I hope that I didn't forget anyone ;)
