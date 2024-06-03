@@ -71,7 +71,7 @@ public class MethodMemberHandle extends NamedMemberHandle {
         NoSuchMethodException errors = null;
         Method method = null;
 
-        Class<?> clazz = this.clazz.unreflect();
+        Class<?> clazz = this.clazz.reflect();
         for (String name : this.names) {
             if (method != null) break;
             try {

@@ -157,7 +157,7 @@ public class FieldMemberHandle extends NamedMemberHandle {
         NoSuchFieldException errors = null;
         Field field = null;
 
-        Class<?> clazz = this.clazz.unreflect();
+        Class<?> clazz = this.clazz.reflect();
         for (String name : this.names) {
             if (field != null) break;
             try {
