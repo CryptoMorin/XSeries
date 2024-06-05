@@ -71,7 +71,10 @@ public enum XParticle {
     ITEM_SLIME,
     HEART,
     ITEM,
-    BLOCK,
+    /**
+     * BLOCK_CRACK -> BLOCK (v1.20.5)
+     */
+    BLOCK("BLOCK_CRACK"),
     RAIN,
     /**
      * MOB_APPEARANCE -> ELDER_GUARDIAN (v1.20.5)
