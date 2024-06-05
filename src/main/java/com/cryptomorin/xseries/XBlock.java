@@ -46,7 +46,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.1.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -255,7 +255,7 @@ public final class XBlock {
 
         // SKULL_ITEM is for items and SKULL is for blocks.
         SkullType skullType = getSkullType(material);
-        if (skullType != null) parsedMat = Material.valueOf("SKULL");
+        if (!ISFLAT && (parsedName.equals("SKULL_ITEM") || skullType != null)) parsedMat = Material.valueOf("SKULL");
 
         block.setType(parsedMat, applyPhysics);
         if (ISFLAT) return false;
@@ -511,6 +511,10 @@ public final class XBlock {
         return material == Material.LAVA || material == BlockMaterial.STATIONARY_LAVA.material;
     }
 
+    /**
+     * @deprecated use {@link XTag#anyMatch(Object, Collection)} instead.
+     */
+    @Deprecated
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
@@ -531,9 +535,7 @@ public final class XBlock {
 
             // Direct Object Equals
             Optional<XMaterial> xMat = XMaterial.matchXMaterial(comp);
-            if (xMat.isPresent()) {
-                if (matched == xMat.get() || isType(block, xMat.get())) return true;
-            }
+            if (xMat.isPresent() && isSimilar(block, xMat.get())) return true;
         }
         return false;
     }
@@ -610,61 +612,16 @@ public final class XBlock {
     }
 
     /**
-     * @param block the block to get its XMaterial type.
-     * @return the XMaterial of the block.
-     * @deprecated Not stable, use {@link #isType(Block, XMaterial)} or {@link #isSimilar(Block, XMaterial)} instead.
-     * If you want to save a block material somewhere, you need to use {@link XMaterial#matchXMaterial(Material)}
-     */
-    @Deprecated
-    public static XMaterial getType(Block block) {
-        if (ISFLAT) return XMaterial.matchXMaterial(block.getType());
-        String type = block.getType().name();
-        BlockState state = block.getState();
-        MaterialData data = state.getData();
-        byte dataValue;
-
-        if (data instanceof Wood) {
-            TreeSpecies species = ((Wood) data).getSpecies();
-            dataValue = species.getData();
-        } else if (data instanceof Colorable) {
-            DyeColor color = ((Colorable) data).getColor();
-            dataValue = color.getDyeData();
-        } else {
-            dataValue = data.getData();
-        }
-
-        return XMaterial.matchDefinedXMaterial(type, dataValue)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported material for block " + dataValue + ": " + block.getType().name()));
-    }
-
-    /**
-     * Same as {@link #isType(Block, XMaterial)} except it also does a simple {@link XMaterial#matchXMaterial(Material)}
-     * comparison with the given block and material.
+     * <b>Universal Method</b>
      *
      * @param block    the block to compare.
      * @param material the material to compare with.
      * @return true if block type is similar to the given material.
-     * @see #isType(Block, XMaterial)
      * @since 1.3.0
      */
     public static boolean isSimilar(Block block, XMaterial material) {
-        return material == XMaterial.matchXMaterial(block.getType()) || isType(block, material);
-    }
-
-    /**
-     * <b>Universal Method</b>
-     * <p>
-     * Check if the block type matches the specified XMaterial.
-     * Note that this method assumes that you've already tried doing {@link XMaterial#matchXMaterial(Material)} using
-     * {@link Block#getType()} and compared it with the other XMaterial. If not, use {@link #isSimilar(Block, XMaterial)}
-     *
-     * @param block    the block to check.
-     * @param material the XMaterial similar to this block type.
-     * @return true if the raw block type matches with the material.
-     * @see #isSimilar(Block, XMaterial)
-     */
-    public static boolean isType(Block block, XMaterial material) {
         Material mat = block.getType();
+        if (material == XMaterial.matchXMaterial(mat)) return true;
         switch (material) {
             case CAKE:
                 return isCake(mat);

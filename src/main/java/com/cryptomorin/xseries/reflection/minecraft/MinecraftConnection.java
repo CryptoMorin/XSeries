@@ -96,13 +96,18 @@ public final class MinecraftConnection {
      */
     @Nonnull
     public static void sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
+        Objects.requireNonNull(player, () -> "Can't send packet to null player: " + Arrays.toString(packets));
+        Objects.requireNonNull(packets, () -> "Can't send null packets to player: " + player);
         try {
             Object handle = GET_HANDLE.invoke(player);
             Object connection = PLAYER_CONNECTION.invoke(handle);
 
             // Checking if the connection is not null is enough. There is no need to check if the player is online.
             if (connection != null) {
-                for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
+                for (Object packet : packets) {
+                    Objects.requireNonNull(packet, "Null packet detected between packets array");
+                    SEND_PACKET.invoke(connection, packet);
+                }
             }
         } catch (Throwable throwable) {
             throw new RuntimeException("Failed to send packet to " + player + ": " + Arrays.toString(packets), throwable);
