@@ -12,48 +12,88 @@ import static org.bukkit.MinecraftExperimental.Requires;
 
 @SuppressWarnings("UnstableApiUsage")
 public enum XParticle {
-    POOF,
     /**
-     * EXPLOSION_NORMAL -> EXPLOSION (v1.20.5)
+     * EXPLOSION_NORMAL -> POOF (v1.20.5)
      */
-    EXPLOSION("EXPLOSION_NORMAL"),
+    POOF("EXPLOSION_NORMAL"),
     /**
-     * EXPLOSION_LARGE -> EXPLOSION_EMITTER (v1.20.5)
+     * EXPLOSION_LARGE -> EXPLOSION (v1.20.5)
      */
-    EXPLOSION_EMITTER("EXPLOSION_LARGE"),
+    EXPLOSION("EXPLOSION_LARGE"),
+    /**
+     * EXPLOSION_HUGE -> EXPLOSION_EMITTER (v1.20.5)
+     */
+    EXPLOSION_EMITTER("EXPLOSION_HUGE"),
     /**
      * FIREWORKS_SPARK -> FIREWORK (v1.20.5)
      */
     FIREWORK("FIREWORKS_SPARK"),
-    BUBBLE,
-    SPLASH,
-    FISHING,
-    UNDERWATER,
+    /**
+     * WATER_BUBBLE -> BUBBLE (v1.20.5)
+     */
+    BUBBLE("WATER_BUBBLE"),
+    /**
+     * WATER_SPLASH -> SPLASH (v1.20.5)
+     */
+    SPLASH("WATER_SPLASH"),
+    /**
+     * WATER_WAKE -> FISHING (v1.20.5)
+     */
+    FISHING("WATER_WAKE"),
+    /**
+     * SUSPENDED -> UNDERWATER (v1.20.5)
+     */
+    UNDERWATER("SUSPENDED"),
     CRIT,
     /**
      * CRIT_MAGIC -> ENCHANTED_HIT (v1.20.5)
      */
     ENCHANTED_HIT("CRIT_MAGIC"),
-    SMOKE,
+    /**
+     * SMOKE_NORMAL -> SMOKE (v1.20.5)
+     */
+    SMOKE("SMOKE_NORMAL"),
     /**
      * SMOKE_LARGE -> LARGE_SMOKE (v1.20.5)
      */
     LARGE_SMOKE("SMOKE_LARGE"),
-    EFFECT,
-    INSTANT_EFFECT,
     /**
-     * Is the legacy name correct?
+     * SPELL -> EFFECT (v1.20.5)
      */
-    ENTITY_EFFECT("SPELL_MOB_AMBIENT"),
+    EFFECT("SPELL"),
+    /**
+     * SPELL_INSTANT -> INSTANT_EFFECT (v1.20.5)
+     */
+    INSTANT_EFFECT("SPELL_INSTANT"),
+    /**
+     * SPELL_MOB -> ENTITY_EFFECT (v1.20.5)
+     * Is the legacy name correct? TODO check
+     */
+    ENTITY_EFFECT("SPELL_MOB", "SPELL_MOB_AMBIENT"),
+    /**
+     * SPELL_WITCH -> WITCH (v1.20.5)
+     */
     WITCH("SPELL_WITCH"),
-    DRIPPING_WATER,
+    /**
+     * DRIP_WATER -> DRIPPING_WATER (v1.20.5)
+     */
+    DRIPPING_WATER("DRIP_WATER"),
     /**
      * DRIP_LAVA -> DRIPPING_LAVA (v1.20.5)
      */
     DRIPPING_LAVA("DRIP_LAVA"),
+    /**
+     * VILLAGER_ANGRY -> ANGRY_VILLAGER (v1.20.5)
+     */
     ANGRY_VILLAGER("VILLAGER_ANGRY"),
+    /**
+     * VILLAGER_HAPPY -> HAPPY_VILLAGER (v1.20.5)
+     */
     HAPPY_VILLAGER("VILLAGER_HAPPY"),
-    MYCELIUM,
+    /**
+     * TOWN_AURA -> MYCELIUM (v1.20.5)
+     */
+    MYCELIUM("TOWN_AURA"),
     NOTE,
     PORTAL,
     /**
@@ -67,12 +107,24 @@ public enum XParticle {
      * REDSTONE -> DUST (v1.20.5)
      */
     DUST("REDSTONE"),
-    ITEM_SNOWBALL,
-    ITEM_SLIME,
+    /**
+     * SNOWBALL, SNOW_SHOVEL -> ITEM_SNOWBALL (v1.20.5)
+     */
+    ITEM_SNOWBALL("SNOWBALL", "SNOW_SHOVEL"),
+    /**
+     * SLIME -> ITEM_SLIME (v1.20.5)
+     */
+    ITEM_SLIME("SLIME"),
     HEART,
-    ITEM,
+    /**
+     * ITEM_CRACK -> ITEM (v1.20.5)
+     */
+    ITEM("ITEM_CRACK"),
     BLOCK,
-    RAIN,
+    /**
+     * WATER_DROP -> RAIN (v1.20.5)
+     */
+    RAIN("WATER_DROP"),
     /**
      * MOB_APPEARANCE -> ELDER_GUARDIAN (v1.20.5)
      */
@@ -82,7 +134,10 @@ public enum XParticle {
     DAMAGE_INDICATOR,
     SWEEP_ATTACK,
     FALLING_DUST,
-    TOTEM_OF_UNDYING,
+    /**
+     * TOTEM -> TOTEM_OF_UNDYING (v1.20.5)
+     */
+    TOTEM_OF_UNDYING("TOTEM"),
     SPIT,
     SQUID_INK,
     BUBBLE_POP,
@@ -97,10 +152,7 @@ public enum XParticle {
     FLASH,
     FALLING_LAVA,
     LANDING_LAVA,
-    /**
-     * WATER_DROP -> FALLING_WATER (v1.20.5)
-     */
-    FALLING_WATER("WATER_DROP"),
+    FALLING_WATER,
     DRIPPING_HONEY,
     FALLING_HONEY,
     LANDING_HONEY,
