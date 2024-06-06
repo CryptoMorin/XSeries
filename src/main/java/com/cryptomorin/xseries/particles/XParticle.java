@@ -166,7 +166,10 @@ public enum XParticle {
     RAID_OMEN,
     @MinecraftExperimental(Requires.UPDATE_1_21)
     TRIAL_OMEN,
-    BLOCK_MARKER;
+    /**
+     * BARRIER, LIGHT -> BLOCK_MARKER (v1.18)
+     */
+    BLOCK_MARKER("BARRIER", "LIGHT");
 
     private final Particle particle;
 
