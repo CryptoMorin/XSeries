@@ -128,7 +128,10 @@ public enum XParticle {
      * ITEM_CRACK -> ITEM (v1.20.5)
      */
     ITEM("ITEM_CRACK"),
-    BLOCK,
+    /**
+     * BLOCK_CRACK, BLOCK_DUST -> BLOCK (v1.20.5)
+     */
+    BLOCK("BLOCK_CRACK", "BLOCK_DUST"),
     /**
      * WATER_DROP -> RAIN (v1.20.5)
      */
