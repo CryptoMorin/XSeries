@@ -72,9 +72,9 @@ public enum XParticle {
     HEART,
     ITEM,
     /**
-     * BLOCK_CRACK -> BLOCK (v1.20.5)
+     * BLOCK_CRACK, BLOCK_DUST -> BLOCK (v1.20.5)
      */
-    BLOCK("BLOCK_CRACK"),
+    BLOCK("BLOCK_CRACK", "BLOCK_DUST"),
     RAIN,
     /**
      * MOB_APPEARANCE -> ELDER_GUARDIAN (v1.20.5)
