@@ -261,19 +261,6 @@ public enum XParticle {
         return particle != null;
     }
 
-    private static Particle tryGetParticle(String particle) {
-        try {
-            return Particle.valueOf(particle);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
-    }
-
-    public static final class Data {
-        private static final Map<String, XParticle> NAME_MAPPING = new HashMap<>();
-        private static final Map<Particle, XParticle> BUKKIT_MAPPING = new EnumMap<>(Particle.class);
-    }
-
     /**
      * Returns this particle if it is supported, otherwise returns the particle argument you passed.
      *
@@ -307,5 +294,18 @@ public enum XParticle {
     public static XParticle of(String particle) {
         Objects.requireNonNull(particle, "Cannot match null particle");
         return Data.NAME_MAPPING.get(particle);
+    }
+
+    private static Particle tryGetParticle(String particle) {
+        try {
+            return Particle.valueOf(particle);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private static final class Data {
+        private static final Map<String, XParticle> NAME_MAPPING = new HashMap<>();
+        private static final Map<Particle, XParticle> BUKKIT_MAPPING = new EnumMap<>(Particle.class);
     }
 }
