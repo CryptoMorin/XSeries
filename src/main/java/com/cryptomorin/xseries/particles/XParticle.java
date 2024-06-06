@@ -10,6 +10,12 @@ import java.util.Objects;
 
 import static org.bukkit.MinecraftExperimental.Requires;
 
+/**
+ * <b>XParticle</b> - Particle enum for <b>XSeries</b>
+ * <p>
+ * This class is mainly used to support {@link Particle}, especially for the "parity change" by
+ * Spigot in 1.20.5 (see <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/diff/src/main/java/org/bukkit/Particle.java?until=8a34e009148cc297bcc9eb5c250fc4f5b071c4a7">...</a>).
+ */
 @SuppressWarnings("UnstableApiUsage")
 public enum XParticle {
     /**
@@ -237,10 +243,20 @@ public enum XParticle {
         if (particle != null) Data.BUKKIT_MAPPING.put(particle, this);
     }
 
+    /**
+     * Returns the bukkit particle.
+     *
+     * @return the particle
+     */
     public Particle get() {
         return particle;
     }
 
+    /**
+     * Returns if the particle is supported.
+     *
+     * @return true if the particle is supported
+     */
     public boolean isSupported() {
         return particle != null;
     }
@@ -258,10 +274,23 @@ public enum XParticle {
         private static final Map<Particle, XParticle> BUKKIT_MAPPING = new EnumMap<>(Particle.class);
     }
 
+    /**
+     * Returns this particle if it is supported, otherwise returns the particle argument you passed.
+     *
+     * @param other the particle to return if this particle is not supported
+     * @return this particle if it is supported, otherwise returns the particle argument you passed
+     */
     public XParticle or(XParticle other) {
         return this.isSupported() ? this : other;
     }
 
+    /**
+     * Returns the XParticle associated with the given bukkit particle.
+     *
+     * @param particle the bukkit particle to match
+     * @return the XParticle associated with the given bukkit particle
+     * @throws UnsupportedOperationException if the given particle does not exist.
+     */
     public static XParticle of(Particle particle) {
         Objects.requireNonNull(particle, "Cannot match null particle");
         XParticle mapping = Data.BUKKIT_MAPPING.get(particle);
@@ -269,6 +298,12 @@ public enum XParticle {
         throw new UnsupportedOperationException("Unknown particle: " + particle);
     }
 
+    /**
+     * Returns the XParticle associated with the given particle name.
+     *
+     * @param particle the particle name to match
+     * @return the XParticle associated with the given particle name
+     */
     public static XParticle of(String particle) {
         Objects.requireNonNull(particle, "Cannot match null particle");
         return Data.NAME_MAPPING.get(particle);
