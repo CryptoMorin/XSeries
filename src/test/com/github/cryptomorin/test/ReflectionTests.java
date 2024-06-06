@@ -14,6 +14,14 @@ import java.util.regex.Pattern;
 public final class ReflectionTests {
     private final String test = "AAAAAAAAAAAAAA";
 
+    public ReflectionTests() {
+
+    }
+
+    public ReflectionTests(String test, int other) {
+
+    }
+
     private String[] split(char ch, int limit, boolean withDelimiters) {
         return new String[]{"lim" + limit, ch + "a", "withDel" + withDelimiters};
     }
@@ -53,6 +61,8 @@ public final class ReflectionTests {
         DynamicClassHandle clazz = new ReflectionParser("package com.github.cryptomorin.test; public final class ReflectionTests {}")
                 .parseClass(XReflection.classHandle());
         try {
+            XReflection.of(ReflectionTests.class).constructor("public ReflectionTests(String test, int other);").reflect();
+            XReflection.of(ReflectionTests.class).field("private final String test;").getter().reflect();
             Object res = new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
                     .parseMethod(clazz.method()).unreflect().invoke(new ReflectionTests(), ',', 2, true);
             System.err.println("------------------------------------------------ " + res);

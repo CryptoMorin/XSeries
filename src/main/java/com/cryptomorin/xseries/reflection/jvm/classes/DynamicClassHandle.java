@@ -2,14 +2,14 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.google.common.base.Strings;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class DynamicClassHandle extends ClassHandle {
     protected String packageName;
-    protected final List<String> classNames = new ArrayList<>(5);
+    protected final Set<String> classNames = new HashSet<>(5);
     protected int array;
 
     public DynamicClassHandle inPackage(String packageName) {
@@ -22,17 +22,14 @@ public class DynamicClassHandle extends ClassHandle {
         return this;
     }
 
-    public List<String> getClassNames() {
-        return classNames;
-    }
-
     public String[] reflectClassNames() {
         Objects.requireNonNull(packageName, "Package name is null");
         String[] classNames = new String[this.classNames.size()];
 
-        for (int i = 0; i < this.classNames.size(); i++) {
+        int i = 0;
+        for (String className : this.classNames) {
             @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
-            String clazz = packageName + '.' + this.classNames.get(i);
+            String clazz = packageName + '.' + className;
             if (array != 0) clazz = Strings.repeat("[", array) + 'L' + clazz + ';';
 
             classNames[i] = clazz;
@@ -67,5 +64,10 @@ public class DynamicClassHandle extends ClassHandle {
     @Override
     public boolean isArray() {
         return this.array > 0;
+    }
+
+    @Override
+    public Set<String> getPossibleNames() {
+        return classNames;
     }
 }

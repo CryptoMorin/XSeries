@@ -12,14 +12,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * This class is designed to be able to parse Java declarations only in a loose way, as it also
+ * supports more simplified syntax (for example not requiring semicolons) that doesn't work
+ * as nicely if you're using IntelliJ because of the highlighting which is greater advantage.
+ * TODO support generics. Using RegEx might be impossible because Java doesn't support (?R) recursion.
+ */
 public class ReflectionParser {
     private final String declaration;
     private Pattern pattern;
     private Matcher matcher;
     private ReflectiveNamespace namespace;
-    private Map<String, Class<?>> imports;
+    private Map<String, Class<?>> cachedImports;
     private final Set<Flag> flags = EnumSet.noneOf(Flag.class);
-    private final Set<String> names = new HashSet<>(5);
 
     public ReflectionParser(@Language("Java") String declaration) {
         this.declaration = declaration;
@@ -74,8 +79,8 @@ public class ReflectionParser {
     }
 
     private Class<?> parseType(String typeName) {
-        if (this.imports == null && this.namespace != null) {
-            this.imports = this.namespace.getImports();
+        if (this.cachedImports == null && this.namespace != null) {
+            this.cachedImports = this.namespace.getImports();
         }
 
         String firstTypeName = typeName;
@@ -92,7 +97,7 @@ public class ReflectionParser {
         Class<?> clazz = null;
         if (!typeName.contains(".")) {
             clazz = PREDEFINED_TYPES.get(typeName);
-            if (clazz == null && imports != null) clazz = this.imports.get(typeName);
+            if (clazz == null && cachedImports != null) clazz = this.cachedImports.get(typeName);
         }
         if (clazz == null) {
             try {
@@ -114,12 +119,19 @@ public class ReflectionParser {
     @Language("RegExp")
     private static final String CLASS_TYPES = "(?<classType>class|interface|enum)";
     @Language("RegExp")
+    private static final String PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)";
+    @Language("RegExp")
+    private static final String END_DECL = "\\s*;?\\s*";
+    @Language("RegExp")
     private static final String GENERIC = "(?:<" + id(null) + ">)*";
     private static final Pattern CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + id("className") +
             "(?:\\s+extends\\s+(?<superclasses>[\\w.$]+))?\\s+(implements\\s+(?<interfaces>[\\w.$]+))?(?:\\s*\\{\\s*})?\\s*");
     private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
-            + id("methodName") + "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)\\s*;\\s*?");
-    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + id("fieldType") + "\\s+" + id("fieldName") + "\\s*;\\s*?");
+            + id("methodName") + PARAMETERS + END_DECL);
+    private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
+            + id("className") + PARAMETERS + END_DECL);
+    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + id("fieldType") + "\\s+"
+            + id("fieldName") + END_DECL);
 
     public ReflectionParser imports(ReflectiveNamespace namespace) {
         this.namespace = namespace;
@@ -150,7 +162,11 @@ public class ReflectionParser {
     }
 
     public <T extends ConstructorMemberHandle> T parseConstructor(T ctorHandle) {
-        pattern(METHOD, ctorHandle);
+        pattern(CONSTRUCTOR, ctorHandle);
+        if (has("className")) {
+            if (!ctorHandle.getClassHandle().getPossibleNames().contains(group("className")))
+                error("Wrong class name associated to constructor, possible names: " + ctorHandle.getClassHandle().getPossibleNames());
+        }
         if (has("parameters")) ctorHandle.parameters(parseTypes(group("parameters").split(",")));
         return ctorHandle;
     }
@@ -202,10 +218,6 @@ public class ReflectionParser {
         }
     }
 
-    private <T> boolean hasOneOf(Collection<T> collection, T... elements) {
-        return Arrays.stream(elements).anyMatch(collection::contains);
-    }
-
     private void parseFlags() {
         if (!has("flags")) return;
         String flagsStr = group("flags");
@@ -221,6 +233,7 @@ public class ReflectionParser {
         }
     }
 
+    @SafeVarargs
     private static <T> boolean containsDuplicates(Collection<T> collection, T... values) {
         boolean contained = false;
         for (T value : values) {
@@ -232,7 +245,12 @@ public class ReflectionParser {
         return false;
     }
 
+    @SafeVarargs
+    private static <T> boolean hasOneOf(Collection<T> collection, T... elements) {
+        return Arrays.stream(elements).anyMatch(collection::contains);
+    }
+
     private void error(String message) {
-        throw new RuntimeException(message + " in: " + declaration + " (RegEx: " + pattern.pattern() + "), (Imports: " + imports + ')');
+        throw new RuntimeException(message + " in: " + declaration + " (RegEx: " + pattern.pattern() + "), (Imports: " + cachedImports + ')');
     }
 }

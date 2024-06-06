@@ -9,6 +9,8 @@ import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Set;
+
 @ApiStatus.Experimental
 public abstract class ClassHandle implements Handle<Class<?>> {
     protected ReflectiveNamespace namespace = new ReflectiveNamespace();
@@ -20,6 +22,8 @@ public abstract class ClassHandle implements Handle<Class<?>> {
     }
 
     public abstract boolean isArray();
+
+    public abstract Set<String> getPossibleNames();
 
     public int getDimensionCount() {
         int count = -1;

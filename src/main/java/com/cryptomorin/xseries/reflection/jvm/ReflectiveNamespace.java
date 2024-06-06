@@ -33,16 +33,11 @@ public class ReflectiveNamespace {
     @ApiStatus.Internal
     public Map<String, Class<?>> getImports() {
         for (ClassHandle handle : handles) {
-            try {
-                Class<?> clazz = handle.reflect();
-                if (handle instanceof DynamicClassHandle) {
-                    for (String className : ((DynamicClassHandle) handle).getClassNames()) {
-                        this.imports.put(className, clazz);
-                    }
-                } else {
-                    this.imports.put(clazz.getSimpleName(), clazz);
-                }
-            } catch (ReflectiveOperationException ignored) {
+            Class<?> clazz = handle.reflectOrNull();
+            if (clazz == null) continue;
+
+            for (String className : handle.getPossibleNames()) {
+                this.imports.put(className, clazz);
             }
         }
         return this.imports;

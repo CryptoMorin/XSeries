@@ -14,25 +14,13 @@ public abstract class MemberHandle implements Handle<MethodHandle> {
 
     protected MemberHandle(ClassHandle clazz) {this.clazz = clazz;}
 
+    public ClassHandle getClassHandle() {
+        return clazz;
+    }
+
     public MemberHandle makeAccessible() {
         this.makeAccessible = true;
         return this;
-    }
-
-    public final MethodHandle unreflect() {
-        try {
-            return reflect();
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public final MethodHandle reflectOrNull() {
-        try {
-            return reflect();
-        } catch (ReflectiveOperationException ignored) {
-            return null;
-        }
     }
 
     public abstract MemberHandle signature(@Language("Java") String declaration);

@@ -27,5 +27,13 @@ public interface Handle<T> {
         }
     }
 
+    default T reflectOrNull() {
+        try {
+            return reflect();
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+    }
+
     T reflect() throws ReflectiveOperationException;
 }

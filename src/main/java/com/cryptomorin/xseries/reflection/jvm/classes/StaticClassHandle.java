@@ -1,7 +1,9 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 
 public class StaticClassHandle extends ClassHandle {
     protected Class<?> clazz;
@@ -37,5 +39,10 @@ public class StaticClassHandle extends ClassHandle {
     @Override
     public boolean isArray() {
         return clazz.isArray();
+    }
+
+    @Override
+    public Set<String> getPossibleNames() {
+        return Collections.singleton(clazz.getSimpleName());
     }
 }
