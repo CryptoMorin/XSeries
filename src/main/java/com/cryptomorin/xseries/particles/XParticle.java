@@ -66,8 +66,10 @@ public enum XParticle {
      */
     INSTANT_EFFECT("SPELL_INSTANT"),
     /**
-     * SPELL_MOB -> ENTITY_EFFECT (v1.20.5)
-     * Is the legacy name correct? TODO check
+     * SPELL_MOB_AMBIENT -> SPELL_MOB -> ENTITY_EFFECT (v1.20.5)
+     * The name was changed multiple times during the parity update
+     *
+     * @see <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/diff/src/main/java/org/bukkit/Particle.java?until=1113e50a392b36253c4ae458a6d3d73e04841111">...</a>
      */
     ENTITY_EFFECT("SPELL_MOB", "SPELL_MOB_AMBIENT"),
     /**
