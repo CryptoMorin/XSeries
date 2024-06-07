@@ -885,6 +885,20 @@ public class ParticleDisplay implements Cloneable {
         return withColor(color, 1f);
     }
 
+    /**
+     * Adds note color properties to the particle settings.
+     * The particle must be {@link Particle#NOTE}
+     * for colors to work as expected.
+     *
+     * @param color the note number for the color (0-24, inclusive)
+     * @return the same particle display, but modified.
+     * @since 11.0.0
+     */
+    @Nonnull
+    public ParticleDisplay withNoteColor(int color) {
+        return withColor(color / 24f * 255, 0, 0, 1f).withCount(0);
+    }
+
     // public ParticleDisplay withSize(float size) {
     //     if (data == null) {
     //         this.data = new float[]{red, green, blue, size};
