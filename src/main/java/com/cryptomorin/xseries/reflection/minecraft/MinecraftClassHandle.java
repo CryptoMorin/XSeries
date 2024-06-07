@@ -4,6 +4,8 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Objects;
+
 @ApiStatus.Experimental
 public class MinecraftClassHandle extends DynamicClassHandle {
     public MinecraftClassHandle inPackage(MinecraftPackage minecraftPackage) {
@@ -11,6 +13,8 @@ public class MinecraftClassHandle extends DynamicClassHandle {
     }
 
     public MinecraftClassHandle inPackage(MinecraftPackage minecraftPackage, String packageName) {
+        Objects.requireNonNull(minecraftPackage, "Null minecraft package type");
+        Objects.requireNonNull(packageName, "Null minecraft package name");
         this.packageName = minecraftPackage.getPackageId();
         if (!packageName.isEmpty() && (minecraftPackage != MinecraftPackage.NMS || XReflection.supports(17))) {
             this.packageName += '.' + packageName;

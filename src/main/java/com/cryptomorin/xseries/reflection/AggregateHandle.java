@@ -43,6 +43,6 @@ public class AggregateHandle<T, H extends Handle<T>> implements Handle<T> {
             }
         }
 
-        throw errors;
+        throw XReflection.relativizeSuppressedExceptions(errors);
     }
 }

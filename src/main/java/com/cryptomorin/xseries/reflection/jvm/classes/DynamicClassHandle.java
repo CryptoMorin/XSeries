@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Strings;
 
 import java.util.Arrays;
@@ -13,12 +14,17 @@ public class DynamicClassHandle extends ClassHandle {
     protected int array;
 
     public DynamicClassHandle inPackage(String packageName) {
+        Objects.requireNonNull(packageName, "Null package name");
         this.packageName = packageName;
         return this;
     }
 
-    public DynamicClassHandle named(String... clazzNames) {
-        this.classNames.addAll(Arrays.asList(clazzNames));
+    public DynamicClassHandle named(String... classNames) {
+        Objects.requireNonNull(classNames);
+        for (String className : this.classNames) {
+            Objects.requireNonNull(className, () -> "Cannot add null class name from: " + Arrays.toString(classNames) + " to " + this);
+        }
+        this.classNames.addAll(Arrays.asList(classNames));
         return this;
     }
 
@@ -31,8 +37,7 @@ public class DynamicClassHandle extends ClassHandle {
             @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
             String clazz = packageName + '.' + className;
             if (array != 0) clazz = Strings.repeat("[", array) + 'L' + clazz + ';';
-
-            classNames[i] = clazz;
+            classNames[i++] = clazz;
         }
 
         return classNames;
@@ -51,7 +56,7 @@ public class DynamicClassHandle extends ClassHandle {
             }
         }
 
-        throw errors;
+        throw XReflection.relativizeSuppressedExceptions(errors);
     }
 
     @Override

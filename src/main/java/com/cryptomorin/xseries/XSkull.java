@@ -71,6 +71,8 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.cryptomorin.xseries.reflection.XReflection.v;
+
 /**
  * <b>XSkull</b> - Apply skull texture from different sources.<br><br>
  * Skull Meta: <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html">hub.spigotmc.org/.../SkullMeta</a><br>
@@ -177,11 +179,11 @@ public final class XSkull {
             Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer();").reflect().invoke();
 
             minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService();")
-                    .named("az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar")
+                    .named(/* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar")
                     .reflect().invoke(minecraftServer);
 
             userCache = MinecraftServer.method("public GameProfileCache getProfileCache();")
-                    .named("ar", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
+                    .named("ar", /* 1.18.2 */ "ao", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
                     .map(MinecraftMapping.OBFUSCATED, "getUserCache")
                     .reflect().invoke(minecraftServer);
 
@@ -191,8 +193,8 @@ public final class XSkull {
                 ).reflect();
             }
 
-            MethodMemberHandle profileByName = GameProfileCache.method().named("getProfile", "a");
-            MethodMemberHandle profileByUUID = GameProfileCache.method().named("a");
+            MethodMemberHandle profileByName = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
+            MethodMemberHandle profileByUUID = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             try {
                 getProfileByName = profileByName.signature("public GameProfile get(String username);").reflect();
                 getProfileByUUID = profileByUUID.signature("public GameProfile get(UUID id);").reflect();
@@ -204,7 +206,8 @@ public final class XSkull {
             cacheProfile = GameProfileCache.method("public void add(GameProfile profile);")
                     .map(MinecraftMapping.OBFUSCATED, "a").reflect();
         } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
+            // throw new RuntimeException(throwable);
+            throw XReflection.throwCheckedException(throwable);
         }
 
         MinecraftClassHandle CraftSkull = ns.ofMinecraft(

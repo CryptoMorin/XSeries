@@ -73,6 +73,7 @@
         <!-- 1.8.8-R0.1-SNAPSHOT -->
         <!-- 1.9.4-R0.1-SNAPSHOT -->
         <!-- 1.16.5-R0.1-SNAPSHOT -->
+        <!-- 1.17.1-R0.1-SNAPSHOT -->
         <spigotVersion>1.20.6-R0.1-SNAPSHOT</spigotVersion>
     </properties>
 
@@ -278,7 +279,7 @@
             <id>18</id>
             <properties>
                 <nms>18_R1</nms>
-                <spigotVersion>1.18.1-R0.1-SNAPSHOT</spigotVersion>
+                <spigotVersion>1.18.2-R0.1-SNAPSHOT</spigotVersion>
             </properties>
         </profile>
         <profile>

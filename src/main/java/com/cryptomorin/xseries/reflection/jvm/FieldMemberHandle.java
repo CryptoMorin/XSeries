@@ -175,7 +175,7 @@ public class FieldMemberHandle extends NamedMemberHandle {
             }
         }
 
-        if (field == null) throw errors;
+        if (field == null) throw XReflection.relativizeSuppressedExceptions(errors);
         return handleAccessible(field);
     }
 

@@ -32,7 +32,9 @@ import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -154,7 +156,7 @@ public final class XReflection {
         // Bukkit.getVersion()       = git-Paper-364 (MC: 1.20.4)
         Matcher bukkitVer = Pattern
                 // <patch> is optional for first releases like "1.8-R0.1-SNAPSHOT"
-                .compile("^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?")
+                .compile("^(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?")
                 .matcher(Bukkit.getBukkitVersion());
         if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
             try {
@@ -452,5 +454,50 @@ public final class XReflection {
     @ApiStatus.Experimental
     public static <T, H extends Handle<T>> AggregateHandle<T, H> any(H... handles) {
         return new AggregateHandle<>(Arrays.asList(handles));
+    }
+
+    @ApiStatus.Internal
+    public static <T extends Throwable> T relativizeSuppressedExceptions(T ex) {
+        final StackTraceElement[] EMPTY_STACK_TRACE_ARRAY = new StackTraceElement[0];
+        StackTraceElement[] mainStackTrace = ex.getStackTrace();
+
+        for (Throwable suppressed : ex.getSuppressed()) {
+            StackTraceElement[] suppressedStackTrace = suppressed.getStackTrace();
+            List<StackTraceElement> relativized = new ArrayList<>(10);
+
+            for (int i = 0; i < suppressedStackTrace.length; i++) {
+                if (mainStackTrace.length <= i) {
+                    relativized = null;
+                    break;
+                }
+
+                StackTraceElement mainTrace = mainStackTrace[i];
+                StackTraceElement suppTrace = suppressedStackTrace[i];
+                if (mainTrace.equals(suppTrace)) {
+                    break;
+                } else {
+                    relativized.add(suppTrace);
+                }
+            }
+
+            if (relativized != null) {
+                // We might not know the line so let's not add this:
+                // if (!relativized.isEmpty()) relativized.remove(relativized.size() - 1);
+                suppressed.setStackTrace(relativized.toArray(EMPTY_STACK_TRACE_ARRAY));
+            }
+        }
+        return ex;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void throwException(Throwable exception) throws T {
+        throw (T) exception;
+    }
+
+    public static RuntimeException throwCheckedException(Throwable exception) {
+        // This is not needed because the exception was created somewhere else and the stacktrace reflects that.
+        // exception.setStackTrace(Arrays.stream(exception.getStackTrace()).skip(1).toArray(StackTraceElement[]::new));
+        throwException(exception);
+        return null; // Trick the compiler to stfu for "throw" terminating statements.
     }
 }

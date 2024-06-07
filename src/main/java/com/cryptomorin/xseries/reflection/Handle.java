@@ -23,7 +23,7 @@ public interface Handle<T> {
         try {
             return reflect();
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+            throw XReflection.throwCheckedException(e);
         }
     }
 

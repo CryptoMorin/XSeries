@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
@@ -77,7 +78,7 @@ public class MethodMemberHandle extends NamedMemberHandle {
             try {
                 method = clazz.getDeclaredMethod(name, parameterTypes);
                 if (method.getReturnType() != this.returnType) {
-                    throw new NoSuchMethodException("Method named '" + name + "' was found but the types don't match: " + this.returnType + " != " + method);
+                    throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method);
                 }
             } catch (NoSuchMethodException ex) {
                 method = null;
@@ -86,7 +87,7 @@ public class MethodMemberHandle extends NamedMemberHandle {
             }
         }
 
-        if (method == null) throw errors;
+        if (method == null) throw XReflection.relativizeSuppressedExceptions(errors);
         return handleAccessible(method);
     }
 

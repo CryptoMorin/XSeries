@@ -54,7 +54,9 @@ public class ReflectiveNamespace {
     @ApiStatus.Experimental
     public StaticClassHandle of(Class<?> clazz) {
         imports(clazz);
-        return new StaticClassHandle(clazz);
+        StaticClassHandle handle = new StaticClassHandle(clazz);
+        handle.setNamespace(this);
+        return handle;
     }
 
     public void link(ClassHandle handle) {
