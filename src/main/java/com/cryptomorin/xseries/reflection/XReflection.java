@@ -154,7 +154,7 @@ public final class XReflection {
         // Bukkit.getVersion()       = git-Paper-364 (MC: 1.20.4)
         Matcher bukkitVer = Pattern
                 // <patch> is optional for first releases like "1.8-R0.1-SNAPSHOT"
-                .compile("^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?")
+                .compile("^(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?")
                 .matcher(Bukkit.getBukkitVersion());
         if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
             try {
