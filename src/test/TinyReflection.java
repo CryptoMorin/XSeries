@@ -23,7 +23,7 @@ public final class TinyReflection {
     static {
         String version = null;
         try {
-            version = Files.readAllLines(Paths.get(DummySpigot.class.getResource("version.txt").toURI())).get(0);
+            version = Files.readAllLines(Paths.get(DummySpigotTest.class.getResource("version.txt").toURI())).get(0);
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }

@@ -3,10 +3,10 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-public class DummySpigot extends DummyAbstractServer implements InvocationHandler {
+public class DummySpigotTest extends DummyAbstractServer implements InvocationHandler {
     @Override
     protected InvocationHandler main() {
-        return new DummySpigot();
+        return new DummySpigotTest();
     }
 
     @Test

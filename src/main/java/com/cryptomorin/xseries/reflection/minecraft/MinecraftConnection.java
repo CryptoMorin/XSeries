@@ -91,7 +91,6 @@ public final class MinecraftConnection {
      *
      * @param player  the player to send the packet to.
      * @param packets the packets to send.
-     * @return the async thread handling the packet.
      * @since 1.0.0
      */
     @Nonnull

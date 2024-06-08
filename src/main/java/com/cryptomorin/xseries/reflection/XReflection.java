@@ -274,8 +274,6 @@ public final class XReflection {
     }
 
     /**
-     * Overload for {@link #v(int, T)} that supports patch versions
-     *
      * @since 9.5.0
      */
     public static <T> VersionHandle<T> v(int version, int patch, T handle) {

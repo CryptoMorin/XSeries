@@ -14,6 +14,25 @@ Having multiple developers work on the same issue will be just a waste of time a
 You should also try not to make any PRs before support is added when a new Minecraft version comes out even
 if it's unrelated to adding support for that version since your changes are likely to conflict with the update.
 
+### Usage
+
+This project uses Maven. So you'll have to use `mvn` commands. 
+In IntelliJ, you can press `Ctrl` twice for the command window to popup.
+To compile the library into `target` folder, you can use this Maven command:
+```maven
+mvn package
+```
+
+To test the library using the latest Spigot server, you can use:
+
+```maven
+mvn clean package -Ptester,latest
+```
+
+> [!NOTE]
+> The server files will be generated inside `target/tests` folder.\
+> The common server settings used between tests are in `src/test/resources`
+
 ### Rules
 
 * One of the main principles of XSeries is that each utility should be independent except the ones that cannot be
