@@ -1,22 +1,24 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
+import org.intellij.lang.annotations.Pattern;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class NamedMemberHandle extends MemberHandle {
     protected Class<?> returnType;
     protected boolean isStatic;
-    protected final List<String> names = new ArrayList<>(5);
+    protected final Set<String> names = new HashSet<>(5);
 
     protected NamedMemberHandle(ClassHandle clazz) {
         super(clazz);
     }
 
-    public NamedMemberHandle map(MinecraftMapping mapping, String name) {
+    public NamedMemberHandle map(MinecraftMapping mapping, @Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String name) {
         this.names.add(name);
         return this;
     }
@@ -36,7 +38,7 @@ public abstract class NamedMemberHandle extends MemberHandle {
         return this;
     }
 
-    public MemberHandle named(String... names) {
+    public MemberHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String... names) {
         this.names.addAll(Arrays.asList(names));
         return this;
     }

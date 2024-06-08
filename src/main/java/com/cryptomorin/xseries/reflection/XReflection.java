@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * <b>ReflectionUtils</b> - Reflection handler for NMS and CraftBukkit.<br>
@@ -453,6 +454,15 @@ public final class XReflection {
     @SafeVarargs
     @ApiStatus.Experimental
     public static <T, H extends Handle<T>> AggregateHandle<T, H> any(H... handles) {
+        return new AggregateHandle<>(Arrays.stream(handles).map(x -> (Callable<H>) () -> x).collect(Collectors.toList()));
+    }
+
+    /**
+     * @since v9.0.0
+     */
+    @SafeVarargs
+    @ApiStatus.Experimental
+    public static <T, H extends Handle<T>> AggregateHandle<T, H> anyOf(Callable<H>... handles) {
         return new AggregateHandle<>(Arrays.asList(handles));
     }
 

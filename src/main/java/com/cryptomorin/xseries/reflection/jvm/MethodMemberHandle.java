@@ -2,8 +2,10 @@ package com.cryptomorin.xseries.reflection.jvm;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import org.intellij.lang.annotations.Pattern;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
@@ -50,15 +52,15 @@ public class MethodMemberHandle extends NamedMemberHandle {
 
     @Override
     public MethodMemberHandle signature(String declaration) {
-        return new ReflectionParser(declaration).parseMethod(this);
+        return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseMethod(this);
     }
 
-    public MethodMemberHandle map(MinecraftMapping mapping, String name) {
+    public MethodMemberHandle map(MinecraftMapping mapping, @Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String name) {
         super.map(mapping, name);
         return this;
     }
 
-    public MethodMemberHandle named(String... names) {
+    public MethodMemberHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String... names) {
         super.named(names);
         return this;
     }

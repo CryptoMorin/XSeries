@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.reflection.Handle;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.*;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
 
@@ -25,6 +26,7 @@ public class ReflectionParser {
     private ReflectiveNamespace namespace;
     private Map<String, Class<?>> cachedImports;
     private final Set<Flag> flags = EnumSet.noneOf(Flag.class);
+    private static final PackageHandle[] PACKAGE_HANDLES = MinecraftPackage.values();
 
     public ReflectionParser(@Language("Java") String declaration) {
         this.declaration = declaration;
@@ -42,14 +44,12 @@ public class ReflectionParser {
     }
 
     @Language("RegExp")
-    private static final String JAVA_IDENTIFIER_REGEX = "[A-Za-z0-9_$]+";
-    @Language("RegExp")
-    private static final String JAVA_TYPE_REGEX = "[A-Za-z0-9_$.]+(<[\\w<>\\[\\], ]+>)?((?:\\[])*)";
+    private static final String JAVA_TYPE_REGEX = PackageHandle.JAVA_IDENTIFIER_PATTERN + "(<[\\w<>\\[\\], ]+>)?((?:\\[])*)";
 
     @Language("RegExp")
     private static String id(@Language("RegExp") String groupName) {
-        if (groupName == null) return JAVA_IDENTIFIER_REGEX;
-        return "(?<" + groupName + '>' + JAVA_IDENTIFIER_REGEX + ')';
+        if (groupName == null) return PackageHandle.JAVA_IDENTIFIER_PATTERN;
+        return "(?<" + groupName + '>' + PackageHandle.JAVA_IDENTIFIER_PATTERN + ')';
     }
 
     @Language("RegExp")
@@ -115,7 +115,7 @@ public class ReflectionParser {
 
 
     @Language("RegExp")
-    private static final String PACKAGE_REGEX = "(?:package\\s+(?<package>(?:" + id(null) + "|\\.)+)\\s*;\\s*)?";
+    private static final String PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?";
     @Language("RegExp")
     private static final String CLASS_TYPES = "(?<classType>class|interface|enum)";
     @Language("RegExp")
@@ -125,7 +125,7 @@ public class ReflectionParser {
     @Language("RegExp")
     private static final String GENERIC = "(?:<" + id(null) + ">)*";
     private static final Pattern CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + id("className") +
-            "(?:\\s+extends\\s+(?<superclasses>[\\w.$]+))?\\s+(implements\\s+(?<interfaces>[\\w.$]+))?(?:\\s*\\{\\s*})?\\s*");
+            "(?:\\s+extends\\s+" + id("superclasses") + ")?\\s+(implements\\s+" + id("interfaces") + ")?(?:\\s*\\{\\s*})?\\s*");
     private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
             + id("methodName") + PARAMETERS + END_DECL);
     private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
@@ -149,10 +149,16 @@ public class ReflectionParser {
 
         String packageName = group("package");
         if (packageName != null && !packageName.isEmpty()) {
-            for (MinecraftPackage mcPackage : MinecraftPackage.values()) {
-                packageName = packageName.replace(mcPackage.name().toLowerCase() + '.', mcPackage.getPackageId() + '.');
+            boolean found = false;
+            for (PackageHandle pkgHandle : PACKAGE_HANDLES) {
+                String targetPackageName = pkgHandle.packageId().toLowerCase(Locale.ENGLISH);
+                if (packageName.startsWith(targetPackageName)) {
+                    classHandle.inPackage(pkgHandle, packageName.substring(targetPackageName.length() + 1)); // + 1 for the dot
+                    found = true;
+                    break;
+                }
             }
-            classHandle.inPackage(packageName);
+            if (!found) classHandle.inPackage(packageName);
         }
 
         // String classGeneric = parser.group("generic");

@@ -39,7 +39,7 @@ public class ConstructorMemberHandle extends MemberHandle {
 
     @Override
     public ConstructorMemberHandle signature(String declaration) {
-        return new ReflectionParser(declaration).parseConstructor(this);
+        return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseConstructor(this);
     }
 
     @SuppressWarnings("unchecked")

@@ -3,8 +3,10 @@ package com.cryptomorin.xseries.reflection.jvm;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import org.intellij.lang.annotations.Pattern;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -19,7 +21,7 @@ public class FieldMemberHandle extends NamedMemberHandle {
 
     public static final DynamicClassHandle VarHandle = XReflection.classHandle()
             .inPackage("java.lang.invoke")
-            .named("VarHandle");
+            .named("VarHandle", "fdsf.dfD3");
 
     //     public final native
     //     @MethodHandle.PolymorphicSignature
@@ -63,11 +65,6 @@ public class FieldMemberHandle extends NamedMemberHandle {
 
     public FieldMemberHandle(ClassHandle clazz) {
         super(clazz);
-    }
-
-    public FieldMemberHandle named(String... names) {
-        super.named(names);
-        return this;
     }
 
     public FieldMemberHandle getter() {
@@ -119,11 +116,16 @@ public class FieldMemberHandle extends NamedMemberHandle {
 
     @Override
     public FieldMemberHandle signature(String declaration) {
-        return new ReflectionParser(declaration).parseField(this);
+        return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseField(this);
     }
 
-    public FieldMemberHandle map(MinecraftMapping mapping, String name) {
+    public FieldMemberHandle map(MinecraftMapping mapping, @Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String name) {
         super.map(mapping, name);
+        return this;
+    }
+
+    public FieldMemberHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String... names) {
+        super.named(names);
         return this;
     }
 
