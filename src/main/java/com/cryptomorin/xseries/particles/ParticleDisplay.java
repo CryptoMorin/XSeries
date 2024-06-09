@@ -23,6 +23,7 @@ package com.cryptomorin.xseries.particles;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Note;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -102,6 +103,39 @@ public class ParticleDisplay implements Cloneable {
      */
     private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.DUST_COLOR_TRANSITION.isSupported();
     // private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
+
+    /**
+     * The possible colors for note particles.
+     * See: <a href="https://minecraft.wiki/w/Note_Block#Notes">Minecraft wiki</a>
+     */
+    public static final Color[] NOTE_COLORS = {
+            new Color(0x77D700),
+            new Color(0x95C000),
+            new Color(0xB2A500),
+            new Color(0xCC8600),
+            new Color(0xE26500),
+            new Color(0xF34100),
+            new Color(0xFC1E00),
+            new Color(0xFE000F),
+            new Color(0xF70033),
+            new Color(0xE8005A),
+            new Color(0xCF0083),
+            new Color(0xAE00A9),
+            new Color(0x8600CC),
+            new Color(0x5B00E7),
+            new Color(0x2D00F9),
+            new Color(0x020AFE),
+            new Color(0x0037F6),
+            new Color(0x0068E0),
+            new Color(0x009ABC),
+            new Color(0x00C68D),
+            new Color(0x00E958),
+            new Color(0x00FC21),
+            new Color(0x1FFC00),
+            new Color(0x59E800),
+            new Color(0x94C100),
+    };
+
     /**
      * Flames seem to be the simplest particles that allows you to get a good visual
      * on how precise shapes that depend on complex algorithms play out.
@@ -152,6 +186,7 @@ public class ParticleDisplay implements Cloneable {
     private List<Quaternion> cachedFinalRotationQuaternions;
     @Nullable
     private Object data;
+    private boolean isNoteColor = false;
     @Nullable
     private Consumer<CalculationContext> preCalculation;
     @Nullable
@@ -896,7 +931,21 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withNoteColor(int color) {
-        return withColor(color / 24f * 255, 0, 0, 1f).withCount(0);
+        this.data = new float[]{color / 24f * 255, 0, 0, 1f};
+        this.isNoteColor = true;
+        return withCount(0);
+    }
+
+    /**
+     * Adds note color properties to the particle settings.
+     * @param note the note color.
+     * @return the same particle display, but modified.
+     * @since 11.0.0
+     */
+    @SuppressWarnings("deprecation")
+    @Nonnull
+    public ParticleDisplay withNoteColor(Note note) {
+        return withNoteColor(note.getId());
     }
 
     // public ParticleDisplay withSize(float size) {
@@ -914,6 +963,7 @@ public class ParticleDisplay implements Cloneable {
     @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {
         this.data = new float[]{red, green, blue, size};
+        this.isNoteColor = false;
         return this;
     }
 
@@ -1499,6 +1549,7 @@ public class ParticleDisplay implements Cloneable {
         double offsetz = offset.getZ();
 
         if (data != null && data instanceof float[]) {
+            updateColorType();
             float[] datas = (float[]) data;
             if (ISFLAT && particle.getDataType() == Particle.DustOptions.class) {
                 Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color
@@ -1549,6 +1600,60 @@ public class ParticleDisplay implements Cloneable {
 
         this.lastLocation = loc;
         return loc;
+    }
+
+    private void updateColorType() {
+        if (data == null || !(data instanceof float[])) return;
+        float[] datas = (float[]) this.data;
+        if (this.particle == XParticle.NOTE) {
+            if (!isNoteColor) {
+                int nearestColor = findNearestNoteColor(new Color((int)datas[0], (int)datas[1], (int)datas[2]));
+                data = new float[]{nearestColor / 24f * 255, 0, 0, datas[3]};
+                isNoteColor = true;
+            }
+        } else if (isNoteColor) {
+            Color color = NOTE_COLORS[(int) (datas[0] / 255 * 24)];
+            data = new float[]{color.getRed(), color.getGreen(), color.getBlue(), datas[3]};
+            isNoteColor = false;
+        }
+    }
+
+    /**
+     * Returns the nearest note color to the given RGB values.
+     * The nearest color is returned as an index in the {@link #NOTE_COLORS} array.
+     * @param color the color to find the nearest note color for.
+     * @return the index of the nearest note color (see {@link #NOTE_COLORS}).
+     */
+    public static int findNearestNoteColor(Color color) {
+        double best = colorDistanceSquared(color, NOTE_COLORS[0]);
+        int bestIndex = 0;
+        for (int i = 1; i < NOTE_COLORS.length; i++) {
+            double distance = colorDistanceSquared(color, NOTE_COLORS[i]);
+            if (distance < best) {
+                best = distance;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
+    }
+
+    /**
+     * Computes the distance between two colors,
+     * based on <a href="https://stackoverflow.com/a/6334454">this</a> SO answer
+     * and <a href="https://www.compuphase.com/cmetric.htm">this</a> paper.
+     * @param c1 the first color to compare
+     * @param c2 the second color to compare
+     * @return the square of the distance between the two colors
+     */
+    public static double colorDistanceSquared(Color c1, Color c2)
+    {
+        int red1 = c1.getRed();
+        int red2 = c2.getRed();
+        int rmean = (red1 + red2) >> 1;
+        int r = red1 - red2;
+        int g = c1.getGreen() - c2.getGreen();
+        int b = c1.getBlue() - c2.getBlue();
+        return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8);
     }
 
     /**
