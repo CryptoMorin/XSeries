@@ -80,6 +80,18 @@ import java.util.regex.Pattern;
  * <ul>
  *     <li><a href="https://minecraft-heads.com/">minecraft-heads.com</a></li>
  * </ul>
+ *
+ * <h1>Usage</h1>
+ * The basic usage format of this API is as follows:
+ * <pre>{@code
+ * XSkull.createItem().profile(player).apply();
+ * XSkull.of(item/block).profile(configValueString).apply();
+ * }</pre>
+ * <p>
+ * Note: Make sure to read {@link SkullAction#applyAsync()} if you're going to
+ * be requesting a lot of different skulls.
+ *
+ * <h1>Mechanism</h1>
  * <p>
  * The basic premise behind this API is that the final skull data is contained in a {@link GameProfile}
  * either by ID, name or encoded textures URL property.
@@ -236,7 +248,7 @@ public final class XSkull {
      *
      * @return A {@link SkullInstruction} that sets the profile for the generated {@link ItemStack}.
      */
-    public static SkullInstruction<ItemStack> create() {
+    public static SkullInstruction<ItemStack> createItem() {
         return of(XMaterial.PLAYER_HEAD.parseItem());
     }
 
@@ -733,10 +745,23 @@ public final class XSkull {
          * Asynchronously applies the instruction to generate a {@link GameProfile} and returns a {@link CompletableFuture}.
          * This method is designed for non-blocking execution, allowing tasks to be performed
          * in the background without blocking the server's main thread.
-         *
-         * <p>Usage example:</p>
+         * This method will always execute async, even if the results are cached.
+         * <p>
+         * <h2>Reference Issues</h2>
+         * Note that while these methods apply to the item/block instances, passing these instances
+         * to certain methods, for example {@link org.bukkit.inventory.Inventory#setItem(int, ItemStack)}
+         * will create a NMS copy of that instance and use that instead. Which means if for example
+         * you're going to be using an item for an inventory, you'd have to set the item again
+         * manually to the inventory once this method is done.
          * <pre>{@code
-         *   XSkull.create().profile(offlinePlayer).applyAsync()
+         * Inventory inventory = ...;
+         * XSkull.createItem().profile(player).applyAsync()
+         *     .thenAcceptAsync(item -> inventory.setItem(slot, item));
+         * }</pre>
+         *
+         * <h2>Usage example:</h2>
+         * <pre>{@code
+         *   XSkull.createItem().profile(player).applyAsync()
          *      .thenAcceptAsync(result -> {
          *          // Additional processing...
          *      }, runnable -> Bukkit.getScheduler().runTask(plugin, runnable));
@@ -779,6 +804,13 @@ public final class XSkull {
 
         /**
          * Sets the skull texture based on a string. The input type is resolved based on the value provided.
+         *
+         * <h2>Valid Types</h2>
+         * <b>Username:</b> A player username. (e.g. Notch)<br>
+         * <b>UUID:</b> A player UUID. Offline or online mode UUID. (e.g. 069a79f4-44e9-4726-a5be-fca90e38aaf5)<br>
+         * <b>Base64:</b> The Base64 encoded value of textures JSON. (e.g. eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NmNjc2N2RkMzQ3MzdlOTliZDU0YjY5NWVmMDY4M2M2YzZjZTZhNTRmNjZhZDk3Mjk5MmJkMGU0OGU0NTc5YiJ9fX0=)<br>
+         * <b>Minecraft Textures URL:</b> Check {@link SkullInputType#TEXTURE_URL}.<br>
+         * <b>Minecraft Textures Hash:</b> Same as the URL, but only including the hash part, excluding the base URL. (e.g. e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db)
          *
          * @param input The input value used to retrieve the {@link GameProfile}. For more information check {@link SkullInputType}
          * @return A new {@link SkullAction} instance configured with this {@code SkullInstruction}.
@@ -892,6 +924,7 @@ public final class XSkull {
      * The {@code SkullInputType} enum represents different types of input patterns that can be used for identifying
      * and validating various formats such as texture hashes, URLs, Base64 encoded strings, UUIDs, and usernames.
      */
+    @SuppressWarnings("JavadocLinkAsPlainText")
     public enum SkullInputType {
         /**
          * Represents a texture hash pattern.
