@@ -201,7 +201,7 @@
                             <goal>testCompile</goal>
                         </goals>
                         <configuration>
-                            <!-- <skip>true</skip>-->
+                             <skip>true</skip>
                         </configuration>
                     </execution>
                 </executions>

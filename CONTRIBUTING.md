@@ -9,7 +9,7 @@ This project imports the full Spigot JAR from an unofficial repo as SkullUtils u
 It's also used for JavaX nullability annotations.
 
 Do not make any PRs/issues regarding adding support for new Minecraft versions. I'll be usually finishing the update
-within the first week of Spigot release.
+within the first week of Paper unstable release.
 Having multiple developers work on the same issue will be just a waste of time and resources.
 You should also try not to make any PRs before support is added when a new Minecraft version comes out even
 if it's unrelated to adding support for that version since your changes are likely to conflict with the update.
@@ -43,10 +43,13 @@ mvn clean package -Ptester,latest
 * Use method and variable names that make sense and are related to the context.
 * Don't use Optional everywhere that can return null.
 * Using Google's Guava is a plus, but not always. Make sure what you're using is supported in
-  older versions of Bukkit's libraries and don't. Don't use other libraries included in Bukkit, specially Apache Commons
-  since it was removed.
+  older versions of Bukkit's libraries. Don't use other libraries included in Bukkit, specially Apache Commons
+  since it was removed/replaced.
 * Add JavaDocs with proper formatting. It's also preferred to explain how the complex parts of a method work
-  inside the method. Use simple English when possible.
+  inside the method. Use simple English when possible. Do not add comments to things that are self-explanatory,
+  for example do not add a `@return` tag to a function `public void isSupported()` if all you're going to write
+  is going to be something like "returns true if this is supported, otherwise false" sometimes functions don't
+  even need the `@return` tag because their return value is pretty much obvious from the main description.
 * All the functions used in the utilities should be compatible with Bukkit, Spigot and Paper.
   Using extra methods from Spigot is a plus as long as it supports Bukkit, but do not use any methods that are included
   in any forks of Spigot.

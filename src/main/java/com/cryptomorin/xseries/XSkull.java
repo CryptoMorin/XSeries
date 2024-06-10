@@ -93,7 +93,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 9.0.0
+ * @version 9.1.0
  * @see XMaterial
  * @see XReflection
  */
@@ -247,7 +247,7 @@ public final class XSkull {
      * @return A {@link SkullInstruction} that sets the profile for the given {@link ItemStack}.
      */
     public static SkullInstruction<ItemStack> of(ItemStack stack) {
-        return new SkullInstruction<>((profile) -> setProfile(stack, profile));
+        return new SkullInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
     }
 
     /**
@@ -257,7 +257,7 @@ public final class XSkull {
      * @return An {@link SkullInstruction} that sets the profile for the given {@link ItemMeta}.
      */
     public static SkullInstruction<ItemMeta> of(ItemMeta meta) {
-        return new SkullInstruction<>((profile) -> setProfile(meta, profile));
+        return new SkullInstruction<>(new ProfileContainer.ItemMetaProfileContainer(meta));
     }
 
     /**
@@ -267,7 +267,7 @@ public final class XSkull {
      * @return An {@link SkullInstruction} that sets the profile for the given {@link Block}.
      */
     public static SkullInstruction<Block> of(Block block) {
-        return new SkullInstruction<>((profile -> setProfile(block, profile)));
+        return new SkullInstruction<>(new ProfileContainer.BlockProfileContainer(block));
     }
 
     /**
@@ -276,8 +276,8 @@ public final class XSkull {
      * @param state The {@link BlockState} to set the profile for.
      * @return An {@link SkullInstruction} that sets the profile for the given {@link BlockState}.
      */
-    public static SkullInstruction<BlockState> of(BlockState state) {
-        return new SkullInstruction<>((profile -> setProfile(state, profile)));
+    public static SkullInstruction<Skull> of(BlockState state) {
+        return new SkullInstruction<>(new ProfileContainer.BlockStateProfileContainer((Skull) state));
     }
 
     /**
@@ -286,36 +286,115 @@ public final class XSkull {
      * @param profile The {@link GameProfile} to check.
      * @return {@code true} if the profile has a texture property, {@code false} otherwise.
      */
-    public static boolean hasTextures(GameProfile profile) {
+    private static boolean hasTextures(GameProfile profile) {
         return getTextureProperty(profile).isPresent();
     }
 
-    /**
-     * Retrieves the skin value from the given {@link ItemMeta}.
-     *
-     * @param meta The {@link ItemMeta} to retrieve the skin value from.
-     * @return The skin value as a {@link String}, or {@code null} if not found.
-     * @throws NullPointerException if {@code meta} is {@code null}.
-     */
-    @Nullable
-    public static String getSkinValue(@Nonnull ItemMeta meta) {
-        Objects.requireNonNull(meta, "Skull meta cannot be null");
-        GameProfile profile = getProfile(meta);
-        return profile == null ? null : getSkinValue(profile);
-    }
+    protected abstract static class ProfileContainer<T> {
+        @Nonnull
+        public abstract T setProfile(@Nullable GameProfile profile);
 
-    /**
-     * Retrieves the skin value from the given {@link BlockState}.
-     *
-     * @param state The {@link BlockState} to retrieve the skin value from.
-     * @return The skin value as a {@link String}, or {@code null} if not found.
-     * @throws NullPointerException if {@code state} is {@code null}.
-     */
-    @Nullable
-    public static String getSkinValue(@Nonnull BlockState state) {
-        Objects.requireNonNull(state, "Block state cannot be null");
-        GameProfile profile = getProfile(state);
-        return profile == null ? null : getSkinValue(profile);
+        @Nullable
+        public abstract GameProfile getProfile();
+
+        @Nullable
+        public final String getProfileValue() {
+            GameProfile profile = getProfile();
+            if (profile == null) return null;
+            return getTextureProperty(profile).map(XSkull::getPropertyValue).orElse(null);
+        }
+
+        private static final class ItemStackProfileContainer extends ProfileContainer<ItemStack> {
+            private final ItemStack itemStack;
+
+            private ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = itemStack;}
+
+            @Override
+            public ItemStack setProfile(GameProfile profile) {
+                ItemMeta meta = itemStack.getItemMeta();
+                new ItemMetaProfileContainer(meta).setProfile(profile);
+                itemStack.setItemMeta(meta);
+                return itemStack;
+            }
+
+            @Override
+            public GameProfile getProfile() {
+                return new ItemMetaProfileContainer(itemStack.getItemMeta()).getProfile();
+            }
+        }
+
+        private static final class ItemMetaProfileContainer extends ProfileContainer<ItemMeta> {
+            private final ItemMeta meta;
+
+            private ItemMetaProfileContainer(ItemMeta meta) {this.meta = meta;}
+
+            @Override
+            public ItemMeta setProfile(GameProfile profile) {
+                try {
+                    CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
+                } catch (Throwable throwable) {
+                    throw new RuntimeException("Unable to set profile " + profile + " to " + meta, throwable);
+                }
+                return meta;
+            }
+
+            @Override
+            public GameProfile getProfile() {
+                try {
+                    return (GameProfile) CRAFT_META_SKULL_PROFILE_GETTER.invoke((SkullMeta) meta);
+                } catch (Throwable throwable) {
+                    throw new RuntimeException("Failed to get profile from item meta: " + meta, throwable);
+                }
+            }
+        }
+
+        private static final class BlockProfileContainer extends ProfileContainer<Block> {
+            private final Block block;
+
+            private BlockProfileContainer(Block block) {this.block = block;}
+
+            private Skull getBlockState() {
+                return (Skull) block.getState();
+            }
+
+            @Override
+            public Block setProfile(GameProfile profile) {
+                Skull state = getBlockState();
+                new BlockStateProfileContainer(state).setProfile(profile);
+                state.update(true);
+                return block;
+            }
+
+            @Override
+            public GameProfile getProfile() {
+                return new BlockStateProfileContainer(getBlockState()).getProfile();
+            }
+        }
+
+        private static final class BlockStateProfileContainer extends ProfileContainer<Skull> {
+            private final Skull state;
+
+            private BlockStateProfileContainer(Skull state) {this.state = state;}
+
+            @Override
+            public Skull setProfile(GameProfile profile) {
+                try {
+                    CRAFT_SKULL_PROFILE_SETTER.invoke(state, profile);
+                } catch (Throwable throwable) {
+                    throw new RuntimeException("Unable to set profile " + profile + " to " + state, throwable);
+                }
+                return state;
+            }
+
+            @Override
+            public GameProfile getProfile() {
+                try {
+                    return (GameProfile) CRAFT_SKULL_PROFILE_GETTER.invoke(state);
+                } catch (Throwable throwable) {
+                    throw new RuntimeException("Unable to get profile fr om blockstate: " + state, throwable);
+                }
+            }
+        }
     }
 
     private static Optional<Property> getTextureProperty(GameProfile profile) {
@@ -375,146 +454,9 @@ public final class XSkull {
      * If validation is required, consider using {@link XSkull#getProfile(String)}.
      */
     @Nonnull
-    public static GameProfile getProfileOrDefault(@Nullable SkullInputType type, @Nonnull String input) {
+    private static GameProfile getProfileOrDefault(@Nullable SkullInputType type, @Nonnull String input) {
         Objects.requireNonNull(input, "Input cannot be null");
         return type == null ? getDefaultProfile() : type.getProfile(input);
-    }
-
-    /**
-     * Retrieves a {@link GameProfile} from the given {@link ItemStack}.
-     *
-     * @param stack The {@link ItemStack} to retrieve the profile from.
-     * @return The {@link GameProfile} of the item, or {@code null} if not found.
-     * @throws NullPointerException if {@code stack} is {@code null}.
-     */
-    @Nullable
-    public static GameProfile getProfile(@Nonnull ItemStack stack) {
-        Objects.requireNonNull(stack, "Item stack cannot be null");
-        ItemMeta meta = stack.getItemMeta();
-        return getProfile(meta);
-    }
-
-    /**
-     * Retrieves a {@link GameProfile} from the given {@link ItemMeta}.
-     *
-     * @param meta The {@link ItemMeta} to retrieve the profile from.
-     * @return The {@link GameProfile} of the item meta, or {@code null} if not found.
-     * @throws NullPointerException if {@code meta} is {@code null}.
-     */
-    @Nullable
-    public static GameProfile getProfile(@Nonnull ItemMeta meta) {
-        Objects.requireNonNull(meta, "Item meta cannot be null");
-        try {
-            return (GameProfile) CRAFT_META_SKULL_PROFILE_GETTER.invoke((SkullMeta) meta);
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Failed to get profile from item meta: " + meta, throwable);
-        }
-    }
-
-    /**
-     * Retrieves a {@link GameProfile} from the given {@link Block}.
-     *
-     * @param block The {@link Block} to retrieve the profile from.
-     * @return The {@link GameProfile} of the block, or {@code null} if not found.
-     * @throws NullPointerException if {@code block} is {@code null}.
-     */
-    @Nullable
-    public static GameProfile getProfile(@Nonnull Block block) {
-        Objects.requireNonNull(block, "Block cannot be null");
-        BlockState state = block.getState();
-        return getProfile(state);
-    }
-
-    /**
-     * Retrieves a {@link GameProfile} from the given {@link BlockState}.
-     *
-     * @param state The {@link BlockState} to retrieve the profile from.
-     * @return The {@link GameProfile} of the block state, or {@code null} if not found.
-     * @throws NullPointerException if {@code state} is {@code null}.
-     */
-    @Nullable
-    public static GameProfile getProfile(@Nonnull BlockState state) {
-        Objects.requireNonNull(state, "Block state cannot be null");
-        try {
-            return (GameProfile) CRAFT_SKULL_PROFILE_GETTER.invoke(state);
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Unable to get profile fr om blockstate: " + state, throwable);
-        }
-    }
-
-    /**
-     * Sets the {@link GameProfile} on the given {@link ItemStack}.
-     *
-     * @param stack The {@link ItemStack} to set the profile on.
-     * @param profile The {@link GameProfile} to set.
-     * @return The {@link ItemStack} with the profile set.
-     * @throws NullPointerException if {@code stack} or {@code profile} is {@code null}.
-     */
-    @Nonnull
-    public static ItemStack setProfile(@Nonnull ItemStack stack, @Nullable GameProfile profile) {
-        Objects.requireNonNull(stack, "Item stack cannot be null");
-        ItemMeta meta = stack.getItemMeta();
-        setProfile(Objects.requireNonNull(meta), profile);
-        stack.setItemMeta(meta);
-        return stack;
-    }
-
-    /**
-     * Directly sets the {@link GameProfile} on the given {@link ItemMeta}.
-     * <p>
-     * Note: Directly setting the profile is not compatible with {@link SkullMeta#setOwningPlayer(OfflinePlayer)},
-     * and should be reset by calling {@code setProfile(meta, null)}.
-     * <br><br>
-     * Newer client versions give profiles a higher priority over UUID.
-     * </p>
-     *
-     * @param meta The {@link ItemMeta} to set the profile on.
-     * @param profile The {@link GameProfile} to set.
-     * @return The {@link ItemMeta} with the profile set.
-     * @throws NullPointerException if {@code meta} is {@code null}.
-     */
-    public static ItemMeta setProfile(@Nonnull ItemMeta meta, @Nullable GameProfile profile) {
-        Objects.requireNonNull(meta, "Item meta cannot be null");
-        try {
-            CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Unable to set profile " + profile + " to " + meta, throwable);
-        }
-        return meta;
-    }
-
-    /**
-     * Sets the {@link GameProfile} on the given {@link Block}.
-     *
-     * @param block The {@link Block} to set the profile on.
-     * @param profile The {@link GameProfile} to set.
-     * @return The {@link Block} with the profile set.
-     * @throws NullPointerException if {@code block} is {@code null}.
-     */
-    public static Block setProfile(@Nonnull Block block, @Nullable GameProfile profile) {
-        Objects.requireNonNull(block, "Block cannot be null");
-        BlockState state = block.getState();
-        setProfile(state, profile);
-        state.update(true);
-        return block;
-    }
-
-    /**
-     * Sets the {@link GameProfile} on the given {@link BlockState}.
-     *
-     * @param state The {@link BlockState} to set the profile on.
-     * @param profile The {@link GameProfile} to set.
-     * @return The {@link BlockState} with the profile set.
-     * @throws NullPointerException if {@code state} is {@code null}.
-     */
-    public static BlockState setProfile(@Nonnull BlockState state, @Nullable GameProfile profile) {
-        Objects.requireNonNull(state, "Block state cannot be null");
-        try {
-            CRAFT_SKULL_PROFILE_SETTER.invoke((Skull) state, profile);
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Unable to set profile " + profile + " to " + state, throwable);
-        }
-        return state;
     }
 
     /**
@@ -589,7 +531,7 @@ public final class XSkull {
         return sanitizeProfile(profile);
     }
 
-    public static UUID getOfflineUUID(OfflinePlayer player) {
+    private static UUID getOfflineUUID(OfflinePlayer player) {
         // Vanilla behavior across all platforms.
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + player.getName()).getBytes(StandardCharsets.UTF_8));
     }
@@ -640,7 +582,7 @@ public final class XSkull {
         }
     }
 
-    public static JsonObject requestUsernameToUUID(String username) throws IOException {
+    private static JsonObject requestUsernameToUUID(String username) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + username).openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(10 * 1000); // 10 seconds
@@ -784,7 +726,7 @@ public final class XSkull {
          */
         public T apply() {
             GameProfile profile = instruction.supplier.get();
-            return instruction.setter.apply(profile);
+            return instruction.profileContainer.setProfile(profile);
         }
 
         /**
@@ -811,21 +753,28 @@ public final class XSkull {
      * Represents an instruction that sets a property of a {@link GameProfile}.
      * It uses a {@link Function} to define how to set the property.
      *
-     * @param <T> The type of the result produced by the {@link #setter} function.
+     * @param <T> The type of the result produced by the {@link #profileContainer} function.
      */
     public static class SkullInstruction<T> {
         /**
          * The function called that applies the given {@link #supplier} to an object that supports it
          * such as {@link ItemStack}, {@link SkullMeta} or a {@link BlockState}.
          */
-        protected final Function<GameProfile, T> setter;
+        private final ProfileContainer<T> profileContainer;
         /**
-         * The final texture that will be supplied to {@link #setter} to be applied.
+         * The final texture that will be supplied to {@link #profileContainer} to be applied.
          */
-        protected Supplier<GameProfile> supplier;
+        private Supplier<GameProfile> supplier;
 
-        SkullInstruction(Function<GameProfile, T> setter) {
-            this.setter = setter;
+        protected SkullInstruction(ProfileContainer<T> profileContainer) {
+            this.profileContainer = profileContainer;
+        }
+
+        /**
+         * Removes the profile and skin texture.
+         */
+        public T removeProfile() {
+            return profileContainer.setProfile(null);
         }
 
         /**
@@ -835,7 +784,7 @@ public final class XSkull {
          * @return A new {@link SkullAction} instance configured with this {@code SkullInstruction}.
          */
         public SkullAction<T> profile(String input) {
-            this.supplier = () -> getProfile(input);
+            this.supplier = () -> XSkull.getProfile(input);
             return new SkullAction<>(this);
         }
 
@@ -852,6 +801,14 @@ public final class XSkull {
             return new SkullAction<>(this);
         }
 
+        public GameProfile getProfile() {
+            return profileContainer.getProfile();
+        }
+
+        public String getProfileString() {
+            return profileContainer.getProfileValue();
+        }
+
         /**
          * Sets the skull texture based on the specified player UUID.
          *
@@ -859,7 +816,7 @@ public final class XSkull {
          * @return A new {@link SkullAction} instance configured with this {@code SkullInstruction}.
          */
         public SkullAction<T> profile(UUID uuid) {
-            this.supplier = () -> getProfile(uuid);
+            this.supplier = () -> XSkull.getProfile(uuid);
             return new SkullAction<>(this);
         }
 
@@ -887,7 +844,7 @@ public final class XSkull {
         public SkullAction<T> profile(OfflinePlayer offlinePlayer) {
             this.supplier = () ->
                     Bukkit.getOnlineMode()
-                            ? getProfile(offlinePlayer.getUniqueId())
+                            ? XSkull.getProfile(offlinePlayer.getUniqueId())
                             : getProfileOrDefault(SkullInputType.USERNAME, offlinePlayer.getName());
             return new SkullAction<>(this);
         }
@@ -907,7 +864,7 @@ public final class XSkull {
             }
 
             this.supplier = () -> Bukkit.getOnlineMode()
-                    ? getProfile(profile.getId())
+                    ? XSkull.getProfile(profile.getId())
                     : getProfileOrDefault(SkullInputType.USERNAME, profile.getName());
             return new SkullAction<>(this);
         }
