@@ -547,7 +547,7 @@ public class ParticleDisplay implements Cloneable {
                 }
 
                 if (parsedColor2 != null) {
-                    display.data = new DustTransitionParticleColor(parsedColor1, parsedColor2);
+                    display.data = new DustTransitionParticleColor(parsedColor1, parsedColor2, size);
                 } else {
                     display.data = new RGBParticleColor(parsedColor1);
                 }
@@ -983,7 +983,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay withTransitionColor(@Nonnull Color fromColor, float size, @Nonnull Color toColor) {
-        this.data = new DustTransitionParticleColor(fromColor, toColor);
+        this.data = new DustTransitionParticleColor(fromColor, toColor, size);
         this.extra = size;
         return this;
     }
@@ -1923,25 +1923,25 @@ public class ParticleDisplay implements Cloneable {
     }
 
     public static class DustTransitionParticleColor implements ParticleData {
-        private final Color fromColor;
-        private final Color toColor;
-        public DustTransitionParticleColor(Color fromColor, Color toColor) {
-            this.fromColor = fromColor;
-            this.toColor = toColor;
+        private final Particle.DustTransition dustTransition;
+        public DustTransitionParticleColor(Color fromColor, Color toColor, double size) {
+            this.dustTransition = new Particle.DustTransition(
+                    org.bukkit.Color.fromRGB(fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue()),
+                    org.bukkit.Color.fromRGB(toColor.getRed(), toColor.getGreen(), toColor.getBlue()),
+                    (float) size
+            );
         }
 
         @Override
         public Object data(XParticle particle, double extra) {
-            return new Particle.DustTransition(
-                    org.bukkit.Color.fromRGB(fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue()),
-                    org.bukkit.Color.fromRGB(toColor.getRed(), toColor.getGreen(), toColor.getBlue()),
-                    (float) extra
-            );
+            return dustTransition;
         }
 
         @Override
         public void serialize(ConfigurationSection section) {
             StringJoiner colorJoiner = new StringJoiner(", ");
+            org.bukkit.Color fromColor = dustTransition.getColor();
+            org.bukkit.Color toColor = dustTransition.getToColor();
             colorJoiner.add(Integer.toString(fromColor.getRed()));
             colorJoiner.add(Integer.toString(fromColor.getGreen()));
             colorJoiner.add(Integer.toString(fromColor.getBlue()));
