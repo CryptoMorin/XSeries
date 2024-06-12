@@ -294,7 +294,7 @@ public final class Particles {
                 double directionX = Math.cos(extension * phi);
                 double directionZ = Math.sin(extension * phi);
 
-                display.offset(directionX, display.getOffset().getY(), directionZ);
+                display.particleDirection(directionX, display.getOffset().getY(), directionZ);
             }
 
             display.spawn(x, 0, z);
@@ -696,7 +696,6 @@ public final class Particles {
      * @since 3.0.0
      */
     public static BooleanSupplier blackhole(int points, double radius, double rate, int mode, int time, ParticleDisplay display) {
-        display.directional();
         display.extra = 0.1;
 
         return new BooleanSupplier() {
@@ -720,7 +719,7 @@ public final class Particles {
                     double xDirection = -Math.cos(phi);
                     double zDirection = -Math.sin(phi);
 
-                    display.offset(xDirection, 0, zDirection);
+                    display.particleDirection(xDirection, 0, zDirection);
                     display.spawn(x, 0, z);
 
                     // The modes are done by random math methods that are
@@ -737,7 +736,7 @@ public final class Particles {
                         xDirection = -Math.cos(phi);
                         zDirection = -Math.sin(phi);
 
-                        display.offset(xDirection, 0, zDirection);
+                        display.particleDirection(xDirection, 0, zDirection);
                         display.spawn(x, 0, z);
                     }
                 }
@@ -899,7 +898,6 @@ public final class Particles {
      */
     public static Runnable vortex(int points, double rate, ParticleDisplay display) {
         double rateDiv = Math.PI / rate;
-        display.directional();
 
         return new Runnable() {
             double theta = 0;
@@ -919,7 +917,7 @@ public final class Particles {
                     double xDirection = Math.cos(angle);
                     double zDirection = Math.sin(angle);
 
-                    display.offset(xDirection, 0, zDirection);
+                    display.particleDirection(xDirection, 0, zDirection);
                     display.spawn(x, 0, z);
                 }
             }
@@ -1241,7 +1239,7 @@ public final class Particles {
                     double directionY = Math.sin(Math.atan2(y2, y1));
                     double directionZ = Math.sin(omega);
 
-                    display.offset(directionX, directionY, directionZ);
+                    display.particleDirection(directionX, directionY, directionZ);
                 }
 
                 display.spawn(x, y1, z);
