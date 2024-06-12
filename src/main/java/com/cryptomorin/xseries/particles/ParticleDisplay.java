@@ -174,8 +174,8 @@ public class ParticleDisplay implements Cloneable {
     private Location location, lastLocation;
     @Nonnull
     private Vector offset = new Vector();
-    @Nonnull
-    private Vector particleDirection = new Vector();
+    @Nullable
+    private Vector particleDirection;
     /**
      * The direction is mostly used for APIs to call {@link #advanceInDirection(double)}
      * instead of handling the direction in a specific axis.
@@ -599,7 +599,7 @@ public class ParticleDisplay implements Cloneable {
             section.set("offset", offset.getX() + ", " + offset.getY() + ", " + offset.getZ());
         }
 
-        if (!isZero(display.particleDirection)) {
+        if (display.particleDirection != null) {
             Vector direction = display.particleDirection;
             section.set("direction", direction.getX() + ", " + direction.getY() + ", " + direction.getZ());
         }
@@ -1495,10 +1495,10 @@ public class ParticleDisplay implements Cloneable {
      * @since 11.0.0
      */
     @Nonnull
-    public ParticleDisplay particleDirection(Vector particleDirection) {
+    public ParticleDisplay particleDirection(@Nullable Vector particleDirection) {
         this.particleDirection = particleDirection;
         // Particle directions require a nonzero speed or the direction won't do anything.
-        if (extra == 0) extra = 1;
+        if (particleDirection != null && extra == 0) extra = 1;
         return this;
     }
 
@@ -1527,7 +1527,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 2.1.0
      */
     public boolean isDirectional() {
-        return !isZero(particleDirection);
+        return particleDirection != null;
     }
 
     /**
@@ -1588,28 +1588,24 @@ public class ParticleDisplay implements Cloneable {
 
         Object data = null;
         if (this.data != null) {
-            this.data = this.data.transform(this.particle);
-            if (this.data.isOffsetBased(this.particle)) {
-                double[] offsetValues = this.data.offsetValues();
-                spawnWithDataInOffset(particle, loc, offsetValues, null);
+            this.data = this.data.transform(this);
+            Vector offsetData = this.data.offsetValues(this);
+            if (offsetData != null) {
+                spawnWithDataInOffset(particle, loc, offsetData, null);
                 return loc;
             }
-            data = this.data.data(this.particle, this.extra);
+            data = this.data.data(this);
             // Checks without data or block crack, block dust, falling dust, item crack or if data isn't right type
             if (!particle.getDataType().isInstance(data)) data = null;
         }
 
-        if (!isZero(this.particleDirection)) {
-            double[] offsetData = {particleDirection.getX(), particleDirection.getY(), particleDirection.getZ()};
-            spawnWithDataInOffset(particle, loc, offsetData, data);
+        if (particleDirection != null) {
+            spawnWithDataInOffset(particle, loc, particleDirection, data);
             return loc;
         }
 
         // Nothing weird, just spawn the particles normally.
-        double offsetx = offset.getX();
-        double offsety = offset.getY();
-        double offsetz = offset.getZ();
-        spawnRaw(particle, loc, count, offsetx, offsety, offsetz, data);
+        spawnRaw(particle, loc, count, offset, data);
         return loc;
     }
 
@@ -1620,11 +1616,11 @@ public class ParticleDisplay implements Cloneable {
      *
      * @param offsetData the data that needs to go in the offset fields.
      */
-    private void spawnWithDataInOffset(Particle particle, Location loc, double[] offsetData, Object data) {
+    private void spawnWithDataInOffset(Particle particle, Location loc, Vector offsetData, Object data) {
         // If there is no offset and we only want a single particle, we don't actually need to do anything special.
         // Otherwise, we'll at least need to use a loop.
         if (isZero(offset) && count < 2) {
-            spawnRaw(particle, loc, 0, offsetData[0], offsetData[1], offsetData[2], data);
+            spawnRaw(particle, loc, 0, offsetData, data);
             return;
         }
         // Particles with a specific direction must be flagged with count = 0,
@@ -1641,14 +1637,17 @@ public class ParticleDisplay implements Cloneable {
             double dy = offsety == 0 ? 0 : r.nextGaussian() * 4 * offsety;
             double dz = offsetz == 0 ? 0 : r.nextGaussian() * 4 * offsetz;
             Location offsetLoc = cloneLocation(loc).add(dx, dy, dz);
-            spawnRaw(particle, offsetLoc, 0, offsetData[0], offsetData[1], offsetData[2], data);
+            spawnRaw(particle, offsetLoc, 0, offsetData, data);
         }
     }
 
     /**
      * Calls the appropriate spawnParticle method with the parameters given.
      */
-    private void spawnRaw(Particle particle, Location loc, int count, double dx, double dy, double dz, Object data) {
+    private void spawnRaw(Particle particle, Location loc, int count, Vector offset, Object data) {
+        double dx = offset.getX();
+        double dy = offset.getY();
+        double dz = offset.getZ();
         if (players == null)
             if (ISFLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
@@ -1835,20 +1834,12 @@ public class ParticleDisplay implements Cloneable {
     }
 
     public interface ParticleData {
-        /**
-         * Returns true if the data type uses the offset fields,
-         * and false if it uses the data field.
-         * Sometimes depends on the particle and version.
-         */
-        public default boolean isOffsetBased(XParticle particle) {
-            return false;
+
+        public default Vector offsetValues(ParticleDisplay display) {
+            return null;
         }
 
-        public default double[] offsetValues() {
-            return new double[]{0, 0, 0};
-        }
-
-        public Object data(XParticle particle, double extra);
+        public Object data(ParticleDisplay display);
 
         public void serialize(ConfigurationSection section);
 
@@ -1858,7 +1849,7 @@ public class ParticleDisplay implements Cloneable {
          * ParticleData for that particle type.
          * Used for converting RGB particle data to note block particle data.
          */
-        public default ParticleData transform(XParticle particle) {
+        public default ParticleData transform(ParticleDisplay display) {
             return this;
         }
     }
@@ -1874,24 +1865,22 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public boolean isOffsetBased(XParticle particle) {
-            // All colors were offset-based until 1.13
-            if (!ISFLAT) return true;
+        public Vector offsetValues(ParticleDisplay display) {
+            // All particles that supported color used offset fields for them before the flattening.
             // ENTITY_EFFECT particle uses the offset fields for color on 1.20.4 and below.
-            return particle == XParticle.ENTITY_EFFECT && particle.isSupported() && particle.get().getDataType() == Void.class;
+            if (!ISFLAT || (display.particle == XParticle.ENTITY_EFFECT && display.particle.isSupported()
+                    && display.particle.get().getDataType() == Void.class)) {
+                return new Vector(color.getRed() / 255d, color.getGreen() / 255d, color.getBlue() / 255d);
+            }
+            return null;
         }
 
-        @Override
-        public double[] offsetValues() {
-            return new double[]{color.getRed() / 255d, color.getGreen() / 255d, color.getBlue() / 255d};
-        }
-
-        public Object data(XParticle particle, double extra) {
-            if (particle == XParticle.DUST) {
-                return new Particle.DustOptions(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()), (float) extra);
-            } else if (particle == XParticle.DUST_COLOR_TRANSITION) {
+        public Object data(ParticleDisplay display) {
+            if (display.particle == XParticle.DUST) {
+                return new Particle.DustOptions(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()), (float) display.extra);
+            } else if (display.particle == XParticle.DUST_COLOR_TRANSITION) {
                 org.bukkit.Color color = org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue());
-                return new Particle.DustTransition(color, color, (float) extra);
+                return new Particle.DustTransition(color, color, (float) display.extra);
             }
             if (SUPPORTS_ALPHA_COLORS) {
                 return org.bukkit.Color.fromARGB(color.getAlpha(), color.getRed(), color.getGreen(), color.getBlue());
@@ -1910,15 +1899,11 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public ParticleData transform(XParticle particle) {
-            if (particle == XParticle.NOTE) {
-                return asNoteColor();
+        public ParticleData transform(ParticleDisplay display) {
+            if (display.particle == XParticle.NOTE) {
+                return new NoteParticleColor(findNearestNoteColor(color));
             }
             return this;
-        }
-
-        public NoteParticleColor asNoteColor() {
-            return new NoteParticleColor(findNearestNoteColor(color));
         }
     }
 
@@ -1933,7 +1918,7 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public Object data(XParticle particle, double extra) {
+        public Object data(ParticleDisplay display) {
             return dustTransition;
         }
 
@@ -1967,17 +1952,12 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public boolean isOffsetBased(XParticle particle) {
-            return true;
+        public Vector offsetValues(ParticleDisplay display) {
+            return new Vector(note / 24d, 0, 0);
         }
 
         @Override
-        public double[] offsetValues() {
-            return new double[]{note / 24d, 0, 0};
-        }
-
-        @Override
-        public Object data(XParticle particle, double extra) {
+        public Object data(ParticleDisplay display) {
             return null;
         }
 
@@ -1987,14 +1967,10 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public ParticleData transform(XParticle particle) {
-            if (particle == XParticle.NOTE) {
+        public ParticleData transform(ParticleDisplay display) {
+            if (display.particle == XParticle.NOTE) {
                 return this;
             }
-            return asRGBColor();
-        }
-
-        public RGBParticleColor asRGBColor() {
             return new RGBParticleColor(NOTE_COLORS[note]);
         }
     }
@@ -2006,7 +1982,7 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public Object data(XParticle particle, double extra) {
+        public Object data(ParticleDisplay display) {
             return blockData;
         }
 
@@ -2024,7 +2000,7 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public Object data(XParticle particle, double extra) {
+        public Object data(ParticleDisplay display) {
             return materialData;
         }
 
@@ -2041,7 +2017,7 @@ public class ParticleDisplay implements Cloneable {
         }
 
         @Override
-        public Object data(XParticle particle, double extra) {
+        public Object data(ParticleDisplay display) {
             return item;
         }
 
