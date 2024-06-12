@@ -1515,7 +1515,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @Nonnull
     public ParticleDisplay directional() {
-        count = 0;
+        particleDirection = new Vector();
         return this;
     }
 
