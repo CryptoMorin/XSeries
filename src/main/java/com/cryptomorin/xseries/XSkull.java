@@ -28,6 +28,9 @@ import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.gson.JsonElement;
@@ -38,6 +41,7 @@ import com.google.gson.stream.JsonReader;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -58,13 +62,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandle;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -105,7 +108,7 @@ import java.util.regex.Pattern;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 9.1.0
+ * @version 10.0.0
  * @see XMaterial
  * @see XReflection
  */
@@ -131,18 +134,27 @@ public final class XSkull {
      * Here, "blank" is null for UUID, and {@code Character.isWhitespace} for the name field.
      */
     private static final String DEFAULT_PROFILE_NAME = "XSeries";
-    private static final UUID DEFAULT_PROFILE_UUID = new UUID(0, 0);
+    private static final Property XSKULL_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "true");
+    /**
+     * Used as the default UUID for GameProfiles.
+     * Also used as a null-indicating value.
+     */
+    private static final UUID IDENTITY_UUID = new UUID(0, 0);
     private static final Pattern UUID_NO_DASHES = Pattern.compile("([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{12})");
+    /**
+     * "requireSecure" parameter basically means ignore the cache and also use "unsigned=false" parameter.
+     */
+    private static final boolean REQUIRE_SECURE_PROFILES = false;
 
     /**
      * We'll just return an x shaped hardcoded skull.<br>
      * <a href="https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross">minecraft-heads.com</a>
      */
-    private static final GameProfile DEFAULT_PROFILE = SkullInputType.BASE64.getProfile(
+    private static final GameProfile DEFAULT_PROFILE = signXSkull(SkullInputType.BASE64.getProfile(
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5l" +
                     "Y3JhZnQubmV0L3RleHR1cmUvYzEwNTkxZTY5MDllNmEyODFiMzcxODM2ZTQ2MmQ2" +
                     "N2EyYzc4ZmEwOTUyZTkxMGYzMmI0MWEyNmM0OGMxNzU3YyJ9fX0="
-    );
+    ));
 
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
@@ -156,6 +168,73 @@ public final class XSkull {
      * get base64 information from player's UUID.
      */
     private static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
+
+    /**
+     * Used for older versions.
+     */
+    private static final Cache<UUID, GameProfile> INSECURE_PROFILES = CacheBuilder.newBuilder()
+            .expireAfterWrite(6L, TimeUnit.HOURS).build();
+
+    /**
+     * According to <a href="https://wiki.vg/Mojang_API">Mojang API</a> the rate limit
+     * is around 600 requests per 10 (i.e. 1 request per second) for most endpoints.
+     * However <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape">UUID to Profile and Skin/Cape</a>
+     * is around 200 requests per minute.
+     * <p>
+     * If we want to use UUID_TO_PROFILE_RATELIMIT we'd have to copy and paste fetchProfile()
+     * because that method catches HTTP exceptions.
+     */
+    private static final RateLimiter
+            UUID_RATELIMIT = new RateLimiter(600, Duration.ofMinutes(10)),
+            UUID_TO_PROFILE_RATELIMIT = new RateLimiter(200, Duration.ofMinutes(1));
+
+    private static final class RateLimiter {
+        private final ConcurrentLinkedQueue<Long> requests = new ConcurrentLinkedQueue<>();
+        private final int maxRequests;
+        private final long per;
+
+        private RateLimiter(int maxRequests, Duration per) {
+            this.maxRequests = maxRequests;
+            this.per = per.toMillis();
+        }
+
+        private ConcurrentLinkedQueue<Long> getRequests() {
+            if (requests.isEmpty()) return requests;
+
+            // Implementing a cleanup delay is practically not any different
+            // from just letting this loop to happen in terms of performance.
+            long now = System.currentTimeMillis();
+            Iterator<Long> iter = requests.iterator();
+            while (iter.hasNext()) {
+                long requestedAt = iter.next();
+                long diff = now - requestedAt;
+                if (diff > per) iter.remove();
+                else break; // Requests are ordered, so if this fails, the others will fail too.
+            }
+
+            return requests;
+        }
+
+        private int getRemainingRequests() {
+            return Math.max(0, maxRequests - getRequests().size());
+        }
+
+        public void instantRateLimit() {
+            long now = System.currentTimeMillis();
+            for (int i = 0; i < getRemainingRequests(); i++) {
+                requests.add(now);
+            }
+        }
+
+        public boolean acquire() {
+            if (getRemainingRequests() <= 0) {
+                return false;
+            } else {
+                requests.add(System.currentTimeMillis());
+                return true;
+            }
+        }
+    }
 
     static {
         Object userCache, minecraftSessionService;
@@ -172,6 +251,7 @@ public final class XSkull {
 
             try {
                 // https://github.com/CryptoMorin/XSeries/issues/169
+                // noinspection MethodMayBeStatic
                 profileSetterMeta = CraftMetaSkull.method("private void setProfile(GameProfile profile);").reflect();
             } catch (NoSuchMethodException e) {
                 profileSetterMeta = CraftMetaSkull.field("private GameProfile profile;").setter().reflect();
@@ -240,6 +320,10 @@ public final class XSkull {
         CRAFT_META_SKULL_PROFILE_GETTER = profileGetterMeta;
         CRAFT_SKULL_PROFILE_SETTER = craftProfile.setter().unreflect();
         CRAFT_SKULL_PROFILE_GETTER = craftProfile.getter().unreflect();
+    }
+
+    private static void debug(String mainMessage, Object... variables) {
+        LOGGER.debug(mainMessage, variables);
     }
 
     /**
@@ -442,36 +526,6 @@ public final class XSkull {
     }
 
     /**
-     * Retrieves a {@link GameProfile} based on the provided input string.
-     *
-     * @param input The input string to retrieve the profile for.
-     * @return The {@link GameProfile} corresponding to the input.
-     * @throws NullPointerException if {@code input} is {@code null}.
-     */
-    @Nonnull
-    public static GameProfile getProfile(@Nonnull String input) {
-        Objects.requireNonNull(input, "Input cannot be null");
-        return getProfileOrDefault(SkullInputType.get(input), input);
-    }
-
-    /**
-     * Retrieves a {@link GameProfile} based on the provided input type and input string.
-     *
-     * @param type  The type of the input.
-     * @param input The input string to retrieve the profile for.
-     * @return The {@link GameProfile} corresponding to the input type and input string.
-     * Returns the default profile if the type is {@code null}.
-     * @throws NullPointerException if {@code input} is {@code null}.
-     * @implNote This method does not validate the input type.
-     * If validation is required, consider using {@link XSkull#getProfile(String)}.
-     */
-    @Nonnull
-    private static GameProfile getProfileOrDefault(@Nullable SkullInputType type, @Nonnull String input) {
-        Objects.requireNonNull(input, "Input cannot be null");
-        return type == null ? getDefaultProfile() : type.getProfile(input);
-    }
-
-    /**
      * Retrieves a cached {@link GameProfile} by username from the user cache.
      * If the profile is not found in the cache, creates a new profile with the provided name.
      *
@@ -480,9 +534,12 @@ public final class XSkull {
      */
     private static GameProfile getCachedProfileByUsername(String username) {
         try {
+            // Expires after every month calendar.add(2, 1); (Persists between restarts)
             @Nullable Object profile = GET_PROFILE_BY_NAME.invoke(USER_CACHE, username);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
-            return profile == null ? new GameProfile(DEFAULT_PROFILE_UUID, username) : sanitizeProfile((GameProfile) profile);
+            GameProfile gameProfile = profile == null ? new GameProfile(IDENTITY_UUID, username) : sanitizeProfile((GameProfile) profile);
+            debug("The cached profile for {} -> {}", username, profile);
+            return gameProfile;
         } catch (Throwable throwable) {
             LOGGER.error("Unable to get cached profile by username: " + username, throwable);
             return null;
@@ -496,11 +553,14 @@ public final class XSkull {
      * @param uuid The UUID of the profile to retrieve from the cache.
      * @return The cached {@link GameProfile} corresponding to the UUID, or a new profile if not found.
      */
+    @Nonnull
     private static GameProfile getCachedProfileByUUID(UUID uuid) {
+        uuid = isOnlineMode() ? uuid : ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
         try {
             @Nullable Object profile = GET_PROFILE_BY_UUID.invoke(USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
-            return profile == null ? new GameProfile(uuid, DEFAULT_PROFILE_NAME) : sanitizeProfile((GameProfile) profile);
+            debug("The cached profile for {} -> {}", uuid, profile);
+            return profile == null ? createNamelessGameProfile(uuid) : sanitizeProfile((GameProfile) profile);
         } catch (Throwable throwable) {
             LOGGER.error("Unable to get cached profile by UUID: " + uuid, throwable);
             return getDefaultProfile();
@@ -509,78 +569,181 @@ public final class XSkull {
 
     /**
      * Caches the provided {@link GameProfile} in the user cache.
+     * These caches are also stored in {@code usercache.json} (file specified in net.minecraft.server.Services).
      *
      * @param profile The {@link GameProfile} to cache.
      */
     private static void cacheProfile(GameProfile profile) {
         try {
             CACHE_PROFILE.invoke(USER_CACHE, profile);
+            debug("Profile is now cached: {}", profile);
         } catch (Throwable throwable) {
             LOGGER.error("Unable to cache profile: " + profile, throwable);
         }
     }
 
     /**
-     * Fetches additional properties for the given {@link GameProfile} if possible.
+     * Fetches additional properties for the given {@link GameProfile} if possible (like the texture).
      *
      * @param profile The {@link GameProfile} for which properties are to be fetched.
      * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
+     * @throws IllegalArgumentException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
-    private static GameProfile fetchProfile(GameProfile profile) {
+    @Nonnull
+    private static GameProfile fetchProfile(@Nonnull GameProfile profile) {
         if (!NULLABILITY_RECORD_UPDATE) {
+            GameProfile old = profile;
+            GameProfile cached = INSECURE_PROFILES.getIfPresent(profile.getId());
+            GameProfile newProfile;
+
             try {
-                profile = (GameProfile) FILL_PROFILE_PROPERTIES.invoke(MINECRAFT_SESSION_SERVICE, profile, false);
+                /* This URL endpoint still works as of 1.20.6
+                 * URL url = HttpAuthenticationService.constantURL("https://sessionserver.mojang.com/session/minecraft/profile/" + UUIDTypeAdapter.fromUUID(profile.getId()));
+                 * url = HttpAuthenticationService.concatenateURL(url, "unsigned=" + !requireSecure);
+                 * GameProfile result = new GameProfile(response.getId(), response.getName());
+                 * result.getProperties().putAll(response.getProperties());
+                 * profile.getProperties().putAll(response.getProperties());
+                 */
+                // These results are not cached unlike the newer fetchProfile()
+                if (cached == null) {
+                    newProfile = (GameProfile) FILL_PROFILE_PROPERTIES
+                            .invoke(MINECRAFT_SESSION_SERVICE, profile, REQUIRE_SECURE_PROFILES);
+                    if (profile == newProfile) {
+                        // Returns the same instance if any error occurs.
+                        throw new PlayerProfileNotFoundException("Player with the given properties not found: " + profile);
+                    }
+                } else {
+                    newProfile = (profile = cached);
+                }
+                debug("Filled properties: {} -> {}", old, newProfile);
+            } catch (PlayerProfileNotFoundException ex) {
+                throw ex;
             } catch (Throwable throwable) {
                 throw new RuntimeException("Unable to fetch profile properties: " + profile, throwable);
             }
         } else {
+            // Get real UUID for offline players
+            UUID realUUID;
+            if (profile.getName().equals(DEFAULT_PROFILE_NAME)) {
+                // We will assume that the requested UUID is the real one
+                // since the server cache didn't find it and that player never
+                // joined this server.
+                // There is no way to tell if this is fake or real UUID, the
+                // closest we can get is to just request it from the server
+                // and see if it exists. (We can't reverse UUID.nameUUIDFromBytes)
+                realUUID = profile.getId();
+            } else {
+                realUUID = getRealUUIDOfPlayer(profile.getName(), profile.getId());
+                if (realUUID == null) {
+                    throw new PlayerProfileNotFoundException("Player with the given properties not found: " + profile);
+                }
+            }
+
             // Implemented by YggdrasilMinecraftSessionService
-            // fetchProfile(UUID profileId, boolean requireSecure)
+            // fetchProfile(UUID profileId, boolean requireSecure) -> fetchProfileUncached(UUID profileId, boolean requireSecure)
+            // This cache expireAfterWrite every 6 hours.
             com.mojang.authlib.yggdrasil.ProfileResult result = ((MinecraftSessionService) MINECRAFT_SESSION_SERVICE)
-                    .fetchProfile(/* get real UUID for offline players */ getRealUUIDOfPlayer(profile.getId()), false);
-            if (result != null) profile = result.profile();
+                    .fetchProfile(realUUID, REQUIRE_SECURE_PROFILES);
+            if (result != null) {
+                profile = result.profile();
+                debug("Yggdrasil provided profile is {} with actions {} for {}", result.profile(), result.actions(), profile);
+            } else {
+                debug("Yggdrasil provided profile is null with actions for {}", profile);
+            }
         }
-        return sanitizeProfile(profile);
+
+        profile = sanitizeProfile(profile);
+        signXSkull(profile);
+        cacheProfile(profile);
+        return profile;
     }
 
-    private static UUID getOfflineUUID(OfflinePlayer player) {
+    public static final class MojangAPIException extends RuntimeException {
+        public MojangAPIException(String message) {
+            super(message);
+        }
+
+        public MojangAPIException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    public static final class PlayerProfileNotFoundException extends RuntimeException {
+        public PlayerProfileNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    @Nonnull
+    private static UUID getOfflineUUID(@Nonnull String username) {
         // Vanilla behavior across all platforms.
-        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + player.getName()).getBytes(StandardCharsets.UTF_8));
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
 
     private static boolean isOnlineMode() {
         return Bukkit.getOnlineMode();
     }
 
-    private static final Map<UUID, UUID> REAL_UUID = new HashMap<>();
+    /**
+     * We can't use Guava's BiMap here since non-existing players are cached too.
+     */
+    private static final Map<UUID, UUID> OFFLINE_TO_ONLINE = new HashMap<>(), ONLINE_TO_OFFLINE = new HashMap<>();
 
+    /**
+     * @return null if a player with this username doesn't exist.
+     */
     @ApiStatus.Internal
-    public static UUID getRealUUIDOfPlayer(UUID uuid) {
+    @Nullable
+    public static UUID getRealUUIDOfPlayer(@Nonnull String username, @Nonnull UUID uuid) {
+        Objects.requireNonNull(uuid);
+        if (Strings.isNullOrEmpty(username))
+            throw new IllegalArgumentException("Username is null or empty: " + username);
+
         if (isOnlineMode()) return uuid;
-        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-        if (!player.hasPlayedBefore()) throw new RuntimeException("Player with UUID " + uuid + " doesn't exist.");
-        UUID offlineUUID = getOfflineUUID(player);
-        if (!offlineUUID.equals(uuid)) {
-            throw new RuntimeException("Expected offline UUID for player doesn't match: Expected " + uuid + ", got " + offlineUUID + " for " + player);
-        }
-        try {
-            UUID realUUID = REAL_UUID.get(uuid);
-            if (realUUID == null) {
-                realUUID = UUIDFromName(player.getName());
-                REAL_UUID.put(uuid, realUUID);
+
+        // OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        // if (!player.hasPlayedBefore()) throw new RuntimeException("Player with UUID " + uuid + " doesn't exist.");
+
+        UUID realUUID = OFFLINE_TO_ONLINE.get(uuid);
+        if (realUUID == null) {
+            try {
+                realUUID = requestUsernameToUUID(username);
+                if (realUUID == null) {
+                    debug("Caching null for {} ({}) because it doesn't exist.", username, uuid);
+                    realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
+                } else ONLINE_TO_OFFLINE.put(realUUID, uuid);
+                OFFLINE_TO_ONLINE.put(uuid, realUUID);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            return realUUID;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+
+        if (realUUID == IDENTITY_UUID) {
+            debug("Providing null value for {} ({}) because it doesn't exist.", username, uuid);
+            realUUID = null;
+        } else {
+            debug("Real UUID for {} ({}) is {}", username, uuid, realUUID);
+        }
+
+        UUID offlineUUID = getOfflineUUID(username);
+        if (!uuid.equals(offlineUUID) && !uuid.equals(realUUID)) {
+            throw new RuntimeException("The provided UUID (" + uuid + ") for '" + username +
+                    "' doesn't match the offline UUID (" + offlineUUID + ") or the real UUID (" + realUUID + ')');
+        }
+        return realUUID;
     }
 
-    @Nonnull
-    private static UUID UUIDFromName(String name) throws IOException {
-        JsonObject userJson = requestUsernameToUUID(name);
+    /**
+     * @return null if a player with that username is not found.
+     */
+    @Nullable
+    private static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
+        JsonObject userJson = requestUsernameToUUIDData(username);
+        if (userJson == null) return null;
+
         JsonElement idElement = userJson.get("id");
         if (idElement == null)
-            throw new RuntimeException("No 'id' field for UUID request for '" + name + "': " + userJson);
+            throw new RuntimeException("No 'id' field for UUID request for '" + username + "': " + userJson);
 
         return UUIDFromDashlessString(idElement.getAsString());
     }
@@ -594,34 +757,64 @@ public final class XSkull {
         }
     }
 
-    private static JsonObject requestUsernameToUUID(String username) throws IOException {
+    /**
+     * @return null if a player with this username doesn't exist.
+     */
+    @Nullable
+    private static JsonObject requestUsernameToUUIDData(@Nonnull String username) throws IOException {
+        if (!UUID_RATELIMIT.acquire())
+            throw new IllegalStateException("Rate limit has been hit! " + UUID_RATELIMIT.getRequests().size());
+
         HttpURLConnection connection = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + username).openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(10 * 1000); // 10 seconds
         connection.setReadTimeout(30 * 1000); // 30 seconds
         connection.setDoInput(true);
         connection.setDoOutput(false);
-        connection.setUseCaches(false);
         connection.setAllowUserInteraction(false);
+        debug("Sending request to {}", connection.getURL());
+
+        try {
+            return connectionStreamToJson(connection, false).getAsJsonObject();
+        } catch (Throwable ex) {
+            MojangAPIException exception;
+            try {
+                switch (connection.getResponseCode()) {
+                    case HttpURLConnection.HTTP_NOT_FOUND:
+                        return null;
+                    case 429: // Too many requests
+                        UUID_RATELIMIT.instantRateLimit();
+                }
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return null;
+                if (ex instanceof SocketException && ex.getMessage().toLowerCase(Locale.ENGLISH).contains("connection reset")) {
+                    // TODO handle reconnecting for future requests.
+                    throw ex;
+                }
+                exception = new MojangAPIException(connectionStreamToJson(connection, true).toString(), ex);
+            } catch (Throwable errorEx) {
+                exception = new MojangAPIException("Failed to read both normal response and error response from '" + connection.getURL() + '\'');
+                exception.addSuppressed(ex);
+                exception.addSuppressed(errorEx);
+            }
+
+            throw exception;
+        }
+    }
+
+    private static JsonElement connectionStreamToJson(HttpURLConnection connection, boolean error) throws IOException, RuntimeException {
         try (
-                InputStream inputStream = connection.getInputStream();
+                InputStream inputStream = error ? connection.getErrorStream() : connection.getInputStream();
                 JsonReader reader = new JsonReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         ) {
             JsonElement json = Streams.parse(reader);
             if (json == null || !json.isJsonObject()) {
                 // For UUID_TO_PROFILE, this happens when HTTP Code 204 (No Content) is given.
                 // And that happens if the UUID doesn't exist in Mojang servers. (E.g. cracked UUIDs)
-                throw new RuntimeException("Response from '" + connection.getURL() + "' is not a JSON object with response '"
+                throw new RuntimeException((error ? "error" : "normal response") + " is not a JSON object with response '"
                         + connection.getResponseCode() + ": " + connection.getResponseMessage() + "': " +
-                        CharStreams.toString(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)));
+                        CharStreams.toString(new InputStreamReader(error ? connection.getErrorStream() : connection.getInputStream(), Charsets.UTF_8)));
             }
             return json.getAsJsonObject();
-        } catch (IOException ex) {
-            InputStream errorStream = connection.getErrorStream();
-            String error = errorStream == null ?
-                    connection.getResponseCode() + ": " + connection.getResponseMessage() :
-                    CharStreams.toString(new InputStreamReader(errorStream, Charsets.UTF_8));
-            throw new IOException(connection.getURL() + " -> " + error, ex);
         }
     }
 
@@ -641,11 +834,33 @@ public final class XSkull {
         if (jsonObject == null || !jsonObject.has("timestamp")) return profile;
         JsonObject texture = new JsonObject();
         texture.add("textures", jsonObject.get("textures"));
-        GameProfile clone = new GameProfile(profile.getId(), profile.getName());
+
+        // The stored cache UUID must be according to online/offline servers.
+        UUID id;
+        if (isOnlineMode()) {
+            id = profile.getId();
+        } else {
+            id = getOfflineUUID(profile.getName());
+            ONLINE_TO_OFFLINE.put(profile.getId(), id);
+        }
+
+        GameProfile clone = new GameProfile(id, profile.getName());
         Property property = new Property("textures", encodeBase64(texture.toString()));
-        clone.getProperties().put("textures", property);
-        cacheProfile(clone);
+        PropertyMap properties = clone.getProperties();
+        properties.put("textures", property);
+        signXSkull(clone);
         return clone;
+    }
+
+    public static GameProfile signXSkull(GameProfile profile) {
+        // Just as an indicator that this is not a vanilla-created profile.
+        PropertyMap properties = profile.getProperties();
+        properties.put(DEFAULT_PROFILE_NAME, XSKULL_GAMEPROFILE_SIGNATURE);
+        return profile;
+    }
+
+    private static GameProfile createNamelessGameProfile(UUID id) {
+        return signXSkull(new GameProfile(id, DEFAULT_PROFILE_NAME));
     }
 
     /**
@@ -737,8 +952,14 @@ public final class XSkull {
          * @return The result after setting the generated profile.
          */
         public T apply() {
-            GameProfile profile = instruction.supplier.get();
-            return instruction.profileContainer.setProfile(profile);
+            try {
+                GameProfile profile = instruction.supplier.get();
+                return instruction.profileContainer.setProfile(profile);
+            } catch (PlayerProfileNotFoundException | MojangAPIException ex) {
+                if (!instruction.lenient) throw ex;
+                LOGGER.debug("apply()", ex);
+                return null;
+            }
         }
 
         /**
@@ -791,6 +1012,8 @@ public final class XSkull {
          */
         private Supplier<GameProfile> supplier;
 
+        private boolean lenient = false;
+
         protected SkullInstruction(ProfileContainer<T> profileContainer) {
             this.profileContainer = profileContainer;
         }
@@ -800,6 +1023,15 @@ public final class XSkull {
          */
         public T removeProfile() {
             return profileContainer.setProfile(null);
+        }
+
+        /**
+         * Fails silently if any string based issues occur from a configuration standpoint.
+         * Mainly affects {@link #profile(String)}
+         */
+        public SkullInstruction<T> lenient() {
+            this.lenient = true;
+            return this;
         }
 
         /**
@@ -816,7 +1048,14 @@ public final class XSkull {
          * @return A new {@link SkullAction} instance configured with this {@code SkullInstruction}.
          */
         public SkullAction<T> profile(String input) {
-            this.supplier = () -> XSkull.getProfile(input);
+            this.supplier = () -> {
+                SkullInputType type = SkullInputType.get(input);
+                if (type == null) {
+                    if (lenient) return getDefaultProfile();
+                    else throw new IllegalArgumentException("Unknown skull string value: " + input);
+                }
+                return type.getProfile(input);
+            };
             return new SkullAction<>(this);
         }
 
@@ -875,9 +1114,9 @@ public final class XSkull {
          */
         public SkullAction<T> profile(OfflinePlayer offlinePlayer) {
             this.supplier = () ->
-                    Bukkit.getOnlineMode()
+                    isOnlineMode()
                             ? XSkull.getProfile(offlinePlayer.getUniqueId())
-                            : getProfileOrDefault(SkullInputType.USERNAME, offlinePlayer.getName());
+                            : SkullInputType.USERNAME.getProfile(offlinePlayer.getName());
             return new SkullAction<>(this);
         }
 
@@ -895,9 +1134,9 @@ public final class XSkull {
                 return new SkullAction<>(this);
             }
 
-            this.supplier = () -> Bukkit.getOnlineMode()
+            this.supplier = () -> isOnlineMode()
                     ? XSkull.getProfile(profile.getId())
-                    : getProfileOrDefault(SkullInputType.USERNAME, profile.getName());
+                    : SkullInputType.USERNAME.getProfile(profile.getName());
             return new SkullAction<>(this);
         }
     }
@@ -936,7 +1175,7 @@ public final class XSkull {
          */
         TEXTURE_HASH(Pattern.compile("[0-9a-z]{55,70}")) {
             @Override
-            GameProfile getProfile(String textureHash) {
+            public GameProfile getProfile(String textureHash) {
                 String base64 = encodeBase64(TEXTURES_NBT_PROPERTY_PREFIX + TEXTURES_BASE_URL + textureHash + "\"}}}");
                 return profileFromHashAndBase64(textureHash, base64);
             }
@@ -949,7 +1188,7 @@ public final class XSkull {
          */
         TEXTURE_URL(Pattern.compile(Pattern.quote(TEXTURES_BASE_URL) + "(?<hash>" + TEXTURE_HASH.pattern + ')')) {
             @Override
-            GameProfile getProfile(String textureUrl) {
+            public GameProfile getProfile(String textureUrl) {
                 String hash = extractTextureHash(textureUrl);
                 return TEXTURE_HASH.getProfile(hash);
             }
@@ -962,7 +1201,7 @@ public final class XSkull {
          */
         BASE64(Pattern.compile("[-A-Za-z0-9+/]{100,}={0,3}")) {
             @Override
-            GameProfile getProfile(String base64) {
+            public GameProfile getProfile(String base64) {
                 return Optional.ofNullable(decodeBase64(base64))
                         .map(SkullInputType::extractTextureHash)
                         .map((hash) -> profileFromHashAndBase64(hash, base64))
@@ -973,9 +1212,9 @@ public final class XSkull {
         /**
          * Represents a UUID pattern, following the standard UUID format.
          */
-        UUID(Pattern.compile("[A-F\\d]{8}-[A-F\\d]{4}-4[A-F\\d]{3}-([89AB])[A-F\\d]{3}-[A-F\\d]{12}", Pattern.CASE_INSENSITIVE)) {
+        UUID(Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", Pattern.CASE_INSENSITIVE)) {
             @Override
-            GameProfile getProfile(String uuidString) {
+            public GameProfile getProfile(String uuidString) {
                 return XSkull.getProfile(java.util.UUID.fromString(uuidString));
             }
         },
@@ -987,10 +1226,10 @@ public final class XSkull {
          */
         USERNAME(Pattern.compile("[A-Za-z0-9_]{1,16}")) {
             @Override
-            GameProfile getProfile(String username) {
+            public GameProfile getProfile(String username) {
                 GameProfile profile = getCachedProfileByUsername(username);
                 if (hasTextures(profile)) return profile;
-                return fetchProfile(profile);
+                return fetchProfile(profile); // The given GameProfile doesn't have any skin information.
             }
         };
 
@@ -1015,7 +1254,7 @@ public final class XSkull {
          * @param input The input string to retrieve the profile for.
          * @return The {@link GameProfile} corresponding to the input string.
          */
-        abstract GameProfile getProfile(String input);
+        public abstract GameProfile getProfile(String input);
 
         /**
          * Returns the corresponding {@code SkullInputType} for the given identifier, if it matches any pattern.
@@ -1042,7 +1281,7 @@ public final class XSkull {
          */
         private static GameProfile profileFromHashAndBase64(String hash, String base64) {
             UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
-            GameProfile profile = new GameProfile(uuid, DEFAULT_PROFILE_NAME);
+            GameProfile profile = createNamelessGameProfile(uuid);
             profile.getProperties().put("textures", new Property("textures", base64));
             return profile;
         }

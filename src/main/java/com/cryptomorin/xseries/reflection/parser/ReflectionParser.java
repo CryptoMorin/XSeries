@@ -9,6 +9,7 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -74,7 +75,9 @@ public class ReflectionParser {
         Arrays.asList(
                 byte.class, short.class, int.class, long.class, float.class, double.class, boolean.class, char.class, void.class,
                 Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class, Character.class, Void.class,
-                String.class, Optional.class, StringBuilder.class, StringBuffer.class, UUID.class
+                String.class, Optional.class, StringBuilder.class, StringBuffer.class, UUID.class,
+                Map.class, HashMap.class, ConcurrentHashMap.class, LinkedHashMap.class, WeakHashMap.class,
+                List.class, ArrayList.class, Set.class, HashSet.class
         ).forEach(x -> PREDEFINED_TYPES.put(x.getSimpleName(), x));
     }
 
