@@ -1648,6 +1648,9 @@ public class ParticleDisplay implements Cloneable {
         double dx = offset.getX();
         double dy = offset.getY();
         double dz = offset.getZ();
+        // The "extra" field has no effect on dust particles in some versions,
+        // but in others it causes the colors to not display when set to 0.
+        double extra = (this.particle == XParticle.DUST) ? 1 : this.extra;
         if (players == null)
             if (ISFLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
@@ -1870,7 +1873,9 @@ public class ParticleDisplay implements Cloneable {
             // ENTITY_EFFECT particle uses the offset fields for color on 1.20.4 and below.
             if (!ISFLAT || (display.particle == XParticle.ENTITY_EFFECT && display.particle.isSupported()
                     && display.particle.get().getDataType() == Void.class)) {
-                return new Vector(color.getRed() / 255d, color.getGreen() / 255d, color.getBlue() / 255d);
+                // Dust particles on older versions would ignore the red channel if it's set to 0.
+                double red = (color.getRed() == 0) ? Float.MIN_VALUE : color.getRed() / 255d;
+                return new Vector(red, color.getGreen() / 255d, color.getBlue() / 255d);
             }
             return null;
         }
