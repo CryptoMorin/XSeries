@@ -21,6 +21,8 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.profiles.Profileable;
+import com.cryptomorin.xseries.profiles.skull.XSkull;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
@@ -652,7 +654,7 @@ public final class XItemStack {
         // Special Items
         if (meta instanceof SkullMeta) {
             String skull = config.getString("skull");
-            if (skull != null) XSkull.of(meta).profile(skull).apply();
+            if (skull != null) XSkull.of(meta).profile(Profileable.detect(skull)).apply();
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");

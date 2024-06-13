@@ -21,11 +21,14 @@
  */
 
 import com.cryptomorin.xseries.XMaterial;
-import com.cryptomorin.xseries.XSkull;
+import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.Profileable;
+import com.cryptomorin.xseries.profiles.skull.XSkull;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -54,7 +57,10 @@ final class SkullCacheListener {
     @Nonnull
     public static SkullMeta applyCachedSkin(@Nonnull ItemMeta head, @Nonnull UUID identifier) {
         String base64 = SkullCacheListener.CACHE.get(identifier);
-        return (SkullMeta) XSkull.of(head).profile(XSkull.SkullInputType.BASE64, base64).apply();
+        return (SkullMeta) XSkull.of(head)
+                .profile(Profileable.detect(base64))
+                .fallback(Profileable.username("Crypto_Morin"), Profileable.of(Bukkit.getPlayer(identifier)))
+                .apply();
     }
 
     /**
