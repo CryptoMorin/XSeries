@@ -11,18 +11,32 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Deque;
+import java.util.Map;
+import java.util.UUID;
 
+import static com.cryptomorin.xseries.reflection.XReflection.v;
+
+@SuppressWarnings("unchecked")
+@ApiStatus.Internal
 public final class ProfilesCore {
-    protected static final Logger LOGGER = LogManager.getLogger("XSkull");
-    protected static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
+    public static final Logger LOGGER = LogManager.getLogger("XSkull");
+    public static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
 
-    protected static final MethodHandle
+    public static final Map<String, Object> UserCache_profilesByName;
+    public static final Map<UUID, Object> UserCache_profilesByUUID;
+    public static final Deque<GameProfile> UserCache_gameProfiles;
+
+    public static final MethodHandle
             FILL_PROFILE_PROPERTIES, GET_PROFILE_BY_NAME, GET_PROFILE_BY_UUID, CACHE_PROFILE,
             CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
             CRAFT_SKULL_PROFILE_SETTER, CRAFT_SKULL_PROFILE_GETTER,
-            PROPERTY_GET_VALUE;
+            PROPERTY_GET_VALUE,
+            UserCache_getNextOperation,
+            UserCacheEntry_CTOR, UserCacheEntry_getProfile, UserCacheEntry_getExpirationDate, UserCacheEntry_setLastAccess;
 
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
@@ -36,6 +50,12 @@ public final class ProfilesCore {
 
         ReflectiveNamespace ns = XReflection.namespaced()
                 .imports(GameProfile.class, MinecraftSessionService.class);
+
+
+        MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
+                "package nms.server.players; public class GameProfileCache {}"
+        ).map(MinecraftMapping.SPIGOT, "UserCache");
+
         try {
             MinecraftClassHandle CraftMetaSkull = ns.ofMinecraft(
                     "package cb.inventory; class CraftMetaSkull extends CraftMetaItem implements SkullMeta {}"
@@ -53,10 +73,6 @@ public final class ProfilesCore {
             MinecraftClassHandle MinecraftServer = ns.ofMinecraft(
                     "package nms.server; public abstract class MinecraftServer {}"
             );
-
-            MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
-                    "package nms.server.players; public class GameProfileCache {}"
-            ).map(MinecraftMapping.SPIGOT, "UserCache");
 
             // Added by Bukkit
             Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer();").reflect().invoke();
@@ -102,6 +118,7 @@ public final class ProfilesCore {
         if (!NULLABILITY_RECORD_UPDATE) {
             getPropertyValue = ns.of(Property.class).method("public String getValue();").unreflect();
         }
+
         USER_CACHE = userCache;
         MINECRAFT_SESSION_SERVICE = minecraftSessionService;
         FILL_PROFILE_PROPERTIES = fillProfileProperties;
@@ -113,6 +130,38 @@ public final class ProfilesCore {
         CRAFT_META_SKULL_PROFILE_GETTER = profileGetterMeta;
         CRAFT_SKULL_PROFILE_SETTER = craftProfile.setter().unreflect();
         CRAFT_SKULL_PROFILE_GETTER = craftProfile.getter().unreflect();
+
+        // noinspection MethodMayBeStatic
+        UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation();")
+                .map(MinecraftMapping.OBFUSCATED, v(16, "d").orElse("d")).unreflect();
+
+        MinecraftClassHandle UserCacheEntry = GameProfileCache
+                .inner("private static class GameProfileInfo {}")
+                .map(MinecraftMapping.SPIGOT, "UserCacheEntry");
+        UserCacheEntry_CTOR = UserCacheEntry.constructor("private UserCacheEntry(GameProfile gameprofile, Date date);")
+                .unreflect();
+        UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile();")
+                .map(MinecraftMapping.OBFUSCATED, "a").unreflect();
+        UserCacheEntry_getExpirationDate = UserCacheEntry.method("public Date getExpirationDate();")
+                .map(MinecraftMapping.OBFUSCATED, "b").unreflect();
+        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i);")
+                .map(MinecraftMapping.OBFUSCATED, "a").reflectOrNull();
+
+        try {
+            // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
+            UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName;")
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(16, "c").orElse("d")).reflect().invoke(userCache);
+            // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
+            UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID;")
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(16, "d").orElse("e")).reflect().invoke(userCache);
+
+            // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16
+            MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")
+                    .getter().reflectOrNull();
+            UserCache_gameProfiles = deque == null ? null : (Deque<GameProfile>) deque.invoke(userCache);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void debug(String mainMessage, Object... variables) {

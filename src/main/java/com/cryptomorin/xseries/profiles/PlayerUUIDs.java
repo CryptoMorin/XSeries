@@ -1,7 +1,9 @@
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.google.common.base.Strings;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,16 +16,23 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@ApiStatus.Internal
 public final class PlayerUUIDs {
     /**
      * Used as the default UUID for GameProfiles.
      * Also used as a null-indicating value.
      */
-    protected static final UUID IDENTITY_UUID = new UUID(0, 0);
+    public static final UUID IDENTITY_UUID = new UUID(0, 0);
 
     private static final Pattern UUID_NO_DASHES = Pattern.compile(
             "([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{12})"
     );
+
+    /**
+     * We can't use Guava's BiMap here since non-existing players are cached too.
+     */
+    public static final Map<UUID, UUID> OFFLINE_TO_ONLINE = new HashMap<>(), ONLINE_TO_OFFLINE = new HashMap<>();
+    public static final Map<String, UUID> USERNAME_TO_ONLINE = new HashMap<>();
 
     public static UUID UUIDFromDashlessString(String dashlessUUIDString) {
         Matcher matcher = UUID_NO_DASHES.matcher(dashlessUUIDString);
@@ -44,10 +53,37 @@ public final class PlayerUUIDs {
         return Bukkit.getOnlineMode();
     }
 
-    /**
-     * We can't use Guava's BiMap here since non-existing players are cached too.
-     */
-    public static final Map<UUID, UUID> OFFLINE_TO_ONLINE = new HashMap<>(), ONLINE_TO_OFFLINE = new HashMap<>();
+    @Nullable
+    public static UUID getRealUUIDOfPlayer(@Nonnull String username) {
+        if (Strings.isNullOrEmpty(username))
+            throw new IllegalArgumentException("Username is null or empty: " + username);
+
+        UUID offlineUUID = getOfflineUUID(username);
+        UUID realUUID = USERNAME_TO_ONLINE.get(username);
+        boolean cached = realUUID != null;
+        if (realUUID == null) {
+            try {
+                realUUID = MojangAPI.requestUsernameToUUID(username);
+                if (realUUID == null) {
+                    ProfilesCore.debug("Caching null for {} ({}) because it doesn't exist.", username, offlineUUID);
+                    realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
+                } else ONLINE_TO_OFFLINE.put(realUUID, offlineUUID);
+                OFFLINE_TO_ONLINE.put(offlineUUID, realUUID);
+                USERNAME_TO_ONLINE.put(username, realUUID);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (realUUID == IDENTITY_UUID) {
+            ProfilesCore.debug("Providing null UUID for {} because it doesn't exist.", username);
+            realUUID = null;
+        } else {
+            ProfilesCore.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, offlineUUID, realUUID);
+        }
+
+        return realUUID;
+    }
 
     /**
      * @return null if a player with this username doesn't exist.
@@ -64,6 +100,7 @@ public final class PlayerUUIDs {
         // if (!player.hasPlayedBefore()) throw new RuntimeException("Player with UUID " + uuid + " doesn't exist.");
 
         UUID realUUID = OFFLINE_TO_ONLINE.get(uuid);
+        boolean cached = realUUID != null;
         if (realUUID == null) {
             try {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
@@ -72,16 +109,17 @@ public final class PlayerUUIDs {
                     realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
                 } else ONLINE_TO_OFFLINE.put(realUUID, uuid);
                 OFFLINE_TO_ONLINE.put(uuid, realUUID);
+                USERNAME_TO_ONLINE.put(username, realUUID);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
         if (realUUID == IDENTITY_UUID) {
-            ProfilesCore.debug("Providing null value for {} ({}) because it doesn't exist.", username, uuid);
+            ProfilesCore.debug("Providing null UUID for {} ({}) because it doesn't exist.", username, uuid);
             realUUID = null;
         } else {
-            ProfilesCore.debug("Real UUID for {} ({}) is {}", username, uuid, realUUID);
+            ProfilesCore.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, uuid, realUUID);
         }
 
         UUID offlineUUID = getOfflineUUID(username);

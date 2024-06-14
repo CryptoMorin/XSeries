@@ -1,10 +1,13 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.mojang;
+
+import org.jetbrains.annotations.ApiStatus;
 
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-final class RateLimiter {
+@ApiStatus.Internal
+public final class RateLimiter {
     private final ConcurrentLinkedQueue<Long> requests = new ConcurrentLinkedQueue<>();
     private final int maxRequests;
     private final long per;
@@ -31,8 +34,12 @@ final class RateLimiter {
         return requests;
     }
 
-    private int getRemainingRequests() {
+    public int getRemainingRequests() {
         return Math.max(0, maxRequests - getRequests().size());
+    }
+
+    public int getEffectiveRequestsCount() {
+        return getRequests().size();
     }
 
     public void instantRateLimit() {

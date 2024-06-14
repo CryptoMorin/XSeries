@@ -1,6 +1,8 @@
 package com.cryptomorin.xseries.profiles;
 
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
+import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
+import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
@@ -8,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface Profileable {
@@ -74,10 +77,10 @@ public interface Profileable {
      * <b>Username:</b> A player username. (e.g. Notch)<br>
      * <b>UUID:</b> A player UUID. Offline or online mode UUID. (e.g. 069a79f4-44e9-4726-a5be-fca90e38aaf5)<br>
      * <b>Base64:</b> The Base64 encoded value of textures JSON. (e.g. eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NmNjc2N2RkMzQ3MzdlOTliZDU0YjY5NWVmMDY4M2M2YzZjZTZhNTRmNjZhZDk3Mjk5MmJkMGU0OGU0NTc5YiJ9fX0=)<br>
-     * <b>Minecraft Textures URL:</b> Check {@link PlayerTextureInputType#TEXTURE_URL}.<br>
+     * <b>Minecraft Textures URL:</b> Check {@link ProfileInputType#TEXTURE_URL}.<br>
      * <b>Minecraft Textures Hash:</b> Same as the URL, but only including the hash part, excluding the base URL. (e.g. e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db)
      *
-     * @param input The input value used to retrieve the {@link GameProfile}. For more information check {@link PlayerTextureInputType}
+     * @param input The input value used to retrieve the {@link GameProfile}. For more information check {@link ProfileInputType}
      */
     static Profileable detect(String input) {
         Objects.requireNonNull(input);
@@ -90,7 +93,7 @@ public interface Profileable {
      * @param type  The type of the input value.
      * @param input The input value to generate the {@link GameProfile}.
      */
-    static Profileable of(PlayerTextureInputType type, String input) {
+    static Profileable of(ProfileInputType type, String input) {
         Objects.requireNonNull(type, () -> "Cannot profile from a null input type: " + input);
         Objects.requireNonNull(input, () -> "Cannot profile from a null input: " + type);
         return new StringProfileable(input, type);
@@ -105,7 +108,13 @@ public interface Profileable {
 
         @Override
         public GameProfile getProfile() {
-            return null;
+            Optional<GameProfile> profileOpt = MojangAPI.profileFromUsername(username);
+            if (!profileOpt.isPresent())
+                throw new PlayerProfileNotFoundException("Cannot find player named '" + username + '\'');
+
+            GameProfile profile = profileOpt.get();
+            if (PlayerProfiles.hasTextures(profile)) return profile;
+            return MojangAPI.fetchProfile(profile);
         }
     }
 
@@ -173,16 +182,16 @@ public interface Profileable {
 
     final class StringProfileable implements Profileable {
         private final String string;
-        @Nullable private PlayerTextureInputType type;
+        @Nullable private ProfileInputType type;
 
-        public StringProfileable(String string, @Nullable PlayerTextureInputType type) {
+        public StringProfileable(String string, @Nullable ProfileInputType type) {
             this.string = string;
             this.type = type;
         }
 
         @Override
         public GameProfile getProfile() {
-            if (type == null) type = PlayerTextureInputType.get(string);
+            if (type == null) type = ProfileInputType.get(string);
             if (type == null) {
                 throw new InvalidProfileException("Unknown skull string value: " + string);
             }

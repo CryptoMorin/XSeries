@@ -23,10 +23,12 @@ package com.cryptomorin.xseries.profiles.skull;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
-import com.cryptomorin.xseries.profiles.PlayerTextureInputType;
 import com.cryptomorin.xseries.profiles.ProfileContainer;
+import com.cryptomorin.xseries.profiles.ProfileInputType;
+import com.cryptomorin.xseries.profiles.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.mojang.authlib.GameProfile;
+import org.apache.maven.model.Profile;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
@@ -50,7 +52,7 @@ import org.bukkit.inventory.meta.ItemMeta;
  * XSkull.of(item/block).profile(configValueString).apply();
  * }</pre>
  * <p>
- * Note: Make sure to read {@link SkullInstruction#applyAsync()} if you're going to
+ * Note: Make sure to read {@link ProfileInstruction#applyAsync()} if you're going to
  * be requesting a lot of different skulls.
  *
  * <h1>Mechanism</h1>
@@ -73,53 +75,53 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public final class XSkull {
     /**
-     * Creates a {@link SkullInstruction} for an {@link ItemStack}.
+     * Creates a {@link ProfileInstruction} for an {@link ItemStack}.
      * This method initializes a new player head.
      *
-     * @return A {@link SkullInstruction} that sets the profile for the generated {@link ItemStack}.
+     * @return A {@link ProfileInstruction} that sets the profile for the generated {@link ItemStack}.
      */
-    public static SkullInstruction<ItemStack> createItem() {
+    public static ProfileInstruction<ItemStack> createItem() {
         return of(XMaterial.PLAYER_HEAD.parseItem());
     }
 
     /**
-     * Creates a {@link SkullInstruction} for an {@link ItemStack}.
+     * Creates a {@link ProfileInstruction} for an {@link ItemStack}.
      *
      * @param stack The {@link ItemStack} to set the profile for.
-     * @return A {@link SkullInstruction} that sets the profile for the given {@link ItemStack}.
+     * @return A {@link ProfileInstruction} that sets the profile for the given {@link ItemStack}.
      */
-    public static SkullInstruction<ItemStack> of(ItemStack stack) {
-        return new SkullInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
+    public static ProfileInstruction<ItemStack> of(ItemStack stack) {
+        return new ProfileInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
     }
 
     /**
-     * Creates a {@link SkullInstruction} for an {@link ItemMeta}.
+     * Creates a {@link ProfileInstruction} for an {@link ItemMeta}.
      *
      * @param meta The {@link ItemMeta} to set the profile for.
-     * @return An {@link SkullInstruction} that sets the profile for the given {@link ItemMeta}.
+     * @return An {@link ProfileInstruction} that sets the profile for the given {@link ItemMeta}.
      */
-    public static SkullInstruction<ItemMeta> of(ItemMeta meta) {
-        return new SkullInstruction<>(new ProfileContainer.ItemMetaProfileContainer(meta));
+    public static ProfileInstruction<ItemMeta> of(ItemMeta meta) {
+        return new ProfileInstruction<>(new ProfileContainer.ItemMetaProfileContainer(meta));
     }
 
     /**
-     * Creates a {@link SkullInstruction} for a {@link Block}.
+     * Creates a {@link ProfileInstruction} for a {@link Block}.
      *
      * @param block The {@link Block} to set the profile for.
-     * @return An {@link SkullInstruction} that sets the profile for the given {@link Block}.
+     * @return An {@link ProfileInstruction} that sets the profile for the given {@link Block}.
      */
-    public static SkullInstruction<Block> of(Block block) {
-        return new SkullInstruction<>(new ProfileContainer.BlockProfileContainer(block));
+    public static ProfileInstruction<Block> of(Block block) {
+        return new ProfileInstruction<>(new ProfileContainer.BlockProfileContainer(block));
     }
 
     /**
-     * Creates a {@link SkullInstruction} for a {@link BlockState}.
+     * Creates a {@link ProfileInstruction} for a {@link BlockState}.
      *
      * @param state The {@link BlockState} to set the profile for.
-     * @return An {@link SkullInstruction} that sets the profile for the given {@link BlockState}.
+     * @return An {@link ProfileInstruction} that sets the profile for the given {@link BlockState}.
      */
-    public static SkullInstruction<Skull> of(BlockState state) {
-        return new SkullInstruction<>(new ProfileContainer.BlockStateProfileContainer((Skull) state));
+    public static ProfileInstruction<Skull> of(BlockState state) {
+        return new ProfileInstruction<>(new ProfileContainer.BlockStateProfileContainer((Skull) state));
     }
 
 
@@ -127,7 +129,7 @@ public final class XSkull {
      * We'll just return an x shaped hardcoded skull.<br>
      * <a href="https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross">minecraft-heads.com</a>
      */
-    private static final GameProfile DEFAULT_PROFILE = PlayerProfiles.signXSeries(PlayerTextureInputType.BASE64.getProfile(
+    private static final GameProfile DEFAULT_PROFILE = PlayerProfiles.signXSeries(ProfileInputType.BASE64.getProfile(
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5l" +
                     "Y3JhZnQubmV0L3RleHR1cmUvYzEwNTkxZTY5MDllNmEyODFiMzcxODM2ZTQ2MmQ2" +
                     "N2EyYzc4ZmEwOTUyZTkxMGYzMmI0MWEyNmM0OGMxNzU3YyJ9fX0="
@@ -139,9 +141,9 @@ public final class XSkull {
      *
      * @return A clone of the default {@link GameProfile}.
      */
-    public static GameProfile getDefaultProfile() {
+    public static Profileable getDefaultProfile() {
         GameProfile clone = new GameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());
         clone.getProperties().putAll(DEFAULT_PROFILE.getProperties());
-        return clone;
+        return Profileable.of(clone);
     }
 }

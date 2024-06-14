@@ -1,6 +1,5 @@
 package com.cryptomorin.xseries.profiles.skull;
 
-import com.cryptomorin.xseries.profiles.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.ProfileContainer;
 import com.cryptomorin.xseries.profiles.Profileable;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
@@ -8,6 +7,7 @@ import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
+import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +18,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents an instruction that sets a property of a {@link GameProfile}.
@@ -26,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <T> The type of the result produced by the {@link #profileContainer} function.
  */
-public final class SkullInstruction<T> {
+public final class ProfileInstruction<T> implements Profileable {
     /**
      * The function called that applies the given {@link #profileable} to an object that supports it
      * such as {@link ItemStack}, {@link SkullMeta} or a {@link BlockState}.
@@ -34,10 +38,11 @@ public final class SkullInstruction<T> {
     private final ProfileContainer<T> profileContainer;
     private Profileable profileable;
     private final List<Profileable> fallbacks = new ArrayList<>();
+    private Consumer<ProfileFallback<T>> onFallback;
 
     private boolean lenient = false;
 
-    protected SkullInstruction(ProfileContainer<T> profileContainer) {
+    protected ProfileInstruction(ProfileContainer<T> profileContainer) {
         this.profileContainer = profileContainer;
     }
 
@@ -53,11 +58,12 @@ public final class SkullInstruction<T> {
      * Fails silently if any string based issues occur from a configuration standpoint.
      * Mainly affects {@link Profileable#detect(String)}
      */
-    public SkullInstruction<T> lenient() {
+    public ProfileInstruction<T> lenient() {
         this.lenient = true;
         return this;
     }
 
+    @Override
     public GameProfile getProfile() {
         return profileContainer.getProfile();
     }
@@ -66,13 +72,23 @@ public final class SkullInstruction<T> {
         return profileContainer.getProfileValue();
     }
 
-    public SkullInstruction<T> profile(Profileable profileable) {
+    public ProfileInstruction<T> profile(Profileable profileable) {
         this.profileable = profileable;
         return this;
     }
 
-    public SkullInstruction<T> fallback(Profileable... fallbacks) {
+    public ProfileInstruction<T> fallback(Profileable... fallbacks) {
         this.fallbacks.addAll(Arrays.asList(fallbacks));
+        return this;
+    }
+
+    public ProfileInstruction<T> onFallback(Consumer<ProfileFallback<T>> onFallback) {
+        this.onFallback = onFallback;
+        return this;
+    }
+
+    public ProfileInstruction<T> onFallback(Runnable onFallback) {
+        this.onFallback = (fallback) -> onFallback.run();
         return this;
     }
 
@@ -96,8 +112,10 @@ public final class SkullInstruction<T> {
         List<Profileable> tries = new ArrayList<>(1 + fallbacks.size());
         tries.add(profileable);
         tries.addAll(fallbacks);
+        if (lenient) tries.add(XSkull.getDefaultProfile());
 
         boolean success = false;
+        boolean tryingFallbacks = false;
         for (Profileable profileable : tries) {
             try {
                 GameProfile profile = profileable.getProfile();
@@ -109,6 +127,7 @@ public final class SkullInstruction<T> {
                     exception = new ProfileChangeException("Could not set the profile for " + profileContainer);
                 }
                 exception.addSuppressed(ex);
+                tryingFallbacks = true;
             }
         }
 
@@ -117,7 +136,13 @@ public final class SkullInstruction<T> {
             else throw exception;
         }
 
-        return profileContainer.getObject();
+        T object = profileContainer.getObject();
+        if (tryingFallbacks && this.onFallback != null) {
+            ProfileFallback<T> fallback = new ProfileFallback<>(this, object, exception);
+            this.onFallback.accept(fallback);
+            object = fallback.getObject();
+        }
+        return object;
     }
 
     /**

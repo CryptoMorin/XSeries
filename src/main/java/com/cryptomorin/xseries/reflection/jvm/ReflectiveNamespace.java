@@ -54,9 +54,7 @@ public class ReflectiveNamespace {
     @ApiStatus.Experimental
     public StaticClassHandle of(Class<?> clazz) {
         imports(clazz);
-        StaticClassHandle handle = new StaticClassHandle(clazz);
-        handle.setNamespace(this);
-        return handle;
+        return new StaticClassHandle(this, clazz);
     }
 
     public void link(ClassHandle handle) {
@@ -71,15 +69,13 @@ public class ReflectiveNamespace {
 
     @ApiStatus.Experimental
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
-        DynamicClassHandle classHandle = XReflection.classHandle();
-        classHandle.setNamespace(this);
+        DynamicClassHandle classHandle = new DynamicClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }
 
     @ApiStatus.Experimental
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
-        MinecraftClassHandle classHandle = XReflection.ofMinecraft();
-        classHandle.setNamespace(this);
+        MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }
 }

@@ -1,4 +1,6 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.mojang;
+
+import com.cryptomorin.xseries.profiles.ProfilesCore;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;

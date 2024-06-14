@@ -418,7 +418,7 @@ public final class XReflection {
      */
     @ApiStatus.Experimental
     public static MinecraftClassHandle ofMinecraft() {
-        return new MinecraftClassHandle();
+        return new MinecraftClassHandle(new ReflectiveNamespace());
     }
 
     /**
@@ -426,7 +426,7 @@ public final class XReflection {
      */
     @ApiStatus.Experimental
     public static DynamicClassHandle classHandle() {
-        return new DynamicClassHandle();
+        return new DynamicClassHandle(new ReflectiveNamespace());
     }
 
     /**
@@ -434,7 +434,7 @@ public final class XReflection {
      */
     @ApiStatus.Experimental
     public static StaticClassHandle of(Class<?> clazz) {
-        return new StaticClassHandle(clazz);
+        return new StaticClassHandle(new ReflectiveNamespace(), clazz);
     }
 
 

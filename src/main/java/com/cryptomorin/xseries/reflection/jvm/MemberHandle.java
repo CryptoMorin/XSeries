@@ -7,6 +7,7 @@ import org.intellij.lang.annotations.Language;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 
 public abstract class MemberHandle implements Handle<MethodHandle> {
     protected boolean makeAccessible, isFinal;
@@ -30,7 +31,8 @@ public abstract class MemberHandle implements Handle<MethodHandle> {
     public abstract <T extends AccessibleObject & Member> T reflectJvm() throws ReflectiveOperationException;
 
     protected <T extends AccessibleObject & Member> T handleAccessible(T accessibleObject) throws ReflectiveOperationException {
-        if (this.makeAccessible) accessibleObject.setAccessible(true);
+        // Package-private classes or private inner classes.
+        if (this.makeAccessible || Modifier.isPrivate(accessibleObject.getDeclaringClass().getModifiers())) accessibleObject.setAccessible(true);
         return accessibleObject;
     }
 }

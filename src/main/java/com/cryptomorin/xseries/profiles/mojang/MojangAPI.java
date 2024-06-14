@@ -1,31 +1,23 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.mojang;
 
-import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
+import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.PlayerUUIDs;
+import com.cryptomorin.xseries.profiles.ProfileInputType;
+import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
-import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.io.CharStreams;
+import com.google.common.collect.Iterables;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonReader;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public final class MojangAPI {
@@ -41,6 +33,7 @@ public final class MojangAPI {
     private static final boolean REQUIRE_SECURE_PROFILES = false;
 
     /**
+     * https://wiki.vg/Mojang_API#Username_to_UUID
      * According to <a href="https://wiki.vg/Mojang_API">Mojang API</a> the rate limit
      * is around 600 requests per 10 (i.e. 1 request per second) for most endpoints.
      * However <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape">UUID to Profile and Skin/Cape</a>
@@ -49,16 +42,33 @@ public final class MojangAPI {
      * If we want to use UUID_TO_PROFILE_RATELIMIT we'd have to copy and paste fetchProfile()
      * because that method catches HTTP exceptions.
      */
-    private static final RateLimiter
-            UUID_RATELIMIT = new RateLimiter(600, Duration.ofMinutes(10)),
-            UUID_TO_PROFILE_RATELIMIT = new RateLimiter(200, Duration.ofMinutes(1));
+    private static final MinecraftClient USERNAME_TO_UUID = new MinecraftClient(
+            "GET",
+            "https://api.mojang.com/users/profiles/minecraft/",
+            new RateLimiter(600, Duration.ofMinutes(10))
+    );
+
+    /**
+     * https://wiki.vg/Mojang_API#Usernames_to_UUIDs
+     */
+    private static final MinecraftClient USERNAMES_TO_UUIDS = new MinecraftClient(
+            "POST",
+            "https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname",
+            new RateLimiter(600, Duration.ofMinutes(10))
+    );
+
+    private static final MinecraftClient UUID_TO_PROFILE = new MinecraftClient(
+            "GET",
+            "https://api.mojang.com/users/profiles/minecraft/",
+            new RateLimiter(200, Duration.ofMinutes(1))
+    );
 
     /**
      * @return null if a player with that username is not found.
      */
     @Nullable
-    protected static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
-        JsonObject userJson = requestUsernameToUUIDData(username);
+    public static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
+        JsonObject userJson = USERNAME_TO_UUID.request(username);
         if (userJson == null) return null;
 
         JsonElement idElement = userJson.get("id");
@@ -76,6 +86,7 @@ public final class MojangAPI {
      * @return The cached {@link GameProfile} corresponding to the username, or a new profile if not found.
      */
     private static GameProfile getCachedProfileByUsername(String username) {
+        // Unused because of limitations, use profileFromUsername(String username) instead.
         try {
             // Expires after every month calendar.add(2, 1); (Persists between restarts)
             @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_NAME.invoke(ProfilesCore.USER_CACHE, username);
@@ -89,6 +100,79 @@ public final class MojangAPI {
         }
     }
 
+    public static Optional<GameProfile> profileFromUsername(String username) {
+        try {
+            return profileFromUsername0(username);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Optional<GameProfile> profileFromUsername0(String username) throws Throwable {
+        String normalized = username.toLowerCase(Locale.ROOT);
+        Object usercache_usercacheentry = ProfilesCore.UserCache_profilesByName.get(normalized);
+        boolean flag = false;
+
+        if (usercache_usercacheentry != null && (new Date()).getTime() >=
+                ((Date) ProfilesCore.UserCacheEntry_getExpirationDate.invoke(usercache_usercacheentry)).getTime()) {
+            GameProfile gameProfile = (GameProfile) ProfilesCore.UserCacheEntry_getProfile.invoke(usercache_usercacheentry);
+            ProfilesCore.UserCache_profilesByName.remove(gameProfile.getName().toLowerCase(Locale.ROOT));
+            ProfilesCore.UserCache_profilesByUUID.remove(gameProfile.getId());
+            flag = true;
+            usercache_usercacheentry = null;
+        }
+
+        Optional<GameProfile> optional;
+
+        if (usercache_usercacheentry != null) {
+            if (ProfilesCore.UserCacheEntry_setLastAccess != null) {
+                // usercache_usercacheentry.setLastAccess(this.getNextOperation());
+                long nextOperation = (long) ProfilesCore.UserCache_getNextOperation.invoke(ProfilesCore.USER_CACHE);
+                ProfilesCore.UserCacheEntry_setLastAccess.invoke(usercache_usercacheentry, nextOperation);
+            }
+            optional = Optional.of((GameProfile) ProfilesCore.UserCacheEntry_getProfile.invoke(usercache_usercacheentry));
+        } else {
+            // optional = lookupGameProfile(this.profileRepository, username); // CraftBukkit - use correct case for offline players
+            UUID realUUID = PlayerUUIDs.getRealUUIDOfPlayer(username);
+            if (realUUID == null) return Optional.empty();
+
+            optional = Optional.of(PlayerProfiles.signXSeries(new GameProfile(realUUID, username)));
+            // this.add((GameProfile) optional.get());
+            cacheProfile(optional.get());
+            flag = false;
+        }
+
+        // Should we implement this too?
+        // Maybe we can even make our own method to save real UUIDs too, but that'd need a lot of work,
+        // and it wouldn't be reliable if the config option is disabled.
+        // if (flag && !org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) { // Spigot - skip saving if disabled
+        //     YggdrasilGameProfileRepository.save();
+        // }
+
+        return optional;
+    }
+
+    private Map<UUID, String> findProfilesByNames(Collection<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) throw new IllegalArgumentException("Usernames are null or empty");
+        for (String username : usernames) {
+            if (username == null || !ProfileInputType.USERNAME.pattern.matcher(username).matches()) {
+                throw new IllegalArgumentException("One of the requested usernames is invalid: " + username + " in " + usernames);
+            }
+        }
+
+        Map<UUID, String> mapped = new HashMap<>(usernames.size());
+        Iterable<List<String>> partition = Iterables.partition(
+                new HashSet<>(usernames), // remove duplicate names
+                (usernames.size() / 10) + (usernames.size() % 10 > 0 ? 1 : 0)
+        );
+
+        for (List<String> request : partition) {
+            // TODO
+        }
+
+        return mapped;
+    }
+
     /**
      * Retrieves a cached {@link GameProfile} by UUID from the user cache.
      * If the profile is not found in the cache, creates a new profile with the provided UUID.
@@ -97,7 +181,7 @@ public final class MojangAPI {
      * @return The cached {@link GameProfile} corresponding to the UUID, or a new profile if not found.
      */
     @Nonnull
-    protected static GameProfile getCachedProfileByUUID(UUID uuid) {
+    public static GameProfile getCachedProfileByUUID(UUID uuid) {
         uuid = PlayerUUIDs.isOnlineMode() ? uuid : PlayerUUIDs.ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
         try {
             @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_UUID.invoke(ProfilesCore.USER_CACHE, uuid);
@@ -133,9 +217,9 @@ public final class MojangAPI {
      * @throws IllegalArgumentException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
     @Nonnull
-    protected static GameProfile fetchProfile(@Nonnull GameProfile profile) {
+    public static GameProfile fetchProfile(@Nonnull GameProfile profile) {
+        GameProfile original = profile;
         if (!ProfilesCore.NULLABILITY_RECORD_UPDATE) {
-            GameProfile old = profile;
             GameProfile cached = INSECURE_PROFILES.getIfPresent(profile.getId());
             GameProfile newProfile;
 
@@ -158,7 +242,7 @@ public final class MojangAPI {
                 } else {
                     newProfile = (profile = cached);
                 }
-                ProfilesCore.debug("Filled properties: {} -> {}", old, newProfile);
+                ProfilesCore.debug("Filled properties: {} -> {}", original, newProfile);
             } catch (PlayerProfileNotFoundException ex) {
                 throw ex;
             } catch (Throwable throwable) {
@@ -192,6 +276,7 @@ public final class MojangAPI {
                 ProfilesCore.debug("Yggdrasil provided profile is {} with actions {} for {}", result.profile(), result.actions(), profile);
             } else {
                 ProfilesCore.debug("Yggdrasil provided profile is null with actions for {}", profile);
+                throw new PlayerProfileNotFoundException("fetchProfile could not find " + realUUID + " from " + original);
             }
         }
 
@@ -199,66 +284,5 @@ public final class MojangAPI {
         PlayerProfiles.signXSeries(profile);
         cacheProfile(profile);
         return profile;
-    }
-
-    /**
-     * @return null if a player with this username doesn't exist.
-     */
-    @Nullable
-    private static JsonObject requestUsernameToUUIDData(@Nonnull String username) throws IOException {
-        if (!UUID_RATELIMIT.acquire())
-            throw new IllegalStateException("Rate limit has been hit! " + UUID_RATELIMIT);
-
-        HttpURLConnection connection = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + username).openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(10 * 1000); // 10 seconds
-        connection.setReadTimeout(30 * 1000); // 30 seconds
-        connection.setDoInput(true);
-        connection.setDoOutput(false);
-        connection.setAllowUserInteraction(false);
-        ProfilesCore.debug("Sending request to {}", connection.getURL());
-
-        try {
-            return connectionStreamToJson(connection, false).getAsJsonObject();
-        } catch (Throwable ex) {
-            MojangAPIException exception;
-            try {
-                switch (connection.getResponseCode()) {
-                    case HttpURLConnection.HTTP_NOT_FOUND:
-                        return null;
-                    case 429: // Too many requests
-                        UUID_RATELIMIT.instantRateLimit();
-                }
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return null;
-                if (ex instanceof SocketException && ex.getMessage().toLowerCase(Locale.ENGLISH).contains("connection reset")) {
-                    // TODO handle reconnecting for future requests.
-                    throw ex;
-                }
-                exception = new MojangAPIException(connectionStreamToJson(connection, true).toString(), ex);
-            } catch (Throwable errorEx) {
-                exception = new MojangAPIException("Failed to read both normal response and error response from '" + connection.getURL() + '\'');
-                exception.addSuppressed(ex);
-                exception.addSuppressed(errorEx);
-            }
-
-            throw exception;
-        }
-    }
-
-    private static JsonElement connectionStreamToJson(HttpURLConnection connection, boolean error) throws IOException, RuntimeException {
-        try (
-                InputStream inputStream = error ? connection.getErrorStream() : connection.getInputStream();
-                JsonReader reader = new JsonReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        ) {
-            JsonElement json = Streams.parse(reader);
-            if (json == null || !json.isJsonObject()) {
-                // For UUID_TO_PROFILE, this happens when HTTP Code 204 (No Content) is given.
-                // And that happens if the UUID doesn't exist in Mojang servers. (E.g. cracked UUIDs)
-                throw new RuntimeException((error ? "error" : "normal response") + " is not a JSON object with response '"
-                        + connection.getResponseCode() + ": " + connection.getResponseMessage() + "': " +
-                        CharStreams.toString(new InputStreamReader(error ? connection.getErrorStream() : connection.getInputStream(), Charsets.UTF_8)));
-            }
-            return json.getAsJsonObject();
-        }
     }
 }

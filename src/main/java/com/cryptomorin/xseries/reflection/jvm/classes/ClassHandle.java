@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.Handle;
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
@@ -9,11 +10,17 @@ import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Objects;
 import java.util.Set;
 
 @ApiStatus.Experimental
 public abstract class ClassHandle implements Handle<Class<?>> {
-    protected ReflectiveNamespace namespace = new ReflectiveNamespace();
+    protected final ReflectiveNamespace namespace;
+
+    protected ClassHandle(ReflectiveNamespace namespace) {
+        this.namespace = namespace;
+        namespace.link(this);
+    }
 
     public abstract ClassHandle asArray(int dimensions);
 
@@ -24,6 +31,19 @@ public abstract class ClassHandle implements Handle<Class<?>> {
     public abstract boolean isArray();
 
     public abstract Set<String> getPossibleNames();
+
+    public DynamicClassHandle inner(@Language("Java") String declaration) {
+        return inner(namespace.classHandle(declaration));
+    }
+
+    @ApiStatus.Experimental
+    public <T extends DynamicClassHandle> T inner(T handle) {
+        Objects.requireNonNull(handle, "Inner handle is null");
+        if (this == handle) throw new IllegalArgumentException("Same instance: " + this);
+        handle.parent = this;
+        namespace.link(this);
+        return handle;
+    }
 
     public int getDimensionCount() {
         int count = -1;
@@ -36,13 +56,6 @@ public abstract class ClassHandle implements Handle<Class<?>> {
         } while (clazz != null);
 
         return count;
-    }
-
-    public void setNamespace(ReflectiveNamespace namespace) {
-        ReflectiveNamespace prev = this.namespace;
-        this.namespace = namespace;
-        namespace.link(this);
-        prev.unlink(this);
     }
 
     public ReflectiveNamespace getNamespace() {

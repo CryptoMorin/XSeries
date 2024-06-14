@@ -1,5 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
+import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
+
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Objects;
@@ -8,7 +10,10 @@ import java.util.Set;
 public class StaticClassHandle extends ClassHandle {
     protected Class<?> clazz;
 
-    public StaticClassHandle(Class<?> clazz) {this.clazz = clazz;}
+    public StaticClassHandle(ReflectiveNamespace namespace, Class<?> clazz) {
+        super(namespace);
+        this.clazz = clazz;
+    }
 
     private Class<?> purifyClass() {
         Class<?> pureClazz = clazz;
@@ -24,8 +29,10 @@ public class StaticClassHandle extends ClassHandle {
 
     public StaticClassHandle asArray(int dimension) {
         Class<?> arrayClass = purifyClass();
-        for (int i = 0; i < dimension; i++) {
-            arrayClass = Array.newInstance(arrayClass, 0).getClass();
+        if (dimension > 0) {
+            for (int i = 0; i < dimension; i++) {
+                arrayClass = Array.newInstance(arrayClass, 0).getClass();
+            }
         }
         this.clazz = arrayClass;
         return this;

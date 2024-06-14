@@ -1,9 +1,9 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.google.common.base.Strings;
 import org.intellij.lang.annotations.Pattern;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,10 +11,14 @@ import java.util.Objects;
 import java.util.Set;
 
 public class DynamicClassHandle extends ClassHandle {
+    protected ClassHandle parent;
     protected String packageName;
     protected final Set<String> classNames = new HashSet<>(5);
-    protected DynamicClassHandle innerClassHandle;
     protected int array;
+
+    public DynamicClassHandle(ReflectiveNamespace namespace) {
+        super(namespace);
+    }
 
     public DynamicClassHandle inPackage(@Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) String packageName) {
         Objects.requireNonNull(packageName, "Null package name");
@@ -26,16 +30,11 @@ public class DynamicClassHandle extends ClassHandle {
         return inPackage(packageHandle, "");
     }
 
-    @ApiStatus.Experimental
-    public ClassHandle inner(DynamicClassHandle innerClassHandle) {
-        // TODO should handle names in reflectClassNames() maybe?
-        this.innerClassHandle = innerClassHandle;
-        return this;
-    }
-
     public DynamicClassHandle inPackage(PackageHandle packageHandle, @Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) String packageName) {
         Objects.requireNonNull(packageHandle, "Null package handle type");
         Objects.requireNonNull(packageName, "Null package handle name");
+        if (parent != null)
+            throw new IllegalStateException("Cannot change package of an inner class: " + packageHandle + " -> " + packageName);
         this.packageName = packageHandle.getPackage(packageName);
         return this;
     }
@@ -50,13 +49,18 @@ public class DynamicClassHandle extends ClassHandle {
     }
 
     public String[] reflectClassNames() {
-        Objects.requireNonNull(packageName, "Package name is null");
+        if (this.parent == null) Objects.requireNonNull(packageName, "Package name is null");
         String[] classNames = new String[this.classNames.size()];
+        Class<?> parent = this.parent == null ? null : XReflection.of(this.parent.unreflect()).asArray(0).unreflect();
 
         int i = 0;
         for (String className : this.classNames) {
+
             @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
-            String clazz = packageName + '.' + className;
+            String clazz;
+            if (parent == null) clazz = packageName + '.' + className;
+            else clazz = parent.getName() + '$' + className;
+
             if (array != 0) clazz = Strings.repeat("[", array) + 'L' + clazz + ';';
             classNames[i++] = clazz;
         }

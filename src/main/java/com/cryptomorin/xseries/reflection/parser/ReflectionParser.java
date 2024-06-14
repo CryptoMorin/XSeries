@@ -8,6 +8,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -45,7 +46,7 @@ public class ReflectionParser {
     }
 
     @Language("RegExp")
-    private static final String JAVA_TYPE_REGEX = PackageHandle.JAVA_IDENTIFIER_PATTERN + "(<[\\w<>\\[\\], ]+>)?((?:\\[])*)";
+    private static final String JAVA_TYPE_REGEX = PackageHandle.JAVA_PACKAGE_PATTERN + "(?:<[.\\w<>\\[\\], ]+>)?((?:\\[])*)";
 
     @Language("RegExp")
     private static String id(@Language("RegExp") String groupName) {
@@ -77,7 +78,8 @@ public class ReflectionParser {
                 Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class, Character.class, Void.class,
                 String.class, Optional.class, StringBuilder.class, StringBuffer.class, UUID.class,
                 Map.class, HashMap.class, ConcurrentHashMap.class, LinkedHashMap.class, WeakHashMap.class,
-                List.class, ArrayList.class, Set.class, HashSet.class
+                List.class, ArrayList.class, Set.class, HashSet.class, Deque.class, Queue.class, LinkedList.class,
+                Date.class, Calendar.class, Duration.class
         ).forEach(x -> PREDEFINED_TYPES.put(x.getSimpleName(), x));
     }
 
@@ -133,7 +135,7 @@ public class ReflectionParser {
             + id("methodName") + PARAMETERS + END_DECL);
     private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
             + id("className") + PARAMETERS + END_DECL);
-    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + id("fieldType") + "\\s+"
+    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + type("fieldType") + "\\s+"
             + id("fieldName") + END_DECL);
 
     public ReflectionParser imports(ReflectiveNamespace namespace) {

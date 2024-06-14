@@ -22,7 +22,7 @@ public final class PlayerProfiles {
      * It gave the error: {@code Name and ID cannot both be blank}
      * Here, "blank" is null for UUID, and {@code Character.isWhitespace} for the name field.
      */
-    protected static final String DEFAULT_PROFILE_NAME = "XSeries";
+    public static final String DEFAULT_PROFILE_NAME = "XSeries";
     private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "true");
     public static final String TEXTURES_PROPERTY = "textures";
 
@@ -38,7 +38,7 @@ public final class PlayerProfiles {
      * This <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin/Cape">wiki</a> documents how to
      * get base64 information from player's UUID.
      */
-    protected static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
+    protected static final String TEXTURES_BASE_URL = "https://textures.minecraft.net/texture/";
 
     protected static Optional<Property> getTextureProperty(GameProfile profile) {
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get(TEXTURES_PROPERTY), null));
@@ -93,6 +93,7 @@ public final class PlayerProfiles {
      * @implNote This method creates a {@link GameProfile} with a UUID derived from the provided hash
      *           to ensure consistency after restarts.
      */
+    @Nonnull
     protected static GameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
         GameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
@@ -108,7 +109,7 @@ public final class PlayerProfiles {
      * @return The sanitized {@link GameProfile}.
      */
     @SuppressWarnings("deprecation")
-    protected static GameProfile sanitizeProfile(GameProfile profile) {
+    public static GameProfile sanitizeProfile(GameProfile profile) {
         JsonObject jsonObject = Optional.ofNullable(getSkinValue(profile)).map(PlayerProfiles::decodeBase64)
                 .map((decoded) -> new JsonParser().parse(decoded).getAsJsonObject())
                 .orElse(null);
@@ -153,6 +154,7 @@ public final class PlayerProfiles {
      * @param base64 The Base64 string to decode.
      * @return the decoded Base64 string if it is a valid Base64 string, or null if not.
      */
+    @Nullable
     protected static String decodeBase64(String base64) {
         Objects.requireNonNull(base64, "Cannot decode null string");
         try {
@@ -170,7 +172,7 @@ public final class PlayerProfiles {
         return profile;
     }
 
-    protected static GameProfile createNamelessGameProfile(UUID id) {
+    public static GameProfile createNamelessGameProfile(UUID id) {
         return signXSeries(new GameProfile(id, DEFAULT_PROFILE_NAME));
     }
 }
