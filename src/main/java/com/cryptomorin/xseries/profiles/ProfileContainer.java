@@ -11,6 +11,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Represenets any object that has a {@link GameProfile} which can also be changed.
+ * @param <T> the bukkit object.
+ */
 @ApiStatus.Internal
 public abstract class ProfileContainer<T> implements Profileable {
     @Nonnull

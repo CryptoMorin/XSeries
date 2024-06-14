@@ -3,10 +3,7 @@ package com.cryptomorin.xseries.profiles.skull;
 import com.cryptomorin.xseries.profiles.ProfileContainer;
 import com.cryptomorin.xseries.profiles.Profileable;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
-import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
-import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
-import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
-import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
+import com.cryptomorin.xseries.profiles.exceptions.*;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.BlockState;
@@ -18,10 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents an instruction that sets a property of a {@link GameProfile}.
@@ -36,7 +30,13 @@ public final class ProfileInstruction<T> implements Profileable {
      * such as {@link ItemStack}, {@link SkullMeta} or a {@link BlockState}.
      */
     private final ProfileContainer<T> profileContainer;
+    /**
+     * The main profile to set.
+     */
     private Profileable profileable;
+    /**
+     * All fallback profiles to try if the main one fails.
+     */
     private final List<Profileable> fallbacks = new ArrayList<>();
     private Consumer<ProfileFallback<T>> onFallback;
 
@@ -47,7 +47,7 @@ public final class ProfileInstruction<T> implements Profileable {
     }
 
     /**
-     * Removes the profile and skin texture.
+     * Removes the profile and skin texture from the item/block.
      */
     public T removeProfile() {
         profileContainer.setProfile(null);
@@ -63,30 +63,54 @@ public final class ProfileInstruction<T> implements Profileable {
         return this;
     }
 
+    /**
+     * The current profile of the item/block (not the profile provided in {@link #profile(Profileable)})
+     */
     @Override
     public GameProfile getProfile() {
         return profileContainer.getProfile();
     }
 
+    /**
+     * A string representation of the {@link #getProfile()} which is useful for data storage.
+     */
     public String getProfileString() {
         return profileContainer.getProfileValue();
     }
 
+    /**
+     * Sets the texture profile to be set to the item/block. Use one of the
+     * static methods of {@link Profileable} class.
+     */
     public ProfileInstruction<T> profile(Profileable profileable) {
         this.profileable = profileable;
         return this;
     }
 
+    /**
+     * A list of fallback profiles in order. If the profile set in {@link #profile(Profileable)} fails,
+     * these profiles will be tested in order until a correct one is found,
+     * also if any of the fallback profiles are used, {@link #onFallback} will be called too.
+     * @see #apply()
+     */
     public ProfileInstruction<T> fallback(Profileable... fallbacks) {
         this.fallbacks.addAll(Arrays.asList(fallbacks));
         return this;
     }
 
+    /**
+     * Called when any of the {@link #fallback(Profileable...)} profiles are used,
+     * this is also called if no fallback profile is provided, but the main one {@link #profile(Profileable)} fails.
+     * @see #onFallback(Runnable)
+     */
     public ProfileInstruction<T> onFallback(Consumer<ProfileFallback<T>> onFallback) {
         this.onFallback = onFallback;
         return this;
     }
 
+    /**
+     * @see #onFallback(Consumer)
+     */
     public ProfileInstruction<T> onFallback(Runnable onFallback) {
         this.onFallback = (fallback) -> onFallback.run();
         return this;
@@ -104,6 +128,11 @@ public final class ProfileInstruction<T> implements Profileable {
      * requires internet connection, will delay things a lot.
      *
      * @return The result after setting the generated profile.
+     * @throws APIRetryException due to being ratelimited or network issues that can be fixed if the request is sent later again.
+     * @throws MojangAPIException if any unknown non-recoverable network issues occur.
+     * @throws PlayerProfileNotFoundException if a specific player-identifying {@link Profileable} is not found.
+     * @throws InvalidProfileException if a given {@link Profileable} has incorrect value (more general than {@link PlayerProfileNotFoundException})
+     * @throws ProfileChangeException all the exceptions above are added as a suppressed exception to this exception.
      */
     public T apply() {
         Objects.requireNonNull(profileable, "No profile was set");
@@ -122,7 +151,7 @@ public final class ProfileInstruction<T> implements Profileable {
                 profileContainer.setProfile(profile);
                 success = true;
                 break;
-            } catch (PlayerProfileNotFoundException | MojangAPIException | InvalidProfileException ex) {
+            } catch (MojangAPIException | InvalidProfileException | APIRetryException ex) {
                 if (exception == null) {
                     exception = new ProfileChangeException("Could not set the profile for " + profileContainer);
                 }

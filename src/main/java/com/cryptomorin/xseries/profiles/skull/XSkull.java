@@ -28,12 +28,12 @@ import com.cryptomorin.xseries.profiles.ProfileInputType;
 import com.cryptomorin.xseries.profiles.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.mojang.authlib.GameProfile;
-import org.apache.maven.model.Profile;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * <b>XSkull</b> - Apply skull texture from different sources.<br><br>
@@ -141,7 +141,8 @@ public final class XSkull {
      *
      * @return A clone of the default {@link GameProfile}.
      */
-    public static Profileable getDefaultProfile() {
+    protected static Profileable getDefaultProfile() {
+        // We copy this just in case something changes the GameProfile properties.
         GameProfile clone = new GameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());
         clone.getProperties().putAll(DEFAULT_PROFILE.getProperties());
         return Profileable.of(clone);

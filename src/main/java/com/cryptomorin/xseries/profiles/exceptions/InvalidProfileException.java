@@ -1,6 +1,6 @@
 package com.cryptomorin.xseries.profiles.exceptions;
 
-public final class InvalidProfileException extends RuntimeException {
+public class InvalidProfileException extends RuntimeException {
     public InvalidProfileException(String message) {
         super(message);
     }

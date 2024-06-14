@@ -2,6 +2,10 @@ package com.cryptomorin.xseries.profiles.skull;
 
 import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
 
+/**
+ * An object that has all the information about failed attempts.
+ * @param <T> the object that has its profile set. See {@link com.cryptomorin.xseries.profiles.ProfileContainer} for a list.
+ */
 public final class ProfileFallback<T> {
     private final ProfileInstruction<T> instruction;
     private T object;

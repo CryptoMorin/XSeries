@@ -13,6 +13,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Represents any object that has a {@link GameProfile} or one can be created with it.
+ */
 public interface Profileable {
     /**
      * The final texture that will be supplied to {@code profileContainer} to be applied.
