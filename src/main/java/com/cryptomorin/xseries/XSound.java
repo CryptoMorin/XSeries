@@ -2120,6 +2120,36 @@ public enum XSound {
         this.record().soundPlayer().atLocation(location).play();
     }
 
+    public void play(@Nonnull Entity entity, float volume, float pitch) {
+        if (!(entity instanceof Player)) {
+            Location location;
+            if (entity instanceof LivingEntity) {
+                location = ((LivingEntity) entity).getEyeLocation();
+            } else {
+                location = entity.getLocation();
+            }
+
+            play(location, volume, pitch);
+            return;
+        }
+
+        this.record()
+                .withVolume(volume)
+                .withPitch(pitch)
+                .soundPlayer()
+                .forPlayers((Player) entity)
+                .play();
+    }
+
+    public void play(@Nonnull Location location, float volume, float pitch) {
+        this.record()
+                .withVolume(volume)
+                .withPitch(pitch)
+                .soundPlayer()
+                .atLocation(location)
+                .play();
+    }
+
     /**
      * Used for data that need to be accessed during enum initialization.
      *
