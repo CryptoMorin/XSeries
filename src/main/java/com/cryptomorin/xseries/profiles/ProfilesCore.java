@@ -133,7 +133,7 @@ public final class ProfilesCore {
 
         // noinspection MethodMayBeStatic
         UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation();")
-                .map(MinecraftMapping.OBFUSCATED, v(16, "d").orElse("d")).unreflect();
+                .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).unreflect();
 
         MinecraftClassHandle UserCacheEntry = GameProfileCache
                 .inner("private static class GameProfileInfo {}")
@@ -150,10 +150,12 @@ public final class ProfilesCore {
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
             UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName;")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(16, "c").orElse("d")).reflect().invoke(userCache);
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "c").orElse("d"))
+                    .reflect().invoke(userCache);
             // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
             UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID;")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(16, "d").orElse("e")).reflect().invoke(userCache);
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(21, "f").v(16, "d").orElse("e"))
+                    .reflect().invoke(userCache);
 
             // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16
             MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")

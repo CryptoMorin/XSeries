@@ -1,5 +1,6 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.objects;
 
+import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
 import org.bukkit.block.Skull;

@@ -1,7 +1,7 @@
-package com.cryptomorin.xseries.profiles.skull;
+package com.cryptomorin.xseries.profiles.builder;
 
-import com.cryptomorin.xseries.profiles.ProfileContainer;
-import com.cryptomorin.xseries.profiles.Profileable;
+import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.*;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;

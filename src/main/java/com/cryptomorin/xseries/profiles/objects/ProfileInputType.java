@@ -1,5 +1,6 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.objects;
 
+import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
@@ -38,7 +39,7 @@ public enum ProfileInputType {
      * <p>
      * Example: http://textures.minecraft.net/texture/e5461a215b325fbdf892db67b7bfb60ad2bf1580dc968a15dfb304ccd5e74db
      */
-    TEXTURE_URL(Pattern.compile("https?" + Pattern.quote(PlayerProfiles.TEXTURES_BASE_URL.replace("https", "")) + "(?<hash>" + TEXTURE_HASH.pattern + ')', Pattern.CASE_INSENSITIVE)) {
+    TEXTURE_URL(Pattern.compile("(?:https?://)?textures\\.minecraft\\.net/texture/(?<hash>" + TEXTURE_HASH.pattern + ')', Pattern.CASE_INSENSITIVE)) {
         @Override
         public GameProfile getProfile(String textureUrl) {
             String hash = extractTextureHash(textureUrl);

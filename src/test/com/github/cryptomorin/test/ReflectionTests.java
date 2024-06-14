@@ -4,18 +4,27 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 public final class ReflectionTests {
     private final String test = "AAAAAAAAAAAAAA";
 
-    public ReflectionTests() {
+    private static final class A {
+        private static final class B {
+            private static final class C {
+                public final AtomicInteger atomicField = new AtomicInteger();
+            }
+        }
+    }
 
+    public ReflectionTests() {
     }
 
     public ReflectionTests(String test, int other) {
@@ -63,6 +72,18 @@ public final class ReflectionTests {
         try {
             XReflection.of(ReflectionTests.class).constructor("public ReflectionTests(String test, int other);").reflect();
             XReflection.of(ReflectionTests.class).field("private final String test;").getter().reflect();
+            XReflection.of(ReflectionTests.class).field("private final String test;").getter().reflect();
+
+            // Inner class test
+            MethodHandle innerinnerinnerField = XReflection.namespaced().imports(AtomicInteger.class)
+                    .of(ReflectionTests.class)
+                    .inner("private static final class A {}")
+                    .inner("private static final class B {}")
+                    .inner("private static final class C {}")
+                    .field("public final AtomicInteger atomicField;")
+                    .getter().reflect();
+            System.err.println("inner inner inner field: " + innerinnerinnerField);
+
             Object res = new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
                     .parseMethod(clazz.method()).unreflect().invoke(new ReflectionTests(), ',', 2, true);
             System.err.println("------------------------------------------------ " + res);

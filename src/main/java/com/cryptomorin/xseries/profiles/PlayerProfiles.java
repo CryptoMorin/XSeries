@@ -1,11 +1,13 @@
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.collect.Iterables;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+@ApiStatus.Internal
 public final class PlayerProfiles {
     /**
      * In v1.20.2 there were some changes to the Mojang API.
@@ -30,17 +33,21 @@ public final class PlayerProfiles {
     /**
      * Some people use this without quotes surrounding the keys, not sure if that'd work.
      */
-    protected static final String TEXTURES_NBT_PROPERTY_PREFIX = "{\"textures\":{\"SKIN\":{\"url\":\"";
+    public static final String TEXTURES_NBT_PROPERTY_PREFIX = "{\"textures\":{\"SKIN\":{\"url\":\"";
 
     /**
      * The value after this URL is probably an SHA-252 value that Mojang uses to unique identify player skins.
      * <br>
      * This <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin/Cape">wiki</a> documents how to
      * get base64 information from player's UUID.
+     * <p>
+     * Older clients such as v1.8.9 cannot correctly load HTTPS textures.
+     * Not sure if plugins like ViaVersion handle this properly.
      */
-    protected static final String TEXTURES_BASE_URL = "https://textures.minecraft.net/texture/";
+    public static final String TEXTURES_BASE_URL = XReflection.v(9, "https").orElse("http") +
+            "://textures.minecraft.net/texture/";
 
-    protected static Optional<Property> getTextureProperty(GameProfile profile) {
+    public static Optional<Property> getTextureProperty(GameProfile profile) {
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get(TEXTURES_PROPERTY), null));
     }
 
@@ -64,7 +71,7 @@ public final class PlayerProfiles {
      * @return The value of the {@link Property}.
      * @since 4.0.1
      */
-    protected static String getPropertyValue(Property property) {
+    public static String getPropertyValue(Property property) {
         if (ProfilesCore.NULLABILITY_RECORD_UPDATE) return property.value();
         try {
             return (String) ProfilesCore.PROPERTY_GET_VALUE.invoke(property);
@@ -79,7 +86,7 @@ public final class PlayerProfiles {
      * @param profile The {@link GameProfile} to check.
      * @return {@code true} if the profile has a texture property, {@code false} otherwise.
      */
-    protected static boolean hasTextures(GameProfile profile) {
+    public static boolean hasTextures(GameProfile profile) {
         return getTextureProperty(profile).isPresent();
     }
 
@@ -94,7 +101,7 @@ public final class PlayerProfiles {
      *           to ensure consistency after restarts.
      */
     @Nonnull
-    protected static GameProfile profileFromHashAndBase64(String hash, String base64) {
+    public static GameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
         GameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
         PlayerProfiles.addTexturesProperty(profile, base64);
@@ -144,7 +151,7 @@ public final class PlayerProfiles {
      * @param str The string to encode.
      * @return The Base64 encoded string.
      */
-    protected static String encodeBase64(String str) {
+    public static String encodeBase64(String str) {
         return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -155,7 +162,7 @@ public final class PlayerProfiles {
      * @return the decoded Base64 string if it is a valid Base64 string, or null if not.
      */
     @Nullable
-    protected static String decodeBase64(String base64) {
+    public static String decodeBase64(String base64) {
         Objects.requireNonNull(base64, "Cannot decode null string");
         try {
             byte[] bytes = Base64.getDecoder().decode(base64);

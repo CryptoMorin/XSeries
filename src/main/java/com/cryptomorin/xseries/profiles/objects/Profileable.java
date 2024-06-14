@@ -1,5 +1,7 @@
-package com.cryptomorin.xseries.profiles;
+package com.cryptomorin.xseries.profiles.objects;
 
+import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
@@ -105,12 +107,17 @@ public interface Profileable {
 
     final class UsernameProfileable implements Profileable {
         private final String username;
+        private Boolean valid;
 
-        public UsernameProfileable(String username) {this.username = username;}
-
+        public UsernameProfileable(String username) {this.username = Objects.requireNonNull(username);}
 
         @Override
         public GameProfile getProfile() {
+            if (valid == null) {
+                valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
+            }
+            if (!valid) throw new InvalidProfileException("Invalid username: '" + username + '\'');
+
             Optional<GameProfile> profileOpt = MojangAPI.profileFromUsername(username);
             if (!profileOpt.isPresent())
                 throw new PlayerProfileNotFoundException("Cannot find player named '" + username + '\'');
@@ -137,7 +144,7 @@ public interface Profileable {
     final class GameProfileProfileable implements Profileable {
         private final GameProfile profile;
 
-        public GameProfileProfileable(GameProfile profile) {this.profile = profile;}
+        public GameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
         public GameProfile getProfile() {
@@ -155,7 +162,7 @@ public interface Profileable {
     final class PlayerProfileable implements Profileable {
         private final Player player;
 
-        public PlayerProfileable(Player player) {this.player = player;}
+        public PlayerProfileable(Player player) {this.player = Objects.requireNonNull(player);}
 
         @Override
         public GameProfile getProfile() {
@@ -170,7 +177,7 @@ public interface Profileable {
     final class OfflinePlayerProfileable implements Profileable {
         private final OfflinePlayer player;
 
-        public OfflinePlayerProfileable(OfflinePlayer player) {this.player = player;}
+        public OfflinePlayerProfileable(OfflinePlayer player) {this.player = Objects.requireNonNull(player);}
 
         @Override
         public GameProfile getProfile() {
@@ -188,7 +195,7 @@ public interface Profileable {
         @Nullable private ProfileInputType type;
 
         public StringProfileable(String string, @Nullable ProfileInputType type) {
-            this.string = string;
+            this.string = Objects.requireNonNull(string);
             this.type = type;
         }
 

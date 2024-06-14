@@ -2,7 +2,7 @@ package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
-import com.cryptomorin.xseries.profiles.ProfileInputType;
+import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
 import com.google.common.cache.Cache;

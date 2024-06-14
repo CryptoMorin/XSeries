@@ -203,31 +203,18 @@ public enum XParticle {
     EGG_CRACK,
     DUST_PLUME,
     WHITE_SMOKE,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     GUST,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     SMALL_GUST,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     GUST_EMITTER_LARGE,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     GUST_EMITTER_SMALL,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     TRIAL_SPAWNER_DETECTION,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     TRIAL_SPAWNER_DETECTION_OMINOUS,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     VAULT_CONNECTION,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     INFESTED,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     ITEM_COBWEB,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     DUST_PILLAR,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     OMINOUS_SPAWNING,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     RAID_OMEN,
-    @MinecraftExperimental(Requires.UPDATE_1_21)
     TRIAL_OMEN,
     /**
      * BARRIER, LIGHT -> BLOCK_MARKER (v1.18)

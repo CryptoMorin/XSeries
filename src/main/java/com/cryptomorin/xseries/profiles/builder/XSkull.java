@@ -19,13 +19,13 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.cryptomorin.xseries.profiles.skull;
+package com.cryptomorin.xseries.profiles.builder;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
-import com.cryptomorin.xseries.profiles.ProfileContainer;
-import com.cryptomorin.xseries.profiles.ProfileInputType;
-import com.cryptomorin.xseries.profiles.Profileable;
+import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
+import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
@@ -33,7 +33,6 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * <b>XSkull</b> - Apply skull texture from different sources.<br><br>

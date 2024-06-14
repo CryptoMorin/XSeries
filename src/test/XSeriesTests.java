@@ -1,5 +1,7 @@
 import com.cryptomorin.xseries.*;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -83,8 +85,30 @@ public final class XSeriesTests {
         print("Version pack: " + XReflection.getVersionInformation());
         ReflectionTests.parser();
         initializeReflection();
-
+        testSkulls();
         print("\n\n\nTest end...");
+    }
+
+    private static void testSkulls() {
+        print("Testing skulls...");
+        //XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
+        print("Testing skulls username");
+        XSkull.createItem().profile(Profileable.username("Notch")).apply();
+        print("Testing skulls Base64");
+        XSkull.createItem().profile(Profileable.detect("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzI0ZTY3ZGNlN2E0NDE4ZjdkYmE3MTE3MDQxODAzMDQ1MDVhMDM3YzEyZjE1NWE3MDYwM2UxOWYxMzIwMzRiMSJ9fX0=")).apply();
+        print("Testing skulls textures hash");
+        XSkull.createItem().profile(Profileable.detect("f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
+        print("Testing skulls textures URL");
+        XSkull.createItem().profile(Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
+        print("Testing skulls usernamed fallback");
+        XSkull.createItem()
+                .profile(Profileable.username("hjkSF3809HFGhs"))
+                .fallback(Profileable.username("CryptoMorin"))
+                .apply();
+        print("Testing skulls lenient silence");
+        XSkull.createItem()
+                .profile(Profileable.username("F(&$#%Y(@&$(@#$Y_{GFS!"))
+                .lenient().apply();
     }
 
     private static void initializeReflection() {
@@ -92,7 +116,7 @@ public final class XSeriesTests {
             Class.forName("com.cryptomorin.xseries.XWorldBorder");
             Class.forName("com.cryptomorin.xseries.messages.ActionBar");
             Class.forName("com.cryptomorin.xseries.messages.Titles");
-            Class.forName("com.cryptomorin.xseries.profiles.skull.XSkull");
+            Class.forName("com.cryptomorin.xseries.profiles.builder.XSkull");
             Class.forName("com.cryptomorin.xseries.reflection.minecraft.NMSExtras");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

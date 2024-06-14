@@ -123,7 +123,8 @@ public final class NMSExtras {
             Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
-            getDataWatcher = lookup.findVirtual(nmsEntity, v(20, 5, "ap")
+            getDataWatcher = lookup.findVirtual(nmsEntity, v(21, "ar")
+                            .v(20, 5, "ap")
                             .v(20, 4, "an")
                             .v(20, 2, "al")
                             .v(19, "aj")
