@@ -32,7 +32,8 @@ public abstract class MemberHandle implements Handle<MethodHandle> {
 
     protected <T extends AccessibleObject & Member> T handleAccessible(T accessibleObject) throws ReflectiveOperationException {
         // Package-private classes or private inner classes.
-        if (this.makeAccessible || Modifier.isPrivate(accessibleObject.getDeclaringClass().getModifiers())) accessibleObject.setAccessible(true);
+        if (this.makeAccessible || Modifier.isPrivate(accessibleObject.getDeclaringClass().getModifiers()))
+            accessibleObject.setAccessible(true);
         return accessibleObject;
     }
 }

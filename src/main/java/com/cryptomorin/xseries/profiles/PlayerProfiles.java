@@ -141,6 +141,12 @@ public final class PlayerProfiles {
         return clone;
     }
 
+    public static GameProfile clone(GameProfile gameProfile) {
+        GameProfile clone = new GameProfile(gameProfile.getId(), gameProfile.getName());
+        clone.getProperties().putAll(gameProfile.getProperties());
+        return clone;
+    }
+
     public static void addTexturesProperty(GameProfile profile, String texture) {
         Property property = new Property(TEXTURES_PROPERTY, texture);
         profile.getProperties().put(TEXTURES_PROPERTY, property);

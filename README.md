@@ -1,4 +1,5 @@
 # XSeries
+
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20.6-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/Java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://api.travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://app.travis-ci.com/github/CryptoMorin/XSeries)
@@ -9,18 +10,17 @@ Library mainly designed to provide cross-version support for Minecraft Bukkit pl
 but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
 Some utilities are completely unrelated to cross-version support such as NoteBlockMusic.
 
-Don't forget to add `api-version: "1.13"` to your `plugin.yml`. This will keep the plugin working even if the server is not 1.13
+Don't forget to add `api-version: "1.13"` to your `plugin.yml`.
+This will keep the plugin working even if the server is not 1.13
 
 This project aims to provide quality utilities with high performance using the latest, yet efficient techniques.
 Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all developers
 drop support for anything below 1.12
 
-
 ### Links
 
 This project was mainly posted in [SpigotMC](https://www.spigotmc.org/threads/378136/)\
 Most of the updates and news will be announced there.
-
 
 ### Getting Started
 
@@ -29,16 +29,18 @@ Which means, at least you have to use 1.13 (for cross-version support utilities 
 You can clone the project using: `git clone https://github.com/CryptoMorin/XSeries.git`
 
 All the methods are explained in the JavaDocs. Please read them before using a method.
-It's quite common to miss the whole purpose of cross-version support and the efficiency of the utility by using the wrong methods.
+It's quite common to miss the whole purpose of cross-version support and the efficiency
+of the utility by using the wrong methods.
 
 You can use most of these utilities individually or use the maven dependency.
 Most of the utilities are intended to be independent. However, some
 utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
 another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java))
 
-
 #### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
+
 ```xml
+
 <dependency>
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
@@ -47,12 +49,13 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles
 ```
 
 Gradle
+
 ```kotlin
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 dependencies {
-  implementation("com.github.cryptomorin:XSeries:version") { isTransitive = false }
+    implementation("com.github.cryptomorin:XSeries:version") { isTransitive = false }
 }
 ```
 
@@ -69,6 +72,7 @@ To shade the library, add the following under your maven plugins:
 ### [Apache Maven Shade Plugin](https://maven.apache.org/plugins/maven-shade-plugin/)
 
 ```xml
+
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-shade-plugin</artifactId>
@@ -111,6 +115,7 @@ To shade the library, add the following under your maven plugins:
 ### [Gradle Shadow plugin](https://imperceptiblethoughts.com/shadow/)
 
 Gradle (Kotlin DSL)
+
 ```kotlin
 plugins {
     java
@@ -125,6 +130,7 @@ tasks {
 ```
 
 Gradle (Groovy)
+
 ```groovy
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
@@ -140,7 +146,8 @@ tasks {
 
 ### Contributing
 
-There's always room for improvement. If you know better ways of doing things, I really appreciate it if you can share it with me,
+There's always room for improvement. If you know better ways of doing things,
+I really appreciate it if you can share it with me,
 but please make sure you know what you're doing and tested the project on different versions.
 Any new ideas are welcome as long as they're useful; not just for you, but for everyone else.\
 Please refer to [contributing guidelines](CONTRIBUTING.md) for more info.

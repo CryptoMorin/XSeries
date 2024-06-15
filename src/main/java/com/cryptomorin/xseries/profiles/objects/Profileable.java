@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents any object that has a {@link GameProfile} or one can be created with it.
+ * These objects are cached.
  */
 public interface Profileable {
     /**
@@ -31,16 +32,64 @@ public interface Profileable {
         return PlayerProfiles.getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
     }
 
-    static CompletableFuture<Collection<Profileable>> prepare(Collection<Profileable> profileables) {
-        List<CompletableFuture<GameProfile>> requests = new ArrayList<>(profileables.size());
+    abstract class AbstractProfileable implements Profileable {
+        protected GameProfile cache;
 
-        for (Profileable profileable : profileables) {
-            CompletableFuture<GameProfile> async = CompletableFuture
-                    .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
-            requests.add(async);
+        @Override
+        public final GameProfile getProfile() {
+            GameProfile profile = cache != null ? cache : (cache = getProfile0());
+            return PlayerProfiles.clone(profile);
         }
 
-        return CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]))
+        abstract GameProfile getProfile0();
+
+        @Override
+        public final String toString() {
+            return this.getClass().getSimpleName() + "[cache=" + cache + ']';
+        }
+    }
+
+    static CompletableFuture<Collection<Profileable>> prepare(Collection<Profileable> profileables) {
+        CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
+        List<String> usernameRequests = new ArrayList<>();
+
+        if (!PlayerUUIDs.isOnlineMode()) {
+            for (Profileable profileable : profileables) {
+                String username = null;
+                if (profileable instanceof UsernameProfileable) {
+                    username = ((UsernameProfileable) profileable).username;
+                } else if (profileable instanceof PlayerProfileable) {
+                    username = ((PlayerProfileable) profileable).player.getName();
+                } else if (profileable instanceof OfflinePlayerProfileable) {
+                    username = ((OfflinePlayerProfileable) profileable).player.getName();
+                } else if (profileable instanceof StringProfileable) {
+                    if (((StringProfileable) profileable).determineType().type == ProfileInputType.USERNAME) {
+                        username = ((StringProfileable) profileable).string;
+                    }
+                }
+
+                if (username != null) {
+                    usernameRequests.add(username);
+                }
+            }
+
+            if (!usernameRequests.isEmpty())
+                initial = CompletableFuture.supplyAsync(() -> MojangAPI.usernamesToUUIDs(usernameRequests), PlayerProfileFetcherThread.EXECUTOR);
+        }
+
+        // First cache the username requests then get the profiles and finally return the original objects.
+        return initial
+                .thenCompose(a -> {
+                    List<CompletableFuture<GameProfile>> requests = new ArrayList<>(profileables.size());
+
+                    for (Profileable profileable : profileables) {
+                        CompletableFuture<GameProfile> async = CompletableFuture
+                                .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
+                        requests.add(async);
+                    }
+
+                    return CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]));
+                })
                 .thenApply((a) -> profileables);
     }
 
@@ -118,14 +167,14 @@ public interface Profileable {
     }
 
 
-    final class UsernameProfileable implements Profileable {
+    final class UsernameProfileable extends AbstractProfileable {
         private final String username;
         private Boolean valid;
 
         public UsernameProfileable(String username) {this.username = Objects.requireNonNull(username);}
 
         @Override
-        public GameProfile getProfile() {
+        public GameProfile getProfile0() {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
@@ -141,26 +190,26 @@ public interface Profileable {
         }
     }
 
-    final class UUIDProfileable implements Profileable {
+    final class UUIDProfileable extends AbstractProfileable {
         private final UUID id;
 
         public UUIDProfileable(UUID id) {this.id = Objects.requireNonNull(id, "UUID cannot be null");}
 
         @Override
-        public GameProfile getProfile() {
+        public GameProfile getProfile0() {
             GameProfile profile = MojangAPI.getCachedProfileByUUID(id);
             if (PlayerProfiles.hasTextures(profile)) return profile;
             return MojangAPI.fetchProfile(profile);
         }
     }
 
-    final class GameProfileProfileable implements Profileable {
+    final class GameProfileProfileable extends AbstractProfileable {
         private final GameProfile profile;
 
         public GameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
-        public GameProfile getProfile() {
+        public GameProfile getProfile0() {
             if (PlayerProfiles.hasTextures(profile)) {
                 return profile;
             }
@@ -172,13 +221,13 @@ public interface Profileable {
         }
     }
 
-    final class PlayerProfileable implements Profileable {
+    final class PlayerProfileable extends AbstractProfileable {
         private final Player player;
 
         public PlayerProfileable(Player player) {this.player = Objects.requireNonNull(player);}
 
         @Override
-        public GameProfile getProfile() {
+        public GameProfile getProfile0() {
             // Why are we using the username instead of getting the cached UUID like profile(player.getUniqueId())?
             // If it's about online/offline mode support why should we have a separate method for this instead of
             // letting profile(OfflinePlayer) to take care of it?
@@ -187,13 +236,13 @@ public interface Profileable {
         }
     }
 
-    final class OfflinePlayerProfileable implements Profileable {
+    final class OfflinePlayerProfileable extends AbstractProfileable {
         private final OfflinePlayer player;
 
         public OfflinePlayerProfileable(OfflinePlayer player) {this.player = Objects.requireNonNull(player);}
 
         @Override
-        public GameProfile getProfile() {
+        public GameProfile getProfile0() {
             String name = player.getName();
             if (Strings.isNullOrEmpty(name)) {
                 return new UUIDProfileable(player.getUniqueId()).getProfile();
@@ -203,7 +252,7 @@ public interface Profileable {
         }
     }
 
-    final class StringProfileable implements Profileable {
+    final class StringProfileable extends AbstractProfileable {
         private final String string;
         @Nullable private ProfileInputType type;
 
@@ -212,9 +261,14 @@ public interface Profileable {
             this.type = type;
         }
 
-        @Override
-        public GameProfile getProfile() {
+        private StringProfileable determineType() {
             if (type == null) type = ProfileInputType.get(string);
+            return this;
+        }
+
+        @Override
+        public GameProfile getProfile0() {
+            determineType();
             if (type == null) {
                 throw new InvalidProfileException("Unknown skull string value: " + string);
             }

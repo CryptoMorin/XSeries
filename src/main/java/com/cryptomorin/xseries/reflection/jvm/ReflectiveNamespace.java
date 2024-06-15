@@ -1,6 +1,5 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
-import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;

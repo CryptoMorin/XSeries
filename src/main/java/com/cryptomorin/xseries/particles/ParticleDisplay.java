@@ -21,11 +21,7 @@
  */
 package com.cryptomorin.xseries.particles;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Note;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
@@ -37,7 +33,7 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -964,7 +960,7 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {
-        this.data = new RGBParticleColor((int)red, (int)green, (int)blue);
+        this.data = new RGBParticleColor((int) red, (int) green, (int) blue);
         this.extra = size;
         return this;
     }
@@ -997,8 +993,8 @@ public class ParticleDisplay implements Cloneable {
     public ParticleDisplay withTransitionColor(float red1, float green1, float blue1,
                                                float size,
                                                float red2, float green2, float blue2) {
-        return withTransitionColor(new Color((int)red1, (int)green1, (int)blue1), size,
-                new Color((int)red2, (int)green2, (int)blue2));
+        return withTransitionColor(new Color((int) red1, (int) green1, (int) blue1), size,
+                new Color((int) red2, (int) green2, (int) blue2));
     }
 
     /**
@@ -1686,8 +1682,7 @@ public class ParticleDisplay implements Cloneable {
      * @param c2 the second color to compare
      * @return the square of the distance between the two colors
      */
-    public static double colorDistanceSquared(Color c1, Color c2)
-    {
+    public static double colorDistanceSquared(Color c1, Color c2) {
         int red1 = c1.getRed();
         int red2 = c2.getRed();
         int rmean = (red1 + red2) >> 1;
@@ -1859,6 +1854,7 @@ public class ParticleDisplay implements Cloneable {
 
     public static class RGBParticleColor implements ParticleData {
         private final Color color;
+
         public RGBParticleColor(Color color) {
             this.color = color;
         }
@@ -1914,6 +1910,7 @@ public class ParticleDisplay implements Cloneable {
 
     public static class DustTransitionParticleColor implements ParticleData {
         private final Particle.DustTransition dustTransition;
+
         public DustTransitionParticleColor(Color fromColor, Color toColor, double size) {
             this.dustTransition = new Particle.DustTransition(
                     org.bukkit.Color.fromRGB(fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue()),
@@ -1947,6 +1944,7 @@ public class ParticleDisplay implements Cloneable {
      */
     public static class NoteParticleColor implements ParticleData {
         private final int note;
+
         public NoteParticleColor(int note) {
             this.note = note;
         }
@@ -1982,6 +1980,7 @@ public class ParticleDisplay implements Cloneable {
 
     public static class ParticleBlockData implements ParticleData {
         private final BlockData blockData;
+
         public ParticleBlockData(BlockData blockData) {
             this.blockData = blockData;
         }
@@ -2000,6 +1999,7 @@ public class ParticleDisplay implements Cloneable {
     @SuppressWarnings("deprecation")
     public static class ParticleMaterialData implements ParticleData {
         private final MaterialData materialData;
+
         public ParticleMaterialData(MaterialData materialData) {
             this.materialData = materialData;
         }
@@ -2017,6 +2017,7 @@ public class ParticleDisplay implements Cloneable {
 
     public static class ParticleItemData implements ParticleData {
         private final ItemStack item;
+
         public ParticleItemData(ItemStack item) {
             this.item = item;
         }

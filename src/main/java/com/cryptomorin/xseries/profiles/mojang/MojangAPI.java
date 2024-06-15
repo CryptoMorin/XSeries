@@ -73,9 +73,10 @@ public final class MojangAPI {
      */
     @Nullable
     public static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
-        JsonObject userJson = USERNAME_TO_UUID.request(username).getAsJsonObject();
-        if (userJson == null) return null;
+        JsonElement requestElement = USERNAME_TO_UUID.request(username);
+        if (requestElement == null) return null;
 
+        JsonObject userJson = requestElement.getAsJsonObject();
         JsonElement idElement = userJson.get("id");
         if (idElement == null)
             throw new RuntimeException("No 'id' field for UUID request for '" + username + "': " + userJson);
@@ -91,12 +92,13 @@ public final class MojangAPI {
      * @return The cached {@link GameProfile} corresponding to the username, or a new profile if not found.
      */
     private static GameProfile getCachedProfileByUsername(String username) {
-        // Unused because of limitations, use profileFromUsername(String username) instead.
         try {
             // Expires after every month calendar.add(2, 1); (Persists between restarts)
             @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_NAME.invoke(ProfilesCore.USER_CACHE, username);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
-            GameProfile gameProfile = profile == null ? new GameProfile(PlayerUUIDs.IDENTITY_UUID, username) : PlayerProfiles.sanitizeProfile((GameProfile) profile);
+            GameProfile gameProfile = profile == null ?
+                    PlayerProfiles.signXSeries(new GameProfile(PlayerUUIDs.IDENTITY_UUID, username)) :
+                    PlayerProfiles.sanitizeProfile((GameProfile) profile);
             ProfilesCore.debug("The cached profile for {} -> {}", username, profile);
             return gameProfile;
         } catch (Throwable throwable) {
@@ -166,11 +168,23 @@ public final class MojangAPI {
         }
 
         Map<UUID, String> mapped = new HashMap<>(usernames.size());
-        Iterable<List<String>> partition = Iterables.partition(
-                new HashSet<>(usernames), // remove duplicate names
-                10
-        );
+        Set<String> finalUsernames = new HashSet<>(usernames);
+        {
+            // Remove duplicate & cached names
+            Iterator<String> usernameIter = finalUsernames.iterator();
+            while (usernameIter.hasNext()) {
+                String username = usernameIter.next();
+                UUID cached = PlayerUUIDs.USERNAME_TO_ONLINE.get(username);
+                if (cached != null) {
+                    usernameIter.remove();
+                    mapped.put(cached, username);
+                }
+            }
+        }
 
+        if (finalUsernames.isEmpty()) return mapped;
+        boolean onlineMode = PlayerUUIDs.isOnlineMode();
+        Iterable<List<String>> partition = Iterables.partition(finalUsernames, 10);
         for (List<String> batch : partition) {
             JsonArray response;
             try {
@@ -182,16 +196,19 @@ public final class MojangAPI {
             for (JsonElement element : response) {
                 JsonObject obj = element.getAsJsonObject();
                 String name = obj.get("name").getAsString();
-                UUID id = PlayerUUIDs.UUIDFromDashlessString(obj.get("id").getAsString());
+                UUID realId = PlayerUUIDs.UUIDFromDashlessString(obj.get("id").getAsString());
                 UUID offlineId = PlayerUUIDs.getOfflineUUID(name);
 
-                PlayerUUIDs.USERNAME_TO_ONLINE.put(name, id);
-                PlayerUUIDs.ONLINE_TO_OFFLINE.put(id, offlineId);
-                PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, id);
+                PlayerUUIDs.USERNAME_TO_ONLINE.put(name, realId);
+                PlayerUUIDs.ONLINE_TO_OFFLINE.put(realId, offlineId);
+                PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, realId);
+                if (!ProfilesCore.UserCache_profilesByName.containsKey(name)) {
+                    cacheProfile(new GameProfile(onlineMode ? realId : offlineId, name));
+                }
 
-                String prev = mapped.put(id, name);
+                String prev = mapped.put(realId, name);
                 if (prev != null)
-                    throw new RuntimeException("Got duplicate usernames for UUID: " + id + " (" + prev + " -> " + name + ')');
+                    throw new RuntimeException("Got duplicate usernames for UUID: " + realId + " (" + prev + " -> " + name + ')');
             }
         }
 

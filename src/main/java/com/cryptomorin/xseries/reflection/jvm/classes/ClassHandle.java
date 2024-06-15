@@ -1,7 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.Handle;
-import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;

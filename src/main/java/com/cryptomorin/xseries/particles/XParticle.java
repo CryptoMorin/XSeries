@@ -1,14 +1,11 @@
 package com.cryptomorin.xseries.particles;
 
-import org.bukkit.MinecraftExperimental;
 import org.bukkit.Particle;
 
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static org.bukkit.MinecraftExperimental.Requires;
 
 /**
  * <b>XParticle</b> - Particle enum for <b>XSeries</b>

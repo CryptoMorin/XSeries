@@ -16,9 +16,10 @@ if it's unrelated to adding support for that version since your changes are like
 
 ### Usage
 
-This project uses Maven. So you'll have to use `mvn` commands. 
+This project uses Maven. So you'll have to use `mvn` commands.
 In IntelliJ, you can press `Ctrl` twice for the command window to popup.
 To compile the library into `target` folder, you can use this Maven command:
+
 ```maven
 mvn package
 ```

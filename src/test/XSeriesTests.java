@@ -124,6 +124,25 @@ public final class XSeriesTests {
                 "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
                 "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"));
         print("Result of bulk requests: " + mapped);
+
+        profilePreparation(); // Takes ~5 seconds
+        profilePreparation(); // Takes less than a second
+    }
+
+    private static void profilePreparation() {
+        print("Profileable preparation test");
+        Profileable.prepare(Arrays.asList(
+                        Profileable.username("ImPuddles"), Profileable.username("HACKIN0706"), Profileable.username("yeezydealer"),
+                        Profileable.detect("Bucyrus"),
+                        Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")
+                ))
+                .thenRun(() -> print("profile preparation done"))
+                .exceptionally((ex) -> {
+                    print("Profile preparation done exceptionally: ");
+                    ex.printStackTrace();
+                    return null;
+                })
+                .join();
     }
 
     private static void initializeReflection() {
