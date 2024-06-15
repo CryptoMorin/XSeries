@@ -21,8 +21,8 @@
  */
 
 import com.cryptomorin.xseries.XMaterial;
-import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

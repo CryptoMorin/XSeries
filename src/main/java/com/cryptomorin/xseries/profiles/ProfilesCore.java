@@ -41,7 +41,7 @@ public final class ProfilesCore {
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
      */
-    public static final boolean NULLABILITY_RECORD_UPDATE = XReflection.supports(20, 2);
+    public static final boolean NULLABILITY_RECORD_UPDATE = XReflection.supports(1, 20, 2);
 
     static {
         Object userCache, minecraftSessionService;

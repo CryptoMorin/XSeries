@@ -2,12 +2,14 @@ package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
-import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
+import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
+import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterables;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
@@ -57,9 +59,12 @@ public final class MojangAPI {
             new RateLimiter(600, Duration.ofMinutes(10))
     );
 
+    /**
+     * https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape
+     */
     private static final MinecraftClient UUID_TO_PROFILE = new MinecraftClient(
             "GET",
-            "https://api.mojang.com/users/profiles/minecraft/",
+            "https://sessionserver.mojang.com/session/minecraft/profile/",
             new RateLimiter(200, Duration.ofMinutes(1))
     );
 
@@ -68,7 +73,7 @@ public final class MojangAPI {
      */
     @Nullable
     public static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
-        JsonObject userJson = USERNAME_TO_UUID.request(username);
+        JsonObject userJson = USERNAME_TO_UUID.request(username).getAsJsonObject();
         if (userJson == null) return null;
 
         JsonElement idElement = userJson.get("id");
@@ -152,7 +157,7 @@ public final class MojangAPI {
         return optional;
     }
 
-    private Map<UUID, String> findProfilesByNames(Collection<String> usernames) {
+    public static Map<UUID, String> usernamesToUUIDs(Collection<String> usernames) {
         if (usernames == null || usernames.isEmpty()) throw new IllegalArgumentException("Usernames are null or empty");
         for (String username : usernames) {
             if (username == null || !ProfileInputType.USERNAME.pattern.matcher(username).matches()) {
@@ -163,11 +168,31 @@ public final class MojangAPI {
         Map<UUID, String> mapped = new HashMap<>(usernames.size());
         Iterable<List<String>> partition = Iterables.partition(
                 new HashSet<>(usernames), // remove duplicate names
-                (usernames.size() / 10) + (usernames.size() % 10 > 0 ? 1 : 0)
+                10
         );
 
-        for (List<String> request : partition) {
-            // TODO
+        for (List<String> batch : partition) {
+            JsonArray response;
+            try {
+                response = USERNAMES_TO_UUIDS.post(batch).getAsJsonArray();
+            } catch (IOException ex) {
+                throw new MojangAPIException("Failed to request UUIDs for username batch: " + batch, ex);
+            }
+
+            for (JsonElement element : response) {
+                JsonObject obj = element.getAsJsonObject();
+                String name = obj.get("name").getAsString();
+                UUID id = PlayerUUIDs.UUIDFromDashlessString(obj.get("id").getAsString());
+                UUID offlineId = PlayerUUIDs.getOfflineUUID(name);
+
+                PlayerUUIDs.USERNAME_TO_ONLINE.put(name, id);
+                PlayerUUIDs.ONLINE_TO_OFFLINE.put(id, offlineId);
+                PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, id);
+
+                String prev = mapped.put(id, name);
+                if (prev != null)
+                    throw new RuntimeException("Got duplicate usernames for UUID: " + id + " (" + prev + " -> " + name + ')');
+            }
         }
 
         return mapped;

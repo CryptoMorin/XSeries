@@ -1,10 +1,10 @@
 package com.cryptomorin.xseries.profiles.builder;
 
-import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
-import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.*;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
+import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;

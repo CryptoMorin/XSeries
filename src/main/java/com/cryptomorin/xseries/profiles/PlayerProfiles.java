@@ -1,6 +1,5 @@
 package com.cryptomorin.xseries.profiles;
 
-import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.collect.Iterables;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -41,11 +40,13 @@ public final class PlayerProfiles {
      * This <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin/Cape">wiki</a> documents how to
      * get base64 information from player's UUID.
      * <p>
-     * Older clients such as v1.8.9 cannot correctly load HTTPS textures.
+     * Older clients such as v1.8.9 (only tested for v1.8.9) cannot correctly load HTTPS textures.
      * Not sure if plugins like ViaVersion handle this properly.
+     * Also, the {@link com.cryptomorin.xseries.profiles.mojang.MojangAPI} UUID_TO_PROFILE
+     * returns HTTP for texture URL when the Base64 is decoded, so we can keep it consistent
+     * when it's not explicitly defined by the user.
      */
-    public static final String TEXTURES_BASE_URL = XReflection.v(9, "https").orElse("http") +
-            "://textures.minecraft.net/texture/";
+    public static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
 
     public static Optional<Property> getTextureProperty(GameProfile profile) {
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get(TEXTURES_PROPERTY), null));

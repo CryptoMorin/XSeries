@@ -44,7 +44,7 @@ public final class PlayerUUIDs {
     }
 
     @Nonnull
-    protected static UUID getOfflineUUID(@Nonnull String username) {
+    public static UUID getOfflineUUID(@Nonnull String username) {
         // Vanilla behavior across all platforms.
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }

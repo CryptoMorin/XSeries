@@ -1,8 +1,10 @@
 import com.cryptomorin.xseries.*;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
-import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
+import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.github.cryptomorin.test.ReflectionTests;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -10,9 +12,11 @@ import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
-import com.github.cryptomorin.test.ReflectionTests;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -91,7 +95,7 @@ public final class XSeriesTests {
 
     private static void testSkulls() {
         print("Testing skulls...");
-        //XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
+        // XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
         print("Testing skulls username");
         XSkull.createItem().profile(Profileable.username("Notch")).apply();
         print("Testing skulls Base64");
@@ -109,6 +113,17 @@ public final class XSeriesTests {
         XSkull.createItem()
                 .profile(Profileable.username("F(&$#%Y(@&$(@#$Y_{GFS!"))
                 .lenient().apply();
+
+        print("Testing bulk username to UUID conversion");
+        Map<UUID, String> mapped = MojangAPI.usernamesToUUIDs(Arrays.asList("yourmom1212",
+                "ybe", "Scavage", "Tinchosz", "daerb",
+                "verflow", "Brazzer", "Trillest", "EZix",
+                "Meritocracia", "otpe", "nn_mc", "Hershey",
+                "ElsaPlayzz", "HACKIN0706", "Angelisim", "iFraz",
+                "KolevBG", "thebreadrat", "VIRGlN", "ImPuddles",
+                "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
+                "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"));
+        print("Result of bulk requests: " + mapped);
     }
 
     private static void initializeReflection() {
