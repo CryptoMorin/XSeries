@@ -49,7 +49,7 @@ public interface Profileable {
         }
     }
 
-    static CompletableFuture<Collection<Profileable>> prepare(Collection<Profileable> profileables) {
+    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(C profileables) {
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
 
