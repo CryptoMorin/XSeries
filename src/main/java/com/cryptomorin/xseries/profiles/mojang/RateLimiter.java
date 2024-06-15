@@ -1,6 +1,8 @@
 package com.cryptomorin.xseries.profiles.mojang;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.time.Duration;
 import java.util.Iterator;
@@ -17,6 +19,8 @@ public final class RateLimiter {
         this.per = per.toMillis();
     }
 
+    @CanIgnoreReturnValue
+    @Unmodifiable
     private ConcurrentLinkedQueue<Long> getRequests() {
         if (requests.isEmpty()) return requests;
 
@@ -55,6 +59,26 @@ public final class RateLimiter {
         } else {
             requests.add(System.currentTimeMillis());
             return true;
+        }
+    }
+
+    public Duration timeUntilNextFreeRequest() {
+        if (getRemainingRequests() == 0) {
+            long now = System.currentTimeMillis();
+            long oldestRequestedAt = requests.peek();
+            long diff = now - oldestRequestedAt;
+            return Duration.ofMillis(per - diff);
+        }
+        return Duration.ZERO;
+    }
+
+    public synchronized void acquireOrWait() {
+        long sleepUntil = timeUntilNextFreeRequest().toMillis();
+        if (sleepUntil == 0) return;
+        try {
+            Thread.sleep(sleepUntil);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

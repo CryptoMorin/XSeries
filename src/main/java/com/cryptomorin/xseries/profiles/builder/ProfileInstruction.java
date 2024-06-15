@@ -130,8 +130,8 @@ public final class ProfileInstruction<T> implements Profileable {
      * @return The result after setting the generated profile.
      * @throws APIRetryException due to being ratelimited or network issues that can be fixed if the request is sent later again.
      * @throws MojangAPIException if any unknown non-recoverable network issues occur.
-     * @throws PlayerProfileNotFoundException if a specific player-identifying {@link Profileable} is not found.
-     * @throws InvalidProfileException if a given {@link Profileable} has incorrect value (more general than {@link PlayerProfileNotFoundException})
+     * @throws UnknownPlayerException if a specific player-identifying {@link Profileable} is not found.
+     * @throws InvalidProfileException if a given {@link Profileable} has incorrect value (more general than {@link UnknownPlayerException})
      * @throws ProfileChangeException all the exceptions above are added as a suppressed exception to this exception.
      */
     public T apply() {

@@ -3,15 +3,17 @@ package com.cryptomorin.xseries.profiles.objects;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
-import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
+import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
+import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,7 +51,14 @@ public interface Profileable {
         }
     }
 
-    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(C profileables) {
+    @Nonnull
+    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@Nonnull C profileables) {
+        return prepare(profileables, null);
+    }
+
+    @Nonnull
+    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
+            @Nonnull C profileables, @Nullable ProfileRequestConfiguration config) {
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
 
@@ -74,7 +83,7 @@ public interface Profileable {
             }
 
             if (!usernameRequests.isEmpty())
-                initial = CompletableFuture.supplyAsync(() -> MojangAPI.usernamesToUUIDs(usernameRequests), PlayerProfileFetcherThread.EXECUTOR);
+                initial = CompletableFuture.supplyAsync(() -> MojangAPI.usernamesToUUIDs(usernameRequests, config), PlayerProfileFetcherThread.EXECUTOR);
         }
 
         // First cache the username requests then get the profiles and finally return the original objects.
@@ -182,7 +191,7 @@ public interface Profileable {
 
             Optional<GameProfile> profileOpt = MojangAPI.profileFromUsername(username);
             if (!profileOpt.isPresent())
-                throw new PlayerProfileNotFoundException("Cannot find player named '" + username + '\'');
+                throw new UnknownPlayerException("Cannot find player named '" + username + '\'');
 
             GameProfile profile = profileOpt.get();
             if (PlayerProfiles.hasTextures(profile)) return profile;

@@ -653,8 +653,14 @@ public final class XItemStack {
 
         // Special Items
         if (meta instanceof SkullMeta) {
+            // Make it lenient to support placeholders.
             String skull = config.getString("skull");
-            if (skull != null) XSkull.of(meta).profile(Profileable.detect(skull)).apply();
+            if (skull != null) {
+                // Since this is also an editing method, allow empty strings to
+                // represent the instruction to completely remove an existing profile.
+                if (skull.isEmpty()) XSkull.of(meta).profile(Profileable.detect(skull)).removeProfile();
+                else XSkull.of(meta).profile(Profileable.detect(skull)).lenient().apply();
+            }
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
             ConfigurationSection patterns = config.getConfigurationSection("patterns");

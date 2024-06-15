@@ -16,4 +16,8 @@ public final class APIRetryException extends RuntimeException {
         super(message, cause);
         this.reason = reason;
     }
+
+    public Reason getReason() {
+        return reason;
+    }
 }

@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
+import java.net.Proxy;
 import java.util.Deque;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import static com.cryptomorin.xseries.reflection.XReflection.v;
 public final class ProfilesCore {
     public static final Logger LOGGER = LogManager.getLogger("XSkull");
     public static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
+    public static final Proxy PROXY;
 
     public static final Map<String, Object> UserCache_profilesByName;
     public static final Map<UUID, Object> UserCache_profilesByUUID;
@@ -45,6 +47,7 @@ public final class ProfilesCore {
 
     static {
         Object userCache, minecraftSessionService;
+        Proxy proxy;
         MethodHandle fillProfileProperties = null, getProfileByName, getProfileByUUID, cacheProfile;
         MethodHandle profileSetterMeta, profileGetterMeta, getPropertyValue = null;
 
@@ -105,6 +108,13 @@ public final class ProfilesCore {
 
             cacheProfile = GameProfileCache.method("public void add(GameProfile profile);")
                     .map(MinecraftMapping.OBFUSCATED, "a").reflect();
+
+            // Some versions don't have the public getProxy() method. It's very inconsistent...
+            proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy;").getter()
+                    .map(MinecraftMapping.OBFUSCATED, v(20, "h").v(17, "m")
+                            .v(14, "proxy") // v1.14 -> v1.16
+                            .v(13, "c").orElse(/* v1.8 and v1.9 */ "e"))
+                    .unreflect().invoke(minecraftServer);
         } catch (Throwable throwable) {
             throw XReflection.throwCheckedException(throwable);
         }
@@ -119,6 +129,7 @@ public final class ProfilesCore {
             getPropertyValue = ns.of(Property.class).method("public String getValue();").unreflect();
         }
 
+        PROXY = proxy;
         USER_CACHE = userCache;
         MINECRAFT_SESSION_SERVICE = minecraftSessionService;
         FILL_PROFILE_PROPERTIES = fillProfileProperties;

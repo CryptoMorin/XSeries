@@ -13,6 +13,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -95,7 +96,7 @@ public final class XSeriesTests {
 
     private static void testSkulls() {
         print("Testing skulls...");
-        // XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
+        XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
         print("Testing skulls username");
         XSkull.createItem().profile(Profileable.username("Notch")).apply();
         print("Testing skulls Base64");
@@ -122,10 +123,10 @@ public final class XSeriesTests {
                 "ElsaPlayzz", "HACKIN0706", "Angelisim", "iFraz",
                 "KolevBG", "thebreadrat", "VIRGlN", "ImPuddles",
                 "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
-                "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"));
+                "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"), null);
         print("Result of bulk requests: " + mapped);
 
-        profilePreparation(); // Takes ~5 seconds
+        profilePreparation(); // Takes ~5 seconds (If we ignore the previous requests in this method)
         profilePreparation(); // Takes less than a second
     }
 
@@ -135,7 +136,11 @@ public final class XSeriesTests {
                         Profileable.username("ImPuddles"), Profileable.username("HACKIN0706"), Profileable.username("yeezydealer"),
                         Profileable.detect("Bucyrus"),
                         Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")
-                ))
+                ), session -> session.exceptionally((a, b) -> {
+                    print("Exceptionally");
+                    b.printStackTrace();
+                    return false;
+                }))
                 .thenRun(() -> print("profile preparation done"))
                 .exceptionally((ex) -> {
                     print("Profile preparation done exceptionally: ");

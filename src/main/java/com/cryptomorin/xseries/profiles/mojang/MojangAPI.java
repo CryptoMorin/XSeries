@@ -4,7 +4,7 @@ import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
-import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
+import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -73,7 +73,7 @@ public final class MojangAPI {
      */
     @Nullable
     public static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
-        JsonElement requestElement = USERNAME_TO_UUID.request(username);
+        JsonElement requestElement = USERNAME_TO_UUID.session(null).append(username).request();
         if (requestElement == null) return null;
 
         JsonObject userJson = requestElement.getAsJsonObject();
@@ -159,7 +159,7 @@ public final class MojangAPI {
         return optional;
     }
 
-    public static Map<UUID, String> usernamesToUUIDs(Collection<String> usernames) {
+    public static Map<UUID, String> usernamesToUUIDs(@Nonnull Collection<String> usernames, @Nullable ProfileRequestConfiguration config) {
         if (usernames == null || usernames.isEmpty()) throw new IllegalArgumentException("Usernames are null or empty");
         for (String username : usernames) {
             if (username == null || !ProfileInputType.USERNAME.pattern.matcher(username).matches()) {
@@ -188,7 +188,11 @@ public final class MojangAPI {
         for (List<String> batch : partition) {
             JsonArray response;
             try {
-                response = USERNAMES_TO_UUIDS.post(batch).getAsJsonArray();
+                // The wiki says that:
+                // BadRequestException is returned when any of the usernames is null or otherwise invalid
+                // But I'm not sure what that means in this context... but invalid usernames are just ignored,
+                // and no response is contained in the final result regarding them.
+                response = USERNAMES_TO_UUIDS.session(config).body(batch).request().getAsJsonArray();
             } catch (IOException ex) {
                 throw new MojangAPIException("Failed to request UUIDs for username batch: " + batch, ex);
             }
@@ -279,13 +283,13 @@ public final class MojangAPI {
                             .invoke(ProfilesCore.MINECRAFT_SESSION_SERVICE, profile, REQUIRE_SECURE_PROFILES);
                     if (profile == newProfile) {
                         // Returns the same instance if any error occurs.
-                        throw new PlayerProfileNotFoundException("Player with the given properties not found: " + profile);
+                        throw new UnknownPlayerException("Player with the given properties not found: " + profile);
                     }
                 } else {
                     newProfile = (profile = cached);
                 }
                 ProfilesCore.debug("Filled properties: {} -> {}", original, newProfile);
-            } catch (PlayerProfileNotFoundException ex) {
+            } catch (UnknownPlayerException ex) {
                 throw ex;
             } catch (Throwable throwable) {
                 throw new RuntimeException("Unable to fetch profile properties: " + profile, throwable);
@@ -304,7 +308,7 @@ public final class MojangAPI {
             } else {
                 realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());
                 if (realUUID == null) {
-                    throw new PlayerProfileNotFoundException("Player with the given properties not found: " + profile);
+                    throw new UnknownPlayerException("Player with the given properties not found: " + profile);
                 }
             }
 
@@ -318,7 +322,7 @@ public final class MojangAPI {
                 ProfilesCore.debug("Yggdrasil provided profile is {} with actions {} for {}", result.profile(), result.actions(), profile);
             } else {
                 ProfilesCore.debug("Yggdrasil provided profile is null with actions for {}", profile);
-                throw new PlayerProfileNotFoundException("fetchProfile could not find " + realUUID + " from " + original);
+                throw new UnknownPlayerException("fetchProfile could not find " + realUUID + " from " + original);
             }
         }
 
