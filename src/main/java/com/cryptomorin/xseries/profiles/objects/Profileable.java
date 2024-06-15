@@ -5,15 +5,15 @@ import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.PlayerProfileNotFoundException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
+import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents any object that has a {@link GameProfile} or one can be created with it.
@@ -29,6 +29,19 @@ public interface Profileable {
         GameProfile profile = getProfile();
         if (profile == null) return null;
         return PlayerProfiles.getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
+    }
+
+    static CompletableFuture<Collection<Profileable>> prepare(Collection<Profileable> profileables) {
+        List<CompletableFuture<GameProfile>> requests = new ArrayList<>(profileables.size());
+
+        for (Profileable profileable : profileables) {
+            CompletableFuture<GameProfile> async = CompletableFuture
+                    .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
+            requests.add(async);
+        }
+
+        return CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]))
+                .thenApply((a) -> profileables);
     }
 
     /**
