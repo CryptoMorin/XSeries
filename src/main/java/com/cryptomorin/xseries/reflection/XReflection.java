@@ -32,10 +32,9 @@ import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -507,5 +506,78 @@ public final class XReflection {
         // exception.setStackTrace(Arrays.stream(exception.getStackTrace()).skip(1).toArray(StackTraceElement[]::new));
         throwException(exception);
         return null; // Trick the compiler to stfu for "throw" terminating statements.
+    }
+
+    public static <T> CompletableFuture<T> stacktrace(CompletableFuture<T> completableFuture) {
+        StackTraceElement[] currentStacktrace = Thread.currentThread().getStackTrace();
+        return completableFuture.whenComplete((value, ex) -> { // Gets called even when it's completed.
+            if (ex == null) {
+                // This happens if for example someone does:
+                // completableFuture.exceptionally(e -> { e.printStackTrace(); return null; })
+                completableFuture.complete(value);
+                return;
+            }
+
+            try {
+                // Remove these:
+                // at java.base/java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:315)
+                // at java.base/java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:320)
+                // at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1770)
+                // at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+                // at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+                // at java.base/java.lang.Thread.run(Thread.java:1583)
+                StackTraceElement[] exStacktrace = ex.getStackTrace();
+                if (exStacktrace.length >= 3) {
+                    List<StackTraceElement> clearStacktrace = new ArrayList<>(Arrays.asList(exStacktrace));
+                    Collections.reverse(clearStacktrace);
+
+                    Iterator<StackTraceElement> iter = clearStacktrace.iterator();
+                    List<String> watchClassNames = Arrays.asList("java.util.concurrent.CompletableFuture",
+                            "java.util.concurrent.ThreadPoolExecutor", "java.util.concurrent.ForkJoinTask",
+                            "java.util.concurrent.ForkJoinWorkerThread", "java.util.concurrent.ForkJoinPool");
+                    List<String> watchMethodNames = Arrays.asList("postComplete", "encodeThrowable", "completeThrowable",
+                            "tryFire", "run", "runWorker", "scan", "exec", "doExec", "topLevelExec", "uniWhenComplete");
+                    while (iter.hasNext()) {
+                        StackTraceElement stackTraceElement = iter.next();
+                        String className = stackTraceElement.getClassName();
+                        String methodName = stackTraceElement.getMethodName();
+
+                        // Let's keep this just as an indicator.
+                        if (className.equals(Thread.class.getName())) continue;
+
+                        if (watchClassNames.stream().anyMatch(className::startsWith) &&
+                                watchMethodNames.stream().anyMatch(methodName::equals)) {
+                            iter.remove();
+                        } else {
+                            break;
+                        }
+                    }
+
+                    Collections.reverse(clearStacktrace);
+                    exStacktrace = clearStacktrace.toArray(new StackTraceElement[0]);
+                }
+
+                // Skip 2 -> the getStackTrace() method + this method
+                StackTraceElement[] finalCurrentStackTrace = Arrays.stream(currentStacktrace).skip(2).toArray(StackTraceElement[]::new);
+                ex.setStackTrace(concatenate(exStacktrace, finalCurrentStackTrace));
+            } catch (Throwable ex2) {
+                ex.addSuppressed(ex2);
+            } finally {
+                completableFuture.completeExceptionally(ex);
+            }
+        });
+    }
+
+    @ApiStatus.Internal
+    public static <T> T[] concatenate(T[] a, T[] b) {
+        int aLen = a.length;
+        int bLen = b.length;
+
+        @SuppressWarnings("unchecked")
+        T[] c = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+
+        return c;
     }
 }

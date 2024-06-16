@@ -1833,13 +1833,13 @@ public class ParticleDisplay implements Cloneable {
 
     public interface ParticleData {
 
-        public default Vector offsetValues(ParticleDisplay display) {
+        default Vector offsetValues(ParticleDisplay display) {
             return null;
         }
 
-        public Object data(ParticleDisplay display);
+        Object data(ParticleDisplay display);
 
-        public void serialize(ConfigurationSection section);
+        void serialize(ConfigurationSection section);
 
         /**
          * If this data doesn't support the given particle type but can be
@@ -1847,7 +1847,7 @@ public class ParticleDisplay implements Cloneable {
          * ParticleData for that particle type.
          * Used for converting RGB particle data to note block particle data.
          */
-        public default ParticleData transform(ParticleDisplay display) {
+        default ParticleData transform(ParticleDisplay display) {
             return this;
         }
     }

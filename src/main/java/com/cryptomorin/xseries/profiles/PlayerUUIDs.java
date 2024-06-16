@@ -43,6 +43,10 @@ public final class PlayerUUIDs {
         }
     }
 
+    public static String toUndashedUUID(UUID id) {
+        return id.toString().replace("-", "");
+    }
+
     @Nonnull
     public static UUID getOfflineUUID(@Nonnull String username) {
         // Vanilla behavior across all platforms.

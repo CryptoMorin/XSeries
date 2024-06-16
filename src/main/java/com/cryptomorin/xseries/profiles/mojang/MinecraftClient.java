@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.profiles.mojang;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.APIRetryException;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
@@ -22,9 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
 public class MinecraftClient {
+    private static final AtomicInteger SESSION_ID = new AtomicInteger();
     private static final Proxy PROXY = ProfilesCore.PROXY == null ? Proxy.NO_PROXY : ProfilesCore.PROXY;
     private static final Gson GSON = new Gson();
     private static final RateLimiter TOTAL_REQUESTS = new RateLimiter(Integer.MAX_VALUE, Duration.ofMinutes(10));
@@ -55,9 +58,10 @@ public class MinecraftClient {
 
     @SuppressWarnings("ReturnOfInnerClass")
     public final class Session {
+        private final int sessionId = SESSION_ID.getAndIncrement();
         private Duration
                 connectTimeout = Duration.ofSeconds(10),
-                readTimeout = Duration.ofSeconds(20),
+                readTimeout = Duration.ofSeconds(10),
                 retryDelay = Duration.ofSeconds(5);
         private int retries;
         private boolean waitInQueue = true;
@@ -65,6 +69,11 @@ public class MinecraftClient {
         private String append;
         private HttpURLConnection connection;
         private BiFunction<Session, Throwable, Boolean> errorHandler;
+
+        private void debug(String message, Object... vars) {
+            Object[] variables = XReflection.concatenate(new Object[]{sessionId, append}, vars);
+            ProfilesCore.debug("[MinecraftClient-{}][{}] " + message, variables);
+        }
 
         public Session exceptionally(BiFunction<Session, Throwable, Boolean> errorHandler) {
             this.errorHandler = errorHandler;
@@ -109,7 +118,9 @@ public class MinecraftClient {
         @Nullable
         public JsonElement request() throws IOException {
             try {
-                return request0();
+                JsonElement response = request0();
+                debug("Received response: {}", response);
+                return response == null ? null : (response.isJsonNull() ? null : response);
             } catch (Exception ex) {
                 if (retries > 0) {
                     retries--;
@@ -158,7 +169,7 @@ public class MinecraftClient {
             if (body != null) {
                 connection.setDoOutput(true);
                 String stringBody = GSON.toJson(body);
-                ProfilesCore.debug("Writing body {} to {}", stringBody, connection.getURL());
+                debug("Writing body {} to {}", stringBody, connection.getURL());
                 byte[] bodyBytes = stringBody.getBytes(StandardCharsets.UTF_8);
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 connection.setRequestProperty("Content-Length", String.valueOf(bodyBytes.length));
@@ -170,7 +181,7 @@ public class MinecraftClient {
                 connection.setDoOutput(false);
             }
 
-            ProfilesCore.debug("Sending request to {}", connection.getURL());
+            debug("Sending request to {}", connection.getURL());
 
             try {
                 return connectionStreamToJson(false);

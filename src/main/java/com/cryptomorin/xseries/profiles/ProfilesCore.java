@@ -6,6 +6,7 @@ import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
+import com.google.common.cache.LoadingCache;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
@@ -21,12 +22,13 @@ import java.util.UUID;
 
 import static com.cryptomorin.xseries.reflection.XReflection.v;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "UnstableApiUsage"})
 @ApiStatus.Internal
 public final class ProfilesCore {
     public static final Logger LOGGER = LogManager.getLogger("XSkull");
     public static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
     public static final Proxy PROXY;
+    public static final LoadingCache<Object, Object> YggdrasilMinecraftSessionService_insecureProfiles;
 
     public static final Map<String, Object> UserCache_profilesByName;
     public static final Map<UUID, Object> UserCache_profilesByUUID;
@@ -46,14 +48,13 @@ public final class ProfilesCore {
     public static final boolean NULLABILITY_RECORD_UPDATE = XReflection.supports(1, 20, 2);
 
     static {
-        Object userCache, minecraftSessionService;
+        Object userCache, minecraftSessionService, insecureProfiles = null;
         Proxy proxy;
         MethodHandle fillProfileProperties = null, getProfileByName, getProfileByUUID, cacheProfile;
         MethodHandle profileSetterMeta, profileGetterMeta, getPropertyValue = null;
 
         ReflectiveNamespace ns = XReflection.namespaced()
-                .imports(GameProfile.class, MinecraftSessionService.class);
-
+                .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
 
         MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
                 "package nms.server.players; public class GameProfileCache {}"
@@ -83,6 +84,20 @@ public final class ProfilesCore {
             minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService();")
                     .named(/* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar")
                     .reflect().invoke(minecraftServer);
+
+            {
+                FieldMemberHandle insecureProfilesFieldHandle = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
+                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService {}").field().getter();
+                if (NULLABILITY_RECORD_UPDATE) {
+                    insecureProfilesFieldHandle.signature("private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles;");
+                } else {
+                    insecureProfilesFieldHandle.signature("private final LoadingCache<GameProfile, GameProfile> insecureProfiles;");
+                }
+                MethodHandle insecureProfilesField = insecureProfilesFieldHandle.reflectOrNull();
+                if (insecureProfilesField != null) {
+                    insecureProfiles = insecureProfilesField.invoke(minecraftSessionService);
+                }
+            }
 
             userCache = MinecraftServer.method("public GameProfileCache getProfileCache();")
                     .named("ar", /* 1.18.2 */ "ao", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
@@ -131,6 +146,7 @@ public final class ProfilesCore {
 
         PROXY = proxy;
         USER_CACHE = userCache;
+        YggdrasilMinecraftSessionService_insecureProfiles = (LoadingCache<Object, Object>) insecureProfiles;
         MINECRAFT_SESSION_SERVICE = minecraftSessionService;
         FILL_PROFILE_PROPERTIES = fillProfileProperties;
         GET_PROFILE_BY_NAME = getProfileByName;

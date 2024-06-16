@@ -7,10 +7,13 @@ import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
+import com.cryptomorin.xseries.reflection.XReflection;
+import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -53,12 +56,14 @@ public interface Profileable {
 
     @Nonnull
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@Nonnull C profileables) {
-        return prepare(profileables, null);
+        return prepare(profileables, null, null);
     }
 
     @Nonnull
+    @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
-            @Nonnull C profileables, @Nullable ProfileRequestConfiguration config) {
+            @Nonnull C profileables, @Nullable ProfileRequestConfiguration config,
+            @Nullable Function<Throwable, Boolean> errorHandler) {
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
 
@@ -83,23 +88,33 @@ public interface Profileable {
             }
 
             if (!usernameRequests.isEmpty())
-                initial = CompletableFuture.supplyAsync(() -> MojangAPI.usernamesToUUIDs(usernameRequests, config), PlayerProfileFetcherThread.EXECUTOR);
+                initial = CompletableFuture.supplyAsync(
+                        () -> MojangAPI.usernamesToUUIDs(usernameRequests, config), PlayerProfileFetcherThread.EXECUTOR);
         }
 
         // First cache the username requests then get the profiles and finally return the original objects.
-        return initial
+        return XReflection.stacktrace(initial
                 .thenCompose(a -> {
                     List<CompletableFuture<GameProfile>> requests = new ArrayList<>(profileables.size());
 
                     for (Profileable profileable : profileables) {
                         CompletableFuture<GameProfile> async = CompletableFuture
                                 .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
+
+                        if (errorHandler != null) {
+                            async = XReflection.stacktrace(async).exceptionally(ex -> {
+                                boolean rethrow = errorHandler.apply(ex);
+                                if (rethrow) throw XReflection.throwCheckedException(ex);
+                                else return null;
+                            });
+                        }
+
                         requests.add(async);
                     }
 
                     return CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]));
                 })
-                .thenApply((a) -> profileables);
+                .thenApply((a) -> profileables));
     }
 
     /**

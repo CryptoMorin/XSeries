@@ -14,6 +14,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,10 +25,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public final class MojangAPI {
+    private static final MojangProfileCache MOJANG_PROFILE_CACHE = ProfilesCore.NULLABILITY_RECORD_UPDATE ?
+            new MojangProfileCache.GameProfileCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles) :
+            new MojangProfileCache.ProfileResultCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles);
     /**
      * Used for older versions.
      */
-    private static final Cache<UUID, GameProfile> INSECURE_PROFILES = CacheBuilder.newBuilder()
+    private static final Cache<UUID, Optional<GameProfile>> INSECURE_PROFILES = CacheBuilder.newBuilder()
             .expireAfterWrite(6L, TimeUnit.HOURS).build();
 
     /**
@@ -262,11 +267,107 @@ public final class MojangAPI {
      * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
      * @throws IllegalArgumentException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
+    @SuppressWarnings("OptionalAssignedToNull")
     @Nonnull
-    public static GameProfile fetchProfile(@Nonnull GameProfile profile) {
+    public static GameProfile fetchProfile(@Nonnull final GameProfile profile) {
+        // Get real UUID for offline players
+        UUID realUUID;
+        if (profile.getName().equals(PlayerProfiles.DEFAULT_PROFILE_NAME)) {
+            // We will assume that the requested UUID is the real one
+            // since the server cache didn't find it and that player never
+            // joined this server.
+            // There is no way to tell if this is fake or real UUID, the
+            // closest we can get is to just request it from the server
+            // and see if it exists. (We can't reverse UUID.nameUUIDFromBytes)
+            realUUID = profile.getId();
+        } else {
+            realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());
+            if (realUUID == null) {
+                throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+            }
+        }
+
+        Optional<GameProfile> cached = INSECURE_PROFILES.getIfPresent(realUUID);
+        // noinspection OptionalAssignedToNull
+        if (cached != null) {
+            ProfilesCore.debug("Found cached profile from UUID ({}): {} -> {}", realUUID, profile, cached);
+            if (cached.isPresent()) return cached.get();
+            else throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+        }
+
+        Optional<GameProfile> mojangCache = MOJANG_PROFILE_CACHE.get(realUUID, profile);
+        if (mojangCache != null) {
+            INSECURE_PROFILES.put(realUUID, mojangCache);
+            if (mojangCache.isPresent()) return mojangCache.get();
+            else throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+        }
+
+        JsonElement request;
+        try {
+            request = UUID_TO_PROFILE.session(null)
+                    .append(PlayerUUIDs.toUndashedUUID(realUUID) + "?unsigned=" + !REQUIRE_SECURE_PROFILES)
+                    .request();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (request == null) throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+        JsonObject profileData = request.getAsJsonObject();
+
+        UUID id = PlayerUUIDs.UUIDFromDashlessString(profileData.get("id").getAsString());
+        String name = profileData.get("name").getAsString();
+        GameProfile fetchedProfile = new GameProfile(id, name);
+
+        JsonElement propertiesEle = profileData.get("properties");
+        if (propertiesEle != null) {
+            JsonArray props = propertiesEle.getAsJsonArray();
+            PropertyMap properties = fetchedProfile.getProperties();
+            for (JsonElement prop : props) {
+                JsonObject obj = prop.getAsJsonObject();
+                String propName = obj.get("name").getAsString();
+                String propValue = obj.get("value").getAsString();
+                JsonElement sig = obj.get("signature");
+
+                Property property;
+                if (sig != null) {
+                    property = new Property(propName, propValue, sig.getAsString());
+                } else {
+                    property = new Property(propName, propValue);
+                }
+
+                properties.put(propName, property);
+            }
+        }
+
+        List<String> profileActions = new ArrayList<>();
+        JsonElement profileActionsElement = profileData.get("profileActions");
+        if (profileActionsElement != null) {
+            for (JsonElement action : profileActionsElement.getAsJsonArray()) {
+                profileActions.add(action.getAsString());
+            }
+        }
+
+        fetchedProfile = PlayerProfiles.sanitizeProfile(fetchedProfile);
+        PlayerProfiles.signXSeries(fetchedProfile);
+        cacheProfile(fetchedProfile);
+
+        INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
+        MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
+
+        return profile;
+    }
+
+    /**
+     * Fetches additional properties for the given {@link GameProfile} if possible (like the texture).
+     *
+     * @param profile The {@link GameProfile} for which properties are to be fetched.
+     * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
+     * @throws IllegalArgumentException if a player with the specified profile properties (username and UUID) doesn't exist.
+     */
+    @Nonnull
+    private static GameProfile fetchProfileOriginal(@Nonnull GameProfile profile) {
         GameProfile original = profile;
         if (!ProfilesCore.NULLABILITY_RECORD_UPDATE) {
-            GameProfile cached = INSECURE_PROFILES.getIfPresent(profile.getId());
+            GameProfile cached = null; // INSECURE_PROFILES.getIfPresent(profile.getId());
             GameProfile newProfile;
 
             try {
@@ -295,15 +396,8 @@ public final class MojangAPI {
                 throw new RuntimeException("Unable to fetch profile properties: " + profile, throwable);
             }
         } else {
-            // Get real UUID for offline players
             UUID realUUID;
             if (profile.getName().equals(PlayerProfiles.DEFAULT_PROFILE_NAME)) {
-                // We will assume that the requested UUID is the real one
-                // since the server cache didn't find it and that player never
-                // joined this server.
-                // There is no way to tell if this is fake or real UUID, the
-                // closest we can get is to just request it from the server
-                // and see if it exists. (We can't reverse UUID.nameUUIDFromBytes)
                 realUUID = profile.getId();
             } else {
                 realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());

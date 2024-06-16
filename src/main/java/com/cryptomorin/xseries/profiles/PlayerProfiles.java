@@ -28,6 +28,8 @@ public final class PlayerProfiles {
     private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "true");
     public static final String TEXTURES_PROPERTY = "textures";
 
+    public static final GameProfile NIL = signXSeries(new GameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME));
+
 
     /**
      * Some people use this without quotes surrounding the keys, not sure if that'd work.
@@ -136,6 +138,7 @@ public final class PlayerProfiles {
         }
 
         GameProfile clone = new GameProfile(id, profile.getName());
+        clone.getProperties().putAll(profile.getProperties());
         addTexturesProperty(clone, encodeBase64(texture.toString()));
         signXSeries(clone);
         return clone;

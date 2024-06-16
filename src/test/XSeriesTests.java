@@ -95,7 +95,7 @@ public final class XSeriesTests {
     }
 
     private static void testSkulls() {
-        print("Testing skulls...");
+        print("Testing skulls UUID...");
         XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
         print("Testing skulls username");
         XSkull.createItem().profile(Profileable.username("Notch")).apply();
@@ -140,7 +140,10 @@ public final class XSeriesTests {
                     print("Exceptionally");
                     b.printStackTrace();
                     return false;
-                }))
+                }), x -> {
+                    x.printStackTrace();
+                    return false;
+                })
                 .thenRun(() -> print("profile preparation done"))
                 .exceptionally((ex) -> {
                     print("Profile preparation done exceptionally: ");

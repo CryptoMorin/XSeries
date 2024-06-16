@@ -3,12 +3,14 @@ package com.cryptomorin.xseries.profiles.builder;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.*;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
+import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
 import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +41,7 @@ public final class ProfileInstruction<T> implements Profileable {
      */
     private final List<Profileable> fallbacks = new ArrayList<>();
     private Consumer<ProfileFallback<T>> onFallback;
+    private ProfileRequestConfiguration profileRequestConfiguration;
 
     private boolean lenient = false;
 
@@ -52,6 +55,12 @@ public final class ProfileInstruction<T> implements Profileable {
     public T removeProfile() {
         profileContainer.setProfile(null);
         return profileContainer.getObject();
+    }
+
+    @ApiStatus.Experimental
+    public ProfileInstruction<T> profileRequestConfiguration(ProfileRequestConfiguration config) {
+        this.profileRequestConfiguration = config;
+        return this;
     }
 
     /**
