@@ -4,10 +4,12 @@ import com.google.common.base.Enums;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
+import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public enum XEntityType {
     ALLAY,
@@ -157,9 +159,9 @@ public enum XEntityType {
         if (entityType != null) Data.BUKKIT_MAPPING.put(entityType, this);
     }
 
-    private static EntityType tryGetEntityType(String particle) {
+    private static EntityType tryGetEntityType(String entity) {
         try {
-            return EntityType.valueOf(particle);
+            return EntityType.valueOf(entity);
         } catch (IllegalArgumentException ignored) {
             return null;
         }
@@ -198,4 +200,35 @@ public enum XEntityType {
     public EntityType get() {
         return entityType;
     }
+
+
+
+    /**
+     * Parses the XEntityType with the given name.
+     *
+     * @param entityType the name of the entity.
+     * @return a matched XEntityType.
+     * @since 11.0.1
+     */
+    @Nonnull
+    public static Optional<XEntityType> matchXEntityType(@Nonnull String entityType) {
+        if (entityType == null || entityType.isEmpty())
+            throw new IllegalArgumentException("Cannot match XEntityType of a null or empty entityType name");
+        return Optional.ofNullable(XEntityType.Data.NAME_MAPPING.get(entityType));
+    }
+
+    /**
+     * Parses the XEntityType with the given bukkit entityType.
+     *
+     * @param entityType the Bukkit entityType.
+     * @return a matched entityType.
+     * @throws IllegalArgumentException may be thrown as an unexpected exception.
+     * @since 11.0.1
+     */
+    @Nonnull
+    public static XEntityType matchXEntityType(@Nonnull EntityType entityType) {
+        Objects.requireNonNull(entityType, "Cannot match EntityType of a null entityType");
+        return Objects.requireNonNull(XEntityType.Data.NAME_MAPPING.get(entityType.name()), () -> "Unsupported entityType: " + entityType.name());
+    }
+
 }
