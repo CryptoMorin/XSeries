@@ -50,10 +50,11 @@ abstract class MojangProfileCache {
             }
         }
 
+        @SuppressWarnings("OptionalAssignedToNull")
         @Override
         Optional<GameProfile> get(UUID realId, GameProfile gameProfile) {
             Optional<ProfileResult> cache = insecureProfiles.getIfPresent(realId);
-            return cache.map(ProfileResult::profile);
+            return cache == null ? null : cache.map(ProfileResult::profile);
         }
     }
 
