@@ -502,7 +502,7 @@ public final class XEntity {
      * @since 3.0.0
      */
     @SuppressWarnings("Guava")
-    private static void editBossBar(BossBar bossBar, ConfigurationSection section) {
+    public static void editBossBar(BossBar bossBar, ConfigurationSection section) {
         String title = section.getString("title");
         if (title != null) bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', title));
 
