@@ -415,7 +415,6 @@ public final class XReflection {
     /**
      * @since v9.0.0
      */
-    @ApiStatus.Experimental
     public static MinecraftClassHandle ofMinecraft() {
         return new MinecraftClassHandle(new ReflectiveNamespace());
     }
@@ -423,7 +422,6 @@ public final class XReflection {
     /**
      * @since v9.0.0
      */
-    @ApiStatus.Experimental
     public static DynamicClassHandle classHandle() {
         return new DynamicClassHandle(new ReflectiveNamespace());
     }
@@ -431,7 +429,6 @@ public final class XReflection {
     /**
      * @since v11.0.0
      */
-    @ApiStatus.Experimental
     public static StaticClassHandle of(Class<?> clazz) {
         return new StaticClassHandle(new ReflectiveNamespace(), clazz);
     }
@@ -440,7 +437,6 @@ public final class XReflection {
     /**
      * @since v11.0.0
      */
-    @ApiStatus.Experimental
     public static ReflectiveNamespace namespaced() {
         return new ReflectiveNamespace();
     }
@@ -449,7 +445,6 @@ public final class XReflection {
      * @since v9.0.0
      */
     @SafeVarargs
-    @ApiStatus.Experimental
     public static <T, H extends Handle<T>> AggregateHandle<T, H> any(H... handles) {
         return new AggregateHandle<>(Arrays.stream(handles).map(x -> (Callable<H>) () -> x).collect(Collectors.toList()));
     }
@@ -458,7 +453,6 @@ public final class XReflection {
      * @since v9.0.0
      */
     @SafeVarargs
-    @ApiStatus.Experimental
     public static <T, H extends Handle<T>> AggregateHandle<T, H> anyOf(Callable<H>... handles) {
         return new AggregateHandle<>(Arrays.asList(handles));
     }

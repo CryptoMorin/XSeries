@@ -11,7 +11,6 @@ import org.jetbrains.annotations.ApiStatus;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
-@ApiStatus.Experimental
 public class ReflectiveNamespace {
     private final Map<String, Class<?>> imports = new HashMap<>();
     private final MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -50,7 +49,6 @@ public class ReflectiveNamespace {
     /**
      * @since v11.0.0
      */
-    @ApiStatus.Experimental
     public StaticClassHandle of(Class<?> clazz) {
         imports(clazz);
         return new StaticClassHandle(this, clazz);
@@ -66,13 +64,11 @@ public class ReflectiveNamespace {
         this.handles.remove(handle);
     }
 
-    @ApiStatus.Experimental
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
         DynamicClassHandle classHandle = new DynamicClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }
 
-    @ApiStatus.Experimental
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
         MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);

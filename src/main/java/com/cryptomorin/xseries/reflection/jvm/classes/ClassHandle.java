@@ -7,12 +7,10 @@ import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Objects;
 import java.util.Set;
 
-@ApiStatus.Experimental
 public abstract class ClassHandle implements Handle<Class<?>> {
     protected final ReflectiveNamespace namespace;
 
@@ -35,7 +33,6 @@ public abstract class ClassHandle implements Handle<Class<?>> {
         return inner(namespace.classHandle(declaration));
     }
 
-    @ApiStatus.Experimental
     public <T extends DynamicClassHandle> T inner(T handle) {
         Objects.requireNonNull(handle, "Inner handle is null");
         if (this == handle) throw new IllegalArgumentException("Same instance: " + this);

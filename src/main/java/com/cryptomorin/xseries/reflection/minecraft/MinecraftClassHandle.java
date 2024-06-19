@@ -5,9 +5,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.Pattern;
-import org.jetbrains.annotations.ApiStatus;
 
-@ApiStatus.Experimental
 public class MinecraftClassHandle extends DynamicClassHandle {
     public MinecraftClassHandle(ReflectiveNamespace namespace) {
         super(namespace);
