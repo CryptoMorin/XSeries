@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>11.0.0</version>
+    <version>11.1.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -282,7 +282,7 @@
         <profile>
             <id>latest</id>
             <properties>
-                <nms>20_R0</nms>
+                <nms>21_R0</nms>
             </properties>
         </profile>
         <profile>

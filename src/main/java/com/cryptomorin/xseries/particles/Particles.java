@@ -40,10 +40,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
@@ -151,7 +149,7 @@ public final class Particles {
      * @return a random particle from the list.
      * @since 1.0.0
      */
-    public static XParticle randomParticle(String... particles) {
+    public static Optional<XParticle> randomParticle(String... particles) {
         int rand = randInt(0, particles.length - 1);
         return XParticle.of(particles[rand]);
     }

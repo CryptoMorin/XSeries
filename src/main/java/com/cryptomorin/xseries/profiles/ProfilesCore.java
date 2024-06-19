@@ -22,7 +22,7 @@ import java.util.UUID;
 
 import static com.cryptomorin.xseries.reflection.XReflection.v;
 
-@SuppressWarnings({"unchecked", "UnstableApiUsage"})
+@SuppressWarnings("unchecked")
 @ApiStatus.Internal
 public final class ProfilesCore {
     public static final Logger LOGGER = LogManager.getLogger("XSkull");

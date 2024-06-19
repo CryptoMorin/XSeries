@@ -1,8 +1,11 @@
 package com.cryptomorin.xseries.abstractions;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * Experimental class for XMaterial Bukkit+Forge abstraction.
  */
+@ApiStatus.Experimental
 interface Material {
     String name();
 

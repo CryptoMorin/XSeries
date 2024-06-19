@@ -4,10 +4,7 @@ import com.google.common.base.Enums;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public enum XEntityType {
     ALLAY,
@@ -174,13 +171,13 @@ public enum XEntityType {
         return entityType != null;
     }
 
+    public XEntityType or(XEntityType other) {
+        return this.isSupported() ? this : other;
+    }
+
     public static XEntityType of(Entity entity) {
         Objects.requireNonNull(entity, "Cannot match entity type from null entity");
         return of(entity.getType());
-    }
-
-    public XEntityType or(XEntityType other) {
-        return this.isSupported() ? this : other;
     }
 
     public static XEntityType of(EntityType entityType) {
@@ -190,9 +187,9 @@ public enum XEntityType {
         throw new UnsupportedOperationException("Unknown entity type: " + entityType);
     }
 
-    public static XEntityType of(String entityType) {
+    public static Optional<XEntityType> of(String entityType) {
         Objects.requireNonNull(entityType, "Cannot match null entity type");
-        return Data.NAME_MAPPING.get(entityType);
+        return Optional.ofNullable(Data.NAME_MAPPING.get(entityType));
     }
 
     public EntityType get() {

@@ -2,10 +2,7 @@ package com.cryptomorin.xseries.particles;
 
 import org.bukkit.Particle;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <b>XParticle</b> - Particle enum for <b>XSeries</b>
@@ -281,9 +278,9 @@ public enum XParticle {
      * @param particle the particle name to match
      * @return the XParticle associated with the given particle name
      */
-    public static XParticle of(String particle) {
+    public static Optional<XParticle> of(String particle) {
         Objects.requireNonNull(particle, "Cannot match null particle");
-        return Data.NAME_MAPPING.get(particle);
+        return Optional.ofNullable(Data.NAME_MAPPING.get(particle));
     }
 
     private static Particle tryGetParticle(String particle) {
