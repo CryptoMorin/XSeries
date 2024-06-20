@@ -32,15 +32,12 @@ public final class ProfilesCore {
 
     public static final Map<String, Object> UserCache_profilesByName;
     public static final Map<UUID, Object> UserCache_profilesByUUID;
-    public static final Deque<GameProfile> UserCache_gameProfiles;
 
     public static final MethodHandle
             FILL_PROFILE_PROPERTIES, GET_PROFILE_BY_NAME, GET_PROFILE_BY_UUID, CACHE_PROFILE,
             CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
             CRAFT_SKULL_PROFILE_SETTER, CRAFT_SKULL_PROFILE_GETTER,
-            PROPERTY_GET_VALUE,
-            UserCache_getNextOperation,
-            UserCacheEntry_CTOR, UserCacheEntry_getProfile, UserCacheEntry_getExpirationDate, UserCacheEntry_setLastAccess;
+            PROPERTY_GET_VALUE, UserCacheEntry_getProfile;
 
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
@@ -158,36 +155,23 @@ public final class ProfilesCore {
         CRAFT_SKULL_PROFILE_SETTER = craftProfile.setter().unreflect();
         CRAFT_SKULL_PROFILE_GETTER = craftProfile.getter().unreflect();
 
-        // noinspection MethodMayBeStatic
-        UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation();")
-                .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).unreflect();
-
         MinecraftClassHandle UserCacheEntry = GameProfileCache
                 .inner("private static class GameProfileInfo {}")
                 .map(MinecraftMapping.SPIGOT, "UserCacheEntry");
-        UserCacheEntry_CTOR = UserCacheEntry.constructor("private UserCacheEntry(GameProfile gameprofile, Date date);")
-                .unreflect();
+
         UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile();")
-                .map(MinecraftMapping.OBFUSCATED, "a").unreflect();
-        UserCacheEntry_getExpirationDate = UserCacheEntry.method("public Date getExpirationDate();")
-                .map(MinecraftMapping.OBFUSCATED, "b").unreflect();
-        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i);")
-                .map(MinecraftMapping.OBFUSCATED, "a").reflectOrNull();
+                .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
+                .unreflect();
 
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
             UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName;")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "c").orElse("d"))
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(17, "e").v(16, 2, "c").v(9, "d").orElse("c"))
                     .reflect().invoke(userCache);
             // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
             UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID;")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(21, "f").v(16, "d").orElse("e"))
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(17, "f").v(16, 2, "d").v(9, "e").orElse("d"))
                     .reflect().invoke(userCache);
-
-            // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16
-            MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")
-                    .getter().reflectOrNull();
-            UserCache_gameProfiles = deque == null ? null : (Deque<GameProfile>) deque.invoke(userCache);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

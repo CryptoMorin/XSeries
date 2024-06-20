@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 @ApiStatus.Internal
 public final class MojangAPI {
-    private static final MojangProfileCache MOJANG_PROFILE_CACHE = ProfilesCore.NULLABILITY_RECORD_UPDATE ?
+    private static final MojangProfileCache MOJANG_PROFILE_CACHE = !ProfilesCore.NULLABILITY_RECORD_UPDATE ?
             new MojangProfileCache.GameProfileCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles) :
             new MojangProfileCache.ProfileResultCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles);
     /**
@@ -125,43 +125,18 @@ public final class MojangAPI {
     public static Optional<GameProfile> profileFromUsername0(String username) throws Throwable {
         String normalized = username.toLowerCase(Locale.ROOT);
         Object usercache_usercacheentry = ProfilesCore.UserCache_profilesByName.get(normalized);
-        boolean flag = false;
-
-        if (usercache_usercacheentry != null && (new Date()).getTime() >=
-                ((Date) ProfilesCore.UserCacheEntry_getExpirationDate.invoke(usercache_usercacheentry)).getTime()) {
-            GameProfile gameProfile = (GameProfile) ProfilesCore.UserCacheEntry_getProfile.invoke(usercache_usercacheentry);
-            ProfilesCore.UserCache_profilesByName.remove(gameProfile.getName().toLowerCase(Locale.ROOT));
-            ProfilesCore.UserCache_profilesByUUID.remove(gameProfile.getId());
-            flag = true;
-            usercache_usercacheentry = null;
-        }
-
         Optional<GameProfile> optional;
 
         if (usercache_usercacheentry != null) {
-            if (ProfilesCore.UserCacheEntry_setLastAccess != null) {
-                // usercache_usercacheentry.setLastAccess(this.getNextOperation());
-                long nextOperation = (long) ProfilesCore.UserCache_getNextOperation.invoke(ProfilesCore.USER_CACHE);
-                ProfilesCore.UserCacheEntry_setLastAccess.invoke(usercache_usercacheentry, nextOperation);
-            }
             optional = Optional.of((GameProfile) ProfilesCore.UserCacheEntry_getProfile.invoke(usercache_usercacheentry));
         } else {
             // optional = lookupGameProfile(this.profileRepository, username); // CraftBukkit - use correct case for offline players
             UUID realUUID = PlayerUUIDs.getRealUUIDOfPlayer(username);
             if (realUUID == null) return Optional.empty();
-
             optional = Optional.of(PlayerProfiles.signXSeries(new GameProfile(realUUID, username)));
             // this.add((GameProfile) optional.get());
             cacheProfile(optional.get());
-            flag = false;
         }
-
-        // Should we implement this too?
-        // Maybe we can even make our own method to save real UUIDs too, but that'd need a lot of work,
-        // and it wouldn't be reliable if the config option is disabled.
-        // if (flag && !org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) { // Spigot - skip saving if disabled
-        //     YggdrasilGameProfileRepository.save();
-        // }
 
         return optional;
     }
@@ -358,73 +333,4 @@ public final class MojangAPI {
         return profile;
     }
 
-    /**
-     * Fetches additional properties for the given {@link GameProfile} if possible (like the texture).
-     *
-     * @param profile The {@link GameProfile} for which properties are to be fetched.
-     * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
-     * @throws IllegalArgumentException if a player with the specified profile properties (username and UUID) doesn't exist.
-     */
-    @Nonnull
-    private static GameProfile fetchProfileOriginal(@Nonnull GameProfile profile) {
-        GameProfile original = profile;
-        if (!ProfilesCore.NULLABILITY_RECORD_UPDATE) {
-            GameProfile cached = null; // INSECURE_PROFILES.getIfPresent(profile.getId());
-            GameProfile newProfile;
-
-            try {
-                /* This URL endpoint still works as of 1.20.6
-                 * URL url = HttpAuthenticationService.constantURL("https://sessionserver.mojang.com/session/minecraft/profile/" + UUIDTypeAdapter.fromUUID(profile.getId()));
-                 * url = HttpAuthenticationService.concatenateURL(url, "unsigned=" + !requireSecure);
-                 * GameProfile result = new GameProfile(response.getId(), response.getName());
-                 * result.getProperties().putAll(response.getProperties());
-                 * profile.getProperties().putAll(response.getProperties());
-                 */
-                // These results are not cached unlike the newer fetchProfile()
-                if (cached == null) {
-                    newProfile = (GameProfile) ProfilesCore.FILL_PROFILE_PROPERTIES
-                            .invoke(ProfilesCore.MINECRAFT_SESSION_SERVICE, profile, REQUIRE_SECURE_PROFILES);
-                    if (profile == newProfile) {
-                        // Returns the same instance if any error occurs.
-                        throw new UnknownPlayerException("Player with the given properties not found: " + profile);
-                    }
-                } else {
-                    newProfile = (profile = cached);
-                }
-                ProfilesCore.debug("Filled properties: {} -> {}", original, newProfile);
-            } catch (UnknownPlayerException ex) {
-                throw ex;
-            } catch (Throwable throwable) {
-                throw new RuntimeException("Unable to fetch profile properties: " + profile, throwable);
-            }
-        } else {
-            UUID realUUID;
-            if (profile.getName().equals(PlayerProfiles.DEFAULT_PROFILE_NAME)) {
-                realUUID = profile.getId();
-            } else {
-                realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());
-                if (realUUID == null) {
-                    throw new UnknownPlayerException("Player with the given properties not found: " + profile);
-                }
-            }
-
-            // Implemented by YggdrasilMinecraftSessionService
-            // fetchProfile(UUID profileId, boolean requireSecure) -> fetchProfileUncached(UUID profileId, boolean requireSecure)
-            // This cache expireAfterWrite every 6 hours.
-            com.mojang.authlib.yggdrasil.ProfileResult result = ((MinecraftSessionService) ProfilesCore.MINECRAFT_SESSION_SERVICE)
-                    .fetchProfile(realUUID, REQUIRE_SECURE_PROFILES);
-            if (result != null) {
-                profile = result.profile();
-                ProfilesCore.debug("Yggdrasil provided profile is {} with actions {} for {}", result.profile(), result.actions(), profile);
-            } else {
-                ProfilesCore.debug("Yggdrasil provided profile is null with actions for {}", profile);
-                throw new UnknownPlayerException("fetchProfile could not find " + realUUID + " from " + original);
-            }
-        }
-
-        profile = PlayerProfiles.sanitizeProfile(profile);
-        PlayerProfiles.signXSeries(profile);
-        cacheProfile(profile);
-        return profile;
-    }
 }
