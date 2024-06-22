@@ -72,9 +72,7 @@ public interface Profileable {
                 String username = null;
                 if (profileable instanceof UsernameProfileable) {
                     username = ((UsernameProfileable) profileable).username;
-                } else if (profileable instanceof PlayerProfileable) {
-                    username = ((PlayerProfileable) profileable).player.getName();
-                } else if (profileable instanceof OfflinePlayerProfileable) {
+                }  else if (profileable instanceof OfflinePlayerProfileable) {
                     username = ((OfflinePlayerProfileable) profileable).player.getName();
                 } else if (profileable instanceof StringProfileable) {
                     if (((StringProfileable) profileable).determineType().type == ProfileInputType.USERNAME) {
@@ -140,15 +138,6 @@ public interface Profileable {
      */
     static Profileable of(GameProfile profile) {
         return new GameProfileProfileable(profile);
-    }
-
-    /**
-     * Sets the skull texture based on the specified player.
-     *
-     * @param player The player to generate the {@link GameProfile}.
-     */
-    static Profileable of(Player player) {
-        return new PlayerProfileable(player);
     }
 
     /**
@@ -242,21 +231,6 @@ public interface Profileable {
                     ? new UUIDProfileable(profile.getId())
                     : new UsernameProfileable(profile.getName()))
                     .getProfile();
-        }
-    }
-
-    final class PlayerProfileable extends AbstractProfileable {
-        private final Player player;
-
-        public PlayerProfileable(Player player) {this.player = Objects.requireNonNull(player);}
-
-        @Override
-        public GameProfile getProfile0() {
-            // Why are we using the username instead of getting the cached UUID like profile(player.getUniqueId())?
-            // If it's about online/offline mode support why should we have a separate method for this instead of
-            // letting profile(OfflinePlayer) to take care of it?
-            if (PlayerUUIDs.isOnlineMode()) return new UUIDProfileable(player.getUniqueId()).getProfile();
-            return new UsernameProfileable(player.getName()).getProfile();
         }
     }
 
