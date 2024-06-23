@@ -24,8 +24,14 @@ public final class PlayerProfiles {
      * Here, "blank" is null for UUID, and {@code Character.isWhitespace} for the name field.
      */
     public static final String DEFAULT_PROFILE_NAME = "XSeries";
-    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "true");
-    public static final String TEXTURES_PROPERTY = "textures";
+
+    /**
+     * The signature value represents the version of XSeries library.
+     * It's not needed to change it every time, but it should be changed
+     * if the XSeries internals are changed.
+     */
+    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "11.2.0");
+    private static final String TEXTURES_PROPERTY = "textures";
 
     public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME);
 

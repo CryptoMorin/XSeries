@@ -7,6 +7,13 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A class that is known at compile time and can be referenced directly.
+ * <p>
+ * The purpose of this handle is to use reflection on the members
+ * (fields, methods and constructors) of the corresponding class.
+ * @see DynamicClassHandle
+ */
 public class StaticClassHandle extends ClassHandle {
     protected Class<?> clazz;
 

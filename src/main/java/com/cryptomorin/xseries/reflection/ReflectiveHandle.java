@@ -1,8 +1,18 @@
 package com.cryptomorin.xseries.reflection;
 
+import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nonnull;
+
 /**
  * Represents an object that can be used for reflection operations.
- * @param <T> The JVM type associated with this handle (e.g. {@link Class} or {@link java.lang.reflect.Field})
+ * @param <T> The JVM type associated with this handle (e.g. {@link Class}, {@link java.lang.reflect.Field},
+ *            {@link java.lang.reflect.Method}, or {@link java.lang.reflect.Constructor})
+ * @see AggregateReflectiveHandle
+ * @see com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle
+ * @see com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle
+ * @see com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle
+ * @see com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle
  */
 public interface ReflectiveHandle<T> {
     /**
@@ -20,6 +30,7 @@ public interface ReflectiveHandle<T> {
     /**
      * Catches any {@link ReflectiveOperationException} thrown by {@link #reflect()}
      */
+    @Nullable
     default ReflectiveOperationException catchError() {
         try {
             reflect();
@@ -33,7 +44,10 @@ public interface ReflectiveHandle<T> {
      * An unchecked exception version of {@link #reflect()} (throws the original exception, not the a {@link RuntimeException})
      * @see #reflect()
      * @see #reflectOrNull()
+     * @throws ReflectiveOperationException throws silently.
      */
+    @SuppressWarnings("JavadocDeclaration")
+    @Nonnull
     default T unreflect() {
         try {
             return reflect();
@@ -47,6 +61,7 @@ public interface ReflectiveHandle<T> {
      * @see #reflect()
      * @see #unreflect()
      */
+    @Nullable
     default T reflectOrNull() {
         try {
             return reflect();
@@ -62,5 +77,6 @@ public interface ReflectiveHandle<T> {
      * @see #reflectOrNull()
      * @see #unreflect()
      */
+    @Nonnull
     T reflect() throws ReflectiveOperationException;
 }

@@ -8,9 +8,14 @@ import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @see DynamicClassHandle
+ * @see StaticClassHandle
+ */
 public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
     protected final ReflectiveNamespace namespace;
 
@@ -27,12 +32,18 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
 
     public abstract boolean isArray();
 
+    @Nonnull
     public abstract Set<String> getPossibleNames();
 
     public DynamicClassHandle inner(@Language("Java") String declaration) {
         return inner(namespace.classHandle(declaration));
     }
 
+    /**
+     * @param handle the handle to put the inner class information in.
+     * @return the same object as the one provided in the parameter.
+     * @param <T> the type of the class handle.
+     */
     public <T extends DynamicClassHandle> T inner(T handle) {
         Objects.requireNonNull(handle, "Inner handle is null");
         if (this == handle) throw new IllegalArgumentException("Same instance: " + this);
@@ -41,9 +52,13 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
         return handle;
     }
 
+    /**
+     * The array dimension of this class.
+     * @return -1 if this class cannot be found, 0 if not an array, otherwise a positive number.
+     */
     public int getDimensionCount() {
         int count = -1;
-        Class<?> clazz = unreflect();
+        Class<?> clazz = reflectOrNull();
         if (clazz == null) return count;
 
         do {

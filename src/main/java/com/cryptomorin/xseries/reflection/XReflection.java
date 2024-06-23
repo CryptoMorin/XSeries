@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
  *
  * @author Crypto Morin
  * @version 11.2.0
+ * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
+ * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */
 public final class XReflection {
     /**
@@ -65,6 +67,7 @@ public final class XReflection {
     public static final String NMS_VERSION = findNMSVersionString();
 
     @Nullable
+    @ApiStatus.Internal
     public static String findNMSVersionString() {
         // This needs to be right below VERSION because of initialization order.
         // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
@@ -183,6 +186,7 @@ public final class XReflection {
      * @return the patch number of the given minor version if recognized, otherwise null.
      * @since 7.0.0
      */
+    @Nullable
     public static Integer getLatestPatchNumberOf(int minorVersion) {
         if (minorVersion <= 0) throw new IllegalArgumentException("Minor version must be positive: " + minorVersion);
 
@@ -210,6 +214,7 @@ public final class XReflection {
                 /* 18 */ 2,
                 /* 19 */ 4,
                 /* 20 */ 6,
+                /* 21 */ 0,
         };
 
         if (minorVersion > patches.length) return null;
@@ -387,6 +392,8 @@ public final class XReflection {
      *     Class EntityPlayer = ReflectionUtils.getNMSClass("...", "EntityPlayer");
      *     Class EntityPlayerArray = ReflectionUtils.toArrayClass(EntityPlayer);
      * }</pre>
+     * <p>
+     * Note that this doesn't work on primitive classes.
      *
      * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
      * @throws RuntimeException if the class could not be found.
@@ -518,7 +525,11 @@ public final class XReflection {
         return null; // Trick the compiler to stfu for "throw" terminating statements.
     }
 
-    public static <T> CompletableFuture<T> stacktrace(CompletableFuture<T> completableFuture) {
+    /**
+     * Adds the stacktrace of the current thread in case an error occurs in the given Future.
+     */
+    @ApiStatus.Experimental
+    public static <T> CompletableFuture<T> stacktrace(@Nonnull CompletableFuture<T> completableFuture) {
         StackTraceElement[] currentStacktrace = Thread.currentThread().getStackTrace();
         return completableFuture.whenComplete((value, ex) -> { // Gets called even when it's completed.
             if (ex == null) {

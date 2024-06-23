@@ -8,6 +8,7 @@ import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
 
+import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
@@ -58,9 +59,9 @@ public class ReflectiveNamespace {
      * <p>
      * This can also override predefined Java standard types if the names are the same.
      */
-    public ReflectiveNamespace imports(Class<?>... classes) {
+    public ReflectiveNamespace imports(@Nonnull Class<?>... classes) {
         for (Class<?> clazz : classes) {
-            this.imports.put(clazz.getSimpleName(), clazz);
+            imports(clazz.getSimpleName(), clazz);
         }
         return this;
     }
@@ -71,11 +72,14 @@ public class ReflectiveNamespace {
      * @param clazz the actual definition of the class.
      * @see #imports(Class[])
      */
-    public ReflectiveNamespace imports(String name, Class<?> clazz) {
+    public ReflectiveNamespace imports(@Nonnull String name, @Nonnull Class<?> clazz) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(clazz);
         this.imports.put(name, clazz);
         return this;
     }
 
+    @Nonnull
     @ApiStatus.Internal
     public Map<String, Class<?>> getImports() {
         for (ClassHandle handle : handles) {
@@ -89,6 +93,7 @@ public class ReflectiveNamespace {
         return this.imports;
     }
 
+    @Nonnull
     @ApiStatus.Internal
     public MethodHandles.Lookup getLookup() {
         return lookup;

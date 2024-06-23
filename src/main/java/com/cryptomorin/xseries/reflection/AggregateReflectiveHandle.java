@@ -1,5 +1,7 @@
 package com.cryptomorin.xseries.reflection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.function.Consumer;
  * }</pre>
  * @param <T> the JVM type of {@link H}
  * @param <H> the types of handles that are going to be checked.
+ * @see ReflectiveHandle
  */
 public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> implements ReflectiveHandle<T> {
     private final List<Callable<H>> handles;
@@ -34,14 +37,14 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
     /**
      * @see #or(Callable)
      */
-    public AggregateReflectiveHandle<T, H> or(H handle) {
+    public AggregateReflectiveHandle<T, H> or(@Nonnull H handle) {
         return or(() -> handle);
     }
 
     /**
      * @see #or(ReflectiveHandle)
      */
-    public AggregateReflectiveHandle<T, H> or(Callable<H> handle) {
+    public AggregateReflectiveHandle<T, H> or(@Nonnull Callable<H> handle) {
         this.handles.add(handle);
         return this;
     }
@@ -49,7 +52,7 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
     /**
      * Action performed on all the handles before being checked.
      */
-    public AggregateReflectiveHandle<T, H> modify(Consumer<H> handleModifier) {
+    public AggregateReflectiveHandle<T, H> modify(@Nullable Consumer<H> handleModifier) {
         this.handleModifier = handleModifier;
         return this;
     }
