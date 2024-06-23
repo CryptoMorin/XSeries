@@ -1,6 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
-import com.cryptomorin.xseries.reflection.Handle;
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import org.intellij.lang.annotations.Language;
 
@@ -9,7 +9,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 
-public abstract class MemberHandle implements Handle<MethodHandle> {
+public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
     protected boolean makeAccessible, isFinal;
     protected final ClassHandle clazz;
 

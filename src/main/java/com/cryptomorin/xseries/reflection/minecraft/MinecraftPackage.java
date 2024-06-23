@@ -4,6 +4,9 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import org.intellij.lang.annotations.Pattern;
 
+/**
+ * Common Minecraft packages.
+ */
 public enum MinecraftPackage implements PackageHandle {
     NMS(XReflection.NMS_PACKAGE), CB(XReflection.CRAFTBUKKIT_PACKAGE),
     BUKKIT("org.bukkit"), SPIGOT("org.spigotmc");

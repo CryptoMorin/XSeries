@@ -1,8 +1,11 @@
 package com.cryptomorin.xseries.profiles.objects;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
+import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileContainerException;
+import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -11,6 +14,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Represenets any object that has a {@link GameProfile} which can also be changed.
@@ -31,12 +35,17 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class ItemStackProfileContainer extends ProfileContainer<ItemStack> {
         private final ItemStack itemStack;
 
-        public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = itemStack;}
+        public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = Objects.requireNonNull(itemStack);}
+
+        private ItemMetaProfileContainer getMetaContainer(ItemMeta meta) {
+            if (!(meta instanceof SkullMeta)) throw new InvalidProfileContainerException("Item can't contain texture: " + itemStack);
+            return new ItemMetaProfileContainer((SkullMeta) meta);
+        }
 
         @Override
         public void setProfile(GameProfile profile) {
             ItemMeta meta = itemStack.getItemMeta();
-            new ItemMetaProfileContainer(meta).setProfile(profile);
+            getMetaContainer(meta).setProfile(profile);
             itemStack.setItemMeta(meta);
         }
 
@@ -47,14 +56,14 @@ public abstract class ProfileContainer<T> implements Profileable {
 
         @Override
         public GameProfile getProfile() {
-            return new ItemMetaProfileContainer(itemStack.getItemMeta()).getProfile();
+            return getMetaContainer(itemStack.getItemMeta()).getProfile();
         }
     }
 
     public static final class ItemMetaProfileContainer extends ProfileContainer<ItemMeta> {
         private final ItemMeta meta;
 
-        public ItemMetaProfileContainer(ItemMeta meta) {this.meta = meta;}
+        public ItemMetaProfileContainer(SkullMeta meta) {this.meta = Objects.requireNonNull(meta);}
 
         @Override
         public void setProfile(GameProfile profile) {
@@ -83,10 +92,12 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class BlockProfileContainer extends ProfileContainer<Block> {
         private final Block block;
 
-        public BlockProfileContainer(Block block) {this.block = block;}
+        public BlockProfileContainer(Block block) {this.block = Objects.requireNonNull(block);}
 
         private Skull getBlockState() {
-            return (Skull) block.getState();
+            BlockState state = block.getState();
+            if (!(state instanceof Skull)) throw new InvalidProfileContainerException("Block can't contain texture: " + block);
+            return (Skull) state;
         }
 
         @Override
@@ -110,7 +121,7 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class BlockStateProfileContainer extends ProfileContainer<Skull> {
         private final Skull state;
 
-        public BlockStateProfileContainer(Skull state) {this.state = state;}
+        public BlockStateProfileContainer(Skull state) {this.state = Objects.requireNonNull(state);}
 
         @Override
         public void setProfile(GameProfile profile) {

@@ -9,6 +9,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Any reflective JVM object that has a name, like {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method}
+ * the other being {@link java.lang.reflect.Constructor} which doesn't have a name.
+ */
 public abstract class NamedMemberHandle extends MemberHandle {
     protected Class<?> returnType;
     protected boolean isStatic;

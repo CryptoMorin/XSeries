@@ -1,11 +1,10 @@
 package com.cryptomorin.xseries.profiles;
 
 import com.google.common.collect.Iterables;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nonnull;
@@ -28,7 +27,7 @@ public final class PlayerProfiles {
     private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "true");
     public static final String TEXTURES_PROPERTY = "textures";
 
-    public static final GameProfile NIL = signXSeries(new GameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME));
+    public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME);
 
 
     /**
@@ -51,6 +50,7 @@ public final class PlayerProfiles {
     public static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
 
     public static Optional<Property> getTextureProperty(GameProfile profile) {
+        // This is the property with Base64 encoded value.
         return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get(TEXTURES_PROPERTY), null));
     }
 
@@ -69,17 +69,14 @@ public final class PlayerProfiles {
 
     /**
      * Retrieves the value of a {@link Property}, handling differences between versions.
-     *
-     * @param property The {@link Property} from which to retrieve the value.
-     * @return The value of the {@link Property}.
      * @since 4.0.1
      */
     public static String getPropertyValue(Property property) {
         if (ProfilesCore.NULLABILITY_RECORD_UPDATE) return property.value();
         try {
-            return (String) ProfilesCore.PROPERTY_GET_VALUE.invoke(property);
+            return (String) ProfilesCore.Property_getValue.invoke(property);
         } catch (Throwable throwable) {
-            throw new RuntimeException("Unable to get a texture value: " + property, throwable);
+            throw new RuntimeException("Unable to get a property value: " + property, throwable);
         }
     }
 
@@ -92,7 +89,6 @@ public final class PlayerProfiles {
     public static boolean hasTextures(GameProfile profile) {
         return getTextureProperty(profile).isPresent();
     }
-
 
     /**
      * Constructs a {@link GameProfile} using the provided texture hash and base64 string.
@@ -112,35 +108,25 @@ public final class PlayerProfiles {
     }
 
     /**
-     * Sanitizes the provided {@link GameProfile} by removing unnecessary timestamp data
-     * and caches the profile.
+     * Uses the online/offline UUID depending on {@link Bukkit#getOnlineMode()}.
+     * @return may return the same or a new profile.
      *
-     * @param profile The {@link GameProfile} to be sanitized.
-     * @return The sanitized {@link GameProfile}.
+     * @param profile must have complete name and UUID
      */
-    @SuppressWarnings("deprecation")
     public static GameProfile sanitizeProfile(GameProfile profile) {
-        JsonObject jsonObject = Optional.ofNullable(getSkinValue(profile)).map(PlayerProfiles::decodeBase64)
-                .map((decoded) -> new JsonParser().parse(decoded).getAsJsonObject())
-                .orElse(null);
-
-        if (jsonObject == null || !jsonObject.has("timestamp")) return profile;
-        JsonObject texture = new JsonObject();
-        texture.add(TEXTURES_PROPERTY, jsonObject.get(TEXTURES_PROPERTY));
+        // We could remove the unnecessary timestamp data, but let's keep it there, the texture is Base64 encoded anyway.
+        // It doesn't affect it in terms of performance.
+        // The timestamp property is the last time the values have been updated, this
+        // is instant in most cases, but are sometimes a few minutes? (or hours?) behind
+        // because of Mojang server's cache.
 
         // The stored cache UUID must be according to online/offline servers.
-        UUID id;
-        if (PlayerUUIDs.isOnlineMode()) {
-            id = profile.getId();
-        } else {
-            id = PlayerUUIDs.getOfflineUUID(profile.getName());
-            PlayerUUIDs.ONLINE_TO_OFFLINE.put(profile.getId(), id);
-        }
+        if (PlayerUUIDs.isOnlineMode()) return profile;
+        UUID offlineId = PlayerUUIDs.getOfflineUUID(profile.getName());
+        PlayerUUIDs.ONLINE_TO_OFFLINE.put(profile.getId(), offlineId);
 
-        GameProfile clone = new GameProfile(id, profile.getName());
+        GameProfile clone = createGameProfile(offlineId, profile.getName());
         clone.getProperties().putAll(profile.getProperties());
-        addTexturesProperty(clone, encodeBase64(texture.toString()));
-        signXSeries(clone);
         return clone;
     }
 
@@ -182,6 +168,15 @@ public final class PlayerProfiles {
         }
     }
 
+    public static GameProfile createGameProfile(UUID uuid, String username) {
+        return signXSeries(new GameProfile(uuid, username));
+    }
+
+    /**
+     * All {@link GameProfile} created/modified by this library should have a special signature for debugging
+     * purposes, specially since we're directly messing with the server's internal cache
+     * it should be there in case something goes wrong.
+     */
     public static GameProfile signXSeries(GameProfile profile) {
         // Just as an indicator that this is not a vanilla-created profile.
         PropertyMap properties = profile.getProperties();
@@ -190,6 +185,6 @@ public final class PlayerProfiles {
     }
 
     public static GameProfile createNamelessGameProfile(UUID id) {
-        return signXSeries(new GameProfile(id, DEFAULT_PROFILE_NAME));
+        return createGameProfile(id, DEFAULT_PROFILE_NAME);
     }
 }

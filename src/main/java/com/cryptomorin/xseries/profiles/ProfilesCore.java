@@ -3,7 +3,7 @@ package com.cryptomorin.xseries.profiles;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
-import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.google.common.cache.LoadingCache;
@@ -16,7 +16,6 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
 import java.net.Proxy;
-import java.util.Deque;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,7 +36,7 @@ public final class ProfilesCore {
             FILL_PROFILE_PROPERTIES, GET_PROFILE_BY_NAME, GET_PROFILE_BY_UUID, CACHE_PROFILE,
             CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
             CRAFT_SKULL_PROFILE_SETTER, CRAFT_SKULL_PROFILE_GETTER,
-            PROPERTY_GET_VALUE, UserCacheEntry_getProfile;
+            Property_getValue, UserCache_getNextOperation, UserCacheEntry_getProfile, UserCacheEntry_setLastAccess;
 
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
@@ -48,7 +47,7 @@ public final class ProfilesCore {
         Object userCache, minecraftSessionService, insecureProfiles = null;
         Proxy proxy;
         MethodHandle fillProfileProperties = null, getProfileByName, getProfileByUUID, cacheProfile;
-        MethodHandle profileSetterMeta, profileGetterMeta, getPropertyValue = null;
+        MethodHandle profileSetterMeta, profileGetterMeta;
 
         ReflectiveNamespace ns = XReflection.namespaced()
                 .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
@@ -107,6 +106,10 @@ public final class ProfilesCore {
                 ).reflect();
             }
 
+            // noinspection MethodMayBeStatic
+            UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation();")
+                    .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).reflectOrNull();
+
             MethodMemberHandle profileByName = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             MethodMemberHandle profileByUUID = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             getProfileByName = XReflection.anyOf(
@@ -137,9 +140,8 @@ public final class ProfilesCore {
 
         FieldMemberHandle craftProfile = CraftSkull.field("private GameProfile profile;");
 
-        if (!NULLABILITY_RECORD_UPDATE) {
-            getPropertyValue = ns.of(Property.class).method("public String getValue();").unreflect();
-        }
+        Property_getValue = NULLABILITY_RECORD_UPDATE ? null :
+                ns.of(Property.class).method("public String getValue();").unreflect();
 
         PROXY = proxy;
         USER_CACHE = userCache;
@@ -149,7 +151,6 @@ public final class ProfilesCore {
         GET_PROFILE_BY_NAME = getProfileByName;
         GET_PROFILE_BY_UUID = getProfileByUUID;
         CACHE_PROFILE = cacheProfile;
-        PROPERTY_GET_VALUE = getPropertyValue;
         CRAFT_META_SKULL_PROFILE_SETTER = profileSetterMeta;
         CRAFT_META_SKULL_PROFILE_GETTER = profileGetterMeta;
         CRAFT_SKULL_PROFILE_SETTER = craftProfile.setter().unreflect();
@@ -162,6 +163,8 @@ public final class ProfilesCore {
         UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile();")
                 .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
                 .unreflect();
+        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i);")
+                .map(MinecraftMapping.OBFUSCATED, "a").reflectOrNull();
 
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
@@ -172,12 +175,16 @@ public final class ProfilesCore {
             UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID;")
                     .getter().map(MinecraftMapping.OBFUSCATED, v(17, "f").v(16, 2, "d").v(9, "e").orElse("d"))
                     .reflect().invoke(userCache);
+
+            // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16
+            // MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")
+            //         .getter().reflectOrNull();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void debug(String mainMessage, Object... variables) {
-        LOGGER.debug(mainMessage, variables);
+        LOGGER.info(mainMessage, variables);
     }
 }

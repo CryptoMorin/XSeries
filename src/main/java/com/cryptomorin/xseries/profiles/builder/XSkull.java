@@ -33,6 +33,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 /**
  * <b>XSkull</b> - Apply skull texture from different sources.<br><br>
@@ -68,7 +69,7 @@ import org.bukkit.inventory.meta.ItemMeta;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin
- * @version 10.0.0
+ * @version 11.2.0
  * @see XMaterial
  * @see XReflection
  */
@@ -100,7 +101,7 @@ public final class XSkull {
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link ItemMeta}.
      */
     public static ProfileInstruction<ItemMeta> of(ItemMeta meta) {
-        return new ProfileInstruction<>(new ProfileContainer.ItemMetaProfileContainer(meta));
+        return new ProfileInstruction<>(new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta));
     }
 
     /**
@@ -142,7 +143,7 @@ public final class XSkull {
      */
     protected static Profileable getDefaultProfile() {
         // We copy this just in case something changes the GameProfile properties.
-        GameProfile clone = new GameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());
+        GameProfile clone = PlayerProfiles.createGameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());
         clone.getProperties().putAll(DEFAULT_PROFILE.getProperties());
         return Profileable.of(clone);
     }

@@ -1,12 +1,14 @@
 package com.cryptomorin.xseries.reflection.parser;
 
-import com.cryptomorin.xseries.reflection.Handle;
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.*;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.time.Duration;
 import java.util.*;
@@ -16,11 +18,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * Should not be used directly.
+ * <p>
  * This class is designed to be able to parse Java declarations only in a loose way, as it also
  * supports more simplified syntax (for example not requiring semicolons) that doesn't work
  * as nicely if you're using IntelliJ because of the highlighting which is greater advantage.
- * TODO support generics. Using RegEx might be impossible because Java doesn't support (?R) recursion.
  */
+@ApiStatus.Internal
 public class ReflectionParser {
     private final String declaration;
     private Pattern pattern;
@@ -101,8 +105,9 @@ public class ReflectionParser {
 
         Class<?> clazz = null;
         if (!typeName.contains(".")) {
-            clazz = PREDEFINED_TYPES.get(typeName);
-            if (clazz == null && cachedImports != null) clazz = this.cachedImports.get(typeName);
+            // Override predefined types
+            if (cachedImports != null) clazz = this.cachedImports.get(typeName);
+            if (clazz == null) clazz = PREDEFINED_TYPES.get(typeName);
         }
         if (clazz == null) {
             try {
@@ -118,6 +123,9 @@ public class ReflectionParser {
         return clazz;
     }
 
+    // TODO support generics. Using RegEx might be impossible because Java doesn't support (?R) recursion.
+    @Language("RegExp")
+    private static final String GENERIC = "(?:<" + id(null) + ">)*";
 
     @Language("RegExp")
     private static final String PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?";
@@ -127,8 +135,7 @@ public class ReflectionParser {
     private static final String PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)";
     @Language("RegExp")
     private static final String END_DECL = "\\s*;?\\s*";
-    @Language("RegExp")
-    private static final String GENERIC = "(?:<" + id(null) + ">)*";
+
     private static final Pattern CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + id("className") +
             "(?:\\s+extends\\s+" + id("superclasses") + ")?\\s+(implements\\s+" + id("interfaces") + ")?(?:\\s*\\{\\s*})?\\s*");
     private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
@@ -143,7 +150,7 @@ public class ReflectionParser {
         return this;
     }
 
-    private void pattern(Pattern pattern, Handle<?> handle) {
+    private void pattern(Pattern pattern, ReflectiveHandle<?> handle) {
         this.pattern = pattern;
         this.matcher = pattern.matcher(declaration);
         start(handle);
@@ -212,7 +219,7 @@ public class ReflectionParser {
         return group != null && !group.isEmpty();
     }
 
-    private void start(Handle<?> handle) {
+    private void start(ReflectiveHandle<?> handle) {
         if (!matcher.matches()) error("Not a " + handle + " declaration");
         parseFlags();
         if (handle instanceof MemberHandle) {

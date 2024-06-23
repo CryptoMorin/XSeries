@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * A handle for using reflection for {@link Method}.
+ */
 public class MethodMemberHandle extends NamedMemberHandle {
     protected Class<?>[] parameterTypes = new Class[0];
 

@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.profiles.objects;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
+import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
@@ -12,7 +13,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,13 +23,26 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Represents any object that has a {@link GameProfile} or one can be created with it.
  * These objects are cached.
+ * <p>
+ * A {@link GameProfile} is an object that represents information about a Minecraft player's
+ * account in general (not specific to this or any other server)
+ * The most important information contained within this profile however, is the
+ * skin texture URL which the client needs to properly see the texture on items/blocks.
  */
 public interface Profileable {
     /**
-     * The final texture that will be supplied to {@code profileContainer} to be applied.
+     * This method should not be used directly unless you know what you're doing.
+     * <p>
+     * The texture which might be cached. If any errors occur, the check may be re-evaluated.
+     * The cached values might also be re-evaluated due to expiration.
+     * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
      */
+    @ApiStatus.Internal
     GameProfile getProfile();
 
+    /**
+     * A string representation of the {@link #getProfile()} which is useful for data storage.
+     */
     @Nullable
     default String getProfileValue() {
         GameProfile profile = getProfile();
@@ -37,24 +50,8 @@ public interface Profileable {
         return PlayerProfiles.getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
     }
 
-    abstract class AbstractProfileable implements Profileable {
-        protected GameProfile cache;
-
-        @Override
-        public final GameProfile getProfile() {
-            GameProfile profile = cache != null ? cache : (cache = getProfile0());
-            return PlayerProfiles.clone(profile);
-        }
-
-        abstract GameProfile getProfile0();
-
-        @Override
-        public final String toString() {
-            return this.getClass().getSimpleName() + "[cache=" + cache + ']';
-        }
-    }
-
     @Nonnull
+    @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@Nonnull C profileables) {
         return prepare(profileables, null, null);
     }
@@ -72,8 +69,8 @@ public interface Profileable {
                 String username = null;
                 if (profileable instanceof UsernameProfileable) {
                     username = ((UsernameProfileable) profileable).username;
-                }  else if (profileable instanceof OfflinePlayerProfileable) {
-                    username = ((OfflinePlayerProfileable) profileable).player.getName();
+                } else if (profileable instanceof PlayerProfileable) {
+                    username = ((PlayerProfileable) profileable).username;
                 } else if (profileable instanceof StringProfileable) {
                     if (((StringProfileable) profileable).determineType().type == ProfileInputType.USERNAME) {
                         username = ((StringProfileable) profileable).string;
@@ -147,7 +144,7 @@ public interface Profileable {
      * @param offlinePlayer The offline player to generate the {@link GameProfile}.
      */
     static Profileable of(OfflinePlayer offlinePlayer) {
-        return new OfflinePlayerProfileable(offlinePlayer);
+        return new PlayerProfileable(offlinePlayer);
     }
 
     /**
@@ -180,6 +177,38 @@ public interface Profileable {
     }
 
 
+    abstract class AbstractProfileable implements Profileable {
+        protected GameProfile cache;
+        protected Throwable lastError;
+
+        @Override
+        public final GameProfile getProfile() {
+            if (lastError != null) {
+                if (!(lastError instanceof MojangAPIRetryException)) {
+                    throw XReflection.throwCheckedException(lastError);
+                }
+            }
+
+            if (cache == null) {
+                try {
+                    cache = getProfile0();
+                } catch (Throwable ex) {
+                    lastError = ex;
+                    throw ex;
+                }
+            }
+
+            return PlayerProfiles.clone(cache);
+        }
+
+        abstract GameProfile getProfile0();
+
+        @Override
+        public final String toString() {
+            return this.getClass().getSimpleName() + "[cache=" + cache + ", lastError=" + lastError + ']';
+        }
+    }
+
     final class UsernameProfileable extends AbstractProfileable {
         private final String username;
         private Boolean valid;
@@ -193,13 +222,13 @@ public interface Profileable {
             }
             if (!valid) throw new InvalidProfileException("Invalid username: '" + username + '\'');
 
-            Optional<GameProfile> profileOpt = MojangAPI.profileFromUsername(username);
+            Optional<GameProfile> profileOpt = MojangAPI.getMojangCachedProfileFromUsername(username);
             if (!profileOpt.isPresent())
                 throw new UnknownPlayerException("Cannot find player named '" + username + '\'');
 
             GameProfile profile = profileOpt.get();
             if (PlayerProfiles.hasTextures(profile)) return profile;
-            return MojangAPI.fetchProfile(profile);
+            return MojangAPI.getOrFetchProfile(profile);
         }
     }
 
@@ -212,7 +241,7 @@ public interface Profileable {
         public GameProfile getProfile0() {
             GameProfile profile = MojangAPI.getCachedProfileByUUID(id);
             if (PlayerProfiles.hasTextures(profile)) return profile;
-            return MojangAPI.fetchProfile(profile);
+            return MojangAPI.getOrFetchProfile(profile);
         }
     }
 
@@ -229,23 +258,34 @@ public interface Profileable {
 
             return (PlayerUUIDs.isOnlineMode()
                     ? new UUIDProfileable(profile.getId())
-                    : new UsernameProfileable(profile.getName()))
-                    .getProfile();
+                    : new UsernameProfileable(profile.getName())
+            ).getProfile();
         }
     }
 
-    final class OfflinePlayerProfileable extends AbstractProfileable {
-        private final OfflinePlayer player;
+    /**
+     * Do we need to support {@link org.bukkit.profile.PlayerProfile} for hybrid server software
+     * like Geyser or Mohist that might have their own caching system?
+     */
+    final class PlayerProfileable extends AbstractProfileable {
+        // Let the GC do its job.
+        @Nullable private final String username;
+        @Nonnull private final UUID id;
 
-        public OfflinePlayerProfileable(OfflinePlayer player) {this.player = Objects.requireNonNull(player);}
+        public PlayerProfileable(OfflinePlayer player) {
+            Objects.requireNonNull(player);
+            this.username = player.getName();
+            this.id = player.getUniqueId();
+        }
 
         @Override
         public GameProfile getProfile0() {
-            String name = player.getName();
-            if (Strings.isNullOrEmpty(name)) {
-                return new UUIDProfileable(player.getUniqueId()).getProfile();
+            // Can be empty if used by:
+            // CraftServer -> public OfflinePlayer getOfflinePlayer(UUID id)
+            if (Strings.isNullOrEmpty(username)) {
+                return new UUIDProfileable(id).getProfile();
             } else {
-                return new UsernameProfileable(player.getName()).getProfile();
+                return new UsernameProfileable(username).getProfile();
             }
         }
     }
@@ -260,7 +300,7 @@ public interface Profileable {
         }
 
         private StringProfileable determineType() {
-            if (type == null) type = ProfileInputType.get(string);
+            if (type == null) type = ProfileInputType.typeOf(string);
             return this;
         }
 

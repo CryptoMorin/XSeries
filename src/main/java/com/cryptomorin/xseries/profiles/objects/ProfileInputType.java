@@ -13,8 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The {@code SkullInputType} enum represents different types of input patterns that can be used for identifying
- * and validating various formats such as texture hashes, URLs, Base64 encoded strings, UUIDs, and usernames.
+ * Different types of input patterns that can be used for identifying
+ * constructing, and validating various formats that can represent a {@link Profileable}.
  */
 @SuppressWarnings("JavadocLinkAsPlainText")
 public enum ProfileInputType {
@@ -55,11 +55,15 @@ public enum ProfileInputType {
     BASE64(Pattern.compile("[-A-Za-z0-9+/]{100,}={0,3}")) {
         @Override
         public GameProfile getProfile(String base64) {
+            // The base64 string represents the textures.
+            // There are 3 types of textures: SKIN - CAPE - ELYTRA (not present in v1.8)
+            // Each can have a URL and an additional set of metadata (like model of skin, steve or alex, classic or slim)
+            // (from authlib's MinecraftProfileTexture which exists in all versions 1.8-1.21)
             String decodedBase64 = PlayerProfiles.decodeBase64(base64);
             if (decodedBase64 == null)
                 throw new InvalidProfileException("Not a base64 string: " + base64);
 
-            String textureHash = ProfileInputType.extractTextureHash(decodedBase64);
+            String textureHash = extractTextureHash(decodedBase64);
             if (textureHash == null)
                 throw new InvalidProfileException("Can't extract texture hash from base64: " + decodedBase64);
 
@@ -91,17 +95,12 @@ public enum ProfileInputType {
     };
 
     /**
-     * The regex pattern associated with the input type.
+     * The RegEx pattern associated with the input type.
      */
     @ApiStatus.Internal
     public final Pattern pattern;
     private static final ProfileInputType[] VALUES = values();
 
-    /**
-     * Constructs a {@code SkullInputType} with the specified regex pattern.
-     *
-     * @param pattern The regex pattern associated with the input type.
-     */
     ProfileInputType(Pattern pattern) {
         this.pattern = pattern;
     }
@@ -115,13 +114,13 @@ public enum ProfileInputType {
     public abstract GameProfile getProfile(String input);
 
     /**
-     * Returns the corresponding {@code SkullInputType} for the given identifier, if it matches any pattern.
+     * Returns the corresponding {@link ProfileInputType} for the given identifier, if it matches any pattern.
      *
      * @param identifier The string to be checked against the patterns.
-     * @return The matching {@code InputType}, or {@code null} if no match is found.
+     * @return The matching type, or {@code null} if no match is found.
      */
     @Nullable
-    public static ProfileInputType get(@Nonnull String identifier) {
+    public static ProfileInputType typeOf(@Nonnull String identifier) {
         Objects.requireNonNull(identifier, "Identifier cannot be null");
         return Arrays.stream(VALUES)
                 .filter(value -> value.pattern.matcher(identifier).matches())
@@ -132,6 +131,7 @@ public enum ProfileInputType {
      * Extracts the texture hash from the provided input string.
      * <p>
      * Will not work reliably if NBT is passed: {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/74133f6ac3be2e2499a784efadcfffeb9ace025c3646ada67f3414e5ef3394"}}}
+     * because there are several other texture types, see {@link #BASE64} inner comments.
      *
      * @param input The input string containing the texture hash.
      * @return The extracted texture hash.

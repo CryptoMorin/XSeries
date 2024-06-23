@@ -77,7 +77,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.5.0
+ * @version 7.5.1
  * @see XMaterial
  * @see XPotion
  * @see XSkull
@@ -86,11 +86,12 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  */
 public final class XItemStack {
     public static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
+    public static final boolean SUPPORTS_CUSTOM_MODEL_DATA;
 
     /**
-     * Because item metas cannot be applied to AIR, apparently.
+     * Because {@link ItemMeta} cannot be applied to {@link Material#AIR}.
      */
-    private static final XMaterial DEFAULT_MATERIAL = XMaterial.NETHER_PORTAL;
+    private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
     private static final boolean SUPPORTS_POTION_COLOR;
 
     static {
@@ -104,11 +105,18 @@ public final class XItemStack {
         SUPPORTS_POTION_COLOR = supportsPotionColor;
     }
 
-    private XItemStack() {
+    static {
+        boolean supportsCustomModelData = false;
+        try {
+            ItemMeta.class.getMethod("hasCustomModelData");
+            supportsCustomModelData = true;
+        } catch (Throwable ignored) {
+        }
+
+        SUPPORTS_CUSTOM_MODEL_DATA = supportsCustomModelData;
     }
 
-    public static boolean isDefaultItem(ItemStack item) {
-        return DEFAULT_MATERIAL.isSimilar(item);
+    private XItemStack() {
     }
 
     private static BlockState safeBlockState(BlockStateMeta meta) {
@@ -452,7 +460,7 @@ public final class XItemStack {
      */
     @Nonnull
     public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
-        return edit(new ItemStack(DEFAULT_MATERIAL.parseMaterial()), config, Function.identity(), null);
+        return edit(DEFAULT_MATERIAL.parseItem(), config, Function.identity(), null);
     }
 
     /**
@@ -485,7 +493,7 @@ public final class XItemStack {
     public static ItemStack deserialize(@Nonnull ConfigurationSection config,
                                         @Nonnull Function<String, String> translator,
                                         @Nullable Consumer<Exception> restart) {
-        return edit(new ItemStack(DEFAULT_MATERIAL.parseMaterial()), config, translator, restart);
+        return edit(DEFAULT_MATERIAL.parseItem(), config, translator, restart);
     }
 
 

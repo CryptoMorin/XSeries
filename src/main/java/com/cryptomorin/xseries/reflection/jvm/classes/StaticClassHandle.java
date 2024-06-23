@@ -1,6 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
-import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 
 import java.lang.reflect.Array;
 import java.util.Collections;

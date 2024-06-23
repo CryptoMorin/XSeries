@@ -1,7 +1,10 @@
 package com.cryptomorin.xseries.profiles.builder;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
-import com.cryptomorin.xseries.profiles.exceptions.*;
+import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
+import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
+import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
+import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
 import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
@@ -64,7 +67,7 @@ public final class ProfileInstruction<T> implements Profileable {
     }
 
     /**
-     * Fails silently if any string based issues occur from a configuration standpoint.
+     * Fails silently if any of the {@link ProfileException} errors occur.
      * Mainly affects {@link Profileable#detect(String)}
      */
     public ProfileInstruction<T> lenient() {
@@ -137,17 +140,15 @@ public final class ProfileInstruction<T> implements Profileable {
      * requires internet connection, will delay things a lot.
      *
      * @return The result after setting the generated profile.
-     * @throws APIRetryException due to being ratelimited or network issues that can be fixed if the request is sent later again.
-     * @throws MojangAPIException if any unknown non-recoverable network issues occur.
-     * @throws UnknownPlayerException if a specific player-identifying {@link Profileable} is not found.
-     * @throws InvalidProfileException if a given {@link Profileable} has incorrect value (more general than {@link UnknownPlayerException})
-     * @throws ProfileChangeException all the exceptions above are added as a suppressed exception to this exception.
+     * @throws ProfileChangeException If any type of {@link ProfileException} occurs, they will be accumulated
+     *    in form of suppressed exceptions ({@link Exception#getSuppressed()}) in this single exception
+     *    starting from the main profile, followed by the fallback profiles.
      */
     public T apply() {
         Objects.requireNonNull(profileable, "No profile was set");
         ProfileChangeException exception = null;
 
-        List<Profileable> tries = new ArrayList<>(1 + fallbacks.size());
+        List<Profileable> tries = new ArrayList<>(2 + fallbacks.size());
         tries.add(profileable);
         tries.addAll(fallbacks);
         if (lenient) tries.add(XSkull.getDefaultProfile());
@@ -160,7 +161,7 @@ public final class ProfileInstruction<T> implements Profileable {
                 profileContainer.setProfile(profile);
                 success = true;
                 break;
-            } catch (MojangAPIException | InvalidProfileException | APIRetryException ex) {
+            } catch (ProfileException ex) {
                 if (exception == null) {
                     exception = new ProfileChangeException("Could not set the profile for " + profileContainer);
                 }
@@ -170,7 +171,7 @@ public final class ProfileInstruction<T> implements Profileable {
         }
 
         if (exception != null) {
-            if (success || lenient) ProfilesCore.debug("apply()", exception);
+            if (success || lenient) ProfilesCore.debug("apply() silenced exception {}", exception);
             else throw exception;
         }
 
@@ -188,7 +189,7 @@ public final class ProfileInstruction<T> implements Profileable {
      * This method is designed for non-blocking execution, allowing tasks to be performed
      * in the background without blocking the server's main thread.
      * This method will always execute async, even if the results are cached.
-     * <p>
+     * <br>
      * <h2>Reference Issues</h2>
      * Note that while these methods apply to the item/block instances, passing these instances
      * to certain methods, for example {@link org.bukkit.inventory.Inventory#setItem(int, ItemStack)}
@@ -201,6 +202,12 @@ public final class ProfileInstruction<T> implements Profileable {
      *     .thenAcceptAsync(item -> inventory.setItem(slot, item));
      * }</pre>
      *
+     * To make this cleaner, you could change the first line of the item's lore to something like "Loading..."
+     * and set it to the inventory right away so the player knows that the data is not fully loaded.
+     * Once this method is done, you could change the lore back and set the item back to the inventory.
+     * (The lore is preferred because it has less text limit compared to the title, it also gives the player
+     * all the textual information they need rather than the visual information if you're in a hurry)
+     * <br><br><br>
      * <h2>Usage example:</h2>
      * <pre>{@code
      *   XSkull.createItem().profile(player).applyAsync()

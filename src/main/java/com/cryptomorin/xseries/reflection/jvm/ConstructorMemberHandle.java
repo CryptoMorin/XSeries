@@ -9,6 +9,9 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * A handle for using reflection for {@link Constructor}.
+ */
 public class ConstructorMemberHandle extends MemberHandle {
     protected Class<?>[] parameterTypes = new Class[0];
 

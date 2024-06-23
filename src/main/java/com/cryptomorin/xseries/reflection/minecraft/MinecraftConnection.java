@@ -11,6 +11,13 @@ import java.util.Objects;
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 import static com.cryptomorin.xseries.reflection.XReflection.v;
 
+/**
+ * Provides general packet-related API for players.
+ * <p>
+ * <a href="https://wiki.vg/Protocol">Clientbound Packets</a> are considered fake
+ * updates to the client without changing the actual data. Since all the data is handled
+ * by the server.
+ */
 public final class MinecraftConnection {
     public static final MinecraftClassHandle ServerPlayer = ofMinecraft()
             .inPackage(MinecraftPackage.NMS, "server.level")

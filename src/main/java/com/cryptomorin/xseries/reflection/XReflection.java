@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries.reflection;
 
-import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
@@ -40,21 +39,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * <b>ReflectionUtils</b> - Reflection handler for NMS and CraftBukkit.<br>
- * Caches the packet related methods and is asynchronous.
- * <p>
- * This class does not handle null checks as most of the requests are from the
- * other utility classes that already handle null checks.
- * <p>
- * <a href="https://wiki.vg/Protocol">Clientbound Packets</a> are considered fake
- * updates to the client without changing the actual data. Since all the data is handled
- * by the server.
- * <p>
- * A useful resource used to compare mappings is <a href="https://minidigger.github.io/MiniMappingViewer/#/spigot">Mini's Mapping Viewer</a>
- * Another one is <a href="https://mappings.cephx.dev/1.20.6/net/minecraft/server/network/ServerPlayerConnection.html">Cephx</a>.
+ * General Java reflection handler, but specialized for Minecraft NMS reflection as well.
  *
  * @author Crypto Morin
- * @version 11.0.0
+ * @version 11.2.0
  */
 public final class XReflection {
     /**
@@ -435,6 +423,7 @@ public final class XReflection {
 
 
     /**
+     * Read {@link ReflectiveNamespace} for more info.
      * @since v11.0.0
      */
     public static ReflectiveNamespace namespaced() {
@@ -445,16 +434,16 @@ public final class XReflection {
      * @since v9.0.0
      */
     @SafeVarargs
-    public static <T, H extends Handle<T>> AggregateHandle<T, H> any(H... handles) {
-        return new AggregateHandle<>(Arrays.stream(handles).map(x -> (Callable<H>) () -> x).collect(Collectors.toList()));
+    public static <T, H extends ReflectiveHandle<T>> AggregateReflectiveHandle<T, H> any(H... handles) {
+        return new AggregateReflectiveHandle<>(Arrays.stream(handles).map(x -> (Callable<H>) () -> x).collect(Collectors.toList()));
     }
 
     /**
      * @since v9.0.0
      */
     @SafeVarargs
-    public static <T, H extends Handle<T>> AggregateHandle<T, H> anyOf(Callable<H>... handles) {
-        return new AggregateHandle<>(Arrays.asList(handles));
+    public static <T, H extends ReflectiveHandle<T>> AggregateReflectiveHandle<T, H> anyOf(Callable<H>... handles) {
+        return new AggregateReflectiveHandle<>(Arrays.asList(handles));
     }
 
     @ApiStatus.Internal
@@ -495,8 +484,35 @@ public final class XReflection {
         throw (T) exception;
     }
 
+    /**
+     * Throws a checked exception (see {@link Exception}) silently without forcing the programmer to handle it. This is usually considered
+     * a very bad practice, as those errors are meant to be handled, so please use sparingly. You should just
+     * create a {@link RuntimeException} instead and putting the checked exception as a cause if necessary.
+     * <h2>Usage</h2>
+     * <pre>{@code
+     *     void doStuff() throws IOException {}
+     *
+     *     void rethrowAsRuntime() {
+     *         try {
+     *             doStuff();
+     *         } catch (IOException ex) {
+     *             throw new RuntimeException(ex);
+     *         }
+     *     }
+     *
+     *     void ignoreTheLawsOfJavaQuantumMechanics() {
+     *         try {
+     *             doStuff();
+     *         } catch (IOException ex) {
+     *             throw XReflection.throwCheckedException(ex);
+     *         }
+     *     }
+     * }</pre>
+     * @return {@code null}, but it's intended to be thrown, this is a hacky trick to stop the IDE
+     *   from complaining about non-terminating statements.
+     */
     public static RuntimeException throwCheckedException(Throwable exception) {
-        // This is not needed because the exception was created somewhere else and the stacktrace reflects that.
+        // The following commented statement is not needed because the exception was created somewhere else and the stacktrace reflects that.
         // exception.setStackTrace(Arrays.stream(exception.getStackTrace()).skip(1).toArray(StackTraceElement[]::new));
         throwException(exception);
         return null; // Trick the compiler to stfu for "throw" terminating statements.

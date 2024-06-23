@@ -1,7 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
-import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.google.common.base.Strings;
 import org.intellij.lang.annotations.Pattern;
 

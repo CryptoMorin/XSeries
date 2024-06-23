@@ -55,7 +55,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("com.github.cryptomorin:XSeries:version") { isTransitive = false }
+    implementation("com.github.cryptomorin:XSeries:version")
 }
 ```
 

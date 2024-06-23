@@ -16,12 +16,15 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 
+/**
+ * A handle for using reflection for {@link Field}.
+ */
 public class FieldMemberHandle extends NamedMemberHandle {
     public static final MethodHandle MODIFIERS_FIELD;
 
     public static final DynamicClassHandle VarHandle = XReflection.classHandle()
             .inPackage("java.lang.invoke")
-            .named("VarHandle", "fdsf.dfD3");
+            .named("VarHandle");
 
     //     public final native
     //     @MethodHandle.PolymorphicSignature

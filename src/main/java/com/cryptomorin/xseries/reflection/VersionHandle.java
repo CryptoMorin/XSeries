@@ -2,6 +2,12 @@ package com.cryptomorin.xseries.reflection;
 
 import java.util.concurrent.Callable;
 
+/**
+ * Provides objects based on the current version of the server ({@link XReflection#supports(int, int, int)}),
+ * it's mostly useful for primitive values, for reflection you should use the specialized
+ * {@link XReflection} class instead.
+ * @param <T> the type of object to check.
+ */
 public final class VersionHandle<T> {
     private int version, patch;
     private T handle;

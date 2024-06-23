@@ -1,7 +1,7 @@
 package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
-import com.cryptomorin.xseries.profiles.exceptions.APIRetryException;
+import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Charsets;
@@ -126,8 +126,8 @@ public class MinecraftClient {
             } catch (Exception ex) {
                 if (retries > 0) {
                     retries--;
-                    if (!(ex instanceof APIRetryException) ||
-                            ((APIRetryException) ex).getReason() != APIRetryException.Reason.RATELIMITED) {
+                    if (!(ex instanceof MojangAPIRetryException) ||
+                            ((MojangAPIRetryException) ex).getReason() != MojangAPIRetryException.Reason.RATELIMITED) {
                         try {
                             Thread.sleep(retryDelay.toMillis());
                         } catch (InterruptedException e) {
@@ -151,7 +151,7 @@ public class MinecraftClient {
                 rateLimiter.acquireOrWait();
             } else {
                 if (!rateLimiter.acquire())
-                    throw new APIRetryException(APIRetryException.Reason.RATELIMITED,
+                    throw new MojangAPIRetryException(MojangAPIRetryException.Reason.RATELIMITED,
                             "Rate limit has been hit! " + rateLimiter + totalReq());
             }
 
@@ -196,15 +196,15 @@ public class MinecraftClient {
                         case 429: // Too many requests
                             String rateLimitBefore = rateLimiter.toString();
                             rateLimiter.instantRateLimit();
-                            throw new APIRetryException(APIRetryException.Reason.RATELIMITED,
+                            throw new MojangAPIRetryException(MojangAPIRetryException.Reason.RATELIMITED,
                                     "Rate limit has been hit (server confirmed): " + rateLimitBefore + " -> " + rateLimitBefore + totalReq());
                     }
                     if (ex instanceof SocketException && ex.getMessage().toLowerCase(Locale.ENGLISH).contains("connection reset")) {
-                        throw new APIRetryException(APIRetryException.Reason.CONNECTION_RESET, "Connection was closed", ex);
+                        throw new MojangAPIRetryException(MojangAPIRetryException.Reason.CONNECTION_RESET, "Connection was closed", ex);
                     }
                     JsonElement errorJson = connectionStreamToJson(true);
                     exception = new MojangAPIException(errorJson == null ? "[NO ERROR RESPONSE]" : errorJson.toString(), ex);
-                } catch (APIRetryException rethrowEx) {
+                } catch (MojangAPIRetryException rethrowEx) {
                     throw rethrowEx;
                 } catch (Throwable errorEx) {
                     exception = new MojangAPIException("Failed to read both normal response " +

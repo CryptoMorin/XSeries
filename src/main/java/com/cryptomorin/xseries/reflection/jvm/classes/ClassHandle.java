@@ -1,17 +1,17 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
-import com.cryptomorin.xseries.reflection.Handle;
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
-import com.cryptomorin.xseries.reflection.jvm.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class ClassHandle implements Handle<Class<?>> {
+public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
     protected final ReflectiveNamespace namespace;
 
     protected ClassHandle(ReflectiveNamespace namespace) {

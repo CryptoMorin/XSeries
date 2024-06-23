@@ -13,8 +13,9 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("All")
 public final class ReflectionTests {
-    private final String test = "AAAAAAAAAAAAAA";
+    private final String test = "A";
 
     private static final class A {
         private static final class B {
@@ -36,7 +37,7 @@ public final class ReflectionTests {
     }
 
     public interface GameProfile {
-        String test = "11111111111";
+        String test = "1";
 
         void field_setter_test(String test);
 
@@ -47,14 +48,14 @@ public final class ReflectionTests {
         GameProfile profiler = (GameProfile) Proxy.newProxyInstance(ReflectionParser.class.getClassLoader(), new Class[]{GameProfile.class}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                System.out.println("INVOKED " + proxy.getClass() + " as " + method + " with args " + args);
+                System.out.println("Invoked from proxy: " + proxy.getClass() + " as " + method + " with args " + Arrays.toString(args));
                 return "hey";
             }
         });
 
-        System.out.println("BEFORE REPLACE: " + profiler.field_getter_test() + profiler.test);
-        profiler.field_setter_test("BBBBBBBBBBBBBBBB");
-        System.out.println("AFTER REPLACE: " + profiler.field_getter_test());
+        System.out.println("Before replace: " + profiler.field_getter_test() + profiler.test);
+        profiler.field_setter_test("B");
+        System.out.println("After replace: " + profiler.field_getter_test());
 
         Arrays.stream(ReflectionParser.class.getDeclaredFields())
                 .filter(x -> x.getType() == Pattern.class)
