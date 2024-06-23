@@ -8,6 +8,27 @@ import java.time.Duration;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * Used for {@link MojangAPI} requests.
+ * The rate limits make things difficult specially in BungeeCord servers where
+ * a single dedicated server is used for multiple subservers.
+ * This will specially not work well at all if in shared hosting
+ * that can make requests almost impossible with all the servers
+ * in a single node.
+ * Another issue is that XSeries is mostly intended to be shaded by individual plugins
+ * so while we are directly helping the internal Mojang cache, there are some
+ * requests that Mojang doesn't have a cache for, so this creates another big
+ * problem of having to use separate caches that are not shared.
+ * <p>
+ * However, these are all untested speculation. But one can't imagine how else
+ * they'd identify a request other than the sender's IP because the default
+ * client used by Mojang doesn't even use a {@code User-Agent}.
+ * <p>
+ * According to <a href="https://wiki.vg/Mojang_API">Mojang API</a> the rate limit
+ * is around 600 requests per 10 (i.e. 1 request per second) for most endpoints.
+ * However <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape">UUID to Profile and Skin/Cape</a>
+ * is around 200 requests per minute.
+ */
 @ApiStatus.Internal
 public final class RateLimiter {
     private final ConcurrentLinkedQueue<Long> requests = new ConcurrentLinkedQueue<>();

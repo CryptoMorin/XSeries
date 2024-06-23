@@ -31,7 +31,7 @@ public final class MojangAPI {
             new MojangProfileCache.GameProfileCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles) :
             new MojangProfileCache.ProfileResultCache(ProfilesCore.YggdrasilMinecraftSessionService_insecureProfiles);
     /**
-     * Used for older versions.
+     * The 6hr expiration time is probably for players that update their skin, but 6hrs seems a bit too frequent.
      */
     private static final Cache<UUID, Optional<GameProfile>> INSECURE_PROFILES = CacheBuilder.newBuilder()
             .expireAfterWrite(6L, TimeUnit.HOURS).build();
@@ -43,13 +43,6 @@ public final class MojangAPI {
 
     /**
      * https://wiki.vg/Mojang_API#Username_to_UUID
-     * According to <a href="https://wiki.vg/Mojang_API">Mojang API</a> the rate limit
-     * is around 600 requests per 10 (i.e. 1 request per second) for most endpoints.
-     * However <a href="https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape">UUID to Profile and Skin/Cape</a>
-     * is around 200 requests per minute.
-     * <p>
-     * If we want to use UUID_TO_PROFILE_RATELIMIT we'd have to copy and paste fetchProfile()
-     * because that method catches HTTP exceptions.
      */
     private static final MinecraftClient USERNAME_TO_UUID = new MinecraftClient(
             "GET",

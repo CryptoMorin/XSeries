@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -30,7 +31,7 @@ public final class PlayerProfiles {
      * It's not needed to change it every time, but it should be changed
      * if the XSeries internals are changed.
      */
-    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, "11.2.0");
+    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, XReflection.XSERIES_VERSION);
     private static final String TEXTURES_PROPERTY = "textures";
 
     public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME);

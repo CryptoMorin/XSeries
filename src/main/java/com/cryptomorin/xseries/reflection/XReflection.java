@@ -66,6 +66,12 @@ public final class XReflection {
     @Nullable
     public static final String NMS_VERSION = findNMSVersionString();
 
+    /**
+     * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
+     */
+    @ApiStatus.Internal
+    public static final String XSERIES_VERSION = "11.2.0";
+
     @Nullable
     @ApiStatus.Internal
     public static String findNMSVersionString() {

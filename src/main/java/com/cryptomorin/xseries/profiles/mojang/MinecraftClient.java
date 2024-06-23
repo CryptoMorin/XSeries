@@ -1,8 +1,8 @@
 package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
-import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
+import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
+import org.bukkit.Bukkit;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -33,6 +34,15 @@ public class MinecraftClient {
     private static final Proxy PROXY = ProfilesCore.PROXY == null ? Proxy.NO_PROXY : ProfilesCore.PROXY;
     private static final Gson GSON = new Gson();
     private static final RateLimiter TOTAL_REQUESTS = new RateLimiter(Integer.MAX_VALUE, Duration.ofMinutes(10));
+    /**
+     * For example:
+     * Paper/1.21-R0.1-SNAPSHOT (X11; Linux x86_64; Oracle Corporation; 21.0.0) XSeries/11.2.0 1.21-9-4ea696f (MC: 1.21)
+     */
+    private static final String USER_AGENT = Bukkit.getName() + '/' + Bukkit.getBukkitVersion() +
+            " (" + System.getProperty("os.name") + "; " + System.getProperty("os.version") + "; " +
+            System.getProperty("java.vendor") + "; " + System.getProperty("java.version") + ')' +
+            " XSeries/" + XReflection.XSERIES_VERSION + ' ' + Bukkit.getVersion();
+
     private final String method;
     private final URI baseURL;
     private final RateLimiter rateLimiter;
@@ -163,6 +173,10 @@ public class MinecraftClient {
             connection.setDoInput(true);
             connection.setUseCaches(false);
             connection.setAllowUserInteraction(false);
+
+            // Not used by the default authlib's client, but we're going to
+            // add it anyway just for the sake of networking and Mojang's server stats (if any?)
+            connection.setRequestProperty("User-Agent", USER_AGENT);
 
             // if (this.accessToken != null) {
             //     connection.setRequestProperty("Authorization", "Bearer " + this.accessToken);
