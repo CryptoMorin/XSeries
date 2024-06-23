@@ -185,6 +185,6 @@ public final class ProfilesCore {
     }
 
     public static void debug(String mainMessage, Object... variables) {
-        LOGGER.info(mainMessage, variables);
+        LOGGER.debug(mainMessage, variables);
     }
 }
