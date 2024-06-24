@@ -14,6 +14,7 @@ import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -37,8 +38,21 @@ public interface Profileable {
      * The cached values might also be re-evaluated due to expiration.
      * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
      */
+    @NotNull
     @ApiStatus.Internal
     GameProfile getProfile();
+
+    /**
+     * Adds transformer (read {@link ProfileTransformer}) information to a copied version
+     * of this profile (so it doesn't affect this instance).
+     * <p>
+     * Profiles are copied before being transformed, so the main cache remains intact
+     * but the result of transformed profiles are never cached.
+     * @param transformers a list of transformers to apply in order once {@link #getProfile()} is called.
+     */
+    default Profileable transform(ProfileTransformer... transformers) {
+        return new TransformableProfile(this, Arrays.asList(transformers));
+    }
 
     /**
      * A string representation of the {@link #getProfile()} which is useful for data storage.
@@ -175,7 +189,6 @@ public interface Profileable {
         Objects.requireNonNull(input, () -> "Cannot profile from a null input: " + type);
         return new StringProfileable(input, type);
     }
-
 
     abstract class AbstractProfileable implements Profileable {
         protected GameProfile cache;

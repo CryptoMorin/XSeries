@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * However, these are all untested speculation. But one can't imagine how else
  * they'd identify a request other than the sender's IP because the default
  * client used by Mojang doesn't even use a {@code User-Agent}.
+ * According to a comment by a Mojang web service admin in <a href="https://bugs.mojang.com/browse/WEB-7008?focusedId=1319363&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-1319363">this JIRA issue</a>
+ * shared VPS are indeed an issue due to shared IPs.
  * <p>
  * According to <a href="https://wiki.vg/Mojang_API">Mojang API</a> the rate limit
  * is around 600 requests per 10 (i.e. 1 request per second) for most endpoints.

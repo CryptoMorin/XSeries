@@ -2,7 +2,6 @@ package com.cryptomorin.xseries.profiles.objects;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileContainerException;
-import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -38,7 +37,8 @@ public abstract class ProfileContainer<T> implements Profileable {
         public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = Objects.requireNonNull(itemStack);}
 
         private ItemMetaProfileContainer getMetaContainer(ItemMeta meta) {
-            if (!(meta instanceof SkullMeta)) throw new InvalidProfileContainerException("Item can't contain texture: " + itemStack);
+            if (!(meta instanceof SkullMeta))
+                throw new InvalidProfileContainerException("Item can't contain texture: " + itemStack);
             return new ItemMetaProfileContainer((SkullMeta) meta);
         }
 
@@ -96,7 +96,8 @@ public abstract class ProfileContainer<T> implements Profileable {
 
         private Skull getBlockState() {
             BlockState state = block.getState();
-            if (!(state instanceof Skull)) throw new InvalidProfileContainerException("Block can't contain texture: " + block);
+            if (!(state instanceof Skull))
+                throw new InvalidProfileContainerException("Block can't contain texture: " + block);
             return (Skull) state;
         }
 

@@ -1,9 +1,9 @@
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
-import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.google.common.cache.LoadingCache;

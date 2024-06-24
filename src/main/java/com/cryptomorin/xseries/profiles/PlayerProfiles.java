@@ -2,6 +2,10 @@ package com.cryptomorin.xseries.profiles;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.collect.Iterables;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
@@ -35,6 +39,7 @@ public final class PlayerProfiles {
     private static final String TEXTURES_PROPERTY = "textures";
 
     public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME);
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 
     /**
@@ -110,8 +115,21 @@ public final class PlayerProfiles {
     public static GameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
         GameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
-        PlayerProfiles.addTexturesProperty(profile, base64);
+        PlayerProfiles.setTexturesProperty(profile, base64);
         return profile;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void removeTimestamp(GameProfile profile) {
+        JsonObject jsonObject = Optional.ofNullable(getSkinValue(profile)).map(PlayerProfiles::decodeBase64)
+                .map((decoded) -> new JsonParser().parse(decoded).getAsJsonObject())
+                .orElse(null);
+
+        if (jsonObject == null || !jsonObject.has("timestamp")) return;
+        jsonObject.remove("timestamp");
+
+        // Mojang's format is pretty-printed, so let's keep that.
+        setTexturesProperty(profile, encodeBase64(GSON.toJson(jsonObject)));
     }
 
     /**
@@ -143,9 +161,11 @@ public final class PlayerProfiles {
         return clone;
     }
 
-    public static void addTexturesProperty(GameProfile profile, String texture) {
+    public static void setTexturesProperty(GameProfile profile, String texture) {
         Property property = new Property(TEXTURES_PROPERTY, texture);
-        profile.getProperties().put(TEXTURES_PROPERTY, property);
+        PropertyMap properties = profile.getProperties();
+        properties.asMap().remove(TEXTURES_PROPERTY);
+        properties.put(TEXTURES_PROPERTY, property);
     }
 
     /**
@@ -187,6 +207,9 @@ public final class PlayerProfiles {
     public static GameProfile signXSeries(GameProfile profile) {
         // Just as an indicator that this is not a vanilla-created profile.
         PropertyMap properties = profile.getProperties();
+        // I don't think a single profile is being signed multiple times.
+        // Even if it was, it might be helpful?
+        // properties.asMap().remove(DEFAULT_PROFILE_NAME); // Remove previous versions if any.
         properties.put(DEFAULT_PROFILE_NAME, XSERIES_GAMEPROFILE_SIGNATURE);
         return profile;
     }

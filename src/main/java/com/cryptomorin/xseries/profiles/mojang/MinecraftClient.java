@@ -36,13 +36,12 @@ public class MinecraftClient {
     private static final RateLimiter TOTAL_REQUESTS = new RateLimiter(Integer.MAX_VALUE, Duration.ofMinutes(10));
     /**
      * For example:
-     * Paper/1.21-R0.1-SNAPSHOT (X11; Linux x86_64; Oracle Corporation; 21.0.0) XSeries/11.2.0 1.21-9-4ea696f (MC: 1.21)
+     * XSeries/11.2.0 (X11; Linux x86_64; Oracle Corporation; 21.0.0) Paper/1.21-R0.1-SNAPSHOT 1.21-9-4ea696f (MC: 1.21)
      */
-    private static final String USER_AGENT = Bukkit.getName() + '/' + Bukkit.getBukkitVersion() +
+    private static final String USER_AGENT = "XSeries/" + XReflection.XSERIES_VERSION +
             " (" + System.getProperty("os.name") + "; " + System.getProperty("os.version") + "; " +
-            System.getProperty("java.vendor") + "; " + System.getProperty("java.version") + ')' +
-            " XSeries/" + XReflection.XSERIES_VERSION + ' ' + Bukkit.getVersion();
-
+            System.getProperty("java.vendor") + "; " + System.getProperty("java.version") + ") " +
+            Bukkit.getName() + '/' + Bukkit.getBukkitVersion() + ' ' + Bukkit.getVersion();
     private final String method;
     private final URI baseURL;
     private final RateLimiter rateLimiter;
