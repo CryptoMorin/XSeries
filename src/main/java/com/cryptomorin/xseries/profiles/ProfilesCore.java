@@ -126,10 +126,9 @@ public final class ProfilesCore {
 
             // Some versions don't have the public getProxy() method. It's very inconsistent...
             proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy;").getter()
-                    .map(MinecraftMapping.OBFUSCATED,
-                v(20,5, "h")
-                                 .v(20,3, "i")
-                                 .v(20, 1, "j")
+                    .map(MinecraftMapping.OBFUSCATED, v(20, 5, "h")
+                            .v(20, 3, "i")
+                            .v(20, 1, "j")
                             .v(17, "m")
                             .v(14, "proxy") // v1.14 -> v1.16
                             .v(13, "c").orElse(/* v1.8 and v1.9 */ "e"))

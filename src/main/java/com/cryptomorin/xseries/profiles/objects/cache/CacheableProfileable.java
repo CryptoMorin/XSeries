@@ -1,6 +1,5 @@
 package com.cryptomorin.xseries.profiles.objects.cache;
 
-import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
@@ -40,13 +39,14 @@ public abstract class CacheableProfileable implements Profileable {
         if (cache == null) {
             try {
                 cache = getProfile0();
+                lastError = null;
             } catch (Throwable ex) {
                 lastError = ex;
                 throw ex;
             }
         }
 
-        return PlayerProfiles.clone(cache);
+        return cache;
     }
 
     /**
@@ -57,7 +57,7 @@ public abstract class CacheableProfileable implements Profileable {
     }
 
     protected boolean hasExpired(boolean renew) {
-        return false;
+        return lastError instanceof MojangAPIRetryException;
     }
 
     @NotNull

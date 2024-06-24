@@ -22,13 +22,13 @@ public final class TransformableProfile implements Profileable {
     private static final class TransformationSequence {
         @Nullable
         private GameProfile profile;
-        private boolean expired;
-        private final List<TransformedProfileCache> transformers;
+        private boolean expired, markRestAsCopy;
+        private final TransformedProfileCache[] transformers;
 
         private TransformationSequence(List<ProfileTransformer> transformers) {
             this.transformers = transformers.stream()
                     .map(TransformedProfileCache::new)
-                    .collect(Collectors.toList());
+                    .toArray(TransformedProfileCache[]::new);
         }
 
         private final class TransformedProfileCache {
@@ -48,7 +48,8 @@ public final class TransformableProfile implements Profileable {
                 } else {
                     expired = true;
                 }
-                profile = cacheProfile = transformer.transform(profile);
+                profile = cacheProfile = transformer.transform(markRestAsCopy ? profile : PlayerProfiles.clone(profile));
+                if (!transformer.canBeCached()) markRestAsCopy = true;
             }
         }
     }
@@ -56,8 +57,8 @@ public final class TransformableProfile implements Profileable {
     @Override
     public Profileable transform(ProfileTransformer... transformers) {
         // Return a new instance because we promised not to affect the current instance for transform() method.
-        List<ProfileTransformer> transformersList = new ArrayList<>(this.transformers.transformers.size() + transformers.length);
-        transformersList.addAll(this.transformers.transformers.stream().map(x -> x.transformer).collect(Collectors.toList()));
+        List<ProfileTransformer> transformersList = new ArrayList<>(this.transformers.transformers.length + transformers.length);
+        transformersList.addAll(Arrays.stream(this.transformers.transformers).map(x -> x.transformer).collect(Collectors.toList()));
         transformersList.addAll(Arrays.asList(transformers));
         return new TransformableProfile(profileable, transformersList);
     }
@@ -67,7 +68,7 @@ public final class TransformableProfile implements Profileable {
         // This method doesn't need to be synchronized for the cache (see CacheableProfileable#getProfile), since the
         // transformation sequences don't send any API requests. The cost of synchronizing
         // this method would be probably more than letting the transformation happen again.
-        transformers.profile = PlayerProfiles.clone(profileable.getProfile());
+        transformers.profile = profileable.getProfile();
 
         for (TransformationSequence.TransformedProfileCache transformer : transformers.transformers) {
             transformer.transform();

@@ -155,8 +155,7 @@ public final class ProfileInstruction<T> implements Profileable {
         boolean tryingFallbacks = false;
         for (Profileable profileable : tries) {
             try {
-                GameProfile profile = profileable.getProfile();
-                profileContainer.setProfile(profile);
+                profileContainer.setProfile(profileable.getDisposableProfile());
                 success = true;
                 break;
             } catch (ProfileException ex) {

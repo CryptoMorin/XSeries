@@ -18,6 +18,7 @@ import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -39,10 +40,27 @@ public interface Profileable {
      * The texture which might be cached. If any errors occur, the check may be re-evaluated.
      * The cached values might also be re-evaluated due to expiration.
      * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
+     * @return the original profile (not cloned if possible) for an instance that's always guaranteed to be a copy
+     *         you can use {@link #getDisposableProfile()} instead.
+     */
+    @NotNull
+    @Unmodifiable
+    @ApiStatus.Internal
+    GameProfile getProfile();
+
+    /**
+     * Same as {@link #getProfile()}, except some implementations of {@link Profileable}
+     * cannot inherently return any original instance as they're not cacheable, so this
+     * method ensures that no duplicate cloning of {@link GameProfile} occurs for performance.
+     * <p>
+     * For most implementations however, this defaults to a simple cloning of the cached instances.
+     * @return always a copied version of {@link #getProfile()} that you can change.
      */
     @NotNull
     @ApiStatus.Internal
-    GameProfile getProfile();
+    default GameProfile getDisposableProfile() {
+        return PlayerProfiles.clone(getProfile());
+    }
 
     /**
      * Adds transformer (read {@link ProfileTransformer}) information to a copied version

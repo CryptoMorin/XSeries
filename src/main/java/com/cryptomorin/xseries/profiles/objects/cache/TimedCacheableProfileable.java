@@ -29,6 +29,7 @@ public abstract class TimedCacheableProfileable extends CacheableProfileable {
      */
     @Override
     public final boolean hasExpired(boolean renew) {
+        if (super.hasExpired(renew)) return true;
         if (cache == null && lastError == null) return true;
 
         Duration expiresAfter = expiresAfter();
