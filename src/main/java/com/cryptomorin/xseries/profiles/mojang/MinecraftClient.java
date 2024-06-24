@@ -177,6 +177,7 @@ public class MinecraftClient {
             // add it anyway just for the sake of networking and Mojang's server stats (if any?)
             connection.setRequestProperty("User-Agent", USER_AGENT);
 
+            // The token is only used for modifying operations like uploading a new skin.
             // if (this.accessToken != null) {
             //     connection.setRequestProperty("Authorization", "Bearer " + this.accessToken);
             // }

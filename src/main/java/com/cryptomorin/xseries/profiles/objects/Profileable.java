@@ -3,11 +3,13 @@ package com.cryptomorin.xseries.profiles.objects;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
-import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
+import com.cryptomorin.xseries.profiles.objects.cache.TimedCacheableProfileable;
+import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
+import com.cryptomorin.xseries.profiles.objects.transformer.TransformableProfile;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -60,7 +62,6 @@ public interface Profileable {
     @Nullable
     default String getProfileValue() {
         GameProfile profile = getProfile();
-        if (profile == null) return null;
         return PlayerProfiles.getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
     }
 
@@ -190,46 +191,14 @@ public interface Profileable {
         return new StringProfileable(input, type);
     }
 
-    abstract class AbstractProfileable implements Profileable {
-        protected GameProfile cache;
-        protected Throwable lastError;
-
-        @Override
-        public final GameProfile getProfile() {
-            if (lastError != null) {
-                if (!(lastError instanceof MojangAPIRetryException)) {
-                    throw XReflection.throwCheckedException(lastError);
-                }
-            }
-
-            if (cache == null) {
-                try {
-                    cache = getProfile0();
-                } catch (Throwable ex) {
-                    lastError = ex;
-                    throw ex;
-                }
-            }
-
-            return PlayerProfiles.clone(cache);
-        }
-
-        abstract GameProfile getProfile0();
-
-        @Override
-        public final String toString() {
-            return this.getClass().getSimpleName() + "[cache=" + cache + ", lastError=" + lastError + ']';
-        }
-    }
-
-    final class UsernameProfileable extends AbstractProfileable {
+    final class UsernameProfileable extends TimedCacheableProfileable {
         private final String username;
         private Boolean valid;
 
         public UsernameProfileable(String username) {this.username = Objects.requireNonNull(username);}
 
         @Override
-        public GameProfile getProfile0() {
+        protected GameProfile getProfile0() {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
@@ -245,26 +214,26 @@ public interface Profileable {
         }
     }
 
-    final class UUIDProfileable extends AbstractProfileable {
+    final class UUIDProfileable extends TimedCacheableProfileable {
         private final UUID id;
 
         public UUIDProfileable(UUID id) {this.id = Objects.requireNonNull(id, "UUID cannot be null");}
 
         @Override
-        public GameProfile getProfile0() {
+        protected GameProfile getProfile0() {
             GameProfile profile = MojangAPI.getCachedProfileByUUID(id);
             if (PlayerProfiles.hasTextures(profile)) return profile;
             return MojangAPI.getOrFetchProfile(profile);
         }
     }
 
-    final class GameProfileProfileable extends AbstractProfileable {
+    final class GameProfileProfileable extends TimedCacheableProfileable {
         private final GameProfile profile;
 
         public GameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
-        public GameProfile getProfile0() {
+        protected GameProfile getProfile0() {
             if (PlayerProfiles.hasTextures(profile)) {
                 return profile;
             }
@@ -280,7 +249,7 @@ public interface Profileable {
      * Do we need to support {@link org.bukkit.profile.PlayerProfile} for hybrid server software
      * like Geyser or Mohist that might have their own caching system?
      */
-    final class PlayerProfileable extends AbstractProfileable {
+    final class PlayerProfileable extends TimedCacheableProfileable {
         // Let the GC do its job.
         @Nullable private final String username;
         @Nonnull private final UUID id;
@@ -292,7 +261,7 @@ public interface Profileable {
         }
 
         @Override
-        public GameProfile getProfile0() {
+        protected GameProfile getProfile0() {
             // Can be empty if used by:
             // CraftServer -> public OfflinePlayer getOfflinePlayer(UUID id)
             if (Strings.isNullOrEmpty(username)) {
@@ -303,7 +272,7 @@ public interface Profileable {
         }
     }
 
-    final class StringProfileable extends AbstractProfileable {
+    final class StringProfileable extends TimedCacheableProfileable {
         private final String string;
         @Nullable private ProfileInputType type;
 
@@ -318,7 +287,7 @@ public interface Profileable {
         }
 
         @Override
-        public GameProfile getProfile0() {
+        protected GameProfile getProfile0() {
             determineType();
             if (type == null) {
                 throw new InvalidProfileException("Unknown skull string value: " + string);

@@ -1,9 +1,10 @@
-package com.cryptomorin.xseries.profiles.objects;
+package com.cryptomorin.xseries.profiles.objects.transformer;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,6 +22,12 @@ public interface ProfileTransformer {
      */
     @NotNull
     GameProfile transform(@NotNull GameProfile profile);
+
+    /**
+     * Whether the results of this transformation can be cached or not.
+     */
+    @ApiStatus.Internal
+    boolean canBeCached();
 
     /**
      * By default, due to internal changes to the {@link GameProfile},
@@ -84,6 +91,11 @@ public interface ProfileTransformer {
             profile.getProperties().put(PROPERTY_NAME, new Property(PROPERTY_NAME, value));
             return profile;
         }
+
+        @Override
+        public boolean canBeCached() {
+            return false;
+        }
     }
 
     final class RemoveMetadata implements ProfileTransformer {
@@ -95,6 +107,11 @@ public interface ProfileTransformer {
             // It's a multimap, remove all values associated to this key.
             profile.getProperties().asMap().remove(PlayerProfiles.DEFAULT_PROFILE_NAME);
             return profile;
+        }
+
+        @Override
+        public boolean canBeCached() {
+            return true;
         }
     }
 }
