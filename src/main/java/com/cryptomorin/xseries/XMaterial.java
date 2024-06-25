@@ -595,7 +595,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
     FERMENTED_SPIDER_EYE,
     FERN(2, "LONG_GRASS"),
     /**
-     * For some reasons filled map items are really special.
+     * For some reason, filled map items are really special.
      * Their data value starts from 0 and every time a player
      * creates a new map that maps data value increases.
      * <a href="https://github.com/CryptoMorin/XSeries/issues/91">GitHub Issue</a>
@@ -1935,9 +1935,14 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
         // If this happens to more materials in the future, I might have to change the system.
         if (supports(13) && !supports(14)) {
             // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/diff/src/main/java/org/bukkit/Material.java?until=67d908a9830c71267ee740f5bddd728ce9c64cc7
-            if (material.equals("CACTUS_GREEN")) return GREEN_DYE;
-            if (material.equals("ROSE_RED")) return RED_DYE;
-            if (material.equals("DANDELION_YELLOW")) return YELLOW_DYE;
+            switch (material) {
+                case "CACTUS_GREEN":
+                    return GREEN_DYE;
+                case "ROSE_RED":
+                    return RED_DYE;
+                case "DANDELION_YELLOW":
+                    return YELLOW_DYE;
+            }
         }
 
         // Check FILLED_MAP enum for more info.

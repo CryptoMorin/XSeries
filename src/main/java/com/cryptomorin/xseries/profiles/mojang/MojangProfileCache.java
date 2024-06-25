@@ -14,6 +14,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * A class to use and change the internal cache used for {@link GameProfile}.
+ */
 @ApiStatus.Internal
 abstract class MojangProfileCache {
     abstract void cache(PlayerProfile playerProfile);

@@ -31,6 +31,7 @@ public class DynamicClassHandle extends ClassHandle {
     }
 
     public DynamicClassHandle inPackage(@Nonnull PackageHandle packageHandle) {
+        // noinspection PatternValidation
         return inPackage(packageHandle, "");
     }
 

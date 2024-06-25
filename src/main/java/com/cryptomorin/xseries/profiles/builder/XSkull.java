@@ -36,7 +36,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 /**
- * <b>XSkull</b> - Apply skull texture from different sources.<br><br>
+ * A cross-platform way to apply skin texture from different sources to items and blocks.<br><br>
  * Skull Meta: <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html">hub.spigotmc.org/.../SkullMeta</a><br>
  * Mojang API: <a href="https://wiki.vg/Mojang_API">wiki.vg/Mojang_API</a><br><br>
  * <p>
@@ -68,7 +68,7 @@ import org.bukkit.inventory.meta.SkullMeta;
  * will remain as a steve head until the client is completely restarted.
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
- * @author Crypto Morin
+ * @author Crypto Morin, Erick Alexander
  * @version 11.2.0
  * @see XMaterial
  * @see XReflection

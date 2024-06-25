@@ -271,7 +271,7 @@ public enum XPotion {
      *     SLOWNESS 200 10
      *     1, 10000, 100 %50
      * </pre>
-     * The last argument (the amplifier can also have a chance which if not met, returns null.
+     * The last argument can also include a chance (written in percent) which if not met, returns null.
      *
      * @param potion the potion string to parse.
      * @return a potion effect, or null if the potion type is wrong.
@@ -291,8 +291,7 @@ public enum XPotion {
             if (chanceIndex != -1) {
                 try {
                     chance = Double.parseDouble(split.get(2).substring(chanceIndex + 1));
-                } catch (NumberFormatException ex) {
-                    chance = 100;
+                } catch (NumberFormatException ignored) {
                 }
             }
         }

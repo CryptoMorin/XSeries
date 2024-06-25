@@ -39,8 +39,31 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * General Java reflection handler, but specialized for Minecraft NMS reflection as well.
- *
+ * General Java reflection handler, but specialized for Minecraft NMS/CraftBukkit reflection as well.
+ * <p>
+ *     <h2>Starting Points</h2>
+ * Basic reflection starting points are through the {@link com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle}
+ * methods:
+ * <ul>
+ *     <li>{@link #of(Class)}: For static classes with known type at compile time.</li>
+ *     <li>{@link #classHandle()}: For general classes that have unknown type at compile time.</li>
+ *     <li>{@link #ofMinecraft()}: Specialized for Minecraft-related classes.</li>
+ *     <li>{@link #namespaced()}: String-based API for getting classes with Java code inside strings that is more readable.</li>
+ * </ul>
+ * <h2>Fallback</h2>
+ * Some methods exist to choose between different values depending on the situation:
+ * <ul>
+ *     <li>{@link #v(int, Object)}: Basic Minecraft version-based value handler.</li>
+ *     <li>{@link #any(ReflectiveHandle[])} and {@link #anyOf(Callable[])}: Advanced fallback-based support for all the reflection operations.</li>
+ * </ul>
+ *     <h2>Others</h2>
+ * Also, there are a few other non-reflection APIs in this class that are a bit "hacky" which is why they're here.
+ * <ul>
+ *     <li>{@link #getVersionInformation()}: Useful string to include in your reflection related errors.</li>
+ *     <li>{@link #throwCheckedException(Throwable)}: Force throw checked exceptions as unchecked.</li>
+ *     <li>{@link #stacktrace(CompletableFuture)}: Add stacktrace information to {@link CompletableFuture}s.</li>
+ *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
+ * </ul>
  * @author Crypto Morin
  * @version 11.2.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
@@ -64,6 +87,7 @@ public final class XReflection {
      * strategy.
      */
     @Nullable
+    @ApiStatus.Internal
     public static final String NMS_VERSION = findNMSVersionString();
 
     /**
@@ -90,7 +114,7 @@ public final class XReflection {
                 // As a protection for forge+bukkit implementation that tend to mix versions.
                 // The real CraftPlayer should exist in the package.
                 // Note: Doesn't seem to function properly. Will need to separate the version
-                // handler for NMS and CraftBukkit for softwares like catmc.
+                // handler for NMS and CraftBukkit for software like catmc.
                 try {
                     Class.forName("org.bukkit.craftbukkit." + found + ".entity.CraftPlayer");
                     break;
@@ -230,18 +254,15 @@ public final class XReflection {
     /**
      * Mojang remapped their NMS in 1.17: <a href="https://www.spigotmc.org/threads/spigot-bungeecord-1-17.510208/#post-4184317">Spigot Thread</a>
      */
+    @ApiStatus.Internal
     public static final String
             CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
             NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
+
     public static final MinecraftMapping SUPPORTED_MAPPING;
 
 
     static {
-        MinecraftClassHandle entityPlayer = ofMinecraft()
-                .inPackage(MinecraftPackage.NMS, "server.level")
-                .map(MinecraftMapping.MOJANG, "ServerPlayer")
-                .map(MinecraftMapping.SPIGOT, "EntityPlayer");
-
         if (ofMinecraft()
                 .inPackage(MinecraftPackage.NMS, "server.level")
                 .map(MinecraftMapping.MOJANG, "ServerPlayer")
@@ -253,6 +274,11 @@ public final class XReflection {
                 .exists()) {
             SUPPORTED_MAPPING = MinecraftMapping.SPIGOT;
         } else {
+            MinecraftClassHandle entityPlayer = ofMinecraft()
+                    .inPackage(MinecraftPackage.NMS, "server.level")
+                    .map(MinecraftMapping.MOJANG, "ServerPlayer")
+                    .map(MinecraftMapping.SPIGOT, "EntityPlayer");
+
             throw new RuntimeException("Unknown Minecraft mapping " + getVersionInformation(), entityPlayer.catchError());
         }
     }
@@ -459,7 +485,20 @@ public final class XReflection {
         return new AggregateReflectiveHandle<>(Arrays.asList(handles));
     }
 
-    @ApiStatus.Internal
+    /**
+     * Relativize the stacktrace of exceptions that are thrown from the same location.
+     * The suppressed exception's ({@link Throwable#getSuppressed()}) stacktrace are relativized against
+     * the given exceptions stacktrace.
+     * <p>
+     * This is mostly useful when you have a trial-and-error mechanism that accumulates all the errors
+     * to throw them in case all the attempts have failed. This removes unnecessary line information to
+     * help the developer focus on important, non-repeated lines.
+     *
+     * @param ex the exception to have it's suppressed exceptions relativized.
+     * @return the same exception.
+     * @param <T> the type of the exception.
+     */
+    @ApiStatus.Experimental
     public static <T extends Throwable> T relativizeSuppressedExceptions(T ex) {
         final StackTraceElement[] EMPTY_STACK_TRACE_ARRAY = new StackTraceElement[0];
         StackTraceElement[] mainStackTrace = ex.getStackTrace();

@@ -9,6 +9,9 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 
+/**
+ * Any object that is a member of a {@link Class}.
+ */
 public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
     protected boolean makeAccessible, isFinal;
     protected final ClassHandle clazz;

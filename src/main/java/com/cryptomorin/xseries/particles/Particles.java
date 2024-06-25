@@ -1658,10 +1658,10 @@ public final class Particles {
     public static BooleanSupplier dnaReplication(double radius, double rate, int speed, double extension,
                                                  int height, int hydrogenBondDist, ParticleDisplay display) {
         // We'll use the common nucleotide colors.
-        ParticleDisplay adenine = ParticleDisplay.colored(null, java.awt.Color.BLUE, 1); // Blue
-        ParticleDisplay thymine = ParticleDisplay.colored(null, java.awt.Color.YELLOW, 1); // Yellow
-        ParticleDisplay guanine = ParticleDisplay.colored(null, java.awt.Color.GREEN, 1); // Green
-        ParticleDisplay cytosine = ParticleDisplay.colored(null, java.awt.Color.RED, 1); // Red
+        ParticleDisplay adenine = ParticleDisplay.of(XParticle.DUST).withColor(java.awt.Color.BLUE, 1); // Blue
+        ParticleDisplay thymine = ParticleDisplay.of(XParticle.DUST).withColor(java.awt.Color.YELLOW, 1); // Yellow
+        ParticleDisplay guanine = ParticleDisplay.of(XParticle.DUST).withColor(java.awt.Color.GREEN, 1); // Green
+        ParticleDisplay cytosine = ParticleDisplay.of(XParticle.DUST).withColor(java.awt.Color.RED, 1); // Red
 
         return new BooleanSupplier() {
             double y = 0;
@@ -2264,7 +2264,7 @@ public final class Particles {
             for (int j = 0; j < colsB; j++) {
                 float sum = 0;
                 for (int k = 0; k < colsA; k++) {
-                    sum += a[i][k] * b[k][j];
+                    sum += (float) (a[i][k] * b[k][j]);
                 }
                 result[i][j] = sum;
             }
@@ -2627,7 +2627,7 @@ public final class Particles {
      */
     public static BooleanSupplier explosionWave(double rate, ParticleDisplay display, ParticleDisplay secDisplay) {
         return new BooleanSupplier() {
-            final double addition = Math.PI * 0.1;
+            static final double addition = Math.PI * 0.1;
             final double rateDiv = Math.PI / rate;
             double times = Math.PI / 4;
             boolean done = false;

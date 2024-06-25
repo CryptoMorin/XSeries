@@ -8,7 +8,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Any {@link Profileable} that can have its results cached
+ * Any {@link Profileable} that can have its results cached.
  * This class should not be used directly.
  */
 @ApiStatus.Internal

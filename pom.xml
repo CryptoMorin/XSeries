@@ -60,11 +60,13 @@
             <id>nms-repo</id>
             <url>https://repo.codemc.org/repository/nms/</url>
         </repository>
-        <!--        <repository>-->
-        <!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
-        <!--            <id>minecraft-repo</id>-->
-        <!--            <url>https://libraries.minecraft.net/</url>-->
-        <!--        </repository>-->
+<!--        <repository>-->
+<!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
+<!--            &lt;!&ndash; https://libraries.minecraft.net/com/mojang/authlib/VERSION/authlib-VERSION.jar &ndash;&gt;-->
+<!--            <id>minecraft-libraries</id>-->
+<!--            <name>Minecraft Libraries</name>-->
+<!--            <url>https://libraries.minecraft.net/</url>-->
+<!--        </repository>-->
     </repositories>
 
     <properties>
@@ -85,25 +87,20 @@
     </properties>
 
     <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>com.mojang</groupId>-->
-        <!--            <artifactId>authlib</artifactId>-->
-        <!--            <version>1.5.25</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.jetbrains</groupId>-->
-        <!--            <artifactId>annotations</artifactId>-->
-        <!--            <version>24.1.0</version>-->
-        <!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.mojang</groupId>-->
+<!--            <artifactId>authlib</artifactId>-->
+<!--            <version>6.0.54</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>${spigotVersion}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
         <dependency>
+            <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>24.1.0</version>

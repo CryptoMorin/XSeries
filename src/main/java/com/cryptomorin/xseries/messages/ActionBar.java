@@ -57,7 +57,7 @@ import static com.cryptomorin.xseries.reflection.XReflection.*;
  * For static Action bars you'll need to send the packet every
  * 2 seconds (40 ticks) for it to stay on the screen without fading.
  * <p>
- * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
+ * <a href="https://wiki.vg/Protocol#Title">PacketPlayOutTitle</a>
  *
  * @author Crypto Morin
  * @version 4.0.0
@@ -259,7 +259,7 @@ public final class ActionBar {
     /**
      * Clear the action bar by sending an empty message to all the online players.
      *
-     * @see #clearActionBar(Player player)
+     * @see #clearActionBar(Player)
      * @since 2.1.1
      */
     public static void clearPlayersActionBar() {
@@ -294,7 +294,7 @@ public final class ActionBar {
                 }
                 sendActionBar(player, message);
             }
-            // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
+            // Re-sends the messages every 2 seconds, so it doesn't go away from the player's screen.
         }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 
@@ -325,7 +325,7 @@ public final class ActionBar {
                     ex.printStackTrace();
                 }
             }
-            // Re-sends the messages every 2 seconds so it doesn't go away from the player's screen.
+            // Re-sends the messages every 2 seconds, so it doesn't go away from the player's screen.
         }.runTaskTimerAsynchronously(plugin, 0L, 40L);
     }
 }

@@ -28,6 +28,12 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
+/**
+ * Sends HTTP requests to Mojang API endpoints.
+ * @see MojangAPI
+ * @see MojangAPIException
+ * @see MojangAPIRetryException
+ */
 @ApiStatus.Internal
 public class MinecraftClient {
     private static final AtomicInteger SESSION_ID = new AtomicInteger();
@@ -109,7 +115,6 @@ public class MinecraftClient {
         }
 
         public Session append(@Nonnull String append) {
-            validateMethod("GET");
             this.append = Objects.requireNonNull(append);
             return this;
         }
@@ -127,7 +132,7 @@ public class MinecraftClient {
         }
 
         @Nullable
-        public JsonElement request() throws IOException {
+        public JsonElement request() throws IOException, MojangAPIException {
             try {
                 JsonElement response = request0();
                 debug("Received response: {}", response);
@@ -155,7 +160,7 @@ public class MinecraftClient {
         }
 
         @Nullable
-        private JsonElement request0() throws IOException {
+        private JsonElement request0() throws IOException, MojangAPIException {
             if (waitInQueue) {
                 rateLimiter.acquireOrWait();
             } else {

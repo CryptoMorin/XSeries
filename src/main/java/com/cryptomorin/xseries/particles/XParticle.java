@@ -9,8 +9,8 @@ import java.util.*;
  * <p>
  * This class is mainly used to support {@link Particle}, especially for the "parity change" by
  * Spigot in 1.20.5 (see <a href="https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/diff/src/main/java/org/bukkit/Particle.java?until=8a34e009148cc297bcc9eb5c250fc4f5b071c4a7">...</a>).
+ * @author Crypto Morin, Collin Barber
  */
-@SuppressWarnings("UnstableApiUsage")
 public enum XParticle {
     /**
      * EXPLOSION_NORMAL -> POOF (v1.20.5)

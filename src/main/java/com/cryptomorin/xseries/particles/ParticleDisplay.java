@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  * The format of float list data for a colored particle is:
  * <code>[r, g, b, size]</code>
  *
- * @author Crypto Morin
+ * @author Crypto Morin, cricri211, datatags
  * @version 11.0.1
  * @see Particles
  */
@@ -339,7 +339,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 1.0.0
      * @deprecated use {@link #of(Particle)} and {@link #withLocation(Location)}
      */
-    @Nullable
+    @Nonnull
     @Deprecated
     public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
         Objects.requireNonNull(location, "Cannot display particle in null location");
@@ -574,7 +574,6 @@ public class ParticleDisplay implements Cloneable {
      * @param display The ParticleDisplay to serialize
      * @param section The ConfigurationSection to serialize into
      */
-    @SuppressWarnings("deprecation")
     public static void serialize(ParticleDisplay display, ConfigurationSection section) {
         section.set("particle", display.particle.name());
 
