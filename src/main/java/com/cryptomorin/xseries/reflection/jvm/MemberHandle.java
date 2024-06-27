@@ -10,6 +10,8 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 
 /**
+ * This class should not be used directly.
+ * <p>
  * Any object that is a member of a {@link Class}.
  */
 public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * A handle for using reflection for {@link Method}.
  */
-public class MethodMemberHandle extends NamedMemberHandle {
+public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     protected Class<?>[] parameterTypes = new Class[0];
 
     public MethodMemberHandle(ClassHandle clazz) {

@@ -361,7 +361,7 @@ public class XWorldBorder implements Cloneable {
         WORLD_HANDLE = craftWorld.method().named("getHandle").returns(worldServer).unreflect();
         INITIALIZE = initialize;
         WORLDBORDER = wb.constructor().unreflect();
-        WORLDBORDER_WORLD = wb.setterField().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
+        WORLDBORDER_WORLD = wb.field().setter().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
 
         CENTER = wb.method()
                 .named(v(18, "c").orElse("setCenter"))

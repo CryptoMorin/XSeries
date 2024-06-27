@@ -240,21 +240,29 @@ public final class Particles {
     /**
      * Spawns a circle.
      * Most common shapes that can be built:
-     * <pre>
+     * <pre>{@code
      *     The simplest shape, a circle
      *     circle(3, 3, 1, 30, 0, display);
      *
      *     An ellipse only has a different radius for one of its waves.
      *     circle(3, 4, 1, 30, 0, display);
-     * </pre>
+     * }</pre>
+     * <p>
+     * <h2>Animated Circle</h2>
+     * The following code spawns a circle with its particles moving outwards smoothly.
+     * <pre>{@code
+     *     int radius = 3;
+     *     var display = ParticleDisplay.of(XParticle.DUST).withLocation(...).directional().withExtra(1);
+     *     circle(radius, radius, 1, 30, 0, display);
+     * }</pre>
      * <p>
      * Tutorial: https://www.spigotmc.org/threads/111238/
      * Uses its own unique directional pattern.
      *
-     * @param radius    the first radius of the circle.
-     * @param radius2   the second radius of the circle.
-     * @param extension the extension of the circle waves.
-     * @param rate      the rate of the circle points.
+     * @param radius    the first radius of the circle. (2 is normal)
+     * @param radius2   the second radius of the circle. (creates an ellipse radiuses are different)
+     * @param extension the extension of the circle waves. (1 is normal)
+     * @param rate      the rate of the circle points. (Normally ~30)
      * @param limit     the limit of the circle. Usually from 0 to PII.
      *                  If you choose 0, it'll be a full circle {@link #PII}
      *                  If you choose -1, it'll do a full loop based on the extension.
@@ -798,7 +806,9 @@ public final class Particles {
         for (int i = 0; i < 7; i++) {
             // Get the rainbow color in order.
             int[] rgb = rainbow[i];
-            display = ParticleDisplay.colored(display.getLocation(), rgb[0], rgb[1], rgb[2], 1);
+            display = ParticleDisplay.of(XParticle.DUST)
+                    .withLocation(display.getLocation())
+                    .withColor(new java.awt.Color(rgb[0], rgb[1], rgb[2]), 1);
 
             // Display the same color multiple times.
             for (int layer = 0; layer < layers; layer++) {

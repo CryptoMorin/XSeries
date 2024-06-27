@@ -29,7 +29,6 @@ public class ConstructorMemberHandle extends MemberHandle {
         return this;
     }
 
-
     @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
         if (isFinal) throw new UnsupportedOperationException("Constructor cannot be final: " + this);

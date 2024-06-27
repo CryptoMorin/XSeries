@@ -46,6 +46,19 @@ another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles
     <artifactId>XSeries</artifactId>
     <version>version</version>
 </dependency>
+
+<!-- If you want to use XSkull and you use 'spigot-api' dependency you need the following: -->
+<repository>
+    <id>minecraft-libraries</id>
+    <name>Minecraft Libraries</name>
+    <url>https://libraries.minecraft.net/</url>
+</repository>
+<dependency>
+<groupId>com.mojang</groupId>
+    <artifactId>authlib</artifactId>
+    <version>6.0.54</version>
+    <scope>provided</scope>
+</dependency>
 ```
 
 Gradle

@@ -18,7 +18,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Should not be used directly.
+ * <b>Note:</b> Currently, if XSeries is included as a library, the @Language annotation doesn't work
+ * even if you have the sources downloaded, this is unfortunately
+ * <a href="https://youtrack.jetbrains.com/issue/IJPL-18247/LanguageInjection-does-not-work-if-annotation-is-in-project-from-dependency">a bug with IntelliJ</a>.
+ * <p>
+ * This class should not be used directly.
  * <p>
  * This class is designed to be able to parse Java declarations only in a loose way, as it also
  * supports more simplified syntax (for example not requiring semicolons) that doesn't work
@@ -224,14 +228,19 @@ public class ReflectionParser {
         parseFlags();
         if (handle instanceof MemberHandle) {
             MemberHandle memberHandle = (MemberHandle) handle;
-            if (hasOneOf(flags, Flag.PRIVATE, Flag.PROTECTED)) {
+            if (!hasOneOf(flags, Flag.PUBLIC, Flag.PROTECTED, Flag.PRIVATE)) {
+                // No access modifier is set.
+                // Interface methods are public, no need to make it accessible.
+                Class<?> clazz = memberHandle.getClassHandle().reflectOrNull();
+                if (clazz != null && !clazz.isInterface()) memberHandle.makeAccessible(); // package-private
+            } else if (hasOneOf(flags, Flag.PRIVATE, Flag.PROTECTED)) {
                 memberHandle.makeAccessible();
             }
             if (handle instanceof FieldMemberHandle) {
                 if (flags.contains(Flag.FINAL)) ((FieldMemberHandle) handle).asFinal();
             }
-            if (handle instanceof NamedMemberHandle) {
-                if (flags.contains(Flag.STATIC)) ((NamedMemberHandle) handle).asStatic();
+            if (handle instanceof FlaggedNamedMemberHandle) {
+                if (flags.contains(Flag.STATIC)) ((FlaggedNamedMemberHandle) handle).asStatic();
             }
         }
     }

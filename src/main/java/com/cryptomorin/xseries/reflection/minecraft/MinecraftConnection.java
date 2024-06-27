@@ -40,7 +40,7 @@ public final class MinecraftConnection {
 
     private static final MethodHandle PLAYER_CONNECTION = ServerPlayer
             // .getterField(v(20, 5, "connection").v(20, "c").v(17, "b").orElse("playerConnection"))
-            .getterField()
+            .field().getter()
             .returns(ServerGamePacketListenerImpl)
             .map(MinecraftMapping.MOJANG, "connection")
             .map(MinecraftMapping.OBFUSCATED, v(20, "c").v(17, "b").orElse("playerConnection"))

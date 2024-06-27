@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin, cricri211, datatags
- * @version 11.0.1
+ * @version 12.0.0
  * @see Particles
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
@@ -108,15 +108,6 @@ public class ParticleDisplay implements Cloneable {
         }
         SUPPORTS_ALPHA_COLORS = supportsAlphaColors;
     }
-
-    /**
-     * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustTransition}
-     * which is only available from 1.17+ (DUST_COLOR_TRANSITION was released in 1.17)
-     *
-     * @since 8.6.0.0.1
-     */
-    private static final boolean SUPPORTS_DUST_TRANSITION = XParticle.DUST_COLOR_TRANSITION.isSupported();
-    // private static final Axis[] DEFAULT_ROTATION_ORDER = {Axis.X, Axis.Y, Axis.Z};
 
     /**
      * The possible colors for note particles.
@@ -225,7 +216,7 @@ public class ParticleDisplay implements Cloneable {
      * @return a redstone colored dust.
      * @see #simple(Location, Particle)
      * @since 1.0.0
-     * @deprecated use {@link #withColor(float, float, float, float)}
+     * @deprecated use {@link #withColor(Color)}
      */
     @Nonnull
     @Deprecated
@@ -279,7 +270,7 @@ public class ParticleDisplay implements Cloneable {
     @Nonnull
     @Deprecated
     public static ParticleDisplay colored(Location location, @Nonnull Color color, float size) {
-        return colored(location, color.getRed(), color.getGreen(), color.getBlue(), size);
+        return ParticleDisplay.of(XParticle.DUST).withLocation(location).withColor(color, size);
     }
 
     /**
@@ -561,6 +552,7 @@ public class ParticleDisplay implements Cloneable {
         } else if (materialdata != null) {
             Material material = Material.getMaterial(materialdata);
             if (material != null && material.isBlock()) {
+                // noinspection deprecation
                 display.data = new ParticleMaterialData(material.getNewData((byte) 0));
             }
         }
@@ -956,6 +948,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 7.1.0
      * @deprecated use {@link #withColor(Color, float)}
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Nonnull
     @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {

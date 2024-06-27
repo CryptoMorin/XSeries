@@ -25,6 +25,12 @@ public final class ReflectionTests {
         }
     }
 
+    public enum EnumTest {
+        A, B, C;
+
+        public static final int D = 9934343;
+    }
+
     public ReflectionTests() {
     }
 
@@ -84,6 +90,20 @@ public final class ReflectionTests {
                     .field("public final AtomicInteger atomicField;")
                     .getter().reflect();
             System.err.println("inner inner inner field: " + innerinnerinnerField);
+
+            XReflection.namespaced()
+                    .of(ReflectionTests.class)
+                    .inner("public interface GameProfile {}")
+                    .method("void field_setter_test(String test);")
+                    .reflect();
+
+            Object enumConstant = XReflection.namespaced()
+                    .of(ReflectionTests.class)
+                    .inner("public enum EnumTest {}")
+                    .enums().named("A")
+                    .getEnumConstant();
+
+            System.out.println("Enum found: " + enumConstant);
 
             Object res = new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
                     .parseMethod(clazz.method()).unreflect().invoke(new ReflectionTests(), ',', 2, true);

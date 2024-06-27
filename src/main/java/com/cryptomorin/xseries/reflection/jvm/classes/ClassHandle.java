@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
+import com.cryptomorin.xseries.reflection.jvm.EnumMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
@@ -81,9 +82,8 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
         return createParser(declaration).parseMethod(method());
     }
 
-    private ReflectionParser createParser(@Language("Java") String declaration) {
-        this.unreflect(); // Add to namespace.
-        return new ReflectionParser(declaration).imports(this.namespace);
+    public EnumMemberHandle enums() {
+        return new EnumMemberHandle(this);
     }
 
     public FieldMemberHandle field() {
@@ -98,14 +98,6 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
         return createParser(declaration).parseConstructor(constructor());
     }
 
-    public FieldMemberHandle getterField() {
-        return field().getter();
-    }
-
-    public FieldMemberHandle setterField() {
-        return field().setter();
-    }
-
     public ConstructorMemberHandle constructor() {
         return new ConstructorMemberHandle(this);
     }
@@ -116,5 +108,10 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
 
     public ConstructorMemberHandle constructor(ClassHandle... parameters) {
         return constructor().parameters(parameters);
+    }
+
+    private ReflectionParser createParser(@Language("Java") String declaration) {
+        this.unreflect(); // Add to namespace.
+        return new ReflectionParser(declaration).imports(this.namespace);
     }
 }
