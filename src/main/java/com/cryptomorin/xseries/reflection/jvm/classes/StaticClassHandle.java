@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.util.Collections;
@@ -15,11 +16,12 @@ import java.util.Set;
  * @see DynamicClassHandle
  */
 public class StaticClassHandle extends ClassHandle {
+    @NotNull
     protected Class<?> clazz;
 
-    public StaticClassHandle(ReflectiveNamespace namespace, Class<?> clazz) {
+    public StaticClassHandle(ReflectiveNamespace namespace, @NotNull Class<?> clazz) {
         super(namespace);
-        this.clazz = clazz;
+        this.clazz = Objects.requireNonNull(clazz);
     }
 
     private Class<?> purifyClass() {
@@ -58,5 +60,10 @@ public class StaticClassHandle extends ClassHandle {
     @Override
     public Set<String> getPossibleNames() {
         return Collections.singleton(clazz.getSimpleName());
+    }
+
+    @Override
+    public StaticClassHandle clone() {
+        return new StaticClassHandle(namespace, this.clazz);
     }
 }

@@ -21,6 +21,9 @@ import java.util.UUID;
 
 import static com.cryptomorin.xseries.reflection.XReflection.v;
 
+/**
+ * Collection of NMS reflection needed to interact with the internal cache.
+ */
 @SuppressWarnings("unchecked")
 @ApiStatus.Internal
 public final class ProfilesCore {

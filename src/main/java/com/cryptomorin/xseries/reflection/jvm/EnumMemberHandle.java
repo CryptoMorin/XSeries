@@ -62,7 +62,7 @@ public class EnumMemberHandle extends NamedMemberHandle {
      * Use {@link #getEnumConstant()} instead.
      * If you want to use this, you can do so with:
      * <pre>{@code
-     * Object enumConstant = handle.reflect().invoke();
+     *     Object enumConstant = handle.reflect().invoke();
      * }</pre>
      */
     @Override
@@ -77,7 +77,7 @@ public class EnumMemberHandle extends NamedMemberHandle {
         try {
             return reflectJvm().get(null);
         } catch (ReflectiveOperationException ex) {
-            return null;
+            throw XReflection.throwCheckedException(ex);
         }
     }
 
@@ -105,5 +105,14 @@ public class EnumMemberHandle extends NamedMemberHandle {
 
         if (field == null) throw XReflection.relativizeSuppressedExceptions(errors);
         return handleAccessible(field);
+    }
+
+    /**
+     * Why would you even want to use this method for enums?
+     */
+    @Override
+    @ApiStatus.Obsolete
+    public EnumMemberHandle clone() {
+        throw new UnsupportedOperationException();
     }
 }

@@ -108,6 +108,17 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     @Override
+    public FieldMemberHandle clone() {
+        FieldMemberHandle handle = new FieldMemberHandle(clazz);
+        handle.returnType = this.returnType;
+        handle.getter = this.getter;
+        handle.isFinal = this.isFinal;
+        handle.makeAccessible = this.makeAccessible;
+        handle.names.addAll(this.names);
+        return handle;
+    }
+
+    @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
         Field jvm = reflectJvm();
         if (getter) {

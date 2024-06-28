@@ -1,9 +1,10 @@
 package com.cryptomorin.xseries.reflection.minecraft;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 import java.util.Objects;
@@ -69,26 +70,27 @@ public final class MinecraftConnection {
             .map(MinecraftMapping.OBFUSCATED, v(20, 2, "b").v(18, "a").orElse("sendPacket"))
             .unreflect();
 
-    @Nullable
-    public static Object getHandle(@Nonnull Player player) {
+    @NotNull
+    public static Object getHandle(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot get handle of null player");
         try {
             return GET_HANDLE.invoke(player);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            return null;
+            throw XReflection.throwCheckedException(throwable);
         }
     }
 
+    /**
+     * @return null if the player is no longer online.
+     */
     @Nullable
-    public static Object getConnection(@Nonnull Player player) {
+    public static Object getConnection(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot get connection of null player");
         try {
             Object handle = GET_HANDLE.invoke(player);
             return PLAYER_CONNECTION.invoke(handle);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            return null;
+            throw XReflection.throwCheckedException(throwable);
         }
     }
 
@@ -100,8 +102,8 @@ public final class MinecraftConnection {
      * @param packets the packets to send.
      * @since 1.0.0
      */
-    @Nonnull
-    public static void sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
+    @NotNull
+    public static void sendPacket(@NotNull Player player, @NotNull Object... packets) {
         Objects.requireNonNull(player, () -> "Can't send packet to null player: " + Arrays.toString(packets));
         Objects.requireNonNull(packets, () -> "Can't send null packets to player: " + player);
         try {

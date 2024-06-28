@@ -75,6 +75,16 @@ public class DynamicClassHandle extends ClassHandle {
     }
 
     @Override
+    public DynamicClassHandle clone() {
+        DynamicClassHandle handle = new DynamicClassHandle(namespace);
+        handle.array = this.array;
+        handle.parent = this.parent;
+        handle.packageName = this.packageName;
+        handle.classNames.addAll(this.classNames);
+        return handle;
+    }
+
+    @Override
     public Class<?> reflect() throws ClassNotFoundException {
         ClassNotFoundException errors = null;
 

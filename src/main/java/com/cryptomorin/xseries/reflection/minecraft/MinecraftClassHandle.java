@@ -39,4 +39,14 @@ public class MinecraftClassHandle extends DynamicClassHandle {
         this.classNames.add(className);
         return this;
     }
+
+    @Override
+    public MinecraftClassHandle clone() {
+        MinecraftClassHandle handle = new MinecraftClassHandle(namespace);
+        handle.array = this.array;
+        handle.parent = this.parent;
+        handle.packageName = this.packageName;
+        handle.classNames.addAll(this.classNames);
+        return handle;
+    }
 }

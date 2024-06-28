@@ -2,22 +2,17 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
-import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
-import com.cryptomorin.xseries.reflection.jvm.EnumMemberHandle;
-import com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle;
-import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
+import com.cryptomorin.xseries.reflection.jvm.*;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @see DynamicClassHandle
  * @see StaticClassHandle
  */
-public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
+public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedReflectiveHandle {
     protected final ReflectiveNamespace namespace;
 
     protected ClassHandle(ReflectiveNamespace namespace) {
@@ -32,9 +27,6 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
     }
 
     public abstract boolean isArray();
-
-    @Nonnull
-    public abstract Set<String> getPossibleNames();
 
     public DynamicClassHandle inner(@Language("Java") String declaration) {
         return inner(namespace.classHandle(declaration));
@@ -111,7 +103,9 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>> {
     }
 
     private ReflectionParser createParser(@Language("Java") String declaration) {
-        this.unreflect(); // Add to namespace.
         return new ReflectionParser(declaration).imports(this.namespace);
     }
+
+    @Override
+    public abstract ClassHandle clone();
 }

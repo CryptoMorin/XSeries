@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.reflection;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -14,7 +15,13 @@ import javax.annotation.Nonnull;
  * @see com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle
  * @see com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle
  */
-public interface ReflectiveHandle<T> {
+public interface ReflectiveHandle<T> extends Cloneable {
+    /**
+     * Creates a new handle with the same properties.
+     */
+    @ApiStatus.Experimental
+    ReflectiveHandle<T> clone();
+
     /**
      * @return true if this object exists at runtime, otherwise false.
      */
@@ -29,8 +36,10 @@ public interface ReflectiveHandle<T> {
 
     /**
      * Catches any {@link ReflectiveOperationException} thrown by {@link #reflect()}
+     * @deprecated I don't think there's going to be any practical use for this method.
      */
     @Nullable
+    @ApiStatus.Obsolete
     default ReflectiveOperationException catchError() {
         try {
             reflect();

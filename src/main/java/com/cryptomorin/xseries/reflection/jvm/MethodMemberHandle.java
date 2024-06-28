@@ -23,6 +23,9 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
         super(clazz);
     }
 
+    /**
+     * Overrides any previously set parameters.
+     */
     public MethodMemberHandle parameters(ClassHandle... parameterTypes) {
         this.parameterTypes = Arrays.stream(parameterTypes).map(ClassHandle::unreflect).toArray(Class[]::new);
         return this;
@@ -94,6 +97,17 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
 
         if (method == null) throw XReflection.relativizeSuppressedExceptions(errors);
         return handleAccessible(method);
+    }
+
+    @Override
+    public MethodMemberHandle clone() {
+        MethodMemberHandle handle = new MethodMemberHandle(clazz);
+        handle.returnType = this.returnType;
+        handle.parameterTypes = this.parameterTypes;
+        handle.isFinal = this.isFinal;
+        handle.makeAccessible = this.makeAccessible;
+        handle.names.addAll(this.names);
+        return handle;
     }
 
     @Override

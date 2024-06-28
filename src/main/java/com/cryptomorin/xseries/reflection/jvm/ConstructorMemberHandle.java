@@ -51,6 +51,15 @@ public class ConstructorMemberHandle extends MemberHandle {
     }
 
     @Override
+    public ConstructorMemberHandle clone() {
+        ConstructorMemberHandle handle = new ConstructorMemberHandle(clazz);
+        handle.parameterTypes = this.parameterTypes;
+        handle.isFinal = this.isFinal;
+        handle.makeAccessible = this.makeAccessible;
+        return handle;
+    }
+
+    @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
         if (makeAccessible) str += "protected/private ";

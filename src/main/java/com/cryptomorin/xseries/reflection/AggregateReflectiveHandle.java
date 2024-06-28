@@ -57,6 +57,14 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
         return this;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public AggregateReflectiveHandle<T, H> clone() {
+        AggregateReflectiveHandle<T, H> handle = new AggregateReflectiveHandle<>(new ArrayList<>(handles));
+        handle.handleModifier = this.handleModifier;
+        return handle;
+    }
+
     @Override
     public T reflect() throws ReflectiveOperationException {
         ClassNotFoundException errors = null;

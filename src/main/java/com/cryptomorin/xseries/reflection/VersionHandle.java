@@ -75,11 +75,16 @@ public final class VersionHandle<T> {
 
     /**
      * If none of the previous version checks matched, it'll return this object.
+     * @see #orElse(Callable)
      */
     public T orElse(T handle) {
         return this.version == 0 ? handle : this.handle;
     }
 
+    /**
+     * If none of the previous version checks matched, it'll return this object.
+     * @see #orElse(Object)
+     */
     public T orElse(Callable<T> handle) {
         if (this.version == 0) {
             try {

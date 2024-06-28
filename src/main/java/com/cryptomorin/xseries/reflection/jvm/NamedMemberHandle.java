@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import org.intellij.lang.annotations.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,8 +16,14 @@ import java.util.Set;
  * Any reflective JVM object that has a name, like {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method}
  * the other being {@link java.lang.reflect.Constructor} which doesn't have a name.
  */
-public abstract class NamedMemberHandle extends MemberHandle {
+public abstract class NamedMemberHandle extends MemberHandle implements NamedReflectiveHandle {
     protected final Set<String> names = new HashSet<>(5);
+
+    @NotNull
+    @Override
+    public Set<String> getPossibleNames() {
+        return names;
+    }
 
     protected NamedMemberHandle(ClassHandle clazz) {
         super(clazz);
@@ -31,4 +38,7 @@ public abstract class NamedMemberHandle extends MemberHandle {
         this.names.addAll(Arrays.asList(names));
         return this;
     }
+
+    @Override
+    public abstract NamedMemberHandle clone();
 }
