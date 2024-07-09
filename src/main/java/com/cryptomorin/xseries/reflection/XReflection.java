@@ -259,20 +259,21 @@ public final class XReflection {
             CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
             NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
 
-    public static final MinecraftMapping SUPPORTED_MAPPING;
-
+    @ApiStatus.Internal
+    @ApiStatus.Experimental
+    public static final Set<MinecraftMapping> SUPPORTED_MAPPINGS;
 
     static {
         if (ofMinecraft()
                 .inPackage(MinecraftPackage.NMS, "server.level")
                 .map(MinecraftMapping.MOJANG, "ServerPlayer")
                 .exists()) {
-            SUPPORTED_MAPPING = MinecraftMapping.MOJANG;
+            SUPPORTED_MAPPINGS = EnumSet.of(MinecraftMapping.MOJANG);
         } else if (ofMinecraft()
                 .inPackage(MinecraftPackage.NMS, "server.level")
                 .map(MinecraftMapping.MOJANG, "EntityPlayer")
                 .exists()) {
-            SUPPORTED_MAPPING = MinecraftMapping.SPIGOT;
+            SUPPORTED_MAPPINGS = EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED);
         } else {
             MinecraftClassHandle entityPlayer = ofMinecraft()
                     .inPackage(MinecraftPackage.NMS, "server.level")

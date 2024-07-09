@@ -136,11 +136,12 @@ public final class XSeriesTests {
                         Profileable.detect("Bucyrus"),
                         Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")
                 ), session -> session.exceptionally((a, b) -> {
-                    print("Exceptionally");
+                    print("Session Exceptionally");
                     b.printStackTrace();
                     return false;
                 }), x -> {
-                    x.printStackTrace();
+                    print("Error Handler " + x.getMessage());
+                    // x.printStackTrace(); Don't print, it'll not include the full stacktrace
                     return false;
                 })
                 .thenRun(() -> print("profile preparation done"))

@@ -45,6 +45,22 @@ import java.util.*;
  * Also, all the types that are passed to or parsed from this namespace
  * (e.g. from {@link #of(Class)}, {@link #ofMinecraft(String)}, {@link #classHandle(String)})
  * are imported automatically. Making this a powerful mini-IDE!
+ * <p><br>
+ * Note that sometimes you need to import remapped classes manually if you're going to be using {@link #of(Class)}
+ * since these class names are going to be remapped at runtime, and if you use the obfuscated names in
+ * string-based API signatures, it'll fail:
+ * <pre>{@code
+ *      ReflectiveNamespace ns = XReflection.namespaced();
+ *
+ *      // If you don't do the following, then this whole thing won't work.
+ *      // The reason why adding this manual import works is because "MinecraftKey" class
+ *      // will be remapped to "ResourceLocation" at runtime, so the following code will be
+ *      // translated to ns.imports("MinecraftKey", ResourceLocation.class);
+ *      ns.imports("MinecraftKey", MinecraftKey.class);
+ *
+ *      // Alternatively you could just use "ResourceLocation" instead of "MinecraftKey" here in the string.
+ *      ns.of(MinecraftKey.class).method("public static MinecraftKey fromNamespaceAndPath(String namespace, String path);").unreflect();
+ * }</pre>
  */
 public class ReflectiveNamespace {
     private final Map<String, Class<?>> imports = new HashMap<>();

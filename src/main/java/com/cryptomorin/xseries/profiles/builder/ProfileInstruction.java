@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.profiles.builder;
 
 import com.cryptomorin.xseries.profiles.ProfilesCore;
+import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
@@ -12,6 +13,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +79,7 @@ public final class ProfileInstruction<T> implements Profileable {
      * The current profile of the item/block (not the profile provided in {@link #profile(Profileable)})
      */
     @Override
+    @Nullable
     public GameProfile getProfile() {
         return profileContainer.getProfile();
     }
@@ -84,6 +87,7 @@ public final class ProfileInstruction<T> implements Profileable {
     /**
      * A string representation of the {@link #getProfile()} which is useful for data storage.
      */
+    @Nullable
     public String getProfileString() {
         return profileContainer.getProfileValue();
     }
@@ -155,9 +159,18 @@ public final class ProfileInstruction<T> implements Profileable {
         boolean tryingFallbacks = false;
         for (Profileable profileable : tries) {
             try {
-                profileContainer.setProfile(profileable.getDisposableProfile());
-                success = true;
-                break;
+                GameProfile gameProfile = profileable.getDisposableProfile();
+                if (gameProfile != null) {
+                    profileContainer.setProfile(gameProfile);
+                    success = true;
+                    break;
+                } else {
+                    if (exception == null) {
+                        exception = new ProfileChangeException("Could not set the profile for " + profileContainer);
+                    }
+                    exception.addSuppressed(new InvalidProfileException("Profile doesn't have a value: " + profileable));
+                    tryingFallbacks = true;
+                }
             } catch (ProfileException ex) {
                 if (exception == null) {
                     exception = new ProfileChangeException("Could not set the profile for " + profileContainer);

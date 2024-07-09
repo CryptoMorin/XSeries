@@ -69,6 +69,7 @@ public final class TransformableProfile implements Profileable {
         // transformation sequences don't send any API requests. The cost of synchronizing
         // this method would be probably more than letting the transformation happen again.
         transformers.profile = profileable.getProfile();
+        if (transformers.profile == null) return null;
 
         for (TransformationSequence.TransformedProfileCache transformer : transformers.transformers) {
             transformer.transform();

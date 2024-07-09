@@ -15,8 +15,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Skull;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -41,9 +46,9 @@ public interface Profileable {
      * The cached values might also be re-evaluated due to expiration.
      * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
      * @return the original profile (not cloned if possible) for an instance that's always guaranteed to be a copy
-     *         you can use {@link #getDisposableProfile()} instead.
+     *         you can use {@link #getDisposableProfile()} instead. Null if no profile is set (only happens for {@link ProfileContainer}).
      */
-    @NotNull
+    @Nullable
     @Unmodifiable
     @ApiStatus.Internal
     GameProfile getProfile();
@@ -54,12 +59,13 @@ public interface Profileable {
      * method ensures that no duplicate cloning of {@link GameProfile} occurs for performance.
      * <p>
      * For most implementations however, this defaults to a simple cloning of the cached instances.
-     * @return always a copied version of {@link #getProfile()} that you can change.
+     * @return always a copied version of {@link #getProfile()} that you can change. Null if {@link #getProfile()} is null
      */
-    @NotNull
+    @Nullable
     @ApiStatus.Internal
     default GameProfile getDisposableProfile() {
-        return PlayerProfiles.clone(getProfile());
+        GameProfile profile = getProfile();
+        return profile == null ? null : PlayerProfiles.clone(profile);
     }
 
     /**
@@ -76,6 +82,7 @@ public interface Profileable {
 
     /**
      * A string representation of the {@link #getProfile()} which is useful for data storage.
+     * @return null if {@link #getProfile()} is null or the set profile doesn't have a texture property.
      */
     @Nullable
     default String getProfileValue() {
@@ -178,6 +185,22 @@ public interface Profileable {
      */
     static Profileable of(OfflinePlayer offlinePlayer) {
         return new PlayerProfileable(offlinePlayer);
+    }
+
+    static Profileable of(BlockState blockState) {
+        return new ProfileContainer.BlockStateProfileContainer((Skull) blockState);
+    }
+
+    static Profileable of(Block block) {
+        return new ProfileContainer.BlockProfileContainer(block);
+    }
+
+    static Profileable of(ItemStack item) {
+        return new ProfileContainer.ItemStackProfileContainer(item);
+    }
+
+    static Profileable of(ItemMeta meta) {
+        return new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta);
     }
 
     /**
