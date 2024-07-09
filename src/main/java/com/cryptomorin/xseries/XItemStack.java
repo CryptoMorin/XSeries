@@ -1137,6 +1137,11 @@ public final class XItemStack {
     /**
      * Parses RGB color codes from a string.
      * This only works for 1.13 and above.
+     * Accepts the following formats:
+     * "r, g, b"
+     * "#RRGGBB"
+     * decimal number representing "r << 16 | g << 8 | b"
+     * (format "0xRRGGBB" is converted to decimal by SnakeYAML and handled as such)
      *
      * @param str the RGB string.
      * @return a color based on the RGB.
@@ -1146,8 +1151,23 @@ public final class XItemStack {
     public static Color parseColor(@Nullable String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         List<String> rgb = split(str.replace(" ", ""), ',');
-        if (rgb.size() < 3) return Color.WHITE;
-        return Color.fromRGB(toInt(rgb.get(0), 0), toInt(rgb.get(1), 0), toInt(rgb.get(2), 0));
+        if (rgb.size() == 3) {
+            return Color.fromRGB(toInt(rgb.get(0), 0), toInt(rgb.get(1), 0), toInt(rgb.get(2), 0));
+        }
+        // If we read a number that starts with 0x, SnakeYAML has already converted it to base-10
+        try {
+            return Color.fromRGB(Integer.parseInt(str));
+        } catch (NumberFormatException ignored) {
+        }
+        // Trim any prefix, parseInt only accepts digits
+        if (str.startsWith("#")) {
+            str = str.substring(1);
+        }
+        try {
+            return Color.fromRGB(Integer.parseInt(str, 16));
+        } catch (NumberFormatException e) {
+            return Color.WHITE;
+        }
     }
 
     /**
