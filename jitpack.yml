@@ -1,3 +1,4 @@
 before_install:
    - sdk install maven
-   - sdk use maven
+   - sdk update
+   - sdk default maven
