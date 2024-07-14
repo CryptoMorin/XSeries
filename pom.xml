@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>11.2.0</version>
+    <version>11.2.0.1</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -74,6 +74,9 @@
         <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
         <!-- 1.8.8-R0.1-SNAPSHOT -->
         <!-- 1.9.4-R0.1-SNAPSHOT -->
+        <!-- 1.10.2-R0.1-SNAPSHOT -->
+        <!-- 1.11.2-R0.1-SNAPSHOT -->
+        <!-- 1.12.2-R0.1-SNAPSHOT -->
         <!-- 1.13.2-R0.1-SNAPSHOT -->
         <!-- 1.14.4-R0.1-SNAPSHOT -->
         <!-- 1.15.2-R0.1-SNAPSHOT -->

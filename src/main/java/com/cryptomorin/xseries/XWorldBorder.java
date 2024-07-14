@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
@@ -307,10 +308,13 @@ public class XWorldBorder implements Cloneable {
                 try {
                     wbType = Class.forName("EnumWorldBorderAction");
                 } catch (ClassNotFoundException e) {
-                    wbType = getNMSClass("PacketPlayOutWorldBorder$EnumWorldBorderAction");
+                    wbType = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
+                            .named("PacketPlayOutWorldBorder$EnumWorldBorderAction").unreflect();
                 }
 
-                packetInit = lookup.findConstructor(getNMSClass("PacketPlayOutWorldBorder"), MethodType.methodType(void.class, wb.reflect(), wbType));
+                packetInit = lookup.findConstructor(XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
+                                .named("PacketPlayOutWorldBorder").unreflect(),
+                        MethodType.methodType(void.class, wb.reflect(), wbType));
 
                 for (Object type : wbType.getEnumConstants()) {
                     if (type.toString().equals("INITIALIZE")) {

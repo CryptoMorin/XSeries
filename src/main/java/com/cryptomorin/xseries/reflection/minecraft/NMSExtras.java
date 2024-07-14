@@ -43,6 +43,8 @@ import java.util.*;
 import static com.cryptomorin.xseries.reflection.XReflection.*;
 
 /**
+ * Note: This class is currently really unorganized and unstable. It needs a proper recode.
+ * <p>
  * A class that provides various different essential features that the API
  * didn't/doesn't support.
  * <p>
@@ -51,8 +53,12 @@ import static com.cryptomorin.xseries.reflection.XReflection.*;
  * @author Crypto Morin
  * @version 5.5.0
  */
+@SuppressWarnings("unused")
 public final class NMSExtras {
-    public static final Class<?> EntityLivingClass = getNMSClass("world.entity", "EntityLiving");
+    public static final Class<?> EntityLiving = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+            .map(MinecraftMapping.MOJANG, "LivingEntity")
+            .map(MinecraftMapping.SPIGOT, "EntityLiving")
+            .unreflect();
     private static final MethodHandle GET_ENTITY_HANDLE;
     public static final MethodHandle EXP_PACKET;
     public static final MethodHandle ENTITY_PACKET;
@@ -64,18 +70,20 @@ public final class NMSExtras {
 
     public static final MethodHandle ANIMATION_PACKET, ANIMATION_TYPE, ANIMATION_ENTITY_ID;
 
-    public static final MethodHandle PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET, MULTI_BLOCK_CHANGE_INFO, CHUNK_WRAPPER_SET, CHUNK_WRAPPER, SHORTS_OR_INFO, SET_BLOCK_DATA;
+    public static final MethodHandle PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET, MULTI_BLOCK_CHANGE_INFO, CHUNK_WRAPPER_SET, CHUNK_WRAPPER, SHORTS_OR_INFO, SET_BlockState;
 
     public static final MethodHandle BLOCK_POSITION;
     public static final MethodHandle PLAY_BLOCK_ACTION;
     public static final MethodHandle GET_BUKKIT_ENTITY;
     public static final MethodHandle GET_BLOCK_TYPE;
-    public static final MethodHandle GET_BLOCK, GET_IBLOCK_DATA, SANITIZE_LINES, TILE_ENTITY_SIGN,
+    public static final MethodHandle GET_BLOCK, GET_IBlockState, SANITIZE_LINES, TILE_ENTITY_SIGN,
             TILE_ENTITY_SIGN__GET_UPDATE_PACKET, TILE_ENTITY_SIGN__SET_LINE, SIGN_TEXT;
 
-    public static final Class<?>
-            MULTI_BLOCK_CHANGE_INFO_CLASS = null, // getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
-            BLOCK_DATA = getNMSClass("world.level.block.state", "IBlockData");
+    public static final Class<?> BlockState = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.state")
+            .map(MinecraftMapping.MOJANG, "BlockState")
+            .map(MinecraftMapping.SPIGOT, "IBlockData")
+            .unreflect();
+    public static final Class<?> MULTI_BLOCK_CHANGE_INFO_CLASS = null; // getNMSClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo")
 
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -105,61 +113,102 @@ public final class NMSExtras {
                 dataWatcherSetItem = null, getHandle = null;
 
         try {
-            Class<?> CraftEntityClass = getCraftClass("entity.CraftEntity");
-            Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
-            Class<?> nmsEntity = getNMSClass("world.entity", "Entity");
-            Class<?> craftEntity = getCraftClass("entity.CraftEntity");
-            Class<?> nmsVec3D = getNMSClass("world.phys", "Vec3D");
-            Class<?> world = getNMSClass("world.level", "World");
-            Class<?> signOpenPacket = getNMSClass("network.protocol.game", "PacketPlayOutOpenSignEditor");
-            Class<?> packetPlayOutBlockChangeClass = getNMSClass("network.protocol.game", "PacketPlayOutBlockChange");
-            Class<?> CraftMagicNumbers = getCraftClass("util.CraftMagicNumbers");
-            Class<?> CraftSign = getCraftClass("block.CraftSign");
-            Class<?> IChatBaseComponent = getNMSClass("network.chat", "IChatBaseComponent");
-            Class<?> TileEntitySign = getNMSClass("world.level.block.entity", "TileEntitySign");
-            Class<?> PacketPlayOutTileEntityData = getNMSClass("network.protocol.game", "PacketPlayOutTileEntityData");
-            Class<?> DataWatcherClass = getNMSClass("network.syncher", "DataWatcher");
-            Class<?> DataWatcherItemClass = getNMSClass("network.syncher", "DataWatcher$Item");
-            Class<?> DataWatcherObjectClass = getNMSClass("network.syncher", "DataWatcherObject");
+            Class<?> CraftEntityClass = ofMinecraft().inPackage(MinecraftPackage.CB, "entity")
+                    .named("CraftEntity").unreflect();
+            Class<?> nmsEntityType = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+                    .map(MinecraftMapping.MOJANG, "EntityType")
+                    .map(MinecraftMapping.SPIGOT, "EntityTypes").unreflect();
+            Class<?> nmsEntity = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+                    .named("Entity").unreflect();
+            Class<?> craftEntity = ofMinecraft().inPackage(MinecraftPackage.CB, "entity")
+                    .named("CraftEntity").unreflect();
+            Class<?> nmsVec3D = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.phys")
+                    .map(MinecraftMapping.MOJANG, "Vec3")
+                    .map(MinecraftMapping.SPIGOT, "Vec3D").unreflect();
+            Class<?> world = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level")
+                    .map(MinecraftMapping.MOJANG, "Level")
+                    .map(MinecraftMapping.SPIGOT, "World").unreflect();
+            Class<?> signOpenPacket = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundOpenSignEditorPacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutOpenSignEditor").unreflect();
+            Class<?> packetPlayOutBlockChangeClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundBlockUpdatePacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutBlockChange").unreflect();
+            Class<?> CraftMagicNumbers = ofMinecraft().inPackage(MinecraftPackage.CB, "util")
+                    .named("CraftMagicNumbers").unreflect();
+            Class<?> CraftSign = ofMinecraft().inPackage(MinecraftPackage.CB, "block")
+                    .named("CraftSign").unreflect();
+            Class<?> IChatBaseComponent = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.chat")
+                    .map(MinecraftMapping.MOJANG, "Component")
+                    .map(MinecraftMapping.SPIGOT, "IChatBaseComponent").unreflect();
+            Class<?> TileEntitySign = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.entity")
+                    .map(MinecraftMapping.MOJANG, "SignBlockEntity")
+                    .map(MinecraftMapping.SPIGOT, "TileEntitySign").unreflect();
+            Class<?> PacketPlayOutTileEntityData = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundBlockEntityDataPacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutTileEntityData").unreflect();
+            Class<?> DataWatcherClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.syncher")
+                    .map(MinecraftMapping.MOJANG, "SynchedEntityData")
+                    .map(MinecraftMapping.SPIGOT, "DataWatcher").unreflect();
+            Class<?> DataWatcherItemClass =
+                    ofMinecraft().inPackage(MinecraftPackage.NMS, "network.syncher")
+                            .map(MinecraftMapping.MOJANG, "SynchedEntityData$DataItem")
+                            .map(MinecraftMapping.SPIGOT, "DataWatcher$Item").unreflect();
+
+            Class<?> DataWatcherObject = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "network.syncher")
+                    .map(MinecraftMapping.MOJANG, "EntityDataAccessor")
+                    .map(MinecraftMapping.SPIGOT, "DataWatcherObject")
+                    .unreflect();
 
             getHandle = lookup.findVirtual(CraftEntityClass, "getHandle", MethodType.methodType(nmsEntity));
-            getDataWatcher = lookup.findVirtual(nmsEntity, v(21, "ar")
+            getDataWatcher = XReflection.of(nmsEntity)
+                    .method().returns(DataWatcherClass)
+                    .map(MinecraftMapping.MOJANG, "getEntityData")
+                    .map(MinecraftMapping.SPIGOT, v(21, "ar")
                             .v(20, 5, "ap")
                             .v(20, 4, "an")
                             .v(20, 2, "al")
                             .v(19, "aj")
                             .v(18, "ai")
-                            .orElse("getDataWatcher"),
-                    MethodType.methodType(DataWatcherClass)); // getEntityData()
+                            .orElse("getDataWatcher")
+                    ).unreflect();
 
 
             // public <T> T get(DataWatcherObject<T> datawatcherobject) {
             //     return this.b(datawatcherobject).b();
             // }
-            dataWatcherGetItem = lookup.findVirtual(DataWatcherClass,
-                    v(20, 5, "a").v(20, "b").v(18, "a").orElse("get"),
-                    MethodType.methodType(Object.class, DataWatcherObjectClass));
+            dataWatcherGetItem = XReflection.of(DataWatcherClass).method()
+                    .returns(Object.class).parameters(DataWatcherObject)
+                    .map(MinecraftMapping.MOJANG, "get")
+                    .map(MinecraftMapping.SPIGOT, v(20, 5, "a").v(20, "b").v(18, "a").orElse("get"))
+                    .unreflect();
 
             /*
                 public <T> void b(DataWatcherObject<T> datawatcherobject, T t0) {
                     this.a(datawatcherobject, t0, false);
                 }
              */
-            dataWatcherSetItem = lookup.findVirtual(DataWatcherClass,
-                    v(20, 5, "a").v(18, "b").orElse("set"),
-                    MethodType.methodType(void.class, DataWatcherObjectClass, Object.class));
+            dataWatcherSetItem = XReflection.of(DataWatcherClass).method()
+                    .returns(void.class).parameters(DataWatcherObject, Object.class)
+                    .map(MinecraftMapping.MOJANG, "set")
+                    .map(MinecraftMapping.SPIGOT, v(20, 5, "a").v(18, "b").orElse("set"))
+                    .unreflect();
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
             entityHandle = lookup.findVirtual(craftEntity, "getHandle", MethodType.methodType(nmsEntity));
 
             // https://wiki.vg/Protocol#Set_Experience
             // exp - lvl - total exp
-            expPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutExperience"), MethodType.methodType(
+            expPacket = lookup.findConstructor(ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundSetExperiencePacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutExperience")
+                    .unreflect(), MethodType.methodType(
                     void.class, float.class, int.class, int.class));
             // Lightning
             if (!supports(16)) {
-                entityPacket = lookup.findConstructor(getNMSClass("PacketPlayOutSpawnEntityWeather"), MethodType.methodType(void.class,
-                        nmsEntity));
+                entityPacket = ofMinecraft().inPackage(MinecraftPackage.NMS)
+                        .named("PacketPlayOutSpawnEntityWeather")
+                        .constructor().parameters(nmsEntity).unreflect();
             } else {
                 vec3D = lookup.findConstructor(nmsVec3D, MethodType.methodType(void.class,
                         double.class, double.class, double.class));
@@ -170,29 +219,43 @@ public final class NMSExtras {
                         nmsEntityType, int.class, nmsVec3D)
                 );
                 if (XReflection.supports(19)) spawnTypes.add(double.class);
-                entityPacket = lookup.findConstructor(getNMSClass("network.protocol.game", "PacketPlayOutSpawnEntity"),
+                entityPacket = lookup.findConstructor(ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                                .map(MinecraftMapping.MOJANG, "ClientboundAddEntityPacket")
+                                .map(MinecraftMapping.SPIGOT, "PacketPlayOutSpawnEntity")
+                                .unreflect(),
                         MethodType.methodType(void.class, spawnTypes));
             }
 
-            worldHandle = lookup.findVirtual(getCraftClass("CraftWorld"), "getHandle", MethodType.methodType(
-                    getNMSClass("server.level", "WorldServer")));
+            worldHandle = lookup.findVirtual(ofMinecraft().inPackage(MinecraftPackage.CB).named("CraftWorld").unreflect(), "getHandle", MethodType.methodType(
+                    ofMinecraft().inPackage(MinecraftPackage.NMS, "server.level")
+                            .map(MinecraftMapping.MOJANG, "ServerLevel")
+                            .map(MinecraftMapping.SPIGOT, "WorldServer").unreflect()));
 
+            MinecraftClassHandle entityLightning = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+                    .map(MinecraftMapping.MOJANG, "LightningBolt")
+                    .map(MinecraftMapping.SPIGOT, "EntityLightning");
             if (!supports(16)) {
-                lightning = lookup.findConstructor(getNMSClass("world.entity", "EntityLightning"), MethodType.methodType(void.class,
+                lightning = lookup.findConstructor(entityLightning.unreflect(), MethodType.methodType(void.class,
                         // world, x, y, z, isEffect, isSilent
                         world, double.class, double.class, double.class, boolean.class, boolean.class));
             } else {
-                lightning = lookup.findConstructor(getNMSClass("world.entity", "EntityLightning"), MethodType.methodType(void.class,
+                lightning = lookup.findConstructor(entityLightning.unreflect(), MethodType.methodType(void.class,
                         // entitytype, world
                         nmsEntityType, world));
             }
 
             // Multi Block Change
-            Class<?> playOutMultiBlockChangeClass = getNMSClass("network.protocol.game", "PacketPlayOutMultiBlockChange");
-            Class<?> chunkCoordIntPairClass = getNMSClass("world.level", "ChunkCoordIntPair");
+            Class<?> playOutMultiBlockChangeClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundSectionBlocksUpdatePacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutMultiBlockChange")
+                    .unreflect();
+            Class<?> chunkCoordIntPairClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level")
+                    .map(MinecraftMapping.MOJANG, "ChunkPos")
+                    .map(MinecraftMapping.SPIGOT, "ChunkCoordIntPair")
+                    .unreflect();
             try {
 //                playOutMultiBlockChange = lookup.findConstructor(playOutMultiBlockChangeClass, MethodType.methodType(void.class));
-//                multiBlockChangeInfo = lookup.findConstructor(MULTI_BLOCK_CHANGE_INFO_CLASS, MethodType.methodType(void.class, short.class, BLOCK_DATA));
+//                multiBlockChangeInfo = lookup.findConstructor(MULTI_BLOCK_CHANGE_INFO_CLASS, MethodType.methodType(void.class, short.class, BlockState));
 
                 // a - chunk
 //                Field sectionPositionField = playOutMultiBlockChangeClass.getDeclaredField("a");
@@ -209,6 +272,7 @@ public final class NMSExtras {
 //                blockDataField.setAccessible(true);
 //                setBlockData = lookup.unreflectSetter(blockDataField);
 
+                // noinspection StatementWithEmptyBody
                 if (supports(16)) {
 //                    Class<?> sectionPosClass = getNMSClass("SectionPosition");
 //                    chunkWrapper = lookup.findConstructor(sectionPosClass, MethodType.methodType(int.class, int.class, int.class));
@@ -218,7 +282,10 @@ public final class NMSExtras {
                 e.printStackTrace();
             }
 
-            Class<?> animation = getNMSClass("network.protocol.game", "PacketPlayOutAnimation");
+            Class<?> animation = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .map(MinecraftMapping.MOJANG, "ClientboundAnimatePacket")
+                    .map(MinecraftMapping.SPIGOT, "PacketPlayOutAnimation")
+                    .unreflect();
             animationPacket = lookup.findConstructor(animation,
                     supports(17) ? MethodType.methodType(void.class, nmsEntity, int.class) : MethodType.methodType(void.class));
 
@@ -232,41 +299,78 @@ public final class NMSExtras {
             }
 
 
-            Class<?> blockPos = getNMSClass("core", "BlockPosition");
-            Class<?> block = getNMSClass("world.level.block", "Block");
+            Class<?> blockPos = ofMinecraft().inPackage(MinecraftPackage.NMS, "core")
+                    .map(MinecraftMapping.MOJANG, "BlockPos")
+                    .map(MinecraftMapping.SPIGOT, "BlockPosition")
+                    .unreflect();
+            Class<?> block = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block")
+                    .named("Block")
+                    .unreflect();
+
             blockPosition = lookup.findConstructor(blockPos,
                     v(19, MethodType.methodType(void.class, int.class, int.class, int.class)).orElse(
                             MethodType.methodType(void.class, double.class, double.class, double.class)));
-            getBlockType = lookup.findVirtual(world, v(18, "a_").orElse("getType"), MethodType.methodType(BLOCK_DATA, blockPos));
-            getBlock = lookup.findVirtual(BLOCK_DATA, v(18, "b").orElse("getBlock"), MethodType.methodType(block));
-            playBlockAction = lookup.findVirtual(world, v(18, "a").orElse("playBlockAction"), MethodType.methodType(void.class, blockPos, block, int.class, int.class));
+
+            // public IBlockData getBlockState(BlockPosition blockposition)
+            getBlockType = XReflection.of(world).method().returns(BlockState).parameters(blockPos)
+                    .map(MinecraftMapping.MOJANG, "getBlockState")
+                    .map(MinecraftMapping.SPIGOT, v(18, "a_").orElse("getType"))
+                    .unreflect();
+            if (supports(21)) {
+                getBlock = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.state")
+                        .map(MinecraftMapping.MOJANG, "BlockBehaviour")
+                        .map(MinecraftMapping.SPIGOT, "BlockBase")
+                        .inner(XReflection.ofMinecraft()
+                                .map(MinecraftMapping.MOJANG, "BlockStateBase")
+                                .map(MinecraftMapping.SPIGOT, "BlockData"))
+                        .method().returns(block)
+                        .map(MinecraftMapping.MOJANG, "getBlock")
+                        .map(MinecraftMapping.SPIGOT, "b")
+                        .unreflect();
+            } else {
+                getBlock = XReflection.of(BlockState).method().returns(block)
+                        .map(MinecraftMapping.MOJANG, "getBlock")
+                        .map(MinecraftMapping.SPIGOT, v(18, "b").orElse("getBlock"))
+                        .unreflect();
+            }
+            playBlockAction = XReflection.of(world).method().returns(void.class).parameters(blockPos, block, int.class, int.class)
+                    .map(MinecraftMapping.MOJANG, "blockEvent")
+                    .map(MinecraftMapping.SPIGOT, v(18, "a").orElse("playBlockAction"))
+                    .unreflect();
 
             signEditorPacket = lookup.findConstructor(signOpenPacket,
                     v(20, MethodType.methodType(void.class, blockPos, boolean.class))
                             .orElse(MethodType.methodType(void.class, blockPos)));
             if (supports(17)) {
-                packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
-                getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BLOCK_DATA, Material.class, byte.class));
+                packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BlockState));
+                getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BlockState, Material.class, byte.class));
                 sanitizeLines = lookup.findStatic(CraftSign, v(17, "sanitizeLines").orElse("SANITIZE_LINES"),
                         MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
 
-                tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BLOCK_DATA));
-                tileEntitySign_getUpdatePacket = lookup.findVirtual(TileEntitySign,
-                        v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"),
-                        MethodType.methodType(PacketPlayOutTileEntityData));
+                tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BlockState));
+                tileEntitySign_getUpdatePacket = XReflection.of(TileEntitySign).method().returns(PacketPlayOutTileEntityData)
+                        .map(MinecraftMapping.MOJANG, "getUpdatePacket")
+                        .map(MinecraftMapping.SPIGOT, v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
+                        .unreflect();
 
                 if (supports(20)) {
-                    Class<?> SignText = getNMSClass("world.level.block.entity.SignText");
+                    Class<?> SignText = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.entity")
+                            .named("SignText").unreflect();
                     // public boolean a(SignText signtext, boolean flag) {
                     //        return flag ? this.c(signtext) : this.b(signtext);
                     // }
-                    tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a", MethodType.methodType(boolean.class, SignText, boolean.class));
+                    if (!supports(20, 6)) { // It completely changed, needs a lot of work
+                        tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a",
+                                MethodType.methodType(boolean.class, SignText, boolean.class));
+                    }
 
                     Class<?> IChatBaseComponentArray = XReflection.of(IChatBaseComponent).asArray().unreflect();
 
                     // public SignText(net.minecraft.network.chat.IChatBaseComponent[] var0, IChatBaseComponent[] var1,
                     // EnumColor var2, boolean var3) {
-                    Class<?> EnumColor = getNMSClass("world.item.EnumColor");
+                    Class<?> EnumColor = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.item")
+                            .map(MinecraftMapping.MOJANG, "DyeColor")
+                            .map(MinecraftMapping.SPIGOT, "EnumColor").unreflect();
                     signText = lookup.findConstructor(SignText, MethodType.methodType(void.class,
                             IChatBaseComponentArray, IChatBaseComponentArray, EnumColor, boolean.class));
                 } else {
@@ -298,7 +402,7 @@ public final class NMSExtras {
         PLAY_BLOCK_ACTION = playBlockAction;
         GET_BLOCK_TYPE = getBlockType;
         GET_BLOCK = getBlock;
-        GET_IBLOCK_DATA = getIBlockData;
+        GET_IBlockState = getIBlockData;
         SANITIZE_LINES = sanitizeLines;
         TILE_ENTITY_SIGN = tileEntitySign;
         TILE_ENTITY_SIGN__GET_UPDATE_PACKET = tileEntitySign_getUpdatePacket;
@@ -310,7 +414,7 @@ public final class NMSExtras {
         CHUNK_WRAPPER = chunkWrapper;
         CHUNK_WRAPPER_SET = chunkWrapperSet;
         SHORTS_OR_INFO = shortsOrInfo;
-        SET_BLOCK_DATA = setBlockData;
+        SET_BlockState = setBlockData;
         SIGN_TEXT = signText;
     }
 
@@ -353,7 +457,9 @@ public final class NMSExtras {
                     MinecraftConnection.sendPacket(player, packet);
                 }
             } else {
-                Class<?> nmsEntityType = getNMSClass("world.entity", "EntityTypes");
+                Class<?> nmsEntityType = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+                        .map(MinecraftMapping.MOJANG, "EntityType")
+                        .map(MinecraftMapping.SPIGOT, "EntityTypes").unreflect();
 
                 Object lightningType = nmsEntityType.getField(supports(17) ? "U" : "LIGHTNING_BOLT").get(nmsEntityType);
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(lightningType, world);
@@ -448,8 +554,11 @@ public final class NMSExtras {
             Object enumValue = null;
 
             try {
-                Class<?> entityPose = getNMSClass("world.entity", "EntityPose");
-                enumValue = entityPose.getDeclaredField(v(17, fieldName).orElse(name())).get(null);
+                Class<?> EntityPose = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
+                        .map(MinecraftMapping.MOJANG, "Pose")
+                        .map(MinecraftMapping.SPIGOT, "EntityPose")
+                        .reflect();
+                enumValue = EntityPose.getDeclaredField(v(17, fieldName).orElse(name())).get(null);
             } catch (Throwable e) {
                 supported = false;
             }
@@ -469,7 +578,7 @@ public final class NMSExtras {
 
     public enum DataWatcherItemType {
         // protected static final DataWatcherObject<Byte> DATA_LIVING_ENTITY_FLAGS = DataWatcher.defineId(EntityLiving.class, DataWatcherRegistry.BYTE);
-        DATA_LIVING_ENTITY_FLAGS(getStaticFieldIgnored(EntityLivingClass, "t"));
+        DATA_LIVING_ENTITY_FLAGS(getStaticFieldIgnored(EntityLiving, "t"));
 
         private final Object id;
 
@@ -620,7 +729,7 @@ public final class NMSExtras {
                 Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
                 CHUNK_WRAPPER_SET.invoke(wrapper);
 
-                Object dataArray = Array.newInstance(BLOCK_DATA, blocks.size());
+                Object dataArray = Array.newInstance(BlockState, blocks.size());
                 Object shortArray = Array.newInstance(short.class, blocks.size());
 
                 int i = 0;
@@ -633,7 +742,7 @@ public final class NMSExtras {
                 }
 
                 SHORTS_OR_INFO.invoke(packet, shortArray);
-                SET_BLOCK_DATA.invoke(packet, dataArray);
+                SET_BlockState.invoke(packet, dataArray);
             } else {
                 Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
                 CHUNK_WRAPPER_SET.invoke(wrapper);
@@ -663,14 +772,16 @@ public final class NMSExtras {
         try {
             Location loc = player.getLocation();
             Object position = BLOCK_POSITION.invoke(loc.getBlockX(), 1, loc.getBlockY());
-            Object signBlockData = GET_IBLOCK_DATA.invoke(Material.OAK_SIGN, (byte) 0);
+            Object signBlockData = GET_IBlockState.invoke(Material.OAK_SIGN, (byte) 0);
             Object blockChangePacket = PACKET_PLAY_OUT_BLOCK_CHANGE.invoke(position, signBlockData);
 
             Object components = SANITIZE_LINES.invoke((Object[]) lines);
             Object tileSign = TILE_ENTITY_SIGN.invoke(position, signBlockData);
             if (supports(20)) {
                 // When can we use this without blocks... player.openSign();
-                Class<?> EnumColor = XReflection.getNMSClass("world.item.EnumColor");
+                Class<?> EnumColor = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.item")
+                        .map(MinecraftMapping.MOJANG, "DyeColor")
+                        .map(MinecraftMapping.SPIGOT, "EnumColor").unreflect();
                 Object enumColor = null;
                 for (Field field : EnumColor.getFields()) {
                     Object color = field.get(null);

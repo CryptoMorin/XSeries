@@ -23,6 +23,7 @@ package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.google.common.base.Strings;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -94,10 +95,14 @@ public final class ActionBar {
 
         if (!USE_SPIGOT_API) {
             // Supporting 1.12+ is not necessary, the package guards are just for readability.
+            // Since these methods are old, we don't need to add Mojang mappings
             MethodHandles.Lookup lookup = MethodHandles.lookup();
-            Class<?> packetPlayOutChatClass = getNMSClass("network.protocol.game", "PacketPlayOutChat");
-            Class<?> iChatBaseComponentClass = getNMSClass("network.chat", "IChatBaseComponent");
-            Class<?> ChatSerializerClass = getNMSClass("network.chat", "IChatBaseComponent$ChatSerializer");
+            Class<?> packetPlayOutChatClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named("PacketPlayOutChat").unreflect();
+            Class<?> iChatBaseComponentClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.chat")
+                    .named("IChatBaseComponent").unreflect();
+            Class<?> ChatSerializerClass = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.chat")
+                    .named("IChatBaseComponent$ChatSerializer").unreflect();
 
             try {
                 // JSON Message Builder
@@ -191,6 +196,7 @@ public final class ActionBar {
         Objects.requireNonNull(message, "Cannot send null actionbar message");
 
         if (USE_SPIGOT_API) {
+            // noinspection deprecation
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
             return;
         }

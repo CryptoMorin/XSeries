@@ -322,8 +322,10 @@ public final class Titles implements Cloneable {
         }
 
         try {
-            Class<?> IChatBaseComponent = XReflection.getNMSClass("network.chat", "IChatBaseComponent");
-            Class<?> PacketPlayOutPlayerListHeaderFooter = XReflection.getNMSClass("network.protocol.game", "PacketPlayOutPlayerListHeaderFooter");
+            Class<?> IChatBaseComponent = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.chat")
+                    .named("IChatBaseComponent").unreflect();
+            Class<?> PacketPlayOutPlayerListHeaderFooter = ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named("PacketPlayOutPlayerListHeaderFooter").unreflect();
 
             Method chatComponentBuilderMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
             Object tabHeader = chatComponentBuilderMethod.invoke(null, "{\"text\":\"" + header + "\"}");

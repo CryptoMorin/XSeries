@@ -61,7 +61,6 @@ public class DynamicClassHandle extends ClassHandle {
 
         int i = 0;
         for (String className : this.classNames) {
-
             @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
             String clazz;
             if (parent == null) clazz = packageName + '.' + className;
@@ -86,9 +85,11 @@ public class DynamicClassHandle extends ClassHandle {
 
     @Override
     public Class<?> reflect() throws ClassNotFoundException {
-        ClassNotFoundException errors = null;
+        String[] classNames = reflectClassNames();
+        if (classNames.length == 0) throw new IllegalStateException("No class name specified for " + this);
 
-        for (String className : reflectClassNames()) {
+        ClassNotFoundException errors = null;
+        for (String className : classNames) {
             try {
                 return Class.forName(className);
             } catch (ClassNotFoundException ex) {

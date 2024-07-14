@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
  *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
  * </ul>
  * @author Crypto Morin
- * @version 11.2.0
+ * @version 11.2.1
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
  * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */
@@ -196,12 +196,14 @@ public final class XReflection {
 
     /**
      * Gets the full version information of the server. Useful for including in errors.
+     * "NMS" might return "Unknown NMS", which means that they're running a Paper
+     * server that removed the CraftBukkit NMS version guard.
      *
      * @since 7.0.0
      */
     public static String getVersionInformation() {
         // Bukkit.getServer().getMinecraftVersion() is for Paper
-        return "(NMS: " + NMS_VERSION + " | " +
+        return "(NMS: " + (NMS_VERSION == null ? "Unknown NMS" : NMS_VERSION) + " | " +
                 "Parsed: " + MAJOR_NUMBER + '.' + MINOR_NUMBER + '.' + PATCH_NUMBER + " | " +
                 "Minecraft: " + Bukkit.getVersion() + " | " +
                 "Bukkit: " + Bukkit.getBukkitVersion() + ')';
@@ -501,6 +503,7 @@ public final class XReflection {
      */
     @ApiStatus.Experimental
     public static <T extends Throwable> T relativizeSuppressedExceptions(T ex) {
+        Objects.requireNonNull(ex, "Cannot relativize null exception");
         final StackTraceElement[] EMPTY_STACK_TRACE_ARRAY = new StackTraceElement[0];
         StackTraceElement[] mainStackTrace = ex.getStackTrace();
 
@@ -565,6 +568,7 @@ public final class XReflection {
      *   from complaining about non-terminating statements.
      */
     public static RuntimeException throwCheckedException(Throwable exception) {
+        Objects.requireNonNull(exception, "Cannot throw null exception");
         // The following commented statement is not needed because the exception was created somewhere else and the stacktrace reflects that.
         // exception.setStackTrace(Arrays.stream(exception.getStackTrace()).skip(1).toArray(StackTraceElement[]::new));
         throwException(exception);
