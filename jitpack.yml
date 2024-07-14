@@ -1,0 +1,3 @@
+before_install:
+   - sdk install maven
+   - sdk use maven
