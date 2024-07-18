@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public final class ReflectionTests {
     private final String test = "A";
 
-    private static final class A {
+    private static final class A<T> {
         private static final class B {
             private static final class C {
                 public final AtomicInteger atomicField = new AtomicInteger();
@@ -84,7 +84,7 @@ public final class ReflectionTests {
             // Inner class test
             MethodHandle innerinnerinnerField = XReflection.namespaced().imports(AtomicInteger.class)
                     .of(ReflectionTests.class)
-                    .inner("private static final class A {}")
+                    .inner("private static final class A<T> {}")
                     .inner("private static final class B {}")
                     .inner("private static final class C {}")
                     .field("public final AtomicInteger atomicField;")

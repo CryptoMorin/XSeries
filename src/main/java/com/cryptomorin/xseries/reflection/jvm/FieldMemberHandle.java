@@ -147,7 +147,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     protected <T extends AccessibleObject & Member> T handleAccessible(T field) throws ReflectiveOperationException {
         field = super.handleAccessible(field);
         if (field == null) return null;
-        if (isFinal && isStatic) {
+        if (!getter && isFinal && isStatic) {
             try {
                 int unfinalModifiers = field.getModifiers() & ~Modifier.FINAL;
                 if (MODIFIERS_VAR_HANDLE != null) {

@@ -404,7 +404,8 @@ public final class XEntity {
             if (config.isSet("is-patrol-leader")) raider.setCanJoinRaid(config.getBoolean("is-patrol-leader"));
         } else if (entity instanceof Cat) {
             Cat cat = (Cat) entity;
-            cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("variant")).or(Cat.Type.TABBY));
+            // They changed this to an interface...
+            // TODO cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("variant")).or(Cat.Type.TABBY));
             cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
         } else if (entity instanceof Fox) {
             Fox fox = (Fox) entity;

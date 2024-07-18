@@ -54,7 +54,23 @@ public class ReflectionParser {
     }
 
     @Language("RegExp")
-    private static final String JAVA_TYPE_REGEX = PackageHandle.JAVA_PACKAGE_PATTERN + "(?:<[.\\w<>\\[\\], ]+>)?((?:\\[])*)";
+    private static final String
+            GENERIC = "(?:\\s*<\\s*[.\\w<>\\[\\], ]+\\s*>)?",
+            ARRAY = "((?:\\[])*)",
+            PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?",
+            CLASS_TYPES = "(?<classType>class|interface|enum)",
+            PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)",
+            END_DECL = "\\s*;?\\s*";
+
+    private static final Pattern
+            CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + type("className") +
+            "(?:\\s+extends\\s+" + id("superclasses") + ")?\\s+(implements\\s+" + id("interfaces") + ")?(?:\\s*\\{\\s*})?\\s*");
+    private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
+            + id("methodName") + PARAMETERS + END_DECL);
+    private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
+            + id("className") + PARAMETERS + END_DECL);
+    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + type("fieldType") + "\\s+"
+            + id("fieldName") + END_DECL);
 
     @Language("RegExp")
     private static String id(@Language("RegExp") String groupName) {
@@ -62,10 +78,11 @@ public class ReflectionParser {
         return "(?<" + groupName + '>' + PackageHandle.JAVA_IDENTIFIER_PATTERN + ')';
     }
 
+    @SuppressWarnings("LanguageMismatch")
     @Language("RegExp")
     private static String type(@Language("RegExp") String groupName) {
-        if (groupName == null) return JAVA_TYPE_REGEX;
-        return "(?<" + groupName + '>' + JAVA_TYPE_REGEX + ')';
+        String type = PackageHandle.JAVA_PACKAGE_PATTERN + GENERIC + ARRAY;
+        return "(?<" + groupName + '>' + type + ')';
     }
 
     private Class<?>[] parseTypes(String[] typeNames) {
@@ -84,7 +101,7 @@ public class ReflectionParser {
         Arrays.asList(
                 byte.class, short.class, int.class, long.class, float.class, double.class, boolean.class, char.class, void.class,
                 Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class, Character.class, Void.class,
-                String.class, Optional.class, StringBuilder.class, StringBuffer.class, UUID.class,
+                Object.class, String.class, CharSequence.class, StringBuilder.class, StringBuffer.class, UUID.class, Optional.class,
                 Map.class, HashMap.class, ConcurrentHashMap.class, LinkedHashMap.class, WeakHashMap.class,
                 List.class, ArrayList.class, Set.class, HashSet.class, Deque.class, Queue.class, LinkedList.class,
                 Date.class, Calendar.class, Duration.class
@@ -97,14 +114,17 @@ public class ReflectionParser {
         }
 
         String firstTypeName = typeName;
+        typeName = typeName.replace(" ", "");
         int arrayDimension = 0;
         if (typeName.endsWith("[]")) { // Arrays
             String replaced = typeName.replace("[]", "");
             arrayDimension = (typeName.length() - replaced.length()) / 2;
             typeName = replaced;
         }
+        System.out.println(typeName + "| ends with it?");
         if (typeName.endsWith(">")) { // Generic
             typeName = typeName.substring(0, typeName.indexOf('<'));
+            System.out.println(typeName + " -> " + typeName);
         }
 
         Class<?> clazz = null;
@@ -126,28 +146,6 @@ public class ReflectionParser {
         }
         return clazz;
     }
-
-    // TODO support generics. Using RegEx might be impossible because Java doesn't support (?R) recursion.
-    @Language("RegExp")
-    private static final String GENERIC = "(?:<" + id(null) + ">)*";
-
-    @Language("RegExp")
-    private static final String PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?";
-    @Language("RegExp")
-    private static final String CLASS_TYPES = "(?<classType>class|interface|enum)";
-    @Language("RegExp")
-    private static final String PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)";
-    @Language("RegExp")
-    private static final String END_DECL = "\\s*;?\\s*";
-
-    private static final Pattern CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + id("className") +
-            "(?:\\s+extends\\s+" + id("superclasses") + ")?\\s+(implements\\s+" + id("interfaces") + ")?(?:\\s*\\{\\s*})?\\s*");
-    private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
-            + id("methodName") + PARAMETERS + END_DECL);
-    private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
-            + id("className") + PARAMETERS + END_DECL);
-    private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + type("fieldType") + "\\s+"
-            + id("fieldName") + END_DECL);
 
     public ReflectionParser imports(ReflectiveNamespace namespace) {
         this.namespace = namespace;
@@ -178,7 +176,9 @@ public class ReflectionParser {
         }
 
         // String classGeneric = parser.group("generic");
-        classHandle.named(group("className").split("\\$"));
+        String className = group("className");
+        if (className.contains("<")) className = className.substring(0, className.indexOf('<'));
+        classHandle.named(className);
 
         return classHandle;
     }
