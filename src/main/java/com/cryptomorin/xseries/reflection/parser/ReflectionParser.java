@@ -121,10 +121,8 @@ public class ReflectionParser {
             arrayDimension = (typeName.length() - replaced.length()) / 2;
             typeName = replaced;
         }
-        System.out.println(typeName + "| ends with it?");
         if (typeName.endsWith(">")) { // Generic
             typeName = typeName.substring(0, typeName.indexOf('<'));
-            System.out.println(typeName + " -> " + typeName);
         }
 
         Class<?> clazz = null;
