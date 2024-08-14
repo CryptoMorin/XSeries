@@ -424,8 +424,8 @@ public class ParticleDisplay implements Cloneable {
 
         String particleName = config.getString("particle");
         Optional<XParticle> particle = particleName == null ? Optional.empty() : XParticle.of(particleName);
-
         particle.ifPresent(xParticle -> display.particle = xParticle);
+
         if (config.isSet("count")) display.withCount(config.getInt("count"));
         if (config.isSet("extra")) display.withExtra(config.getDouble("extra"));
         if (config.isSet("force")) display.forceSpawn(config.getBoolean("force"));
@@ -497,11 +497,6 @@ public class ParticleDisplay implements Cloneable {
             }
         }
 
-        String color = config.getString("color"); // array-like "R, G, B"
-        String blockdata = config.getString("blockdata");       // material name
-        String item = config.getString("itemstack");            // material name
-        String materialdata = config.getString("materialdata"); // material name
-
         double size;
         if (config.isSet("size")) {
             size = config.getDouble("size");
@@ -509,6 +504,11 @@ public class ParticleDisplay implements Cloneable {
         } else {
             size = 1;
         }
+
+        String color = config.getString("color"); // array-like "R, G, B"
+        String blockdata = config.getString("blockdata");       // material name
+        String item = config.getString("itemstack");            // material name
+        String materialdata = config.getString("materialdata"); // material name
 
         if (color != null) {
             List<String> colors = split(color.replace(" ", ""), ',');
@@ -1869,12 +1869,20 @@ public class ParticleDisplay implements Cloneable {
         }
 
         public Object data(ParticleDisplay display) {
+            float particleSize = display.extra == 0 ? 1f : (float) display.extra;
             if (display.particle == XParticle.DUST) {
-                return new Particle.DustOptions(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()), (float) display.extra);
+                return new Particle.DustOptions(
+                        org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()),
+                        particleSize
+                );
             } else if (display.particle == XParticle.DUST_COLOR_TRANSITION) {
                 org.bukkit.Color color = org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue());
-                return new Particle.DustTransition(color, color, (float) display.extra);
+                return new Particle.DustTransition(
+                        color, color,
+                        particleSize
+                );
             }
+
             if (SUPPORTS_ALPHA_COLORS) {
                 return org.bukkit.Color.fromARGB(color.getAlpha(), color.getRed(), color.getGreen(), color.getBlue());
             } else {

@@ -69,7 +69,7 @@ public final class PlayerUUIDs {
             try {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
                 if (realUUID == null) {
-                    ProfilesCore.debug("Caching null for {} ({}) because it doesn't exist.", username, offlineUUID);
+                    ProfileLogger.debug("Caching null for {} ({}) because it doesn't exist.", username, offlineUUID);
                     realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
                 } else ONLINE_TO_OFFLINE.put(realUUID, offlineUUID);
                 OFFLINE_TO_ONLINE.put(offlineUUID, realUUID);
@@ -80,10 +80,10 @@ public final class PlayerUUIDs {
         }
 
         if (realUUID == IDENTITY_UUID) {
-            ProfilesCore.debug("Providing null UUID for {} because it doesn't exist.", username);
+            ProfileLogger.debug("Providing null UUID for {} because it doesn't exist.", username);
             realUUID = null;
         } else {
-            ProfilesCore.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, offlineUUID, realUUID);
+            ProfileLogger.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, offlineUUID, realUUID);
         }
 
         return realUUID;
@@ -109,7 +109,7 @@ public final class PlayerUUIDs {
             try {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
                 if (realUUID == null) {
-                    ProfilesCore.debug("Caching null for {} ({}) because it doesn't exist.", username, uuid);
+                    ProfileLogger.debug("Caching null for {} ({}) because it doesn't exist.", username, uuid);
                     realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
                 } else ONLINE_TO_OFFLINE.put(realUUID, uuid);
                 OFFLINE_TO_ONLINE.put(uuid, realUUID);
@@ -120,10 +120,10 @@ public final class PlayerUUIDs {
         }
 
         if (realUUID == IDENTITY_UUID) {
-            ProfilesCore.debug("Providing null UUID for {} ({}) because it doesn't exist.", username, uuid);
+            ProfileLogger.debug("Providing null UUID for {} ({}) because it doesn't exist.", username, uuid);
             realUUID = null;
         } else {
-            ProfilesCore.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, uuid, realUUID);
+            ProfileLogger.debug((cached ? "Cached " : "") + "Real UUID for {} ({}) is {}", username, uuid, realUUID);
         }
 
         UUID offlineUUID = getOfflineUUID(username);

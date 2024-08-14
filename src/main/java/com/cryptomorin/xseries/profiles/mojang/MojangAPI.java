@@ -2,6 +2,7 @@ package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
+import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
@@ -100,10 +101,10 @@ public final class MojangAPI {
             GameProfile gameProfile = profile == null ?
                     PlayerProfiles.createGameProfile(PlayerUUIDs.IDENTITY_UUID, username) :
                     PlayerProfiles.sanitizeProfile((GameProfile) profile);
-            ProfilesCore.debug("The cached profile for {} -> {}", username, profile);
+            ProfileLogger.debug("The cached profile for {} -> {}", username, profile);
             return gameProfile;
         } catch (Throwable throwable) {
-            ProfilesCore.LOGGER.error("Unable to get cached profile by username: {}", username, throwable);
+            ProfileLogger.LOGGER.error("Unable to get cached profile by username: {}", username, throwable);
             return null;
         }
     }
@@ -227,12 +228,12 @@ public final class MojangAPI {
         try {
             @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_UUID.invoke(ProfilesCore.USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
-            ProfilesCore.debug("The cached profile for {} -> {}", uuid, profile);
+            ProfileLogger.debug("The cached profile for {} -> {}", uuid, profile);
             return profile == null ?
                     PlayerProfiles.createNamelessGameProfile(uuid) :
                     PlayerProfiles.sanitizeProfile((GameProfile) profile);
         } catch (Throwable throwable) {
-            ProfilesCore.LOGGER.error("Unable to get cached profile by UUID: {}", uuid, throwable);
+            ProfileLogger.LOGGER.error("Unable to get cached profile by UUID: {}", uuid, throwable);
             return PlayerProfiles.createNamelessGameProfile(uuid);
         }
     }
@@ -246,9 +247,9 @@ public final class MojangAPI {
     private static void cacheProfile(GameProfile profile) {
         try {
             ProfilesCore.CACHE_PROFILE.invoke(ProfilesCore.USER_CACHE, profile);
-            ProfilesCore.debug("Profile is now cached: {}", profile);
+            ProfileLogger.debug("Profile is now cached: {}", profile);
         } catch (Throwable throwable) {
-            ProfilesCore.LOGGER.error("Unable to cache profile {}", profile);
+            ProfileLogger.LOGGER.error("Unable to cache profile {}", profile);
             throwable.printStackTrace();
         }
     }
@@ -283,7 +284,7 @@ public final class MojangAPI {
         Optional<GameProfile> cached = INSECURE_PROFILES.getIfPresent(realUUID);
         // noinspection OptionalAssignedToNull
         if (cached != null) {
-            ProfilesCore.debug("Found cached profile from UUID ({}): {} -> {}", realUUID, profile, cached);
+            ProfileLogger.debug("Found cached profile from UUID ({}): {} -> {}", realUUID, profile, cached);
             if (cached.isPresent()) return cached.get();
             else throw new UnknownPlayerException("Player with the given properties not found: " + profile);
         }

@@ -10,8 +10,6 @@ import com.google.common.cache.LoadingCache;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
@@ -27,7 +25,6 @@ import static com.cryptomorin.xseries.reflection.XReflection.v;
 @SuppressWarnings("unchecked")
 @ApiStatus.Internal
 public final class ProfilesCore {
-    public static final Logger LOGGER = LogManager.getLogger("XSkull");
     public static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
     public static final Proxy PROXY;
     public static final LoadingCache<Object, Object> YggdrasilMinecraftSessionService_insecureProfiles;
@@ -127,15 +124,20 @@ public final class ProfilesCore {
             cacheProfile = GameProfileCache.method("public void add(GameProfile profile);")
                     .map(MinecraftMapping.OBFUSCATED, "a").reflect();
 
-            // Some versions don't have the public getProxy() method. It's very very inconsistent...
-            proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy;").getter()
-                    .map(MinecraftMapping.OBFUSCATED, v(20, 5, "h").v(20, 3, "i")
-                            .v(19, "j")
-                            .v(18, 2, "n").v(18, "o")
-                            .v(17, "m")
-                            .v(14, "proxy") // v1.14 -> v1.16
-                            .v(13, "c").orElse(/* v1.8 and v1.9 */ "e"))
-                    .reflect().invoke(minecraftServer);
+            try {
+                // Some versions don't have the public getProxy() method. It's very very inconsistent...
+                proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy;").getter()
+                        .map(MinecraftMapping.OBFUSCATED, v(20, 5, "h").v(20, 3, "i")
+                                .v(19, "j")
+                                .v(18, 2, "n").v(18, "o")
+                                .v(17, "m")
+                                .v(14, "proxy") // v1.14 -> v1.16
+                                .v(13, "c").orElse(/* v1.8 and v1.9 */ "e"))
+                        .reflect().invoke(minecraftServer);
+            } catch (Throwable ex) {
+                ProfileLogger.LOGGER.error("Failed to initialize server proxy settings", ex);
+                proxy = null;
+            }
         } catch (Throwable throwable) {
             throw XReflection.throwCheckedException(throwable);
         }
@@ -188,9 +190,5 @@ public final class ProfilesCore {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void debug(String mainMessage, Object... variables) {
-        LOGGER.debug(mainMessage, variables);
     }
 }

@@ -82,9 +82,10 @@
         <!-- 1.15.2-R0.1-SNAPSHOT -->
         <!-- 1.16.5-R0.1-SNAPSHOT -->
         <!-- 1.17.1-R0.1-SNAPSHOT -->
+        <!-- 1.19.4-R0.1-SNAPSHOT -->
         <!-- 1.20.6-R0.1-SNAPSHOT -->
-        <!-- 1.21-R0.1-SNAPSHOT -->
-        <spigotVersion>1.21-R0.1-SNAPSHOT</spigotVersion>
+        <!-- 1.21.1-R0.1-SNAPSHOT -->
+        <spigotVersion>1.21.1-R0.1-SNAPSHOT</spigotVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>

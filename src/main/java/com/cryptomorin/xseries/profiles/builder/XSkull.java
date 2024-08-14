@@ -36,24 +36,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 /**
- * A cross-platform way to apply skin texture from different sources to items and blocks.<br><br>
- * Skull Meta: <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/SkullMeta.html">hub.spigotmc.org/.../SkullMeta</a><br>
- * Mojang API: <a href="https://wiki.vg/Mojang_API">wiki.vg/Mojang_API</a><br><br>
+ * A cross-version way to apply skin texture from different sources to items and blocks.
  * <p>
  * Some websites to get custom heads:
  * <ul>
  *     <li><a href="https://minecraft-heads.com/">minecraft-heads.com</a></li>
  * </ul>
- *
+ * <br>
  * <h1>Usage</h1>
  * The basic usage format of this API is as follows:
  * <pre>{@code
- * XSkull.createItem().profile(player).apply();
- * XSkull.of(item/block).profile(configValueString).apply();
+ * XSkull.createItem().profile(Profileable.of(player)).apply();
+ * XSkull.of(item/block).profile(Profileable.of(configStringValue)).apply();
  * }</pre>
  * <p>
- * Note: Make sure to read {@link ProfileInstruction#applyAsync()} if you're going to
- * be requesting a lot of different skulls.
+ * <b>Note: </b>Make sure to read {@link ProfileInstruction#applyAsync()} if you're going to
+ * be requesting heads in the main thread.
+ * <p>
+ * This API replaces {@link SkullMeta} and {@link Skull} which doesn't properly handle skulls
+ * in edge cases just like any other system that relies on the default Mojang handlers.
+ * It also specifically supports offline servers too.
  *
  * <h1>Mechanism</h1>
  * <p>

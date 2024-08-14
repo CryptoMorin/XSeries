@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 
@@ -13,19 +14,19 @@ import java.util.stream.Collectors;
  * A handle for using reflection for {@link Constructor}.
  */
 public class ConstructorMemberHandle extends MemberHandle {
-    protected Class<?>[] parameterTypes = new Class[0];
+    protected ClassHandle[] parameterTypes = new ClassHandle[0];
 
     public ConstructorMemberHandle(ClassHandle clazz) {
         super(clazz);
     }
 
     public ConstructorMemberHandle parameters(Class<?>... parameterTypes) {
-        this.parameterTypes = parameterTypes;
+        this.parameterTypes = Arrays.stream(parameterTypes).map(XReflection::of).toArray(ClassHandle[]::new);
         return this;
     }
 
     public ConstructorMemberHandle parameters(ClassHandle... parameterTypes) {
-        this.parameterTypes = Arrays.stream(parameterTypes).map(ClassHandle::unreflect).toArray(Class[]::new);
+        this.parameterTypes = parameterTypes;
         return this;
     }
 
@@ -35,7 +36,9 @@ public class ConstructorMemberHandle extends MemberHandle {
         if (makeAccessible) {
             return clazz.getNamespace().getLookup().unreflectConstructor(reflectJvm());
         } else {
-            return clazz.getNamespace().getLookup().findConstructor(clazz.unreflect(), MethodType.methodType(void.class, this.parameterTypes));
+            Class<?>[] parameterTypes = FlaggedNamedMemberHandle.getParameters(this, this.parameterTypes);
+            return clazz.getNamespace().getLookup().findConstructor(clazz.unreflect(),
+                    MethodType.methodType(void.class, parameterTypes));
         }
     }
 
@@ -47,6 +50,7 @@ public class ConstructorMemberHandle extends MemberHandle {
     @SuppressWarnings("unchecked")
     @Override
     public Constructor<?> reflectJvm() throws ReflectiveOperationException {
+        Class<?>[] parameterTypes = FlaggedNamedMemberHandle.getParameters(this, this.parameterTypes);
         return handleAccessible(clazz.unreflect().getDeclaredConstructor(parameterTypes));
     }
 
@@ -64,7 +68,7 @@ public class ConstructorMemberHandle extends MemberHandle {
         String str = this.getClass().getSimpleName() + '{';
         if (makeAccessible) str += "protected/private ";
         str += clazz.toString() + ' ';
-        str += '(' + Arrays.stream(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining(", ")) + ')';
+        str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';
         return str + '}';
     }
 }

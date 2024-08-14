@@ -66,4 +66,9 @@ public class StaticClassHandle extends ClassHandle {
     public StaticClassHandle clone() {
         return new StaticClassHandle(namespace, this.clazz);
     }
+
+    @Override
+    public String toString() {
+        return "StaticClassHandle(" + clazz + ')';
+    }
 }

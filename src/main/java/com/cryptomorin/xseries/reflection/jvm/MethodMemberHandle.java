@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * A handle for using reflection for {@link Method}.
  */
 public class MethodMemberHandle extends FlaggedNamedMemberHandle {
-    protected Class<?>[] parameterTypes = new Class[0];
+    protected ClassHandle[] parameterTypes = new ClassHandle[0];
 
     public MethodMemberHandle(ClassHandle clazz) {
         super(clazz);
@@ -27,7 +27,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
      * Overrides any previously set parameters.
      */
     public MethodMemberHandle parameters(ClassHandle... parameterTypes) {
-        this.parameterTypes = Arrays.stream(parameterTypes).map(ClassHandle::unreflect).toArray(Class[]::new);
+        this.parameterTypes = parameterTypes;
         return this;
     }
 
@@ -47,7 +47,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     public MethodMemberHandle parameters(Class<?>... parameterTypes) {
-        this.parameterTypes = parameterTypes;
+        this.parameterTypes = Arrays.stream(parameterTypes).map(XReflection::of).toArray(ClassHandle[]::new);
         return this;
     }
 
@@ -81,11 +81,14 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
         Method method = null;
 
         Class<?> clazz = this.clazz.reflect();
+        Class<?>[] parameterTypes = FlaggedNamedMemberHandle.getParameters(this, this.parameterTypes);
+        Class<?> returnType = getReturnType();
+
         for (String name : this.names) {
             if (method != null) break;
             try {
                 method = clazz.getDeclaredMethod(name, parameterTypes);
-                if (method.getReturnType() != this.returnType) {
+                if (method.getReturnType() != returnType) {
                     throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method);
                 }
             } catch (NoSuchMethodException ex) {
@@ -115,9 +118,9 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
         String str = this.getClass().getSimpleName() + '{';
         if (makeAccessible) str += "protected/private ";
         if (isFinal) str += "final ";
-        if (returnType != null) str += returnType.getSimpleName() + ' ';
+        if (returnType != null) str += returnType + " ";
         str += String.join("/", names);
-        str += '(' + Arrays.stream(parameterTypes).map(Class::getSimpleName).collect(Collectors.joining(", ")) + ')';
+        str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';
         return str + '}';
     }
 }

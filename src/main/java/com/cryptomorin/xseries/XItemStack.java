@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
@@ -55,6 +56,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -93,6 +95,8 @@ public final class XItemStack {
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
     private static final boolean SUPPORTS_POTION_COLOR;
+    private static final Object REGISTRY_BANNER_PATTERN = supportsRegistry("BANNER_PATTERN");
+    private static final PatternType DEFAULT_PATTERN_TYPE = getPatternType("BASE");
 
     static {
         boolean supportsPotionColor = false;
@@ -116,8 +120,57 @@ public final class XItemStack {
         SUPPORTS_CUSTOM_MODEL_DATA = supportsCustomModelData;
     }
 
-    private XItemStack() {
+    private static Object supportsRegistry(String name) {
+        try {
+            Class<?> registryClass = XReflection.ofMinecraft().inPackage("org.bukkit").named("Registry").reflect();
+            return XReflection.of(registryClass)
+                    .field().asStatic().getter().named(name).returns(registryClass)
+                    .reflect().invoke();
+        } catch (Throwable ex) {
+            return null;
+        }
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(Object something) {
+        return (T) something;
+    }
+
+    private static NamespacedKey fromConfig(String name) {
+        NamespacedKey namespacedKey;
+        if (!name.contains(":")) {
+            namespacedKey = NamespacedKey.minecraft(name.toLowerCase(Locale.ENGLISH));
+        } else {
+            namespacedKey = NamespacedKey.fromString(name.toLowerCase(Locale.ENGLISH));
+        }
+
+        return Objects.requireNonNull(namespacedKey, () -> "Invalid namespace key: " + name);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T getRegistryOrEnum(Class<T> typeClass, Object registry, String name, Object defaultValue) {
+        if (Strings.isNullOrEmpty(name)) return (T) defaultValue;
+
+        T type;
+        if (registry != null) {
+            type = cast(((Registry<?>) registry).get(fromConfig(name)));
+        } else {
+            type = cast(Enums.getIfPresent(cast(typeClass), name.toUpperCase(Locale.ENGLISH)).orNull());
+        }
+
+        if (type == null) return (T) defaultValue;
+        return type;
+    }
+
+    @NotNull
+    private static PatternType getPatternType(@Nullable String name) {
+        return getRegistryOrEnum(
+                PatternType.class, REGISTRY_BANNER_PATTERN,
+                name, DEFAULT_PATTERN_TYPE
+        );
+    }
+
+    private XItemStack() {}
 
     private static BlockState safeBlockState(BlockStateMeta meta) {
         try {
@@ -675,9 +728,7 @@ public final class XItemStack {
 
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
-                    PatternType type = Enums.getIfPresent(PatternType.class, pattern).orNull();
-                    if (type == null)
-                        type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                    PatternType type = getPatternType(pattern);
                     DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
 
                     banner.addPattern(new Pattern(color, type));
@@ -760,9 +811,7 @@ public final class XItemStack {
 
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
-                        PatternType type = Enums.getIfPresent(PatternType.class, pattern).orNull();
-                        if (type == null)
-                            type = Enums.getIfPresent(PatternType.class, pattern.toUpperCase(Locale.ENGLISH)).or(PatternType.BASE);
+                        PatternType type = getPatternType(pattern);
                         DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
 
                         banner.addPattern(new Pattern(color, type));

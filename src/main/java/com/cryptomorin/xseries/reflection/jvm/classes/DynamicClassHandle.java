@@ -117,4 +117,14 @@ public class DynamicClassHandle extends ClassHandle {
     public Set<String> getPossibleNames() {
         return classNames;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + '{' +
+                (parent == null ? "" : parent + " -> ") +
+                (parent == null ? packageName : (packageName == null ? "" : packageName)) +
+                '(' + String.join("|", classNames) + ')' +
+                (array == 0 ? "" : "[" + array + ']') +
+                " }";
+    }
 }

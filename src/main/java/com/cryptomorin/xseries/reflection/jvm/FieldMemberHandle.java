@@ -174,11 +174,13 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
         Field field = null;
 
         Class<?> clazz = this.clazz.reflect();
+        Class<?> returnType = getReturnType();
+
         for (String name : this.names) {
             if (field != null) break;
             try {
                 field = clazz.getDeclaredField(name);
-                if (field.getType() != this.returnType) {
+                if (field.getType() != returnType) {
                     throw new NoSuchFieldException("Field named '" + name + "' was found but the types don't match: " + field + " != " + this);
                 }
                 if (isFinal && !Modifier.isFinal(field.getModifiers())) {
@@ -200,7 +202,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
         String str = this.getClass().getSimpleName() + '{';
         if (makeAccessible) str += "protected/private ";
         if (isFinal) str += "final ";
-        if (returnType != null) str += returnType.getSimpleName() + ' ';
+        if (returnType != null) str += returnType + " ";
         str += String.join("/", names);
         return str + '}';
     }

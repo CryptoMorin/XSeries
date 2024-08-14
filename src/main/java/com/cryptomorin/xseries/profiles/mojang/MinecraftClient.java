@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.profiles.mojang;
 
+import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
@@ -89,7 +90,7 @@ public class MinecraftClient {
 
         private void debug(String message, Object... vars) {
             Object[] variables = XReflection.concatenate(new Object[]{sessionId, append}, vars);
-            ProfilesCore.debug("[MinecraftClient-{}][{}] " + message, variables);
+            ProfileLogger.debug("[MinecraftClient-{}][{}] " + message, variables);
         }
 
         public Session exceptionally(BiFunction<Session, Throwable, Boolean> errorHandler) {

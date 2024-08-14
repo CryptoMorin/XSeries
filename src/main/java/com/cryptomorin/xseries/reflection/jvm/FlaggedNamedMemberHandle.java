@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 
 /**
@@ -9,7 +10,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
  * like {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method}
  */
 public abstract class FlaggedNamedMemberHandle extends NamedMemberHandle {
-    protected Class<?> returnType;
+    protected ClassHandle returnType;
     protected boolean isStatic;
 
     protected FlaggedNamedMemberHandle(ClassHandle clazz) {
@@ -22,12 +23,37 @@ public abstract class FlaggedNamedMemberHandle extends NamedMemberHandle {
     }
 
     public FlaggedNamedMemberHandle returns(Class<?> clazz) {
-        this.returnType = clazz;
+        this.returnType = XReflection.of(clazz);
         return this;
     }
 
     public FlaggedNamedMemberHandle returns(ClassHandle clazz) {
-        this.returnType = clazz.unreflect();
+        this.returnType = clazz;
         return this;
+    }
+
+    public static Class<?>[] getParameters(Object owner, ClassHandle[] parameterTypes) {
+        Class<?>[] classes = new Class[parameterTypes.length];
+        int i = 0;
+        for (ClassHandle parameterType : parameterTypes) {
+            try {
+                classes[i++] = parameterType.unreflect();
+            } catch (Throwable ex) {
+                throw XReflection.throwCheckedException(new ReflectiveOperationException(
+                        "Unknown parameter " + parameterType + " for " + owner, ex
+                ));
+            }
+        }
+        return classes;
+    }
+
+    protected Class<?> getReturnType() {
+        try {
+            return this.returnType.unreflect();
+        } catch (Throwable ex) {
+            throw XReflection.throwCheckedException(new ReflectiveOperationException(
+                    "Unknown return type " + returnType + " for " + this
+            ));
+        }
     }
 }

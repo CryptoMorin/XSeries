@@ -1,6 +1,6 @@
 package com.cryptomorin.xseries.profiles.builder;
 
-import com.cryptomorin.xseries.profiles.ProfilesCore;
+import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
@@ -181,7 +181,7 @@ public final class ProfileInstruction<T> implements Profileable {
         }
 
         if (exception != null) {
-            if (success || lenient) ProfilesCore.debug("apply() silenced exception {}", exception);
+            if (success || lenient) ProfileLogger.debug("apply() silenced exception {}", exception);
             else throw exception;
         }
 

@@ -21,12 +21,11 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
-import org.bukkit.TreeSpecies;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
@@ -38,10 +37,16 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.Lootable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <b>XEntity</b> - YAML Entity Serializer<br>
@@ -66,6 +71,80 @@ public final class XEntity {
      * @since 2.0.0
      */
     public static final Set<EntityType> UNDEAD;
+    private static final Object REGISTRY_CAT_VARIANT = supportsRegistry("CAT_VARIANT");
+    private static Object REGISTRY_DEFAULT_CAT_VARIANT;
+
+    private static final Map<Class<?>, BiConsumer<Entity, ConfigurationSection>> MAPPING = new HashMap<>(20);
+
+    private static <T extends Entity> void register(Class<T> entityType, BiConsumer<T, ConfigurationSection> handler) {
+        MAPPING.put(entityType, cast(handler));
+    }
+
+    private static final class MappedConfigObject {
+        private final String configEntry;
+        private final MethodHandle setter;
+        private final Function<ConfigurationSection, Object> configurationValue;
+
+        private MappedConfigObject(String configEntry, MethodHandle setter, Function<ConfigurationSection, Object> configurationValue) {
+            this.configEntry = configEntry;
+            this.setter = setter;
+            this.configurationValue = configurationValue;
+        }
+
+        private void handle(Entity entity, ConfigurationSection config) {
+            if (config.isSet(configEntry)) {
+                try {
+                    setter.invoke(setter, configurationValue.apply(config));
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    private static void mapObjectToConfig(Class<? extends Entity> entityClass) {
+        List<MappedConfigObject> mappedConfigObjects = new ArrayList<>();
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+        for (Method method : entityClass.getDeclaredMethods()) {
+            String name = method.getName();
+            if (name.startsWith("set")) {
+                String configEntry = name.substring(3).replaceAll("[A-Z]", "-");
+                if (configEntry.startsWith("-")) configEntry = name.charAt(3) + configEntry.substring(1);
+
+                MethodHandle setter;
+                try {
+                    setter = lookup.unreflect(method);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+
+                mappedConfigObjects.add(new MappedConfigObject(configEntry, setter, null));
+            }
+        }
+    }
+
+    static {
+        if (XMaterial.supports(19)) {
+            register(Frog.class, XEntity::frog);
+        }
+    }
+
+    private static final boolean
+            SUPPORTS_Villager_setVillagerLevel,
+            SUPPORTS_Villager_setVillagerExperience,
+            SUPPORTS_Villager_setVillagerType;
+
+    static {
+        StaticClassHandle villager = XReflection.of(Villager.class);
+        SUPPORTS_Villager_setVillagerLevel = villager.method("void setVillagerLevel(int var1);").exists();
+        SUPPORTS_Villager_setVillagerExperience = villager.method("void setVillagerExperience(int xp);").exists();
+        SUPPORTS_Villager_setVillagerType = villager.method()
+                .named("setVillagerType")
+                .returns(void.class).parameters(villager.inner(XReflection.ofMinecraft().named("Type")))
+                .exists();
+    }
+
 
     static {
         Set<EntityType> undead = EnumSet.of(
@@ -95,7 +174,62 @@ public final class XEntity {
         UNDEAD = Collections.unmodifiableSet(undead);
     }
 
-    private XEntity() {
+    private XEntity() {}
+
+    private static Object supportsRegistry(String name) {
+        try {
+            Class<?> registryClass = XReflection.ofMinecraft().inPackage("org.bukkit").named("Registry").reflect();
+            return XReflection.of(registryClass)
+                    .field().asStatic().getter().named(name).returns(registryClass)
+                    .reflect().invoke();
+        } catch (Throwable ex) {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T getRegistryOrEnum(Class<T> typeClass, Object registry, String name, Object defaultValue) {
+        if (Strings.isNullOrEmpty(name)) return (T) defaultValue;
+
+        T type;
+        if (registry != null) {
+            type = cast(((Registry<?>) registry).get(fromConfig(name)));
+        } else {
+            type = cast(Enums.getIfPresent(cast(typeClass), name.toUpperCase(Locale.ENGLISH)).orNull());
+        }
+
+        if (type == null) return (T) defaultValue;
+        return type;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(Object something) {
+        return (T) something;
+    }
+
+    private static NamespacedKey fromConfig(String name) {
+        NamespacedKey namespacedKey;
+        if (!name.contains(":")) {
+            namespacedKey = NamespacedKey.minecraft(name.toLowerCase(Locale.ENGLISH));
+        } else {
+            namespacedKey = NamespacedKey.fromString(name.toLowerCase(Locale.ENGLISH));
+        }
+
+        return Objects.requireNonNull(namespacedKey, () -> "Invalid namespace key: " + name);
+    }
+
+    @NotNull
+    private static Cat.Type getCatVariant(@Nullable String name) {
+        if (REGISTRY_DEFAULT_CAT_VARIANT == null) {
+            REGISTRY_DEFAULT_CAT_VARIANT = getRegistryOrEnum(
+                    Cat.Type.class, REGISTRY_CAT_VARIANT, "TABBY", null
+            );
+        }
+
+        return getRegistryOrEnum(
+                Cat.Type.class, REGISTRY_CAT_VARIANT,
+                name, REGISTRY_DEFAULT_CAT_VARIANT
+        );
     }
 
     /**
@@ -119,6 +253,20 @@ public final class XEntity {
 
         EntityType type = Enums.getIfPresent(EntityType.class, typeStr.toUpperCase(Locale.ENGLISH)).or(EntityType.ZOMBIE);
         return edit(location.getWorld().spawnEntity(location, type), config);
+    }
+
+    private static void map(Class<?> target, Entity entity, ConfigurationSection config) {
+        if (target == Entity.class) return;
+
+        BiConsumer<Entity, ConfigurationSection> mapping = MAPPING.get(target);
+        if (mapping != null) mapping.accept(entity, config);
+
+        Class<?> superclass = target.getSuperclass();
+        if (superclass != null) map(superclass, entity, config);
+
+        for (Class<?> interf : target.getInterfaces()) {
+            map(interf, entity, config);
+        }
     }
 
     @SuppressWarnings({"deprecation", "Guava"})
@@ -317,7 +465,13 @@ public final class XEntity {
                 }
             }
 
-            if (living instanceof Enderman) {
+            map(entity.getClass(), entity, config);
+
+            if (living instanceof Villager) {
+                Villager villager = (Villager) living;
+                if (SUPPORTS_Villager_setVillagerLevel) villager.setVillagerLevel(config.getInt("level"));
+                if (SUPPORTS_Villager_setVillagerExperience) villager.setVillagerExperience(config.getInt("xp"));
+            } else if (living instanceof Enderman) {
                 Enderman enderman = (Enderman) living;
                 String block = config.getString("carrying");
 
@@ -362,19 +516,9 @@ public final class XEntity {
 
                         if (XMaterial.supports(13)) thirteen(entity, config);
                         if (XMaterial.supports(14)) fourteen(entity, config);
-                        if (XMaterial.supports(15)) {
-                            if (living instanceof Bee) {
-                                Bee bee = (Bee) living;
-                                // Anger time ticks.
-                                bee.setAnger(config.getInt("anger") * 20);
-                                bee.setHasNectar(config.getBoolean("nectar"));
-                                bee.setHasStung(config.getBoolean("stung"));
-                                bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
-                            }
-
-                            if (XMaterial.supports(16)) sixteen(entity, config);
-                            if (XMaterial.supports(17)) seventeen(entity, config);
-                        }
+                        if (XMaterial.supports(15)) fifteen(entity, config);
+                        if (XMaterial.supports(16)) sixteen(entity, config);
+                        if (XMaterial.supports(17)) seventeen(entity, config);
                     }
                 }
             }
@@ -387,6 +531,7 @@ public final class XEntity {
             orb.setExperience(config.getInt("exp"));
         } else if (entity instanceof Explosive) {
             Explosive explosive = (Explosive) entity;
+            explosive.setYield((float) config.getDouble("yield"));
             explosive.setIsIncendiary(config.getBoolean("incendiary"));
         } else if (entity instanceof EnderCrystal) {
             EnderCrystal crystal = (EnderCrystal) entity;
@@ -404,8 +549,7 @@ public final class XEntity {
             if (config.isSet("is-patrol-leader")) raider.setCanJoinRaid(config.getBoolean("is-patrol-leader"));
         } else if (entity instanceof Cat) {
             Cat cat = (Cat) entity;
-            // They changed this to an interface...
-            // TODO cat.setCatType(Enums.getIfPresent(Cat.Type.class, config.getString("variant")).or(Cat.Type.TABBY));
+            cat.setCatType(getCatVariant(config.getString("variant")));
             cat.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
         } else if (entity instanceof Fox) {
             Fox fox = (Fox) entity;
@@ -446,6 +590,17 @@ public final class XEntity {
         }
     }
 
+    private static void fifteen(Entity entity, ConfigurationSection config) {
+        if (entity instanceof Bee) {
+            Bee bee = (Bee) entity;
+            // Anger time ticks.
+            bee.setAnger(config.getInt("anger") * 20);
+            bee.setHasNectar(config.getBoolean("nectar"));
+            bee.setHasStung(config.getBoolean("stung"));
+            bee.setCannotEnterHiveTicks(config.getInt("disallow-hive") * 20);
+        }
+    }
+
     private static void sixteen(Entity entity, ConfigurationSection config) {
         if (entity instanceof Hoglin) {
             Hoglin hoglin = (Hoglin) entity;
@@ -461,6 +616,11 @@ public final class XEntity {
             Strider strider = (Strider) entity;
             strider.setShivering(config.getBoolean("shivering"));
         }
+    }
+
+    private static void frog(Entity entity, ConfigurationSection config) {
+        Frog frog = (Frog) entity;
+        frog.setVariant(Registry.FROG_VARIANT.get(fromConfig(config.getString("variant"))));
     }
 
     /**
