@@ -246,7 +246,7 @@ public final class XReflection {
                 /* 18 */ 2,
                 /* 19 */ 4,
                 /* 20 */ 6,
-                /* 21 */ 0,
+                /* 21 */ 1,
         };
 
         if (minorVersion > patches.length) return null;
