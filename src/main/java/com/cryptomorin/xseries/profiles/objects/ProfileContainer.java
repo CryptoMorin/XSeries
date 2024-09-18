@@ -68,7 +68,14 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public void setProfile(GameProfile profile) {
             try {
-                ProfilesCore.CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
+                if(ProfilesCore.ResolvableProfile_constructor != null) {
+                    ProfilesCore.CRAFT_META_SKULL_PROFILE_SETTER.invoke(
+                            meta,
+                            ProfilesCore.ResolvableProfile_constructor.invoke(profile)
+                    );
+                } else {
+                    ProfilesCore.CRAFT_META_SKULL_PROFILE_SETTER.invoke(meta, profile);
+                }
             } catch (Throwable throwable) {
                 throw new RuntimeException("Unable to set profile " + profile + " to " + meta, throwable);
             }
@@ -82,7 +89,11 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public GameProfile getProfile() {
             try {
-                return (GameProfile) ProfilesCore.CRAFT_META_SKULL_PROFILE_GETTER.invoke((SkullMeta) meta);
+                Object profile = ProfilesCore.CRAFT_META_SKULL_PROFILE_GETTER.invoke((SkullMeta) meta);
+                if(ProfilesCore.ResolvableProfile_getGameProfile != null) {
+                    return (GameProfile) ProfilesCore.ResolvableProfile_getGameProfile.invoke(profile);
+                }
+                return (GameProfile) profile;
             } catch (Throwable throwable) {
                 throw new RuntimeException("Failed to get profile from item meta: " + meta, throwable);
             }
@@ -127,7 +138,14 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public void setProfile(GameProfile profile) {
             try {
-                ProfilesCore.CRAFT_SKULL_PROFILE_SETTER.invoke(state, profile);
+                if(ProfilesCore.ResolvableProfile_constructor != null) {
+                    ProfilesCore.CRAFT_SKULL_PROFILE_SETTER.invoke(
+                            state,
+                            ProfilesCore.ResolvableProfile_constructor.invoke(profile)
+                    );
+                } else {
+                    ProfilesCore.CRAFT_SKULL_PROFILE_SETTER.invoke(state, profile);
+                }
             } catch (Throwable throwable) {
                 throw new RuntimeException("Unable to set profile " + profile + " to " + state, throwable);
             }
@@ -141,7 +159,11 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public GameProfile getProfile() {
             try {
-                return (GameProfile) ProfilesCore.CRAFT_SKULL_PROFILE_GETTER.invoke(state);
+                Object profile = ProfilesCore.CRAFT_SKULL_PROFILE_GETTER.invoke(state);
+                if(ProfilesCore.ResolvableProfile_getGameProfile != null) {
+                    return (GameProfile) ProfilesCore.ResolvableProfile_getGameProfile.invoke(profile);
+                }
+                return (GameProfile) profile;
             } catch (Throwable throwable) {
                 throw new RuntimeException("Unable to get profile fr om blockstate: " + state, throwable);
             }
