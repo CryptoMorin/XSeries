@@ -65,7 +65,14 @@ public final class ProfilesCore {
             MinecraftClassHandle ResolvableProfile =
                     ns.ofMinecraft("package nms.world.item.component; public class ResolvableProfile {}");
 
-            boolean useResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile;").getter().exists();
+            boolean useResolvableProfile;
+            try {
+                CraftMetaSkull.field("private ResolvableProfile profile;").getter().exists();
+                useResolvableProfile = true;
+            }catch (Exception e) {
+                // catch Unknown type 'ResolvableProfile' -> 'ResolvableProfile' if type is GameProfile
+                useResolvableProfile = false;
+            }
 
             if(useResolvableProfile) {
                 newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile);").reflect();
@@ -163,9 +170,11 @@ public final class ProfilesCore {
                 "package cb.block; public class CraftSkull extends CraftBlockEntityState implements Skull {}"
         );
 
-        FieldMemberHandle craftProfile = CraftSkull.field("private ResolvableProfile profile;");
-
-        if(!craftProfile.getter().exists()) {
+        FieldMemberHandle craftProfile;
+        try {
+            craftProfile = CraftSkull.field("private ResolvableProfile profile;");
+        }catch (Exception e) {
+            // catch Unknown type 'ResolvableProfile' -> 'ResolvableProfile' if type is GameProfile
             craftProfile = CraftSkull.field("private GameProfile profile;");
         }
 
