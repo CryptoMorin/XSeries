@@ -33,10 +33,14 @@ public final class ProfilesCore {
     public static final Map<UUID, Object> UserCache_profilesByUUID;
 
     public static final MethodHandle
-            FILL_PROFILE_PROPERTIES, GET_PROFILE_BY_NAME, GET_PROFILE_BY_UUID, CACHE_PROFILE,
-            CRAFT_META_SKULL_PROFILE_GETTER, CRAFT_META_SKULL_PROFILE_SETTER,
-            CRAFT_SKULL_PROFILE_SETTER, CRAFT_SKULL_PROFILE_GETTER,
-            Property_getValue, UserCache_getNextOperation, UserCacheEntry_getProfile, UserCacheEntry_setLastAccess, ResolvableProfile_constructor, ResolvableProfile_getGameProfile;
+            MinecraftSessionService_fillProfileProperties, GameProfileCache_get$profileByName$, GameProfileCache_get$profileByUUID$, CACHE_PROFILE,
+            CraftMetaSkull_profile$getter, CraftMetaSkull_profile$setter,
+            CraftSkull_profile$setter, CraftSkull_profile$getter,
+            Property_getValue,
+            UserCache_getNextOperation,
+            UserCacheEntry_getProfile, UserCacheEntry_setLastAccess,
+            ResolvableProfile$constructor, ResolvableProfile_gameProfile;
+    public static final boolean ResolvableProfile$bukkitSupports;
 
     /**
      * In v1.20.2, Mojang switched to {@code record} class types for their {@link Property} class.
@@ -48,7 +52,8 @@ public final class ProfilesCore {
         Proxy proxy;
         MethodHandle fillProfileProperties = null, getProfileByName, getProfileByUUID, cacheProfile;
         MethodHandle profileSetterMeta, profileGetterMeta;
-        MethodHandle newResolvableProfile = null, getGameProfile = null;
+        MethodHandle newResolvableProfile = null, $ResolvableProfile_gameProfile = null;
+        boolean bukkitUsesResolvableProfile = false;
 
         ReflectiveNamespace ns = XReflection.namespaced()
                 .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
@@ -62,37 +67,36 @@ public final class ProfilesCore {
                     "package cb.inventory; class CraftMetaSkull extends CraftMetaItem implements SkullMeta {}"
             );
 
+            // This class has existed since ~v1.20.5, however Bukkit has started using it in their
+            // classes since Paper v1.20.1b78, its function is basically similar to our Profileable class.
             MinecraftClassHandle ResolvableProfile =
                     ns.ofMinecraft("package nms.world.item.component; public class ResolvableProfile {}");
 
-            boolean useResolvableProfile;
-            try {
-                CraftMetaSkull.field("private ResolvableProfile profile;").getter().exists();
-                useResolvableProfile = true;
-            }catch (Exception e) {
-                // catch Unknown type 'ResolvableProfile' -> 'ResolvableProfile' if type is GameProfile
-                useResolvableProfile = false;
-            }
-
-            if(useResolvableProfile) {
+            if (ResolvableProfile.exists()) {
                 newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile);").reflect();
-                getGameProfile = ResolvableProfile.method("public GameProfile gameProfile();")
-                        .named("f")
+                $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile gameProfile();")
+                        .map(MinecraftMapping.OBFUSCATED, "f")
                         .reflect();
 
-                profileGetterMeta = CraftMetaSkull.field("private ResolvableProfile profile;").getter().reflect();
-                profileSetterMeta = CraftMetaSkull.method("private void setProfile(ResolvableProfile profile);").reflect();
-            } else {
-                profileGetterMeta = CraftMetaSkull.field("private GameProfile profile;").getter().reflect();
-
-                try {
-                    // https://github.com/CryptoMorin/XSeries/issues/169
-                    // noinspection MethodMayBeStatic
-                    profileSetterMeta = CraftMetaSkull.method("private void setProfile(GameProfile profile);").reflect();
-                } catch (NoSuchMethodException e) {
-                    profileSetterMeta = CraftMetaSkull.field("private GameProfile profile;").setter().reflect();
-                }
+                bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile;").exists();
             }
+
+            // @formatter:off
+            profileGetterMeta = XReflection.any(
+                    CraftMetaSkull.field("private ResolvableProfile profile;"),
+                    CraftMetaSkull.field("private GameProfile       profile;")
+            ).modify(FieldMemberHandle::getter).reflect();
+            // @formatter:on
+
+            // @formatter:off
+            // https://github.com/CryptoMorin/XSeries/issues/169
+            // noinspection MethodMayBeStatic
+            profileSetterMeta = XReflection.any(
+                    CraftMetaSkull.method("private void setProfile(ResolvableProfile profile);"),
+                    CraftMetaSkull.method("private void setProfile(GameProfile       profile);"),
+                    CraftMetaSkull.field ("private                 GameProfile       profile ;").setter()
+            ).reflect();
+            // @formatter:on
 
             MinecraftClassHandle MinecraftServer = ns.ofMinecraft(
                     "package nms.server; public abstract class MinecraftServer {}"
@@ -136,14 +140,16 @@ public final class ProfilesCore {
 
             MethodMemberHandle profileByName = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             MethodMemberHandle profileByUUID = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
+            // @formatter:off
             getProfileByName = XReflection.anyOf(
-                    () -> profileByName.signature("public GameProfile get(String username);"),
+                    () -> profileByName.signature("public          GameProfile  get(String username);"),
                     () -> profileByName.signature("public Optional<GameProfile> get(String username);")
             ).reflect();
             getProfileByUUID = XReflection.anyOf(
-                    () -> profileByUUID.signature("public GameProfile get(UUID id);"),
+                    () -> profileByUUID.signature("public          GameProfile  get(UUID id);"),
                     () -> profileByUUID.signature("public Optional<GameProfile> get(UUID id);")
             ).reflect();
+            // @formatter:on
 
             cacheProfile = GameProfileCache.method("public void add(GameProfile profile);")
                     .map(MinecraftMapping.OBFUSCATED, "a").reflect();
@@ -170,31 +176,34 @@ public final class ProfilesCore {
                 "package cb.block; public class CraftSkull extends CraftBlockEntityState implements Skull {}"
         );
 
-        FieldMemberHandle craftProfile;
-        try {
-            craftProfile = CraftSkull.field("private ResolvableProfile profile;");
-        }catch (Exception e) {
-            // catch Unknown type 'ResolvableProfile' -> 'ResolvableProfile' if type is GameProfile
-            craftProfile = CraftSkull.field("private GameProfile profile;");
-        }
+        FieldMemberHandle CraftSkull_profile = XReflection.any(
+                CraftSkull.field("private ResolvableProfile profile;"),
+                CraftSkull.field("private GameProfile profile;")
+        ).getHandle();
 
         Property_getValue = NULLABILITY_RECORD_UPDATE ? null :
                 ns.of(Property.class).method("public String getValue();").unreflect();
 
         PROXY = proxy;
         USER_CACHE = userCache;
-        YggdrasilMinecraftSessionService_insecureProfiles = (LoadingCache<Object, Object>) insecureProfiles;
-        MINECRAFT_SESSION_SERVICE = minecraftSessionService;
-        FILL_PROFILE_PROPERTIES = fillProfileProperties;
-        GET_PROFILE_BY_NAME = getProfileByName;
-        GET_PROFILE_BY_UUID = getProfileByUUID;
         CACHE_PROFILE = cacheProfile;
-        CRAFT_META_SKULL_PROFILE_SETTER = profileSetterMeta;
-        CRAFT_META_SKULL_PROFILE_GETTER = profileGetterMeta;
-        CRAFT_SKULL_PROFILE_SETTER = craftProfile.setter().unreflect();
-        CRAFT_SKULL_PROFILE_GETTER = craftProfile.getter().unreflect();
-        ResolvableProfile_constructor = newResolvableProfile;
-        ResolvableProfile_getGameProfile = getGameProfile;
+        MINECRAFT_SESSION_SERVICE = minecraftSessionService;
+
+        YggdrasilMinecraftSessionService_insecureProfiles = (LoadingCache<Object, Object>) insecureProfiles;
+        MinecraftSessionService_fillProfileProperties = fillProfileProperties;
+
+        GameProfileCache_get$profileByName$ = getProfileByName;
+        GameProfileCache_get$profileByUUID$ = getProfileByUUID;
+
+        CraftMetaSkull_profile$setter = profileSetterMeta;
+        CraftMetaSkull_profile$getter = profileGetterMeta;
+
+        CraftSkull_profile$setter = CraftSkull_profile.setter().unreflect();
+        CraftSkull_profile$getter = CraftSkull_profile.getter().unreflect();
+
+        ResolvableProfile$constructor = newResolvableProfile;
+        ResolvableProfile_gameProfile = $ResolvableProfile_gameProfile;
+        ResolvableProfile$bukkitSupports = bukkitUsesResolvableProfile;
 
         MinecraftClassHandle UserCacheEntry = GameProfileCache
                 .inner("private static class GameProfileInfo {}")

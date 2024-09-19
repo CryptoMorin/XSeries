@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Potion type support for multiple aliases.
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  * Potions: https://minecraft.wiki/w/Potion
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.1.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
@@ -89,6 +90,13 @@ public enum XPotion {
     SPEED("SPRINT", "RUNFAST", "SWIFT", "FAST"),
     STRENGTH("INCREASE_DAMAGE", "BULL", "STRONG", "ATTACK"),
     TRIAL_OMEN,
+    /**
+     * Special type of effect. Minecraft itself doesn't recognize this as a separate potion type,
+     * but as a combination of two other potion types. However, Bukkit's {@link PotionType#TURTLE_MASTER} decided
+     * to add this, whereas {@link PotionEffectType} doesn't have such enum.
+     * @since Minecraft v1.21
+     */
+    TURTLE_MASTER,
     UNLUCK("UNLUCKY"),
     WATER_BREATHING("WATER_BREATH", "UNDERWATER_BREATHING", "UNDERWATER_BREATH", "AIR"),
     WEAKNESS("WEAK"),
@@ -135,7 +143,18 @@ public enum XPotion {
             Data.NAMES.put(legacy, this);
             if (tempType == null) tempType = PotionEffectType.getByName(legacy);
         }
+        if (this.name().equals("TURTLE_MASTER")) tempType = findSlowness(); // Bukkit uses this too.
         this.type = tempType;
+    }
+
+    private static PotionEffectType findSlowness() {
+        // This is here because it's not safe to access other
+        // enum members inside the constructor.
+        return Stream.of("SLOWNESS", "SLOW", "SLUGGISH")
+                .map(PotionEffectType::getByName)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Cannot find slowness potion type"));
     }
 
     /**
@@ -480,6 +499,8 @@ public enum XPotion {
      */
     @Nullable
     public PotionType getPotionType() {
+        // This basically just loops all the types and tries to match them
+        // against a registry.
         return type == null ? null : PotionType.getByEffect(type);
     }
 

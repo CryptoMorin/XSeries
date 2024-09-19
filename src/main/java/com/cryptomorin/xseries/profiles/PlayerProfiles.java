@@ -133,6 +133,30 @@ public final class PlayerProfiles {
     }
 
     /**
+     * Tries to unwrap a {@link GameProfile} from a {@link net.minecraft.world.item.component.ResolvableProfile}.
+     */
+    @Nullable
+    public static GameProfile unwrapProfile(@Nullable Object profile) throws Throwable {
+        if (profile == null) return null;
+        if (!(profile instanceof GameProfile)) {
+            if (ProfilesCore.ResolvableProfile_gameProfile != null) { // Unwrap from ResolvableProfile
+                profile = ProfilesCore.ResolvableProfile_gameProfile.invoke(profile);
+            }
+        }
+        return (GameProfile) profile;
+    }
+
+    @Nullable
+    public static Object wrapProfile(@Nullable GameProfile profile) throws Throwable {
+        if (profile == null) return null;
+        if (ProfilesCore.ResolvableProfile$bukkitSupports) {
+            return ProfilesCore.ResolvableProfile$constructor.invoke(profile);
+        } else {
+            return profile;
+        }
+    }
+
+    /**
      * Uses the online/offline UUID depending on {@link Bukkit#getOnlineMode()}.
      * @return may return the same or a new profile.
      *

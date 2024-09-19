@@ -4,8 +4,7 @@ import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.*;
-import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
-import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.*;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
@@ -85,8 +84,8 @@ public class ReflectionParser {
         return "(?<" + groupName + '>' + type + ')';
     }
 
-    private Class<?>[] parseTypes(String[] typeNames) {
-        Class<?>[] classes = new Class[typeNames.length];
+    private ClassHandle[] parseTypes(String[] typeNames) {
+        ClassHandle[] classes = new ClassHandle[typeNames.length];
         for (int i = 0; i < typeNames.length; i++) {
             String typeName = typeNames[i];
             typeName = typeName.trim().substring(0, typeName.lastIndexOf(' ')).trim();
@@ -108,7 +107,7 @@ public class ReflectionParser {
         ).forEach(x -> PREDEFINED_TYPES.put(x.getSimpleName(), x));
     }
 
-    private Class<?> parseType(String typeName) {
+    private ClassHandle parseType(String typeName) {
         if (this.cachedImports == null && this.namespace != null) {
             this.cachedImports = this.namespace.getImports();
         }
@@ -138,11 +137,16 @@ public class ReflectionParser {
             }
         }
 
-        if (clazz == null) error("Unknown type '" + firstTypeName + "' -> '" + typeName + '\'');
+        // if (clazz == null) error("Unknown type '" + firstTypeName + "' -> '" + typeName + '\'');
+        if (clazz == null) return new UnknownClassHandle(getOrCreateNamespace(), firstTypeName + " -> " + typeName);
         if (arrayDimension != 0) {
             clazz = XReflection.of(clazz).asArray(arrayDimension).unreflect();
         }
-        return clazz;
+        return new StaticClassHandle(getOrCreateNamespace(), clazz);
+    }
+
+    private ReflectiveNamespace getOrCreateNamespace() {
+        return namespace == null ? XReflection.namespaced() : namespace;
     }
 
     public ReflectionParser imports(ReflectiveNamespace namespace) {

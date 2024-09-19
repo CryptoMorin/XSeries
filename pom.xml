@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>11.2.1</version>
+    <version>11.2.2</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -60,13 +60,13 @@
             <id>nms-repo</id>
             <url>https://repo.codemc.org/repository/nms/</url>
         </repository>
-<!--        <repository>-->
-<!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
-<!--            &lt;!&ndash; https://libraries.minecraft.net/com/mojang/authlib/VERSION/authlib-VERSION.jar &ndash;&gt;-->
-<!--            <id>minecraft-libraries</id>-->
-<!--            <name>Minecraft Libraries</name>-->
-<!--            <url>https://libraries.minecraft.net/</url>-->
-<!--        </repository>-->
+        <!--        <repository>-->
+        <!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
+        <!--            &lt;!&ndash; https://libraries.minecraft.net/com/mojang/authlib/VERSION/authlib-VERSION.jar &ndash;&gt;-->
+        <!--            <id>minecraft-libraries</id>-->
+        <!--            <name>Minecraft Libraries</name>-->
+        <!--            <url>https://libraries.minecraft.net/</url>-->
+        <!--        </repository>-->
     </repositories>
 
     <properties>
@@ -91,12 +91,12 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>com.mojang</groupId>-->
-<!--            <artifactId>authlib</artifactId>-->
-<!--            <version>6.0.54</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.mojang</groupId>-->
+        <!--            <artifactId>authlib</artifactId>-->
+        <!--            <version>6.0.54</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
@@ -284,6 +284,20 @@
             <id>latest</id>
             <properties>
                 <nms>21_R0</nms>
+            </properties>
+        </profile>
+        <profile>
+            <id>20</id>
+            <properties>
+                <nms>20_R0</nms>
+                <spigotVersion>1.20.6-R0.1-SNAPSHOT</spigotVersion>
+            </properties>
+        </profile>
+        <profile>
+            <id>19</id>
+            <properties>
+                <nms>19_R1</nms>
+                <spigotVersion>1.19.4-R0.1-SNAPSHOT</spigotVersion>
             </properties>
         </profile>
         <profile>

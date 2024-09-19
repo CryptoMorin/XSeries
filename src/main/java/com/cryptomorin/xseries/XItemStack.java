@@ -329,7 +329,7 @@ public final class XItemStack {
                     NamespacedKey type = x.getType().getKey();
                     String typeStr = type.getNamespace() + ':' + type.getKey();
                     return typeStr + ", " + x.getDuration() + ", " + x.getAmplifier();
-                }));
+                }).collect(Collectors.toList()));
 
                 if (SUPPORTS_POTION_COLOR && potion.hasColor()) config.set("color", potion.getColor().asRGB());
             } else {

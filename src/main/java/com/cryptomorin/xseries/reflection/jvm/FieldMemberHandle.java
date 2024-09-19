@@ -120,11 +120,25 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
 
     @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
+        Objects.requireNonNull(getter, "Not specified whether the method is a getter or setter");
         Field jvm = reflectJvm();
+
         if (getter) {
             return clazz.getNamespace().getLookup().unreflectGetter(jvm);
         } else {
             return clazz.getNamespace().getLookup().unreflectSetter(jvm);
+        }
+    }
+
+    @Override
+    public boolean exists() {
+        try {
+            // Avoid checking for getter property.
+            // This helps when using this handle easier with AggregateReflectiveHandle.
+            reflectJvm();
+            return true;
+        } catch (ReflectiveOperationException ignored) {
+            return false;
         }
     }
 
@@ -147,7 +161,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     protected <T extends AccessibleObject & Member> T handleAccessible(T field) throws ReflectiveOperationException {
         field = super.handleAccessible(field);
         if (field == null) return null;
-        if (!getter && isFinal && isStatic) {
+        if ((getter != null && !getter) && isFinal && isStatic) {
             try {
                 int unfinalModifiers = field.getModifiers() & ~Modifier.FINAL;
                 if (MODIFIERS_VAR_HANDLE != null) {
@@ -168,7 +182,6 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     @Override
     public Field reflectJvm() throws ReflectiveOperationException {
         Objects.requireNonNull(returnType, "Return type not specified");
-        Objects.requireNonNull(getter, "Not specified whether the method is a getter or setter");
         if (names.isEmpty()) throw new IllegalStateException("No names specified");
         NoSuchFieldException errors = null;
         Field field = null;

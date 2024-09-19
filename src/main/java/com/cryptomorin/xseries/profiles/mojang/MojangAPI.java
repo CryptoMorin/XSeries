@@ -96,7 +96,7 @@ public final class MojangAPI {
     private static GameProfile getCachedProfileByUsername(String username) {
         try {
             // Expires after every month calendar.add(2, 1); (Persists between restarts)
-            @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_NAME.invoke(ProfilesCore.USER_CACHE, username);
+            @Nullable Object profile = ProfilesCore.GameProfileCache_get$profileByName$.invoke(ProfilesCore.USER_CACHE, username);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
             GameProfile gameProfile = profile == null ?
                     PlayerProfiles.createGameProfile(PlayerUUIDs.IDENTITY_UUID, username) :
@@ -226,7 +226,7 @@ public final class MojangAPI {
     public static GameProfile getCachedProfileByUUID(UUID uuid) {
         uuid = PlayerUUIDs.isOnlineMode() ? uuid : PlayerUUIDs.ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
         try {
-            @Nullable Object profile = ProfilesCore.GET_PROFILE_BY_UUID.invoke(ProfilesCore.USER_CACHE, uuid);
+            @Nullable Object profile = ProfilesCore.GameProfileCache_get$profileByUUID$.invoke(ProfilesCore.USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
             ProfileLogger.debug("The cached profile for {} -> {}", uuid, profile);
             return profile == null ?

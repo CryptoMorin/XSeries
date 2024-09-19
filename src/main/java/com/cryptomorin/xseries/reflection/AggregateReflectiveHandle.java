@@ -57,6 +57,26 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
         return this;
     }
 
+    public H getHandle() {
+        ClassNotFoundException errors = null;
+
+        for (Callable<H> handle : handles) {
+            H handled;
+            try {
+                handled = handle.call();
+                if (handleModifier != null) handleModifier.accept(handled);
+                if (!handled.exists()) handled.reflect(); // If it doesn't exist, throw the error to catch.
+                return handled;
+            } catch (Throwable ex) {
+                if (errors == null)
+                    errors = new ClassNotFoundException("None of the aggregate handles were successful");
+                errors.addSuppressed(ex);
+            }
+        }
+
+        throw XReflection.throwCheckedException(XReflection.relativizeSuppressedExceptions(errors));
+    }
+
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public AggregateReflectiveHandle<T, H> clone() {
@@ -70,16 +90,19 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
         ClassNotFoundException errors = null;
 
         for (Callable<H> handle : handles) {
+            // Find a handler that works without reflecting.
             H handled;
             try {
                 handled = handle.call();
+                if (handleModifier != null) handleModifier.accept(handled);
             } catch (Throwable ex) {
                 if (errors == null)
                     errors = new ClassNotFoundException("None of the aggregate handles were successful");
                 errors.addSuppressed(ex);
                 continue;
             }
-            if (handleModifier != null) handleModifier.accept(handled);
+
+            // Reflect the working handler.
             try {
                 return handled.reflect();
             } catch (Throwable ex) {
