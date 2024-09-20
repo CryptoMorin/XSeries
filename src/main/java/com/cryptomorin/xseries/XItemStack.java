@@ -751,7 +751,14 @@ public final class XItemStack {
 
                 String baseType = config.getString("base-type");
                 if (!Strings.isNullOrEmpty(baseType)) {
-                    XPotion.matchXPotion(baseType).ifPresent(x -> potion.setBasePotionType(x.getPotionType()));
+                    PotionType potionType;
+                    try {
+                        potionType = PotionType.valueOf(baseType);
+                    } catch (IllegalArgumentException ex) {
+                        potionType = PotionType.HEALING;
+                    }
+
+                    potion.setBasePotionType(potionType);
                 }
 
                 if (SUPPORTS_POTION_COLOR && config.contains("color")) {
