@@ -277,7 +277,7 @@ public final class MojangAPI {
         } else {
             realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());
             if (realUUID == null) {
-                throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+                throw new UnknownPlayerException(profile.getName(), "Player with the given properties not found: " + profile);
             }
         }
 
@@ -286,14 +286,14 @@ public final class MojangAPI {
         if (cached != null) {
             ProfileLogger.debug("Found cached profile from UUID ({}): {} -> {}", realUUID, profile, cached);
             if (cached.isPresent()) return cached.get();
-            else throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+            else throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
 
         Optional<GameProfile> mojangCache = MOJANG_PROFILE_CACHE.get(realUUID, profile);
         if (mojangCache != null) {
             INSECURE_PROFILES.put(realUUID, mojangCache);
             if (mojangCache.isPresent()) return mojangCache.get();
-            else throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+            else throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
 
         JsonElement request;
@@ -307,7 +307,7 @@ public final class MojangAPI {
         if (request == null) {
             INSECURE_PROFILES.put(realUUID, Optional.empty());
             MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, null, null));
-            throw new UnknownPlayerException("Player with the given properties not found: " + profile);
+            throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
         JsonObject profileData = request.getAsJsonObject();
 

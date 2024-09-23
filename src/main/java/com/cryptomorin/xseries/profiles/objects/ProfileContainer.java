@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -25,6 +26,7 @@ public abstract class ProfileContainer<T> implements Profileable {
     @Nonnull
     public abstract void setProfile(@Nullable GameProfile profile);
 
+    @NotNull
     public abstract T getObject();
 
     @Override
@@ -35,11 +37,11 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class ItemStackProfileContainer extends ProfileContainer<ItemStack> {
         private final ItemStack itemStack;
 
-        public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = Objects.requireNonNull(itemStack);}
+        public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = Objects.requireNonNull(itemStack, "ItemStack is null");}
 
         private ItemMetaProfileContainer getMetaContainer(ItemMeta meta) {
             if (!(meta instanceof SkullMeta))
-                throw new InvalidProfileContainerException("Item can't contain texture: " + itemStack);
+                throw new InvalidProfileContainerException(itemStack, "Item can't contain texture: " + itemStack);
             return new ItemMetaProfileContainer((SkullMeta) meta);
         }
 
@@ -64,7 +66,7 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class ItemMetaProfileContainer extends ProfileContainer<ItemMeta> {
         private final ItemMeta meta;
 
-        public ItemMetaProfileContainer(SkullMeta meta) {this.meta = Objects.requireNonNull(meta);}
+        public ItemMetaProfileContainer(SkullMeta meta) {this.meta = Objects.requireNonNull(meta, "ItemMeta is null");}
 
         @Override
         public void setProfile(GameProfile profile) {
@@ -93,12 +95,12 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class BlockProfileContainer extends ProfileContainer<Block> {
         private final Block block;
 
-        public BlockProfileContainer(Block block) {this.block = Objects.requireNonNull(block);}
+        public BlockProfileContainer(Block block) {this.block = Objects.requireNonNull(block, "Block is null");}
 
         private Skull getBlockState() {
             BlockState state = block.getState();
             if (!(state instanceof Skull))
-                throw new InvalidProfileContainerException("Block can't contain texture: " + block);
+                throw new InvalidProfileContainerException(block, "Block can't contain texture: " + block);
             return (Skull) state;
         }
 
@@ -123,7 +125,7 @@ public abstract class ProfileContainer<T> implements Profileable {
     public static final class BlockStateProfileContainer extends ProfileContainer<Skull> {
         private final Skull state;
 
-        public BlockStateProfileContainer(Skull state) {this.state = Objects.requireNonNull(state);}
+        public BlockStateProfileContainer(Skull state) {this.state = Objects.requireNonNull(state, "Skull BlockState is null");}
 
         @Override
         public void setProfile(GameProfile profile) {

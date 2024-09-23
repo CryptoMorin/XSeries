@@ -1,14 +1,23 @@
 package com.cryptomorin.xseries.profiles.exceptions;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * When a provided item/block cannot contain skull textures.
  */
 public final class InvalidProfileContainerException extends ProfileException {
-    public InvalidProfileContainerException(String message) {
+    private final Object container;
+
+    public InvalidProfileContainerException(Object container, String message) {
         super(message);
+        this.container = container;
     }
 
-    public InvalidProfileContainerException(String message, Throwable cause) {
-        super(message, cause);
+    /**
+     * A {@link org.bukkit.inventory.ItemStack} or {@link org.bukkit.block.Block}.
+     */
+    @NotNull
+    public Object getContainer() {
+        return container;
     }
 }

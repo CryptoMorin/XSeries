@@ -61,11 +61,11 @@ public enum ProfileInputType {
             // (from authlib's MinecraftProfileTexture which exists in all versions 1.8-1.21)
             String decodedBase64 = PlayerProfiles.decodeBase64(base64);
             if (decodedBase64 == null)
-                throw new InvalidProfileException("Not a base64 string: " + base64);
+                throw new InvalidProfileException(base64, "Not a base64 string: " + base64);
 
             String textureHash = extractTextureHash(decodedBase64);
             if (textureHash == null)
-                throw new InvalidProfileException("Can't extract texture hash from base64: " + decodedBase64);
+                throw new InvalidProfileException(decodedBase64, "Can't extract texture hash from base64: " + decodedBase64);
 
             return PlayerProfiles.profileFromHashAndBase64(textureHash, base64);
         }
@@ -78,7 +78,14 @@ public enum ProfileInputType {
         // Case-insensitive flag doesn't work for some UUIDs.
         @Override
         public GameProfile getProfile(String uuidString) {
-            return Profileable.of(java.util.UUID.fromString(uuidString)).getProfile();
+            java.util.UUID uuid;
+            try {
+                uuid = java.util.UUID.fromString(uuidString);
+            } catch (IllegalArgumentException ex) {
+                // This should technically never happen.
+                throw new InvalidProfileException(uuidString, "Invalid UUID string: " + uuidString, ex);
+            }
+            return Profileable.of(uuid).getProfile();
         }
     },
 

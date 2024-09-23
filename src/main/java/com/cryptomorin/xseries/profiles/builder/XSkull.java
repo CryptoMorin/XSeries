@@ -34,6 +34,7 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A cross-version way to apply skin texture from different sources to items and blocks.
@@ -71,7 +72,7 @@ import org.bukkit.inventory.meta.SkullMeta;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin, Erick Alexander
- * @version 11.2.0
+ * @version 11.2.1
  * @see XMaterial
  * @see XReflection
  */
@@ -82,6 +83,7 @@ public final class XSkull {
      *
      * @return A {@link ProfileInstruction} that sets the profile for the generated {@link ItemStack}.
      */
+    @NotNull
     public static ProfileInstruction<ItemStack> createItem() {
         return of(XMaterial.PLAYER_HEAD.parseItem());
     }
@@ -92,7 +94,8 @@ public final class XSkull {
      * @param stack The {@link ItemStack} to set the profile for.
      * @return A {@link ProfileInstruction} that sets the profile for the given {@link ItemStack}.
      */
-    public static ProfileInstruction<ItemStack> of(ItemStack stack) {
+    @NotNull
+    public static ProfileInstruction<ItemStack> of(@NotNull ItemStack stack) {
         return new ProfileInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
     }
 
@@ -102,7 +105,8 @@ public final class XSkull {
      * @param meta The {@link ItemMeta} to set the profile for.
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link ItemMeta}.
      */
-    public static ProfileInstruction<ItemMeta> of(ItemMeta meta) {
+    @NotNull
+    public static ProfileInstruction<ItemMeta> of(@NotNull ItemMeta meta) {
         return new ProfileInstruction<>(new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta));
     }
 
@@ -112,7 +116,8 @@ public final class XSkull {
      * @param block The {@link Block} to set the profile for.
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link Block}.
      */
-    public static ProfileInstruction<Block> of(Block block) {
+    @NotNull
+    public static ProfileInstruction<Block> of(@NotNull Block block) {
         return new ProfileInstruction<>(new ProfileContainer.BlockProfileContainer(block));
     }
 
@@ -122,7 +127,8 @@ public final class XSkull {
      * @param state The {@link BlockState} to set the profile for.
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link BlockState}.
      */
-    public static ProfileInstruction<Skull> of(BlockState state) {
+    @NotNull
+    public static ProfileInstruction<Skull> of(@NotNull BlockState state) {
         return new ProfileInstruction<>(new ProfileContainer.BlockStateProfileContainer((Skull) state));
     }
 
@@ -143,6 +149,7 @@ public final class XSkull {
      *
      * @return A clone of the default {@link GameProfile}.
      */
+    @NotNull
     protected static Profileable getDefaultProfile() {
         // We copy this just in case something changes the GameProfile properties.
         GameProfile clone = PlayerProfiles.createGameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());

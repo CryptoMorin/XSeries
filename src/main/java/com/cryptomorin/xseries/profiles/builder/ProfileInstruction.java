@@ -13,6 +13,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -96,8 +97,8 @@ public final class ProfileInstruction<T> implements Profileable {
      * Sets the texture profile to be set to the item/block. Use one of the
      * static methods of {@link Profileable} class.
      */
-    public ProfileInstruction<T> profile(Profileable profileable) {
-        this.profileable = profileable;
+    public ProfileInstruction<T> profile(@NotNull Profileable profileable) {
+        this.profileable = Objects.requireNonNull(profileable, "Profileable is null");
         return this;
     }
 
@@ -107,7 +108,8 @@ public final class ProfileInstruction<T> implements Profileable {
      * also if any of the fallback profiles are used, {@link #onFallback} will be called too.
      * @see #apply()
      */
-    public ProfileInstruction<T> fallback(Profileable... fallbacks) {
+    public ProfileInstruction<T> fallback(@NotNull Profileable... fallbacks) {
+        Objects.requireNonNull(fallbacks, "fallbacks array is null");
         this.fallbacks.addAll(Arrays.asList(fallbacks));
         return this;
     }
@@ -117,7 +119,7 @@ public final class ProfileInstruction<T> implements Profileable {
      * this is also called if no fallback profile is provided, but the main one {@link #profile(Profileable)} fails.
      * @see #onFallback(Runnable)
      */
-    public ProfileInstruction<T> onFallback(Consumer<ProfileFallback<T>> onFallback) {
+    public ProfileInstruction<T> onFallback(@Nullable Consumer<ProfileFallback<T>> onFallback) {
         this.onFallback = onFallback;
         return this;
     }
@@ -125,7 +127,8 @@ public final class ProfileInstruction<T> implements Profileable {
     /**
      * @see #onFallback(Consumer)
      */
-    public ProfileInstruction<T> onFallback(Runnable onFallback) {
+    public ProfileInstruction<T> onFallback(@NotNull Runnable onFallback) {
+        Objects.requireNonNull(onFallback, "onFallback runnable is null");
         this.onFallback = (fallback) -> onFallback.run();
         return this;
     }
@@ -168,7 +171,7 @@ public final class ProfileInstruction<T> implements Profileable {
                     if (exception == null) {
                         exception = new ProfileChangeException("Could not set the profile for " + profileContainer);
                     }
-                    exception.addSuppressed(new InvalidProfileException("Profile doesn't have a value: " + profileable));
+                    exception.addSuppressed(new InvalidProfileException(profileable.toString(), "Profile doesn't have a value: " + profileable));
                     tryingFallbacks = true;
                 }
             } catch (ProfileException ex) {

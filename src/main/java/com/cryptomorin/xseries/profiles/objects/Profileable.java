@@ -2,7 +2,9 @@ package com.cryptomorin.xseries.profiles.objects;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
+import com.cryptomorin.xseries.profiles.builder.ProfileInstruction;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
+import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
@@ -52,6 +54,27 @@ public interface Profileable {
     @Unmodifiable
     @ApiStatus.Internal
     GameProfile getProfile();
+
+    /**
+     * Tests whether this profile has any issues or throws any exception.
+     * This is a good way if you're going to be checking for user issues
+     * before trying to {@link ProfileInstruction#apply()} them.
+     * For now, this is basically equivalent to calling {@link #getProfile()}
+     * and catching exceptions. Which means that the profile will be cached
+     * if a cache is behind this profile.
+     * <p>
+     * These issues include, wrong username, network issues, etc.
+     * Note that some issues only occur when {@link ProfileInstruction#apply()} is used.
+     */
+    @Nullable
+    default ProfileException test() {
+        try {
+            getProfile();
+            return null;
+        } catch (ProfileException ex) {
+            return ex;
+        }
+    }
 
     /**
      * Same as {@link #getProfile()}, except some implementations of {@link Profileable}
@@ -243,11 +266,11 @@ public interface Profileable {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
-            if (!valid) throw new InvalidProfileException("Invalid username: '" + username + '\'');
+            if (!valid) throw new InvalidProfileException(username, "Invalid username: '" + username + '\'');
 
             Optional<GameProfile> profileOpt = MojangAPI.getMojangCachedProfileFromUsername(username);
             if (!profileOpt.isPresent())
-                throw new UnknownPlayerException("Cannot find player named '" + username + '\'');
+                throw new UnknownPlayerException(username, "Cannot find player named '" + username + '\'');
 
             GameProfile profile = profileOpt.get();
             if (PlayerProfiles.hasTextures(profile)) return profile;
@@ -331,7 +354,7 @@ public interface Profileable {
         protected GameProfile getProfile0() {
             determineType();
             if (type == null) {
-                throw new InvalidProfileException("Unknown skull string value: " + string);
+                throw new InvalidProfileException(string, "Unknown skull string value: " + string);
             }
             return type.getProfile(string);
         }
