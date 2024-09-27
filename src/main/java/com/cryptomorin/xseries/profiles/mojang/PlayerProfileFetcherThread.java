@@ -2,8 +2,8 @@ package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.ProfileLogger;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -19,7 +19,7 @@ public final class PlayerProfileFetcherThread implements ThreadFactory {
     private static final AtomicInteger COUNT = new AtomicInteger();
 
     @Override
-    public Thread newThread(@Nonnull final Runnable run) {
+    public Thread newThread(@NotNull final Runnable run) {
         final Thread thread = new Thread(run);
         thread.setName("Profile Lookup Executor #" + COUNT.getAndIncrement());
         thread.setUncaughtExceptionHandler((t, throwable) ->

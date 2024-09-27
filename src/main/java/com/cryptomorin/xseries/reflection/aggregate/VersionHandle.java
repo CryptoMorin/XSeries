@@ -1,4 +1,7 @@
-package com.cryptomorin.xseries.reflection;
+package com.cryptomorin.xseries.reflection.aggregate;
+
+import com.cryptomorin.xseries.reflection.XReflection;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.Callable;
 
@@ -13,11 +16,13 @@ public final class VersionHandle<T> {
     private T handle;
     // private RuntimeException errors;
 
-    VersionHandle(int version, T handle) {
+    @ApiStatus.Internal
+    public VersionHandle(int version, T handle) {
         this(version, 0, handle);
     }
 
-    VersionHandle(int version, int patch, T handle) {
+    @ApiStatus.Internal
+    public VersionHandle(int version, int patch, T handle) {
         if (XReflection.supports(version, patch)) {
             this.version = version;
             this.patch = patch;
@@ -25,6 +30,7 @@ public final class VersionHandle<T> {
         }
     }
 
+    @ApiStatus.Internal
     public VersionHandle(int version, int patch, Callable<T> handle) {
         if (XReflection.supports(version, patch)) {
             this.version = version;
@@ -37,6 +43,7 @@ public final class VersionHandle<T> {
         }
     }
 
+    @ApiStatus.Internal
     public VersionHandle(int version, Callable<T> handle) {
         this(version, 0, handle);
     }

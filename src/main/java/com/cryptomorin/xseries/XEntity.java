@@ -38,9 +38,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.Lootable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -244,7 +243,7 @@ public final class XEntity {
     }
 
     @Nullable
-    public static Entity spawn(@Nonnull Location location, @Nonnull ConfigurationSection config) {
+    public static Entity spawn(@NotNull Location location, @NotNull ConfigurationSection config) {
         Objects.requireNonNull(location, "Cannot spawn entity at a null location.");
         Objects.requireNonNull(config, "Cannot spawn entity from a null configuration section");
 
@@ -270,8 +269,8 @@ public final class XEntity {
     }
 
     @SuppressWarnings({"deprecation", "Guava"})
-    @Nonnull
-    public static Entity edit(@Nonnull Entity entity, @Nonnull ConfigurationSection config) {
+    @NotNull
+    public static Entity edit(@NotNull Entity entity, @NotNull ConfigurationSection config) {
         Objects.requireNonNull(entity, "Cannot edit properties of a null entity");
         Objects.requireNonNull(config, "Cannot edit an entity from a null configuration section");
 

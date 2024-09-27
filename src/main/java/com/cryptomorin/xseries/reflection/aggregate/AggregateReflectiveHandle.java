@@ -1,7 +1,11 @@
-package com.cryptomorin.xseries.reflection;
+package com.cryptomorin.xseries.reflection.aggregate;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.XReflection;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +33,8 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
     private final List<Callable<H>> handles;
     private Consumer<H> handleModifier;
 
-    protected AggregateReflectiveHandle(Collection<Callable<H>> handles) {
+    @ApiStatus.Internal
+    public AggregateReflectiveHandle(Collection<Callable<H>> handles) {
         this.handles = new ArrayList<>(handles.size());
         this.handles.addAll(handles);
     }
@@ -37,14 +42,14 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
     /**
      * @see #or(Callable)
      */
-    public AggregateReflectiveHandle<T, H> or(@Nonnull H handle) {
+    public AggregateReflectiveHandle<T, H> or(@NotNull H handle) {
         return or(() -> handle);
     }
 
     /**
      * @see #or(ReflectiveHandle)
      */
-    public AggregateReflectiveHandle<T, H> or(@Nonnull Callable<H> handle) {
+    public AggregateReflectiveHandle<T, H> or(@NotNull Callable<H> handle) {
         this.handles.add(handle);
         return this;
     }

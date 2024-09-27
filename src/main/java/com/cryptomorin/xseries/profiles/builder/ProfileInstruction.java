@@ -6,6 +6,7 @@ import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
+import com.cryptomorin.xseries.profiles.objects.DelegateProfileable;
 import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.mojang.authlib.GameProfile;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
  *
  * @param <T> The type of the result produced by the {@link #profileContainer} function.
  */
-public final class ProfileInstruction<T> implements Profileable {
+public final class ProfileInstruction<T> implements DelegateProfileable {
     /**
      * The function called that applies the given {@link #profileable} to an object that supports it
      * such as {@link ItemStack}, {@link SkullMeta} or a {@link BlockState}.
@@ -82,15 +83,13 @@ public final class ProfileInstruction<T> implements Profileable {
     @Override
     @Nullable
     public GameProfile getProfile() {
+        // Just here to handle the JavaDocs.
         return profileContainer.getProfile();
     }
 
-    /**
-     * A string representation of the {@link #getProfile()} which is useful for data storage.
-     */
-    @Nullable
-    public String getProfileString() {
-        return profileContainer.getProfileValue();
+    @Override
+    public Profileable getDelegateProfile() {
+        return profileContainer;
     }
 
     /**

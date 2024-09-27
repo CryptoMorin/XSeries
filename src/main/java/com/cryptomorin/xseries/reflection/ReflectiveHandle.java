@@ -1,9 +1,9 @@
 package com.cryptomorin.xseries.reflection;
 
+import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.Nonnull;
 
 /**
  * Represents an object that can be used for reflection operations.
@@ -40,6 +40,7 @@ public interface ReflectiveHandle<T> extends Cloneable {
      */
     @Nullable
     @ApiStatus.Obsolete
+    @Deprecated
     default ReflectiveOperationException catchError() {
         try {
             reflect();
@@ -56,7 +57,7 @@ public interface ReflectiveHandle<T> extends Cloneable {
      * @throws ReflectiveOperationException throws silently.
      */
     @SuppressWarnings("JavadocDeclaration")
-    @Nonnull
+    @NotNull
     default T unreflect() {
         try {
             return reflect();
@@ -86,6 +87,6 @@ public interface ReflectiveHandle<T> extends Cloneable {
      * @see #reflectOrNull()
      * @see #unreflect()
      */
-    @Nonnull
+    @NotNull
     T reflect() throws ReflectiveOperationException;
 }

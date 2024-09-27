@@ -26,9 +26,9 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -164,7 +164,7 @@ public final class Titles implements Cloneable {
      * @see #clearTitle(Player)
      * @since 1.0.0
      */
-    public static void sendTitle(@Nonnull Player player,
+    public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
@@ -201,7 +201,7 @@ public final class Titles implements Cloneable {
      * @see #sendTitle(Player, int, int, int, String, String)
      * @since 1.0.0
      */
-    public static void sendTitle(@Nonnull Player player, @Nonnull String title, @Nonnull String subtitle) {
+    public static void sendTitle(@NotNull Player player, @NotNull String title, @NotNull String subtitle) {
         sendTitle(player, 10, 20, 10, title, subtitle);
     }
 
@@ -212,13 +212,13 @@ public final class Titles implements Cloneable {
      * @param config the configuration section to parse the title properties from.
      * @since 1.0.0
      */
-    public static Titles sendTitle(@Nonnull Player player, @Nonnull ConfigurationSection config) {
+    public static Titles sendTitle(@NotNull Player player, @NotNull ConfigurationSection config) {
         Titles titles = parseTitle(config, null);
         titles.send(player);
         return titles;
     }
 
-    public static Titles parseTitle(@Nonnull ConfigurationSection config) {
+    public static Titles parseTitle(@NotNull ConfigurationSection config) {
         return parseTitle(config, null);
     }
 
@@ -237,7 +237,7 @@ public final class Titles implements Cloneable {
      * @param config the configuration section to parse the title properties from.
      * @since 3.0.0
      */
-    public static Titles parseTitle(@Nonnull ConfigurationSection config, @Nullable Function<String, String> transformers) {
+    public static Titles parseTitle(@NotNull ConfigurationSection config, @Nullable Function<String, String> transformers) {
         String title = config.getString("title");
         String subtitle = config.getString("subtitle");
 
@@ -279,7 +279,7 @@ public final class Titles implements Cloneable {
      * @param player the player to clear the title from.
      * @since 1.0.0
      */
-    public static void clearTitle(@Nonnull Player player) {
+    public static void clearTitle(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
         if (XReflection.supports(11)) {
             player.resetTitle();
@@ -310,7 +310,7 @@ public final class Titles implements Cloneable {
      * @param players players to send this change to.
      * @since 1.0.0
      */
-    public static void sendTabList(@Nonnull String header, @Nonnull String footer, Player... players) {
+    public static void sendTabList(@NotNull String header, @NotNull String footer, Player... players) {
         Objects.requireNonNull(players, "Cannot send tab title to null players");
         Objects.requireNonNull(header, "Tab title header cannot be null");
         Objects.requireNonNull(footer, "Tab title footer cannot be null");

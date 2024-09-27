@@ -1,6 +1,7 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 
 /**
@@ -8,6 +9,6 @@ import java.util.Set;
  * This class should not be used directly.
  */
 public interface NamedReflectiveHandle {
-    @Nonnull
+    @NotNull
     Set<String> getPossibleNames();
 }

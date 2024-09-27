@@ -31,9 +31,9 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -136,7 +136,7 @@ public enum XPotion {
 
     private final PotionEffectType type;
 
-    XPotion(@Nonnull String... aliases) {
+    XPotion(@NotNull String... aliases) {
         PotionEffectType tempType = PotionEffectType.getByName(this.name());
         Data.NAMES.put(this.name(), this);
         for (String legacy : aliases) {
@@ -167,8 +167,8 @@ public enum XPotion {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -201,8 +201,8 @@ public enum XPotion {
      * @return a potion effect type.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XPotion> matchXPotion(@Nonnull String potion) {
+    @NotNull
+    public static Optional<XPotion> matchXPotion(@NotNull String potion) {
         if (potion == null || potion.isEmpty())
             throw new IllegalArgumentException("Cannot match XPotion of a null or empty potion effect type");
         PotionEffectType idType = fromId(potion);
@@ -214,7 +214,7 @@ public enum XPotion {
         return Optional.ofNullable(Data.NAMES.get(format(potion)));
     }
 
-    public static XPotion matchXPotion(@Nonnull PotionType type) {
+    public static XPotion matchXPotion(@NotNull PotionType type) {
         return matchXPotion(type.name()).orElseThrow(() -> new UnsupportedOperationException("PotionType " + type.name()));
     }
 
@@ -227,8 +227,8 @@ public enum XPotion {
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public static XPotion matchXPotion(@Nonnull PotionEffectType type) {
+    @NotNull
+    public static XPotion matchXPotion(@NotNull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");
         return POTIONEFFECTTYPE_MAPPING[type.getId()];
     }
@@ -242,7 +242,7 @@ public enum XPotion {
      */
     @Nullable
     @SuppressWarnings("deprecation")
-    private static PotionEffectType fromId(@Nonnull String type) {
+    private static PotionEffectType fromId(@NotNull String type) {
         try {
             int id = Integer.parseInt(type);
             return PotionEffectType.getById(id);
@@ -251,7 +251,7 @@ public enum XPotion {
         }
     }
 
-    private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+    private static List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(5);
         boolean match = false, lastMatch = false;
         int len = str.length();
@@ -347,7 +347,7 @@ public enum XPotion {
      * @see #parseEffect(String)
      * @since 1.0.0
      */
-    public static void addEffects(@Nonnull LivingEntity entity, @Nullable List<String> effects) {
+    public static void addEffects(@NotNull LivingEntity entity, @Nullable List<String> effects) {
         Objects.requireNonNull(entity, "Cannot add potion effects to null entity");
         for (Effect effect : parseEffects(effects)) effect.apply(entity);
     }
@@ -379,8 +379,8 @@ public enum XPotion {
      * @return a thrown splash potion.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ThrownPotion throwPotion(@Nonnull LivingEntity entity, @Nullable Color color, @Nullable PotionEffect... effects) {
+    @NotNull
+    public static ThrownPotion throwPotion(@NotNull LivingEntity entity, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(entity, "Cannot throw potion from null entity");
         @SuppressWarnings("deprecation")
         ItemStack potion = Material.getMaterial("SPLASH_POTION") == null ?
@@ -416,8 +416,8 @@ public enum XPotion {
      * @return an item with the specified effects.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ItemStack buildItemWithEffects(@Nonnull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
+    @NotNull
+    public static ItemStack buildItemWithEffects(@NotNull Material type, @Nullable Color color, @Nullable PotionEffect... effects) {
         Objects.requireNonNull(type, "Cannot build an effected item with null type");
         if (!canHaveEffects(type))
             throw new IllegalArgumentException("Cannot build item with " + type.name() + " potion type");

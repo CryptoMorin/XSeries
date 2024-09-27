@@ -29,9 +29,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -146,7 +146,7 @@ public enum XEnchantment {
      *
      * @see NamespacedKey#getKey()
      */
-    XEnchantment(@Nonnull String... aliases) {
+    XEnchantment(@NotNull String... aliases) {
         Enchantment enchantment = getBukkitEnchant(this.name());
 
         Data.NAMES.put(this.name(), this);
@@ -205,8 +205,8 @@ public enum XEnchantment {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -239,8 +239,8 @@ public enum XEnchantment {
      * @return an enchantment.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XEnchantment> matchXEnchantment(@Nonnull String enchantment) {
+    @NotNull
+    public static Optional<XEnchantment> matchXEnchantment(@NotNull String enchantment) {
         if (enchantment == null || enchantment.isEmpty())
             throw new IllegalArgumentException("Enchantment name cannot be null or empty");
         return Optional.ofNullable(Data.NAMES.get(format(enchantment)));
@@ -255,9 +255,9 @@ public enum XEnchantment {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("deprecation")
-    public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
+    public static XEnchantment matchXEnchantment(@NotNull Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
         return Objects.requireNonNull(Data.NAMES.get(enchantment.getName()), () -> "Unsupported enchantment: " + enchantment.getName());
     }
@@ -269,7 +269,7 @@ public enum XEnchantment {
      * @return an enchanted book.
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public ItemStack getBook(int level) {
         ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
@@ -327,7 +327,7 @@ public enum XEnchantment {
      * @return a friendly readable string name.
      */
     @Override
-    @Nonnull
+    @NotNull
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())

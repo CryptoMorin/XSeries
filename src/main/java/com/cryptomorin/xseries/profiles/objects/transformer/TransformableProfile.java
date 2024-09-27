@@ -11,21 +11,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class TransformableProfile implements Profileable {
+    /**
+     * The original profileable.
+     */
     private final Profileable profileable;
     private final TransformationSequence transformers;
 
     public TransformableProfile(Profileable profileable, List<ProfileTransformer> transformers) {
         this.profileable = profileable;
-        this.transformers = new TransformationSequence(transformers);
+        this.transformers = new TransformationSequence(profileable, transformers);
     }
 
     private static final class TransformationSequence {
+        private final Profileable profileable;
         @Nullable
         private GameProfile profile;
         private boolean expired, markRestAsCopy;
         private final TransformedProfileCache[] transformers;
 
-        private TransformationSequence(List<ProfileTransformer> transformers) {
+        private TransformationSequence(Profileable profileable, List<ProfileTransformer> transformers) {
+            this.profileable = profileable;
             this.transformers = transformers.stream()
                     .map(TransformedProfileCache::new)
                     .toArray(TransformedProfileCache[]::new);
@@ -48,7 +53,9 @@ public final class TransformableProfile implements Profileable {
                 } else {
                     expired = true;
                 }
-                profile = cacheProfile = transformer.transform(markRestAsCopy ? profile : PlayerProfiles.clone(profile));
+                profile = cacheProfile = transformer.transform(
+                        profileable,
+                        markRestAsCopy ? profile : PlayerProfiles.clone(profile));
                 if (!transformer.canBeCached()) markRestAsCopy = true;
             }
         }

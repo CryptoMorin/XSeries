@@ -2,21 +2,25 @@ import com.cryptomorin.xseries.*;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
+import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.github.cryptomorin.test.ReflectionTests;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +45,7 @@ public final class XSeriesTests {
 
         print("Testing XMaterial...");
         assertPresent(XMaterial.matchXMaterial("AIR"));
-        assertSame(XMaterial.matchXMaterial("CLAY_BRICK").get(), XMaterial.BRICK);
+        assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
         assertMaterial("RED_BED", "RED_BED");
         assertMaterial("MELON", "MELON");
         assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
@@ -69,6 +73,8 @@ public final class XSeriesTests {
             assertPresent(XEnchantment.matchXEnchantment(enchant.getName()), "Unknown enchantment: " + enchant.getName());
         }
 
+        testXItemStack();
+
         print("Testing XSound...");
         assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
         assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
@@ -91,6 +97,76 @@ public final class XSeriesTests {
         initializeReflection();
         testSkulls();
         print("\n\n\nTest end...");
+    }
+
+    private static void testXItemStack() {
+        print("Testing XItemStack...");
+        try {
+            serializeItemStack();
+            deserializeItemStack();
+        } catch (IOException | InvalidConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void deserializeItemStack() throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.load(ResourceHelper.getResourceAsFile("itemstack.yml"));
+
+        for (String section : yaml.getKeys(false)) {
+            ConfigurationSection itemSection = yaml.getConfigurationSection(section);
+            ItemStack item = XItemStack.deserialize(itemSection);
+            print("[Item] " + section + ": " + item);
+        }
+    }
+
+    private static ItemStack createItem(XMaterial material, String name, Consumer<ItemMeta> metaConsumer) {
+        ItemStack item = material.parseItem();
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        metaConsumer.accept(meta);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    @SuppressWarnings("CodeBlock2Expr")
+    private static void serializeItemStack() throws IOException {
+        File file = new File(Bukkit.getWorldContainer(), "serialized.yml");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+
+        List<ItemStack> items = new ArrayList<>();
+        items.add(createItem(XMaterial.DIAMOND, "Diamonds", meta -> {
+            meta.setLore(Arrays.asList("Line 1", "", "Line 2"));
+        }));
+        items.add(createItem(XMaterial.PLAYER_HEAD, "head-notch", meta -> {
+            XSkull.of(meta).profile(
+                    Profileable.username("Notch")
+                            .transform(ProfileTransformer.includeOriginalValue())
+            ).apply();
+        }));
+        items.add(createItem(XMaterial.PLAYER_HEAD, "head-uuid", meta -> {
+            XSkull.of(meta).profile(
+                    Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
+                            .transform(ProfileTransformer.includeOriginalValue())
+            ).apply();
+        }));
+        items.add(createItem(XMaterial.PLAYER_HEAD, "head-username-no-transform", meta -> {
+            XSkull.of(meta).profile(
+                    Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
+            ).apply();
+        }));
+        items.add(createItem(XMaterial.PLAYER_HEAD, "no-op head", meta -> {}));
+
+        YamlConfiguration yaml = new YamlConfiguration();
+        for (ItemStack item : items) {
+            ItemMeta meta = item.getItemMeta();
+            ConfigurationSection section = yaml.createSection(meta.getDisplayName());
+            XItemStack.serialize(item, section);
+        }
+        yaml.save(file);
     }
 
     private static void testSkulls() {
@@ -124,6 +200,9 @@ public final class XSeriesTests {
                 "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
                 "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"), null);
         print("Result of bulk requests: " + mapped);
+
+        print("Skull value of Notch: " + Profileable.username("Notch").getProfileValue());
+        print("Skull value of Base64: " + Profileable.detect("f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990").getProfileValue());
 
         profilePreparation(); // Takes ~5 seconds (If we ignore the previous requests in this method)
         profilePreparation(); // Takes less than a second
@@ -165,6 +244,13 @@ public final class XSeriesTests {
         }
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public static <T> void assertSame(Optional<T> expected, T actual) {
+        Assertions.assertTrue(expected.isPresent(), () -> "Item is not present to compare with " + actual);
+        Assertions.assertSame(expected.get(), actual);
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static void assertPresent(Optional<?> opt) {
         Assertions.assertTrue(opt.isPresent());
     }

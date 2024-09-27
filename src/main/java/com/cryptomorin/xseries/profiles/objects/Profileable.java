@@ -24,10 +24,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +39,10 @@ import java.util.concurrent.CompletableFuture;
  * account in general (not specific to this or any other server)
  * The most important information contained within this profile however, is the
  * skin texture URL which the client needs to properly see the texture on items/blocks.
+ *
+ * @see com.cryptomorin.xseries.profiles.objects.cache.CacheableProfileable
+ * @see TimedCacheableProfileable
+ * @see TransformableProfile
  */
 public interface Profileable {
     /**
@@ -65,6 +69,7 @@ public interface Profileable {
      * <p>
      * These issues include, wrong username, network issues, etc.
      * Note that some issues only occur when {@link ProfileInstruction#apply()} is used.
+     * Any other type of exception that might happen are still ignored.
      */
     @Nullable
     default ProfileException test() {
@@ -99,31 +104,38 @@ public interface Profileable {
      * but the result of transformed profiles are never cached.
      * @param transformers a list of transformers to apply in order once {@link #getProfile()} is called.
      */
-    default Profileable transform(ProfileTransformer... transformers) {
+    @NotNull
+    default Profileable transform(@NotNull ProfileTransformer... transformers) {
         return new TransformableProfile(this, Arrays.asList(transformers));
     }
 
     /**
-     * A string representation of the {@link #getProfile()} which is useful for data storage.
+     * A string representation of the {@link #getProfile()} which is useful for data storage which
+     * can be serialized back using {@link Profileable#detect(String)}.
+     * <p>
+     * Note that in some cases this is the Base64 value of the textures property, but some may
+     * provide less verbose data when possible. Items and blocks can also provide compact
+     * data if their profile was built using {@link ProfileTransformer#includeOriginalValue()}.
      * @return null if {@link #getProfile()} is null or the set profile doesn't have a texture property.
      */
     @Nullable
     default String getProfileValue() {
-        GameProfile profile = getProfile();
-        return PlayerProfiles.getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
+        return PlayerProfiles.getOriginalValue(getProfile());
     }
 
-    @Nonnull
+    @NotNull
     @ApiStatus.Experimental
-    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@Nonnull C profileables) {
+    static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@NotNull C profileables) {
         return prepare(profileables, null, null);
     }
 
-    @Nonnull
+    @NotNull
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
-            @Nonnull C profileables, @Nullable ProfileRequestConfiguration config,
+            @NotNull C profileables, @Nullable ProfileRequestConfiguration config,
             @Nullable Function<Throwable, Boolean> errorHandler) {
+        Objects.requireNonNull(profileables, "Profile list is null");
+
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
 
@@ -178,14 +190,16 @@ public interface Profileable {
     /**
      * Sets the skull texture based on the specified player UUID (whether it's an offline or online UUID).
      */
-    static Profileable username(String username) {
+    @NotNull
+    static Profileable username(@NotNull String username) {
         return new UsernameProfileable(username);
     }
 
     /**
      * Sets the skull texture based on the specified player UUID (whether it's an offline or online UUID).
      */
-    static Profileable of(UUID uuid) {
+    @NotNull
+    static Profileable of(@NotNull UUID uuid) {
         return new UUIDProfileable(uuid);
     }
 
@@ -196,7 +210,8 @@ public interface Profileable {
      *
      * @param profile The profile to be used in the profile setting operation.
      */
-    static Profileable of(GameProfile profile) {
+    @NotNull
+    static Profileable of(@NotNull GameProfile profile) {
         return new GameProfileProfileable(profile);
     }
 
@@ -206,23 +221,28 @@ public interface Profileable {
      *
      * @param offlinePlayer The offline player to generate the {@link GameProfile}.
      */
-    static Profileable of(OfflinePlayer offlinePlayer) {
+    @NotNull
+    static Profileable of(@NotNull OfflinePlayer offlinePlayer) {
         return new PlayerProfileable(offlinePlayer);
     }
 
-    static Profileable of(BlockState blockState) {
+    @NotNull
+    static Profileable of(@NotNull BlockState blockState) {
         return new ProfileContainer.BlockStateProfileContainer((Skull) blockState);
     }
 
-    static Profileable of(Block block) {
+    @NotNull
+    static Profileable of(@NotNull Block block) {
         return new ProfileContainer.BlockProfileContainer(block);
     }
 
-    static Profileable of(ItemStack item) {
+    @NotNull
+    static Profileable of(@NotNull ItemStack item) {
         return new ProfileContainer.ItemStackProfileContainer(item);
     }
 
-    static Profileable of(ItemMeta meta) {
+    @NotNull
+    static Profileable of(@NotNull ItemMeta meta) {
         return new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta);
     }
 
@@ -238,8 +258,8 @@ public interface Profileable {
      *
      * @param input The input value used to retrieve the {@link GameProfile}. For more information check {@link ProfileInputType}
      */
-    static Profileable detect(String input) {
-        Objects.requireNonNull(input);
+    @NotNull
+    static Profileable detect(@NotNull String input) {
         return new StringProfileable(input, null);
     }
 
@@ -249,7 +269,8 @@ public interface Profileable {
      * @param type  The type of the input value.
      * @param input The input value to generate the {@link GameProfile}.
      */
-    static Profileable of(ProfileInputType type, String input) {
+    @NotNull
+    static Profileable of(@NotNull ProfileInputType type, @NotNull String input) {
         Objects.requireNonNull(type, () -> "Cannot profile from a null input type: " + input);
         Objects.requireNonNull(input, () -> "Cannot profile from a null input: " + type);
         return new StringProfileable(input, type);
@@ -260,6 +281,11 @@ public interface Profileable {
         private Boolean valid;
 
         public UsernameProfileable(String username) {this.username = Objects.requireNonNull(username);}
+
+        @Override
+        public String getProfileValue() {
+            return username;
+        }
 
         @Override
         protected GameProfile getProfile0() {
@@ -282,6 +308,11 @@ public interface Profileable {
         private final UUID id;
 
         public UUIDProfileable(UUID id) {this.id = Objects.requireNonNull(id, "UUID cannot be null");}
+
+        @Override
+        public String getProfileValue() {
+            return id.toString();
+        }
 
         @Override
         protected GameProfile getProfile0() {
@@ -316,12 +347,17 @@ public interface Profileable {
     final class PlayerProfileable extends TimedCacheableProfileable {
         // Let the GC do its job.
         @Nullable private final String username;
-        @Nonnull private final UUID id;
+        @NotNull private final UUID id;
 
         public PlayerProfileable(OfflinePlayer player) {
             Objects.requireNonNull(player);
             this.username = player.getName();
             this.id = player.getUniqueId();
+        }
+
+        @Override
+        public String getProfileValue() {
+            return Strings.isNullOrEmpty(username) ? id.toString() : username;
         }
 
         @Override
@@ -341,8 +377,13 @@ public interface Profileable {
         @Nullable private ProfileInputType type;
 
         public StringProfileable(String string, @Nullable ProfileInputType type) {
-            this.string = Objects.requireNonNull(string);
+            this.string = Objects.requireNonNull(string, "Input string is null");
             this.type = type;
+        }
+
+        @Override
+        public String getProfileValue() {
+            return string;
         }
 
         private StringProfileable determineType() {

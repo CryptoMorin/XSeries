@@ -4,9 +4,9 @@ import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -127,7 +127,7 @@ public enum ProfileInputType {
      * @return The matching type, or {@code null} if no match is found.
      */
     @Nullable
-    public static ProfileInputType typeOf(@Nonnull String identifier) {
+    public static ProfileInputType typeOf(@NotNull String identifier) {
         Objects.requireNonNull(identifier, "Identifier cannot be null");
         return Arrays.stream(VALUES)
                 .filter(value -> value.pattern.matcher(identifier).matches())

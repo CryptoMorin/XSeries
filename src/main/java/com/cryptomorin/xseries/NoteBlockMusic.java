@@ -30,9 +30,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -118,8 +118,8 @@ public final class NoteBlockMusic {
     private NoteBlockMusic() {
     }
 
-    @Nonnull
-    public static XSound getSoundFromInstrument(@Nonnull Instrument instrument) {
+    @NotNull
+    public static XSound getSoundFromInstrument(@NotNull Instrument instrument) {
         return INSTRUMENT_TO_SOUND.get(instrument);
     }
 
@@ -167,7 +167,7 @@ public final class NoteBlockMusic {
      * @return the async task handling the notes.
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> testMusic(@Nonnull Player player) {
+    public static CompletableFuture<Void> testMusic(@NotNull Player player) {
         return playMusic(player, player::getLocation, // Starting piece of Megalovania (not perfectly toned, it's screwed up)
                 "PIANO,D,2,100 PIANO,B#1 200 PIANO,F 250 PIANO,E 250 PIANO,B 200 PIANO,A 100 PIANO,B 100 PIANO,E");
     }
@@ -183,7 +183,7 @@ public final class NoteBlockMusic {
      * @see #playMusic(Player, Supplier, String)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> fromFile(@Nonnull Player player, @Nonnull Supplier<Location> location, @Nonnull Path path) {
+    public static CompletableFuture<Void> fromFile(@NotNull Player player, @NotNull Supplier<Location> location, @NotNull Path path) {
         return CompletableFuture.runAsync(() -> {
             try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 String line;
@@ -244,7 +244,7 @@ public final class NoteBlockMusic {
      * @see #fromFile(Player, Supplier, Path)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> playMusic(@Nonnull Player player, @Nonnull Supplier<Location> location, @Nullable String script) {
+    public static CompletableFuture<Void> playMusic(@NotNull Player player, @NotNull Supplier<Location> location, @Nullable String script) {
         // We don't want to mess around in the main thread.
         // Sounds are thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -257,7 +257,7 @@ public final class NoteBlockMusic {
         });
     }
 
-    public static Sequence parseInstructions(@Nonnull CharSequence script) {
+    public static Sequence parseInstructions(@NotNull CharSequence script) {
         return new InstructionBuilder(script).sequence;
     }
 
@@ -299,7 +299,7 @@ public final class NoteBlockMusic {
      * @since 3.0.0
      */
     @Nullable
-    public static Note parseNote(@Nonnull String note) {
+    public static Note parseNote(@NotNull String note) {
         Note.Tone tone = getNoteTone((char) (note.charAt(0) & 0x5f)); // Doesn't matter if it's already uppercase.
         if (tone == null) return null;
 
@@ -336,7 +336,7 @@ public final class NoteBlockMusic {
     }
 
     @SuppressWarnings("deprecation")
-    public static float noteToPitch(@Nonnull Note note) {
+    public static float noteToPitch(@NotNull Note note) {
         return (float) Math.pow(2.0D, ((double) note.getId() - 12.0D) / 12.0D);
     }
 
@@ -422,7 +422,7 @@ public final class NoteBlockMusic {
 
     @SuppressWarnings("StringBufferField")
     private static final class InstructionBuilder {
-        @Nonnull final CharSequence script;
+        @NotNull final CharSequence script;
         final int len;
         final StringBuilder
                 instrumentBuilder = new StringBuilder(10),
@@ -436,7 +436,7 @@ public final class NoteBlockMusic {
         StringBuilder currentBuilder;
 
 
-        public InstructionBuilder(@Nonnull CharSequence script) {
+        public InstructionBuilder(@NotNull CharSequence script) {
             this.script = script;
             len = script.length();
 
@@ -665,8 +665,8 @@ public final class NoteBlockMusic {
      * @return the async task handling the operation.
      * @since 2.0.0
      */
-    @Nonnull
-    public static BukkitTask playAscendingNote(@Nonnull Plugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument,
+    @NotNull
+    public static BukkitTask playAscendingNote(@NotNull Plugin plugin, @NotNull Player player, @NotNull Entity playTo, @NotNull Instrument instrument,
                                                int ascendLevel, int delay) {
         Objects.requireNonNull(player, "Cannot play note from null player");
         Objects.requireNonNull(playTo, "Cannot play note to null entity");

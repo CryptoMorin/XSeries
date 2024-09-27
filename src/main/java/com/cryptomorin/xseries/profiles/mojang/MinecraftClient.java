@@ -14,9 +14,9 @@ import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -115,7 +115,7 @@ public class MinecraftClient {
             return this;
         }
 
-        public Session append(@Nonnull String append) {
+        public Session append(@NotNull String append) {
             this.append = Objects.requireNonNull(append);
             return this;
         }

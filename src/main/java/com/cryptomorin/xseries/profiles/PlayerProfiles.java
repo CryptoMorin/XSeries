@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
@@ -11,9 +12,9 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
@@ -58,6 +59,7 @@ public final class PlayerProfiles {
      * Also, the {@link com.cryptomorin.xseries.profiles.mojang.MojangAPI} UUID_TO_PROFILE
      * returns HTTP for texture URL when the Base64 is decoded, so we can keep it consistent
      * when it's not explicitly defined by the user.
+     * @see #getTextureValue(GameProfile)
      */
     public static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
 
@@ -72,18 +74,30 @@ public final class PlayerProfiles {
      * @param profile The {@link GameProfile} to retrieve the skin value from.
      * @return The skin value as a {@link String}, or {@code null} if not found.
      * @throws NullPointerException if {@code profile} is {@code null}.
+     * @see #getTextureProperty(GameProfile)
      */
     @Nullable
-    public static String getSkinValue(@Nonnull GameProfile profile) {
+    public static String getTextureValue(@NotNull GameProfile profile) {
         Objects.requireNonNull(profile, "Game profile cannot be null");
         return getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
+    }
+
+    @Nullable
+    public static String getOriginalValue(@Nullable GameProfile profile) {
+        if (profile == null) return null;
+
+        String original = ProfileTransformer.IncludeOriginalValue.getOriginalValue(profile);
+        if (original != null) return original;
+
+        return getTextureValue(profile);
     }
 
     /**
      * Retrieves the value of a {@link Property}, handling differences between versions.
      * @since 4.0.1
      */
-    public static String getPropertyValue(Property property) {
+    @NotNull
+    public static String getPropertyValue(@NotNull Property property) {
         if (ProfilesCore.NULLABILITY_RECORD_UPDATE) return property.value();
         try {
             return (String) ProfilesCore.Property_getValue.invoke(property);
@@ -97,6 +111,7 @@ public final class PlayerProfiles {
      *
      * @param profile The {@link GameProfile} to check.
      * @return {@code true} if the profile has a texture property, {@code false} otherwise.
+     * @see #getTextureProperty(GameProfile)
      */
     public static boolean hasTextures(GameProfile profile) {
         return getTextureProperty(profile).isPresent();
@@ -111,7 +126,7 @@ public final class PlayerProfiles {
      * @implNote This method creates a {@link GameProfile} with a UUID derived from the provided hash
      *           to ensure consistency after restarts.
      */
-    @Nonnull
+    @NotNull
     public static GameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
         GameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
@@ -121,7 +136,7 @@ public final class PlayerProfiles {
 
     @SuppressWarnings("deprecation")
     public static void removeTimestamp(GameProfile profile) {
-        JsonObject jsonObject = Optional.ofNullable(getSkinValue(profile)).map(PlayerProfiles::decodeBase64)
+        JsonObject jsonObject = Optional.ofNullable(getTextureValue(profile)).map(PlayerProfiles::decodeBase64)
                 .map((decoded) -> new JsonParser().parse(decoded).getAsJsonObject())
                 .orElse(null);
 

@@ -31,9 +31,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -1750,7 +1750,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      *
      * @see #getLegacy()
      */
-    @Nonnull
+    @NotNull
     private final String[] legacy;
     /**
      * The cached Bukkit parsed material.
@@ -1761,7 +1761,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
     @Nullable
     private final Material material;
 
-    XMaterial(int data, @Nonnull String... legacy) {
+    XMaterial(int data, @NotNull String... legacy) {
         this.data = (byte) data;
         this.legacy = legacy;
 
@@ -1787,8 +1787,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @return an optional that can be empty.
      * @since 5.1.0
      */
-    @Nonnull
-    private static Optional<XMaterial> getIfPresent(@Nonnull String name) {
+    @NotNull
+    private static Optional<XMaterial> getIfPresent(@NotNull String name) {
         return Optional.ofNullable(NAMES.get(name));
     }
 
@@ -1811,7 +1811,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @since 1.0.0
      */
     @Nullable
-    private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
+    private static XMaterial requestOldXMaterial(@NotNull String name, byte data) {
         String holder = name + data;
         XMaterial cache = NAME_CACHE.getIfPresent(holder);
         if (cache != null) return cache;
@@ -1843,8 +1843,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @see #matchXMaterial(String)
      * @since 3.0.0
      */
-    @Nonnull
-    private static Optional<XMaterial> matchXMaterialWithData(@Nonnull String name) {
+    @NotNull
+    private static Optional<XMaterial> matchXMaterialWithData(@NotNull String name) {
         int index = name.indexOf(':');
         if (index != -1) {
             String mat = format(name.substring(0, index));
@@ -1868,8 +1868,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @see #matchDefinedXMaterial(String, byte)
      * @since 2.0.0
      */
-    @Nonnull
-    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
+    @NotNull
+    public static Optional<XMaterial> matchXMaterial(@NotNull String name) {
         if (name == null || name.isEmpty())
             throw new IllegalArgumentException("Cannot match a material with null or empty material name");
         Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
@@ -1884,8 +1884,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @see #matchXMaterial(ItemStack)
      * @since 2.0.0
      */
-    @Nonnull
-    public static XMaterial matchXMaterial(@Nonnull Material material) {
+    @NotNull
+    public static XMaterial matchXMaterial(@NotNull Material material) {
         Objects.requireNonNull(material, "Cannot match null material");
         return matchDefinedXMaterial(material.name(), UNKNOWN_DATA_VALUE)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported material with no data value: " + material.name()));
@@ -1901,9 +1901,9 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @see #matchXMaterial(Material)
      * @since 2.0.0
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("deprecation")
-    public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
+    public static XMaterial matchXMaterial(@NotNull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
 
@@ -1966,8 +1966,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @since 3.0.0
      */
     @SuppressWarnings({"DanglingJavadoc", "JavadocBlankLines"})
-    @Nonnull
-    protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
+    @NotNull
+    protected static Optional<XMaterial> matchDefinedXMaterial(@NotNull String name, byte data) {
         // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
         Boolean duplicated = null;
         boolean isAMap = name.equalsIgnoreCase("MAP");
@@ -2017,8 +2017,8 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @return an enum name.
      * @since 2.0.0
      */
-    @Nonnull
-    protected static String format(@Nonnull String name) {
+    @NotNull
+    protected static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -2074,9 +2074,9 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @see #parseItem()
      * @since 3.0.0
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("deprecation")
-    public ItemStack setType(@Nonnull ItemStack item) {
+    public ItemStack setType(@NotNull ItemStack item) {
         Objects.requireNonNull(item, "Cannot set material for null ItemStack");
         Material material = this.parseMaterial();
         Objects.requireNonNull(material, () -> "Unsupported material: " + this.name());
@@ -2098,7 +2098,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @return true if it's one of the legacy names, otherwise false.
      * @since 2.0.0
      */
-    private boolean anyMatchLegacy(@Nonnull String name) {
+    private boolean anyMatchLegacy(@NotNull String name) {
         for (int i = this.legacy.length - 1; i >= 0; i--) {
             if (name.equals(this.legacy[i])) return true;
         }
@@ -2120,7 +2120,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @since 3.0.0
      */
     @Override
-    @Nonnull
+    @NotNull
     public String toString() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
@@ -2203,7 +2203,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    public boolean isSimilar(@Nonnull ItemStack item) {
+    public boolean isSimilar(@NotNull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
         // Special case for splash potions.
@@ -2253,7 +2253,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
      * @return true if there's a duplicated material for this material, otherwise false.
      * @since 2.0.0
      */
-    private static boolean isDuplicated(@Nonnull String name) {
+    private static boolean isDuplicated(@NotNull String name) {
         // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
         return DUPLICATED.contains(name);
     }

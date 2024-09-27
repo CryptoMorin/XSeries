@@ -17,9 +17,9 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -221,7 +221,7 @@ public class XWorldBorder implements Cloneable {
         return new Vector(centerX, 0, centerZ);
     }
 
-    public XWorldBorder setSize(double newSize, @Nonnull Duration duration) {
+    public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
         if (this.size == newSize && sizeLerpTime == duration) return this;
         size = newSize;
         sizeLerpTime = duration;

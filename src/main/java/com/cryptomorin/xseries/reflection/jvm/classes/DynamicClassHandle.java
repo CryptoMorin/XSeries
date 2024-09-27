@@ -4,8 +4,8 @@ import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Strings;
 import org.intellij.lang.annotations.Pattern;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -24,19 +24,19 @@ public class DynamicClassHandle extends ClassHandle {
         super(namespace);
     }
 
-    public DynamicClassHandle inPackage(@Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) @Nonnull String packageName) {
+    public DynamicClassHandle inPackage(@Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) @NotNull String packageName) {
         Objects.requireNonNull(packageName, "Null package name");
         this.packageName = packageName;
         return this;
     }
 
-    public DynamicClassHandle inPackage(@Nonnull PackageHandle packageHandle) {
+    public DynamicClassHandle inPackage(@NotNull PackageHandle packageHandle) {
         // noinspection PatternValidation
         return inPackage(packageHandle, "");
     }
 
-    public DynamicClassHandle inPackage(@Nonnull PackageHandle packageHandle,
-                                        @Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) @Nonnull String packageName) {
+    public DynamicClassHandle inPackage(@NotNull PackageHandle packageHandle,
+                                        @Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) @NotNull String packageName) {
         Objects.requireNonNull(packageHandle, "Null package handle type");
         Objects.requireNonNull(packageName, "Null package handle name");
         if (parent != null)
@@ -45,7 +45,7 @@ public class DynamicClassHandle extends ClassHandle {
         return this;
     }
 
-    public DynamicClassHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) @Nonnull String... classNames) {
+    public DynamicClassHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) @NotNull String... classNames) {
         Objects.requireNonNull(classNames);
         for (String className : this.classNames) {
             Objects.requireNonNull(className, () -> "Cannot add null class name from: " + Arrays.toString(classNames) + " to " + this);

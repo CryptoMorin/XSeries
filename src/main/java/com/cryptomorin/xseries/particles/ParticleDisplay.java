@@ -30,9 +30,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.Color;
 import java.util.List;
 import java.util.*;
@@ -145,7 +145,7 @@ public class ParticleDisplay implements Cloneable {
      * Flames seem to be the simplest particles that allows you to get a good visual
      * on how precise shapes that depend on complex algorithms play out.
      */
-    @Nonnull
+    @NotNull
     private static final XParticle DEFAULT_PARTICLE = XParticle.FLAME;
 
     public int count = 1;
@@ -155,11 +155,11 @@ public class ParticleDisplay implements Cloneable {
      */
     public double extra;
     public boolean force;
-    @Nonnull
+    @NotNull
     private XParticle particle = DEFAULT_PARTICLE;
     @Nullable
     private Location location, lastLocation;
-    @Nonnull
+    @NotNull
     private Vector offset = new Vector();
     @Nullable
     private Vector particleDirection;
@@ -168,7 +168,7 @@ public class ParticleDisplay implements Cloneable {
      * instead of handling the direction in a specific axis.
      * This makes it easier for them as well and allows easier use of the {@link #rotations} API.
      */
-    @Nonnull
+    @NotNull
     private Vector direction = new Vector(0, 1, 0);
     /**
      * The xyz axis order of how the particle's matrix should be rotated.
@@ -191,7 +191,7 @@ public class ParticleDisplay implements Cloneable {
      * While it's true that in order to combine multiple quaternion rotations you'd have to multiply them,
      * quaternion multiplication is not commutative and some rotations should be done separately.
      */
-    @Nonnull
+    @NotNull
     public List<List<Rotation>> rotations = new ArrayList<>();
     @Nullable
     private List<Quaternion> cachedFinalRotationQuaternions;
@@ -218,7 +218,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 1.0.0
      * @deprecated use {@link #withColor(Color)}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
     public static ParticleDisplay colored(@Nullable Location location, int r, int g, int b, float size) {
         return ParticleDisplay.of(XParticle.DUST).withLocation(location).withColor(r, g, b, size);
@@ -267,9 +267,9 @@ public class ParticleDisplay implements Cloneable {
      * @since 3.0.0
      * @deprecated use {@link #withColor(Color, float)}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static ParticleDisplay colored(Location location, @Nonnull Color color, float size) {
+    public static ParticleDisplay colored(Location location, @NotNull Color color, float size) {
         return ParticleDisplay.of(XParticle.DUST).withLocation(location).withColor(color, size);
     }
 
@@ -287,9 +287,9 @@ public class ParticleDisplay implements Cloneable {
      * @since 1.0.0
      * @deprecated use {@link #of(XParticle)} and {@link #withLocation(Location)}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static ParticleDisplay simple(@Nullable Location location, @Nonnull Particle particle) {
+    public static ParticleDisplay simple(@Nullable Location location, @NotNull Particle particle) {
         Objects.requireNonNull(particle, "Cannot build ParticleDisplay with null particle");
         ParticleDisplay display = new ParticleDisplay();
         display.particle = XParticle.of(particle);
@@ -300,17 +300,17 @@ public class ParticleDisplay implements Cloneable {
     /**
      * @deprecated use {@link #of(XParticle)} instead.
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static ParticleDisplay of(@Nonnull Particle particle) {
+    public static ParticleDisplay of(@NotNull Particle particle) {
         return of(XParticle.of(particle));
     }
 
     /**
      * @since 6.0.0.1
      */
-    @Nonnull
-    public static ParticleDisplay of(@Nonnull XParticle particle) {
+    @NotNull
+    public static ParticleDisplay of(@NotNull XParticle particle) {
         ParticleDisplay display = new ParticleDisplay();
         display.particle = particle;
         return display;
@@ -330,9 +330,9 @@ public class ParticleDisplay implements Cloneable {
      * @since 1.0.0
      * @deprecated use {@link #of(Particle)} and {@link #withLocation(Location)}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static ParticleDisplay display(@Nonnull Location location, @Nonnull Particle particle) {
+    public static ParticleDisplay display(@NotNull Location location, @NotNull Particle particle) {
         Objects.requireNonNull(location, "Cannot display particle in null location");
         ParticleDisplay display = simple(location, particle);
         display.spawn();
@@ -346,7 +346,7 @@ public class ParticleDisplay implements Cloneable {
      * @return a parsed ParticleDisplay from the config.
      * @since 1.0.0
      */
-    public static ParticleDisplay fromConfig(@Nonnull ConfigurationSection config) {
+    public static ParticleDisplay fromConfig(@NotNull ConfigurationSection config) {
         return edit(new ParticleDisplay(), config);
     }
 
@@ -366,7 +366,7 @@ public class ParticleDisplay implements Cloneable {
         }
     }
 
-    private static java.util.List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+    private static java.util.List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(5);
         boolean match = false, lastMatch = false;
         int len = str.length();
@@ -417,8 +417,8 @@ public class ParticleDisplay implements Cloneable {
      * @return the same ParticleDisplay, but edited.
      * @since 5.0.0
      */
-    @Nonnull
-    public static ParticleDisplay edit(@Nonnull ParticleDisplay display, @Nonnull ConfigurationSection config) {
+    @NotNull
+    public static ParticleDisplay edit(@NotNull ParticleDisplay display, @NotNull ConfigurationSection config) {
         Objects.requireNonNull(display, "Cannot edit a null particle display");
         Objects.requireNonNull(config, "Cannot parse ParticleDisplay from a null config section");
 
@@ -631,7 +631,7 @@ public class ParticleDisplay implements Cloneable {
      * @param rotation the rotation vector that contains the degrees of the rotation. The number is taken from this vector according to the given axis.
      * @since 7.0.0
      */
-    public static Vector rotateAround(@Nonnull Vector location, @Nonnull Axis axis, @Nonnull Vector rotation) {
+    public static Vector rotateAround(@NotNull Vector location, @NotNull Axis axis, @NotNull Vector rotation) {
         Objects.requireNonNull(axis, "Cannot rotate around null axis");
         Objects.requireNonNull(rotation, "Rotation vector cannot be null");
 
@@ -653,7 +653,7 @@ public class ParticleDisplay implements Cloneable {
      * @param location the location to rotate.
      * @since 7.0.0
      */
-    public static Vector rotateAround(@Nonnull Vector location, double x, double y, double z) {
+    public static Vector rotateAround(@NotNull Vector location, double x, double y, double z) {
         rotateAround(location, Axis.X, x);
         rotateAround(location, Axis.Y, y);
         rotateAround(location, Axis.Z, z);
@@ -669,7 +669,7 @@ public class ParticleDisplay implements Cloneable {
      * @param angle    the rotation angle in radians.
      * @since 7.0.0
      */
-    public static Vector rotateAround(@Nonnull Vector location, @Nonnull Axis axis, double angle) {
+    public static Vector rotateAround(@NotNull Vector location, @NotNull Axis axis, double angle) {
         Objects.requireNonNull(location, "Cannot rotate a null location");
         Objects.requireNonNull(axis, "Cannot rotate around null axis");
         if (angle == 0) return location;
@@ -739,14 +739,14 @@ public class ParticleDisplay implements Cloneable {
         return this;
     }
 
-    public ParticleDisplay withParticle(@Nonnull Particle particle) {
+    public ParticleDisplay withParticle(@NotNull Particle particle) {
         return withParticle(XParticle.of(Objects.requireNonNull(particle, "Particle cannot be null")));
     }
 
     /**
      * @since 7.0.0
      */
-    public ParticleDisplay withParticle(@Nonnull XParticle particle) {
+    public ParticleDisplay withParticle(@NotNull XParticle particle) {
         this.particle = Objects.requireNonNull(particle, "Particle cannot be null");
         return this;
     }
@@ -755,7 +755,7 @@ public class ParticleDisplay implements Cloneable {
      * @see #direction
      * @since 8.0.0
      */
-    @Nonnull
+    @NotNull
     public Vector getDirection() {
         return direction;
     }
@@ -786,7 +786,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @return the particle.
      */
-    @Nonnull
+    @NotNull
     public XParticle getParticle() {
         return particle;
     }
@@ -853,7 +853,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display.
      * @since 3.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withCount(int count) {
         this.count = count;
         return this;
@@ -866,7 +866,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display.
      * @since 3.0.1
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withExtra(double extra) {
         this.extra = extra;
         return this;
@@ -882,7 +882,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display, but modified.
      * @since 5.0.1
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay forceSpawn(boolean force) {
         this.force = force;
         return this;
@@ -899,13 +899,13 @@ public class ParticleDisplay implements Cloneable {
      * @see #colored(Location, Color, float)
      * @since 3.0.0
      */
-    @Nonnull
-    public ParticleDisplay withColor(@Nonnull Color color, float size) {
+    @NotNull
+    public ParticleDisplay withColor(@NotNull Color color, float size) {
         return withColor(color.getRed(), color.getGreen(), color.getBlue(), size);
     }
 
-    @Nonnull
-    public ParticleDisplay withColor(@Nonnull Color color) {
+    @NotNull
+    public ParticleDisplay withColor(@NotNull Color color) {
         // TODO separate withColor() and withSize()
         return withColor(color, 1f);
     }
@@ -919,7 +919,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display, but modified.
      * @since 11.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withNoteColor(int color) {
         this.data = new NoteParticleColor(color);
         return this;
@@ -932,7 +932,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 11.0.0
      */
     @SuppressWarnings("deprecation")
-    @Nonnull
+    @NotNull
     public ParticleDisplay withNoteColor(Note note) {
         return withNoteColor(note.getId());
     }
@@ -949,7 +949,7 @@ public class ParticleDisplay implements Cloneable {
      * @deprecated use {@link #withColor(Color, float)}
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
-    @Nonnull
+    @NotNull
     @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {
         this.data = new RGBParticleColor((int) red, (int) green, (int) blue);
@@ -969,8 +969,8 @@ public class ParticleDisplay implements Cloneable {
      * @see #colored(Location, Color, float)
      * @since 8.6.0.0.1
      */
-    @Nonnull
-    public ParticleDisplay withTransitionColor(@Nonnull Color fromColor, float size, @Nonnull Color toColor) {
+    @NotNull
+    public ParticleDisplay withTransitionColor(@NotNull Color fromColor, float size, @NotNull Color toColor) {
         this.data = new DustTransitionParticleColor(fromColor, toColor, size);
         this.extra = size;
         return this;
@@ -980,7 +980,7 @@ public class ParticleDisplay implements Cloneable {
      * @since 8.6.0.0.1
      * @deprecated use {@link #withTransitionColor(Color, float, Color)}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
     public ParticleDisplay withTransitionColor(float red1, float green1, float blue1,
                                                float size,
@@ -1001,8 +1001,8 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display, but modified.
      * @since 5.1.0
      */
-    @Nonnull
-    public ParticleDisplay withBlock(@Nonnull BlockData blockData) {
+    @NotNull
+    public ParticleDisplay withBlock(@NotNull BlockData blockData) {
         this.data = new ParticleBlockData(blockData);
         return this;
     }
@@ -1020,8 +1020,8 @@ public class ParticleDisplay implements Cloneable {
      * @since 5.1.0
      */
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public ParticleDisplay withBlock(@Nonnull MaterialData materialData) {
+    @NotNull
+    public ParticleDisplay withBlock(@NotNull MaterialData materialData) {
         this.data = new ParticleMaterialData(materialData);
         return this;
     }
@@ -1034,18 +1034,18 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display, but modified.
      * @since 5.1.0
      */
-    @Nonnull
-    public ParticleDisplay withItem(@Nonnull ItemStack item) {
+    @NotNull
+    public ParticleDisplay withItem(@NotNull ItemStack item) {
         this.data = new ParticleItemData(item);
         return this;
     }
 
-    @Nonnull
+    @NotNull
     public Vector getOffset() {
         return offset;
     }
 
-    @Nonnull
+    @NotNull
     public Vector getParticleDirection() {
         return direction;
     }
@@ -1057,8 +1057,8 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
-    @Nonnull
-    public ParticleDisplay withEntity(@Nonnull Entity entity) {
+    @NotNull
+    public ParticleDisplay withEntity(@NotNull Entity entity) {
         return withLocationCaller(entity::getLocation);
     }
 
@@ -1069,7 +1069,7 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle settings with the caller added.
      * @since 3.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
         this.preCalculation = (context) -> {
             try {
@@ -1114,8 +1114,8 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display.
      * @since 3.0.0
      */
-    @Nonnull
-    public ParticleDisplay face(@Nonnull Entity entity) {
+    @NotNull
+    public ParticleDisplay face(@NotNull Entity entity) {
         return face(Objects.requireNonNull(entity, "Cannot face null entity").getLocation());
     }
 
@@ -1127,8 +1127,8 @@ public class ParticleDisplay implements Cloneable {
      * @return the same particle display.
      * @since 6.1.0
      */
-    @Nonnull
-    public ParticleDisplay face(@Nonnull Location location) {
+    @NotNull
+    public ParticleDisplay face(@NotNull Location location) {
         Objects.requireNonNull(location, "Cannot face null location");
         rotate(
                 Rotation.of(Math.toRadians(location.getYaw()), Axis.Y),
@@ -1159,15 +1159,15 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 3.0.3
      */
-    @Nonnull
-    private static Location cloneLocation(@Nonnull Location location) {
+    @NotNull
+    private static Location cloneLocation(@NotNull Location location) {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**
      * The method {@link Vector#isZero()} was not added until 1.19.3.
      */
-    private static boolean isZero(@Nonnull Vector vector) {
+    private static boolean isZero(@NotNull Vector vector) {
         return vector.getX() == 0 && vector.getY() == 0 && vector.getZ() == 0;
     }
 
@@ -1181,7 +1181,7 @@ public class ParticleDisplay implements Cloneable {
      * @see #clone()
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay cloneWithLocation(double x, double y, double z) {
         ParticleDisplay display = clone();
         if (location == null) return display;
@@ -1198,7 +1198,7 @@ public class ParticleDisplay implements Cloneable {
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    @Nonnull
+    @NotNull
     public ParticleDisplay clone() {
         ParticleDisplay display = ParticleDisplay.of(particle)
                 .withDirection(direction)
@@ -1286,7 +1286,7 @@ public class ParticleDisplay implements Cloneable {
      *                    Used when a new rotation is added.
      * @since 9.0.0
      */
-    @Nonnull
+    @NotNull
     public List<Quaternion> getRotation(boolean forceUpdate) {
         if (this.rotations.isEmpty()) return new ArrayList<>();
         if (forceUpdate) cachedFinalRotationQuaternions = null;
@@ -1315,7 +1315,7 @@ public class ParticleDisplay implements Cloneable {
      * @see #rotate(double, double, double)
      * @since 1.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay rotate(double x, double y, double z) {
         return rotate(
                 Rotation.of(x, Axis.X),
@@ -1441,7 +1441,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay offset(double x, double y, double z) {
         return offset(new Vector(x, y, z));
     }
@@ -1451,8 +1451,8 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 7.0.0
      */
-    @Nonnull
-    public ParticleDisplay offset(@Nonnull Vector offset) {
+    @NotNull
+    public ParticleDisplay offset(@NotNull Vector offset) {
         this.offset = Objects.requireNonNull(offset, "Particle offset cannot be null");
         return this;
     }
@@ -1462,7 +1462,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 6.0.0.1
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay offset(double offset) {
         return offset(offset, offset, offset);
     }
@@ -1472,7 +1472,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 11.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay particleDirection(double x, double y, double z) {
         return particleDirection(new Vector(x, y, z));
     }
@@ -1482,7 +1482,7 @@ public class ParticleDisplay implements Cloneable {
      *
      * @since 11.0.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay particleDirection(@Nullable Vector particleDirection) {
         this.particleDirection = particleDirection;
         // Particle directions require a nonzero speed or the direction won't do anything.
@@ -1501,7 +1501,7 @@ public class ParticleDisplay implements Cloneable {
      * @see #isDirectional()
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public ParticleDisplay directional() {
         particleDirection = new Vector();
         return this;

@@ -1,12 +1,17 @@
 package com.cryptomorin.xseries.profiles.objects.transformer;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -17,11 +22,13 @@ public interface ProfileTransformer {
     /**
      * Transforms the given profile by the defined operations.
      * The operations are applied on the same instance of the profile.
-     * @param profile the profile to apply the operations on.
+     *
+     * @param profileable the profileable which the first {@code profile} originated from.
+     * @param profile     the profile to apply the operations on.
      * @return may return the same or a new instance.
      */
     @NotNull
-    GameProfile transform(@NotNull GameProfile profile);
+    GameProfile transform(@NotNull Profileable profileable, @NotNull GameProfile profile);
 
     /**
      * Whether the results of this transformation can be cached or not.
@@ -53,6 +60,7 @@ public interface ProfileTransformer {
      * here for future compatibility purposes.
      * @see #nonStackable()
      */
+    @NotNull
     static ProfileTransformer stackable() {
         return RemoveMetadata.INSTANCE;
     }
@@ -64,6 +72,7 @@ public interface ProfileTransformer {
      * matter how similar they are.
      * @see #stackable()
      */
+    @NotNull
     static ProfileTransformer nonStackable() {
         return MakeNotStackable.INSTANCE;
     }
@@ -76,8 +85,49 @@ public interface ProfileTransformer {
      *
      * @see #stackable()
      */
+    @NotNull
     static ProfileTransformer removeMetadata() {
         return RemoveMetadata.INSTANCE;
+    }
+
+    /**
+     * Whether a special property should be added to the profile where the original
+     * value ({@link Profileable#getProfileValue()}) was used to create the profile.
+     * This can later be used to affect {@link Profileable#getProfileValue()} which
+     * provides less verbose and compact data instead of the regular base64.
+     * <p>
+     * This transformation is not applied by default and {@link #stackable()} removes this data.
+     */
+    @NotNull
+    static ProfileTransformer includeOriginalValue() {
+        return IncludeOriginalValue.INSTANCE;
+    }
+
+    final class IncludeOriginalValue implements ProfileTransformer {
+        private static final IncludeOriginalValue INSTANCE = new IncludeOriginalValue();
+        public static final String PROPERTY_NAME = "OriginalValue";
+
+        @Nullable
+        public static String getOriginalValue(GameProfile profile) {
+            PropertyMap props = profile.getProperties();
+            Collection<Property> prop = props.get(PROPERTY_NAME);
+            if (prop.isEmpty()) return null;
+
+            Property first = Iterables.getFirst(prop, null);
+            return PlayerProfiles.getPropertyValue(first);
+        }
+
+        @Override
+        public GameProfile transform(Profileable profileable, GameProfile profile) {
+            String originalValue = profileable.getProfileValue();
+            profile.getProperties().put(PROPERTY_NAME, new Property(PROPERTY_NAME, originalValue));
+            return profile;
+        }
+
+        @Override
+        public boolean canBeCached() {
+            return true;
+        }
     }
 
     final class MakeNotStackable implements ProfileTransformer {
@@ -86,7 +136,7 @@ public interface ProfileTransformer {
         private static final AtomicLong NEXT_ID = new AtomicLong();
 
         @Override
-        public GameProfile transform(GameProfile profile) {
+        public GameProfile transform(Profileable profileable, GameProfile profile) {
             String value = System.currentTimeMillis() + "-" + NEXT_ID.getAndIncrement();
             profile.getProperties().put(PROPERTY_NAME, new Property(PROPERTY_NAME, value));
             return profile;
@@ -102,7 +152,7 @@ public interface ProfileTransformer {
         private static final RemoveMetadata INSTANCE = new RemoveMetadata();
 
         @Override
-        public GameProfile transform(GameProfile profile) {
+        public GameProfile transform(Profileable profileable, GameProfile profile) {
             PlayerProfiles.removeTimestamp(profile);
             // It's a multimap, remove all values associated to this key.
             profile.getProperties().asMap().remove(PlayerProfiles.DEFAULT_PROFILE_NAME);

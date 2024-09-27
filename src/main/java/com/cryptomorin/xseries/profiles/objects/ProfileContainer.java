@@ -14,7 +14,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 
 /**
@@ -23,7 +22,7 @@ import java.util.Objects;
  */
 @ApiStatus.Internal
 public abstract class ProfileContainer<T> implements Profileable {
-    @Nonnull
+    @NotNull
     public abstract void setProfile(@Nullable GameProfile profile);
 
     @NotNull
@@ -34,7 +33,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         return this.getClass().getSimpleName() + '[' + getObject() + ']';
     }
 
-    public static final class ItemStackProfileContainer extends ProfileContainer<ItemStack> {
+    public static final class ItemStackProfileContainer extends ProfileContainer<ItemStack> implements DelegateProfileable {
         private final ItemStack itemStack;
 
         public ItemStackProfileContainer(ItemStack itemStack) {this.itemStack = Objects.requireNonNull(itemStack, "ItemStack is null");}
@@ -58,8 +57,8 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public GameProfile getProfile() {
-            return getMetaContainer(itemStack.getItemMeta()).getProfile();
+        public Profileable getDelegateProfile() {
+            return getMetaContainer(itemStack.getItemMeta());
         }
     }
 
@@ -92,7 +91,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
     }
 
-    public static final class BlockProfileContainer extends ProfileContainer<Block> {
+    public static final class BlockProfileContainer extends ProfileContainer<Block> implements DelegateProfileable {
         private final Block block;
 
         public BlockProfileContainer(Block block) {this.block = Objects.requireNonNull(block, "Block is null");}
@@ -117,8 +116,8 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public GameProfile getProfile() {
-            return new BlockStateProfileContainer(getBlockState()).getProfile();
+        public Profileable getDelegateProfile() {
+            return new BlockStateProfileContainer(getBlockState());
         }
     }
 

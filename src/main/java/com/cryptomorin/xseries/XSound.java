@@ -30,10 +30,10 @@ import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -1762,7 +1762,7 @@ public enum XSound {
         }
     }
 
-    XSound(@Nonnull String... legacies) {
+    XSound(@NotNull String... legacies) {
         Sound bukkitSound = Data.BUKKIT_NAMES.get(this.name());
         if (bukkitSound == null) {
             for (String legacy : legacies) {
@@ -1788,8 +1788,8 @@ public enum XSound {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -1825,8 +1825,8 @@ public enum XSound {
      * @return a matched XSound.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XSound> matchXSound(@Nonnull String sound) {
+    @NotNull
+    public static Optional<XSound> matchXSound(@NotNull String sound) {
         if (sound == null || sound.isEmpty())
             throw new IllegalArgumentException("Cannot match XSound of a null or empty sound name");
         return Optional.ofNullable(Data.NAMES.get(format(sound)));
@@ -1840,13 +1840,13 @@ public enum XSound {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 2.0.0
      */
-    @Nonnull
-    public static XSound matchXSound(@Nonnull Sound sound) {
+    @NotNull
+    public static XSound matchXSound(@NotNull Sound sound) {
         Objects.requireNonNull(sound, "Cannot match XSound of a null sound");
         return Objects.requireNonNull(Data.NAMES.get(sound.name()), () -> "Unsupported sound: " + sound.name());
     }
 
-    private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+    private static List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(4);
         boolean match = false, lastMatch = false;
         int len = str.length();
@@ -2021,7 +2021,7 @@ public enum XSound {
      * @see #stopSound(Player)
      * @since 2.0.0
      */
-    public static void stopMusic(@Nonnull Player player) {
+    public static void stopMusic(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing musics from null player");
         for (XSound music : MUSIC) {
             Sound sound = music.parseSound();
@@ -2090,7 +2090,7 @@ public enum XSound {
      * @see #stopMusic(Player)
      * @since 2.0.0
      */
-    public void stopSound(@Nonnull Player player) {
+    public void stopSound(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
         Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);
@@ -2102,7 +2102,7 @@ public enum XSound {
      * @param entity the entity to play the sound to.
      * @since 1.0.0
      */
-    public void play(@Nonnull Entity entity) {
+    public void play(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "Cannot play sound for null entity");
         SoundPlayer soundPlayer = this.record().soundPlayer();
         if (entity instanceof Player) {
@@ -2121,12 +2121,12 @@ public enum XSound {
      * @param location the location to play the sound in.
      * @since 2.0.0
      */
-    public void play(@Nonnull Location location) {
+    public void play(@NotNull Location location) {
         Objects.requireNonNull(location, "Cannot play sound at null location");
         this.record().soundPlayer().atLocation(location).play();
     }
 
-    public void play(@Nonnull Entity entity, float volume, float pitch) {
+    public void play(@NotNull Entity entity, float volume, float pitch) {
         if (!(entity instanceof Player)) {
             Location location;
             if (entity instanceof LivingEntity) {
@@ -2147,7 +2147,7 @@ public enum XSound {
                 .play();
     }
 
-    public void play(@Nonnull Location location, float volume, float pitch) {
+    public void play(@NotNull Location location, float volume, float pitch) {
         this.record()
                 .withVolume(volume)
                 .withPitch(pitch)
@@ -2286,7 +2286,7 @@ public enum XSound {
          * @param location The location which the sound is going to be played.
          * @param volume   The volume of the sound being played. Also see {@link Record#volume}
          */
-        @Nonnull
+        @NotNull
         public static Collection<Player> getHearingPlayers(Location location, double volume) {
             // Increase the amount of blocks for volumes higher than 1
             volume = volume > 1.0F ? (16.0F * volume) : 16.0;
@@ -2342,7 +2342,7 @@ public enum XSound {
          * @param updatedLocation the updated location.
          * @since 3.0.0
          */
-        public void play(@Nonnull Location updatedLocation) {
+        public void play(@NotNull Location updatedLocation) {
             Collection<Player> hearing = getHearingPlayers();
             this.heard = hearing.stream().map(Entity::getUniqueId).collect(Collectors.toSet());
 
@@ -2357,7 +2357,7 @@ public enum XSound {
                     .collect(collector);
         }
 
-        public void play(Collection<Player> players, @Nonnull Location updatedLocation) {
+        public void play(Collection<Player> players, @NotNull Location updatedLocation) {
             Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
 
             Sound objSound = record.sound instanceof XSound ? ((XSound) record.sound).parseSound() : null;
@@ -2420,7 +2420,7 @@ public enum XSound {
 
         private Object sound;
 
-        @Nonnull
+        @NotNull
         private Category category = Category.MASTER;
 
         @Nullable
@@ -2446,7 +2446,7 @@ public enum XSound {
             return sound;
         }
 
-        @Nonnull
+        @NotNull
         public Category getCategory() {
             return category;
         }
@@ -2471,7 +2471,7 @@ public enum XSound {
             return new SoundPlayer(this);
         }
 
-        public Record withSound(@Nonnull XSound sound) {
+        public Record withSound(@NotNull XSound sound) {
             Objects.requireNonNull(sound, "Cannot play a null sound");
             this.sound = sound;
             return this;
@@ -2482,7 +2482,7 @@ public enum XSound {
          * E.g. for {@link #ENTITY_PLAYER_HURT} it'd be {@code minecraft:entity_player_hurt}
          * you can use other namespaces instead of "minecraft" to use sounds from resource packs.
          */
-        public Record withSound(@Nonnull String sound) {
+        public Record withSound(@NotNull String sound) {
             Objects.requireNonNull(sound, "Cannot play a null sound");
             sound = sound.toLowerCase(Locale.ENGLISH);
 

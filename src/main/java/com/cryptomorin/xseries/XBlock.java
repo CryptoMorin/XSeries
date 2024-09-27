@@ -31,9 +31,9 @@ import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -242,7 +242,7 @@ public final class XBlock {
         return false;
     }
 
-    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material, boolean applyPhysics) {
+    public static boolean setType(@NotNull Block block, @Nullable XMaterial material, boolean applyPhysics) {
         Objects.requireNonNull(block, "Cannot set type of null block");
         if (material == null) material = XMaterial.AIR;
         XMaterial smartConversion = ITEM_TO_BLOCK.get(material);
@@ -406,7 +406,7 @@ public final class XBlock {
         }
     }
 
-    public static boolean setType(@Nonnull Block block, @Nullable XMaterial material) {
+    public static boolean setType(@NotNull Block block, @Nullable XMaterial material) {
         return setType(block, material, true);
     }
 

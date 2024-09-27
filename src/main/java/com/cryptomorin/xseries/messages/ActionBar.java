@@ -31,9 +31,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -164,7 +164,7 @@ public final class ActionBar {
      * @see #sendActionBar(Plugin, Player, String, long)
      * @since 3.2.0
      */
-    public static void sendActionBar(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable String message) {
+    public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message) {
         if (!Strings.isNullOrEmpty(message)) {
             if (message.charAt(0) == TIME_SPECIFIER_START) {
                 int end = message.indexOf(TIME_SPECIFIER_END);
@@ -191,7 +191,7 @@ public final class ActionBar {
      * @since 1.0.0
      */
     @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-    public static void sendActionBar(@Nonnull Player player, @Nullable String message) {
+    public static void sendActionBar(@NotNull Player player, @Nullable String message) {
         Objects.requireNonNull(player, "Cannot send action bar to null player");
         Objects.requireNonNull(message, "Cannot send null actionbar message");
 
@@ -222,7 +222,7 @@ public final class ActionBar {
      * @see #sendActionBarWhile(Plugin, Player, String, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBar(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable String message, long duration) {
+    public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message, long duration) {
         if (duration < 1) return;
         Objects.requireNonNull(plugin, "Cannot send consistent actionbar with null plugin");
         Objects.requireNonNull(player, "Cannot send actionbar to null player");
@@ -258,7 +258,7 @@ public final class ActionBar {
      * @see #sendActionBar(Player, String)
      * @since 2.1.1
      */
-    public static void clearActionBar(@Nonnull Player player) {
+    public static void clearActionBar(@NotNull Player player) {
         sendActionBar(player, " ");
     }
 
@@ -286,7 +286,7 @@ public final class ActionBar {
      * @see #sendActionBar(Plugin, Player, String, long)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable String message, @Nonnull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message, @NotNull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -317,7 +317,7 @@ public final class ActionBar {
      * @see #sendActionBarWhile(Plugin, Player, String, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@Nonnull Plugin plugin, @Nonnull Player player, @Nullable Callable<String> message, @Nonnull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable Callable<String> message, @NotNull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {

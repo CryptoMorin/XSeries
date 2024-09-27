@@ -18,9 +18,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
@@ -73,7 +73,7 @@ public final class MojangAPI {
      * @return null if a player with that username is not found.
      */
     @Nullable
-    public static UUID requestUsernameToUUID(@Nonnull String username) throws IOException {
+    public static UUID requestUsernameToUUID(@NotNull String username) throws IOException {
         JsonElement requestElement = USERNAME_TO_UUID.session(null).append(username).request();
         if (requestElement == null) return null;
 
@@ -152,7 +152,7 @@ public final class MojangAPI {
         return optional;
     }
 
-    public static Map<UUID, String> usernamesToUUIDs(@Nonnull Collection<String> usernames, @Nullable ProfileRequestConfiguration config) {
+    public static Map<UUID, String> usernamesToUUIDs(@NotNull Collection<String> usernames, @Nullable ProfileRequestConfiguration config) {
         if (usernames == null || usernames.isEmpty()) throw new IllegalArgumentException("Usernames are null or empty");
         for (String username : usernames) {
             if (username == null || !ProfileInputType.USERNAME.pattern.matcher(username).matches()) {
@@ -222,7 +222,7 @@ public final class MojangAPI {
      * @param uuid The UUID of the profile to retrieve from the cache.
      * @return The cached {@link GameProfile} corresponding to the UUID, or a new profile if not found.
      */
-    @Nonnull
+    @NotNull
     public static GameProfile getCachedProfileByUUID(UUID uuid) {
         uuid = PlayerUUIDs.isOnlineMode() ? uuid : PlayerUUIDs.ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
         try {
@@ -262,8 +262,8 @@ public final class MojangAPI {
      * @throws UnknownPlayerException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    @Nonnull
-    public static GameProfile getOrFetchProfile(@Nonnull final GameProfile profile) throws UnknownPlayerException {
+    @NotNull
+    public static GameProfile getOrFetchProfile(@NotNull final GameProfile profile) throws UnknownPlayerException {
         // Get real UUID for offline players
         UUID realUUID;
         if (profile.getName().equals(PlayerProfiles.DEFAULT_PROFILE_NAME)) {

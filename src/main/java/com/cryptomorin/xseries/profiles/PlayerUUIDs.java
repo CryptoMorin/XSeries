@@ -4,9 +4,9 @@ import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.google.common.base.Strings;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -47,8 +47,8 @@ public final class PlayerUUIDs {
         return id.toString().replace("-", "");
     }
 
-    @Nonnull
-    public static UUID getOfflineUUID(@Nonnull String username) {
+    @NotNull
+    public static UUID getOfflineUUID(@NotNull String username) {
         // Vanilla behavior across all platforms.
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
@@ -58,7 +58,7 @@ public final class PlayerUUIDs {
     }
 
     @Nullable
-    public static UUID getRealUUIDOfPlayer(@Nonnull String username) {
+    public static UUID getRealUUIDOfPlayer(@NotNull String username) {
         if (Strings.isNullOrEmpty(username))
             throw new IllegalArgumentException("Username is null or empty: " + username);
 
@@ -93,7 +93,7 @@ public final class PlayerUUIDs {
      * @return null if a player with this username doesn't exist.
      */
     @Nullable
-    public static UUID getRealUUIDOfPlayer(@Nonnull String username, @Nonnull UUID uuid) {
+    public static UUID getRealUUIDOfPlayer(@NotNull String username, @NotNull UUID uuid) {
         Objects.requireNonNull(uuid);
         if (Strings.isNullOrEmpty(username))
             throw new IllegalArgumentException("Username is null or empty: " + username);

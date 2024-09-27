@@ -21,6 +21,9 @@
  */
 package com.cryptomorin.xseries.reflection;
 
+import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
+import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveSupplier;
+import com.cryptomorin.xseries.reflection.aggregate.VersionHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
@@ -28,12 +31,13 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -65,7 +69,7 @@ import java.util.stream.Collectors;
  *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
  * </ul>
  * @author Crypto Morin
- * @version 11.2.1
+ * @version 11.3.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
  * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */
@@ -94,7 +98,7 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "11.2.2";
+    public static final String XSERIES_VERSION = "11.3.0";
 
     @Nullable
     @ApiStatus.Internal
@@ -266,24 +270,18 @@ public final class XReflection {
     public static final Set<MinecraftMapping> SUPPORTED_MAPPINGS;
 
     static {
-        if (ofMinecraft()
-                .inPackage(MinecraftPackage.NMS, "server.level")
-                .map(MinecraftMapping.MOJANG, "ServerPlayer")
-                .exists()) {
-            SUPPORTED_MAPPINGS = EnumSet.of(MinecraftMapping.MOJANG);
-        } else if (ofMinecraft()
-                .inPackage(MinecraftPackage.NMS, "server.level")
-                .map(MinecraftMapping.MOJANG, "EntityPlayer")
-                .exists()) {
-            SUPPORTED_MAPPINGS = EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED);
-        } else {
-            MinecraftClassHandle entityPlayer = ofMinecraft()
-                    .inPackage(MinecraftPackage.NMS, "server.level")
-                    .map(MinecraftMapping.MOJANG, "ServerPlayer")
-                    .map(MinecraftMapping.SPIGOT, "EntityPlayer");
-
-            throw new RuntimeException("Unknown Minecraft mapping " + getVersionInformation(), entityPlayer.catchError());
-        }
+        SUPPORTED_MAPPINGS =
+                supply(
+                        ofMinecraft()
+                                .inPackage(MinecraftPackage.NMS, "server.level")
+                                .map(MinecraftMapping.MOJANG, "ServerPlayer"),
+                        () -> EnumSet.of(MinecraftMapping.MOJANG)
+                ).or(
+                        ofMinecraft()
+                                .inPackage(MinecraftPackage.NMS, "server.level")
+                                .map(MinecraftMapping.MOJANG, "EntityPlayer"),
+                        () -> EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED)
+                ).get();
     }
 
     private XReflection() {}
@@ -374,9 +372,9 @@ public final class XReflection {
      * @see #getNMSClass(String)
      * @since 4.0.0
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static Class<?> getNMSClass(@Nullable String packageName, @Nonnull String name) {
+    public static Class<?> getNMSClass(@Nullable String packageName, @NotNull String name) {
         if (packageName != null && supports(17)) name = packageName + '.' + name;
 
         try {
@@ -396,9 +394,9 @@ public final class XReflection {
      * @since 1.0.0
      * @deprecated use {@link #ofMinecraft()}
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static Class<?> getNMSClass(@Nonnull String name) {
+    public static Class<?> getNMSClass(@NotNull String name) {
         return getNMSClass(null, name);
     }
 
@@ -411,9 +409,9 @@ public final class XReflection {
      * @since 1.0.0
      * @deprecated use {@link #ofMinecraft()} instead.
      */
-    @Nonnull
+    @NotNull
     @Deprecated
-    public static Class<?> getCraftClass(@Nonnull String name) {
+    public static Class<?> getCraftClass(@NotNull String name) {
         try {
             return Class.forName(CRAFTBUKKIT_PACKAGE + '.' + name);
         } catch (ClassNotFoundException ex) {
@@ -433,7 +431,7 @@ public final class XReflection {
      * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
      * @throws RuntimeException if the class could not be found.
      */
-    @Nonnull
+    @NotNull
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
@@ -486,6 +484,26 @@ public final class XReflection {
     @SafeVarargs
     public static <T, H extends ReflectiveHandle<T>> AggregateReflectiveHandle<T, H> anyOf(Callable<H>... handles) {
         return new AggregateReflectiveHandle<>(Arrays.asList(handles));
+    }
+
+    /**
+     * @since v11.3.0
+     */
+    @ApiStatus.Experimental
+    public static <H extends ReflectiveHandle<?>, O> AggregateReflectiveSupplier<H, O> supply(H handle, O object) {
+        AggregateReflectiveSupplier<H, O> supplier = new AggregateReflectiveSupplier<>();
+        supplier.or(handle, object);
+        return supplier;
+    }
+
+    /**
+     * @since v11.3.0
+     */
+    @ApiStatus.Experimental
+    public static <H extends ReflectiveHandle<?>, O> AggregateReflectiveSupplier<H, O> supply(H handle, Supplier<O> object) {
+        AggregateReflectiveSupplier<H, O> supplier = new AggregateReflectiveSupplier<>();
+        supplier.or(handle, object);
+        return supplier;
     }
 
     /**
@@ -579,7 +597,7 @@ public final class XReflection {
      * Adds the stacktrace of the current thread in case an error occurs in the given Future.
      */
     @ApiStatus.Experimental
-    public static <T> CompletableFuture<T> stacktrace(@Nonnull CompletableFuture<T> completableFuture) {
+    public static <T> CompletableFuture<T> stacktrace(@NotNull CompletableFuture<T> completableFuture) {
         StackTraceElement[] currentStacktrace = Thread.currentThread().getStackTrace();
         return completableFuture.whenComplete((value, ex) -> { // Gets called even when it's completed.
             if (ex == null) {

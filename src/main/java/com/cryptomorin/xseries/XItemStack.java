@@ -57,9 +57,8 @@ import org.bukkit.material.SpawnEgg;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -195,7 +194,7 @@ public final class XItemStack {
      * @see #serialize(ItemStack, ConfigurationSection, Function)
      * @since 1.0.0
      */
-    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config) {
+    public static void serialize(@NotNull ItemStack item, @NotNull ConfigurationSection config) {
         serialize(item, config, Function.identity());
     }
 
@@ -209,8 +208,8 @@ public final class XItemStack {
      * @since 7.4.0
      */
     @SuppressWarnings("deprecation")
-    public static void serialize(@Nonnull ItemStack item, @Nonnull ConfigurationSection config,
-                                 @Nonnull Function<String, String> translator) {
+    public static void serialize(@NotNull ItemStack item, @NotNull ConfigurationSection config,
+                                 @NotNull Function<String, String> translator) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         Objects.requireNonNull(config, "Cannot serialize item from a null configuration section.");
 
@@ -297,7 +296,7 @@ public final class XItemStack {
                 config.set(entry, enchant.getValue());
             }
         } else if (meta instanceof SkullMeta) {
-            String skull = XSkull.of(meta).getProfileString();
+            String skull = XSkull.of(meta).getProfileValue();
             if (skull != null) config.set("skull", skull);
         } else if (meta instanceof BannerMeta) {
             BannerMeta banner = (BannerMeta) meta;
@@ -497,7 +496,7 @@ public final class XItemStack {
      * @param item the ItemStack to serialize.
      * @return a Map containing the serialized ItemStack properties.
      */
-    public static Map<String, Object> serialize(@Nonnull ItemStack item) {
+    public static Map<String, Object> serialize(@NotNull ItemStack item) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         ConfigurationSection config = new MemoryConfiguration();
         serialize(item, config);
@@ -511,8 +510,8 @@ public final class XItemStack {
      * @return a deserialized ItemStack.
      * @since 1.0.0
      */
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config) {
+    @NotNull
+    public static ItemStack deserialize(@NotNull ConfigurationSection config) {
         return edit(DEFAULT_MATERIAL.parseItem(), config, Function.identity(), null);
     }
 
@@ -523,15 +522,15 @@ public final class XItemStack {
      *                       the ItemStack object from.
      * @return a deserialized ItemStack.
      */
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem) {
+    @NotNull
+    public static ItemStack deserialize(@NotNull Map<String, Object> serializedItem) {
         Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
         return deserialize(mapToConfigSection(serializedItem));
     }
 
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config,
-                                        @Nonnull Function<String, String> translator) {
+    @NotNull
+    public static ItemStack deserialize(@NotNull ConfigurationSection config,
+                                        @NotNull Function<String, String> translator) {
         return deserialize(config, translator, null);
     }
 
@@ -542,9 +541,9 @@ public final class XItemStack {
      * @return an edited ItemStack.
      * @since 7.2.0
      */
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull ConfigurationSection config,
-                                        @Nonnull Function<String, String> translator,
+    @NotNull
+    public static ItemStack deserialize(@NotNull ConfigurationSection config,
+                                        @NotNull Function<String, String> translator,
                                         @Nullable Consumer<Exception> restart) {
         return edit(DEFAULT_MATERIAL.parseItem(), config, translator, restart);
     }
@@ -558,8 +557,8 @@ public final class XItemStack {
      * @param translator     the translator to use for translating the item's name.
      * @return a deserialized ItemStack.
      */
-    @Nonnull
-    public static ItemStack deserialize(@Nonnull Map<String, Object> serializedItem, @Nonnull Function<String, String> translator) {
+    @NotNull
+    public static ItemStack deserialize(@NotNull Map<String, Object> serializedItem, @NotNull Function<String, String> translator) {
         Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
         Objects.requireNonNull(translator, "translator cannot be null.");
         return deserialize(mapToConfigSection(serializedItem), translator);
@@ -573,7 +572,7 @@ public final class XItemStack {
         }
     }
 
-    private static List<String> split(@Nonnull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
+    private static List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(5);
         boolean match = false, lastMatch = false;
         int len = str.length();
@@ -640,10 +639,10 @@ public final class XItemStack {
      * @since 1.0.0
      */
     @SuppressWarnings("deprecation")
-    @Nonnull
-    public static ItemStack edit(@Nonnull ItemStack item,
-                                 @Nonnull final ConfigurationSection config,
-                                 @Nonnull final Function<String, String> translator,
+    @NotNull
+    public static ItemStack edit(@NotNull ItemStack item,
+                                 @NotNull final ConfigurationSection config,
+                                 @NotNull final Function<String, String> translator,
                                  @Nullable final Consumer<Exception> restart) {
         Objects.requireNonNull(item, "Cannot operate on null ItemStack, considering using an AIR ItemStack instead");
         Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
@@ -1147,8 +1146,8 @@ public final class XItemStack {
      * @param map the map to convert.
      * @return a {@code ConfigurationSection} containing the map values.
      */
-    @Nonnull
-    private static ConfigurationSection mapToConfigSection(@Nonnull Map<?, ?> map) {
+    @NotNull
+    private static ConfigurationSection mapToConfigSection(@NotNull Map<?, ?> map) {
         ConfigurationSection config = new MemoryConfiguration();
 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
@@ -1172,8 +1171,8 @@ public final class XItemStack {
      * @param config the configuration section to convert.
      * @return a {@code Map<String, Object>} containing the configuration section values.
      */
-    @Nonnull
-    private static Map<String, Object> configSectionToMap(@Nonnull ConfigurationSection config) {
+    @NotNull
+    private static Map<String, Object> configSectionToMap(@NotNull ConfigurationSection config) {
         Map<String, Object> map = new LinkedHashMap<>();
 
         for (String key : config.getKeys(false)) {
@@ -1196,14 +1195,14 @@ public final class XItemStack {
      * Accepts the following formats:
      * "r, g, b"
      * "#RRGGBB"
-     * decimal number representing "r << 16 | g << 8 | b"
+     * decimal number representing {@code "r << 16 | g << 8 | b"}
      * (format "0xRRGGBB" is converted to decimal by SnakeYAML and handled as such)
      *
      * @param str the RGB string.
      * @return a color based on the RGB.
      * @since 1.1.0
      */
-    @Nonnull
+    @NotNull
     public static Color parseColor(@Nullable String str) {
         if (Strings.isNullOrEmpty(str)) return Color.BLACK;
         List<String> rgb = split(str.replace(" ", ""), ',');
@@ -1234,8 +1233,8 @@ public final class XItemStack {
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
-    @Nonnull
-    public static List<ItemStack> giveOrDrop(@Nonnull Player player, @Nullable ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> giveOrDrop(@NotNull Player player, @Nullable ItemStack... items) {
         return giveOrDrop(player, false, items);
     }
 
@@ -1248,8 +1247,8 @@ public final class XItemStack {
      * @return the items that did not fit and were dropped.
      * @since 2.0.1
      */
-    @Nonnull
-    public static List<ItemStack> giveOrDrop(@Nonnull Player player, boolean split, @Nullable ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> giveOrDrop(@NotNull Player player, boolean split, @Nullable ItemStack... items) {
         if (items == null || items.length == 0) return new ArrayList<>();
         List<ItemStack> leftOvers = addItems(player.getInventory(), split, items);
         World world = player.getWorld();
@@ -1259,7 +1258,7 @@ public final class XItemStack {
         return leftOvers;
     }
 
-    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split, @Nonnull ItemStack... items) {
+    public static List<ItemStack> addItems(@NotNull Inventory inventory, boolean split, @NotNull ItemStack... items) {
         return addItems(inventory, split, null, items);
     }
 
@@ -1276,9 +1275,9 @@ public final class XItemStack {
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
-    @Nonnull
-    public static List<ItemStack> addItems(@Nonnull Inventory inventory, boolean split,
-                                           @Nullable Predicate<Integer> modifiableSlots, @Nonnull ItemStack... items) {
+    @NotNull
+    public static List<ItemStack> addItems(@NotNull Inventory inventory, boolean split,
+                                           @Nullable Predicate<Integer> modifiableSlots, @NotNull ItemStack... items) {
         Objects.requireNonNull(inventory, "Cannot add items to null inventory");
         Objects.requireNonNull(items, "Cannot add null items to inventory");
 
@@ -1343,7 +1342,7 @@ public final class XItemStack {
         return leftOvers;
     }
 
-    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+    public static int firstPartial(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         return firstPartial(inventory, item, beginIndex, null);
     }
 
@@ -1360,7 +1359,7 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstPartial(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
+    public static int firstPartial(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int invSize = items.length;
@@ -1377,7 +1376,7 @@ public final class XItemStack {
         return -1;
     }
 
-    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items) {
+    public static List<ItemStack> stack(@NotNull Collection<ItemStack> items) {
         return stack(items, ItemStack::isSimilar);
     }
 
@@ -1394,8 +1393,8 @@ public final class XItemStack {
      * @return stacked up items.
      * @since 4.0.0
      */
-    @Nonnull
-    public static List<ItemStack> stack(@Nonnull Collection<ItemStack> items, @Nonnull BiPredicate<ItemStack, ItemStack> similarity) {
+    @NotNull
+    public static List<ItemStack> stack(@NotNull Collection<ItemStack> items, @NotNull BiPredicate<ItemStack, ItemStack> similarity) {
         Objects.requireNonNull(items, "Cannot stack null items");
         Objects.requireNonNull(similarity, "Similarity check cannot be null");
         List<ItemStack> stacked = new ArrayList<>(items.size());
@@ -1417,7 +1416,7 @@ public final class XItemStack {
         return stacked;
     }
 
-    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex) {
+    public static int firstEmpty(@NotNull Inventory inventory, int beginIndex) {
         return firstEmpty(inventory, beginIndex, null);
     }
 
@@ -1433,7 +1432,7 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
-    public static int firstEmpty(@Nonnull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
+    public static int firstEmpty(@NotNull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         ItemStack[] items = inventory.getStorageContents();
         int invSize = items.length;
         if (beginIndex < 0 || beginIndex >= invSize)
@@ -1457,7 +1456,7 @@ public final class XItemStack {
      * @see #firstPartial(Inventory, ItemStack, int)
      * @since 4.2.0
      */
-    public static int firstPartialOrEmpty(@Nonnull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
+    public static int firstPartialOrEmpty(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         if (item != null) {
             ItemStack[] items = inventory.getStorageContents();
             int len = items.length;
