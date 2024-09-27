@@ -252,7 +252,7 @@ public class ReflectionParser {
         String flagsStr = group("flags");
 
         for (String flag : flagsStr.split("\\s+")) {
-            if (!flags.add(Flag.valueOf(flag.toUpperCase()))) {
+            if (!flags.add(Flag.valueOf(flag.toUpperCase(Locale.ENGLISH)))) {
                 error("Repeated flag: " + flag);
             }
         }
