@@ -3,6 +3,7 @@ package com.cryptomorin.xseries.profiles.objects.transformer;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.mojang.authlib.GameProfile;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -10,6 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The default implementation used for {@link Profileable#transform(ProfileTransformer...)}
+ * @see ProfileTransformer
+ */
 public final class TransformableProfile implements Profileable {
     /**
      * The original profileable.
@@ -17,6 +22,7 @@ public final class TransformableProfile implements Profileable {
     private final Profileable profileable;
     private final TransformationSequence transformers;
 
+    @ApiStatus.Internal
     public TransformableProfile(Profileable profileable, List<ProfileTransformer> transformers) {
         this.profileable = profileable;
         this.transformers = new TransformationSequence(profileable, transformers);

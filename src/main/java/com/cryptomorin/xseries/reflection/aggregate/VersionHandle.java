@@ -16,11 +16,17 @@ public final class VersionHandle<T> {
     private T handle;
     // private RuntimeException errors;
 
+    /**
+     * Use {@link XReflection#v(int, Object)} instead.
+     */
     @ApiStatus.Internal
     public VersionHandle(int version, T handle) {
         this(version, 0, handle);
     }
 
+    /**
+     * Use {@link XReflection#v(int, int, Object)} instead.
+     */
     @ApiStatus.Internal
     public VersionHandle(int version, int patch, T handle) {
         if (XReflection.supports(version, patch)) {
@@ -30,6 +36,9 @@ public final class VersionHandle<T> {
         }
     }
 
+    /**
+     * Use {@link XReflection#v(int, int, Callable)} instead.
+     */
     @ApiStatus.Internal
     public VersionHandle(int version, int patch, Callable<T> handle) {
         if (XReflection.supports(version, patch)) {

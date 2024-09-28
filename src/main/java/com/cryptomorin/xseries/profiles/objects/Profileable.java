@@ -98,7 +98,9 @@ public interface Profileable {
 
     /**
      * Adds transformer (read {@link ProfileTransformer}) information to a copied version
-     * of this profile (so it doesn't affect this instance).
+     * of this profile (so it doesn't affect this instance, but the class type will change).
+     * So it's recommended to not chain this method and instead collect all transformers
+     * and call this method once for performance when necessary.
      * <p>
      * Profiles are copied before being transformed, so the main cache remains intact
      * but the result of transformed profiles are never cached.
@@ -276,6 +278,7 @@ public interface Profileable {
         return new StringProfileable(input, type);
     }
 
+    @ApiStatus.Internal
     final class UsernameProfileable extends TimedCacheableProfileable {
         private final String username;
         private Boolean valid;
@@ -304,6 +307,7 @@ public interface Profileable {
         }
     }
 
+    @ApiStatus.Internal
     final class UUIDProfileable extends TimedCacheableProfileable {
         private final UUID id;
 
@@ -322,6 +326,7 @@ public interface Profileable {
         }
     }
 
+    @ApiStatus.Internal
     final class GameProfileProfileable extends TimedCacheableProfileable {
         private final GameProfile profile;
 
@@ -344,6 +349,7 @@ public interface Profileable {
      * Do we need to support {@link org.bukkit.profile.PlayerProfile} for hybrid server software
      * like Geyser or Mohist that might have their own caching system?
      */
+    @ApiStatus.Internal
     final class PlayerProfileable extends TimedCacheableProfileable {
         // Let the GC do its job.
         @Nullable private final String username;
@@ -372,6 +378,7 @@ public interface Profileable {
         }
     }
 
+    @ApiStatus.Internal
     final class StringProfileable extends TimedCacheableProfileable {
         private final String string;
         @Nullable private ProfileInputType type;

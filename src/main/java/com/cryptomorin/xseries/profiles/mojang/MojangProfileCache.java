@@ -85,7 +85,7 @@ abstract class MojangProfileCache {
             // This is probably not going to work most of the time since the whole GameProfile
             // object is used to hash the key, and the name isn't always provided to us.
             String profileName = gameProfile.getName();
-            if (Strings.isNullOrEmpty(profileName) || profileName.equals(PlayerProfiles.DEFAULT_PROFILE_NAME))
+            if (Strings.isNullOrEmpty(profileName) || profileName.equals(PlayerProfiles.XSERIES_SIG))
                 return null;
 
             GameProfile cache = insecureProfiles.getIfPresent(new GameProfile(realId, gameProfile.getName()));

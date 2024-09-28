@@ -12,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Modifies a {@link GameProfile} by a set of defined operations.
  * Transformers can be composed and should be applied in order.
+ * @see TransformableProfile
  */
 public interface ProfileTransformer {
     /**
@@ -52,6 +54,7 @@ public interface ProfileTransformer {
      *     <li>Players that change a portion of their skin (other than the head) will
      *         still be visually the same, but their texture URL will be changed.</li>
      *     <li>Profiles created/modified by XSeries have a special signature added.</li>
+     *     <li>A skull with {@link #includeOriginalValue()} with another one that doesn't have this transformation.</li>
      * </ul>
      * <br>
      * This transformer, makes the items stackable (x64 stack)
@@ -82,6 +85,7 @@ public interface ProfileTransformer {
      * This includes the XSeries signature and the timestamp of the profile.
      * Both which have no effect when removed, but the XSeries signature could
      * be useful in debugging.
+     * It also removes {@link #includeOriginalValue()} data if specified.
      *
      * @see #stackable()
      */
@@ -96,7 +100,8 @@ public interface ProfileTransformer {
      * This can later be used to affect {@link Profileable#getProfileValue()} which
      * provides less verbose and compact data instead of the regular base64.
      * <p>
-     * This transformation is not applied by default and {@link #stackable()} removes this data.
+     * This transformation is not applied by default and
+     * {@link #stackable()} & {@link #removeMetadata()} removes this data.
      */
     @NotNull
     static ProfileTransformer includeOriginalValue() {
@@ -108,7 +113,7 @@ public interface ProfileTransformer {
         public static final String PROPERTY_NAME = "OriginalValue";
 
         @Nullable
-        public static String getOriginalValue(GameProfile profile) {
+        public static String getOriginalValue(@NotNull GameProfile profile) {
             PropertyMap props = profile.getProperties();
             Collection<Property> prop = props.get(PROPERTY_NAME);
             if (prop.isEmpty()) return null;
@@ -155,7 +160,9 @@ public interface ProfileTransformer {
         public GameProfile transform(Profileable profileable, GameProfile profile) {
             PlayerProfiles.removeTimestamp(profile);
             // It's a multimap, remove all values associated to this key.
-            profile.getProperties().asMap().remove(PlayerProfiles.DEFAULT_PROFILE_NAME);
+            Map<String, Collection<Property>> props = profile.getProperties().asMap();
+            props.remove(PlayerProfiles.XSERIES_SIG);
+            props.remove(IncludeOriginalValue.PROPERTY_NAME);
             return profile;
         }
 

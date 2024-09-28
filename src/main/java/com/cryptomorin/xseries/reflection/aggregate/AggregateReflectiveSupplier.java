@@ -13,22 +13,30 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
+ * A version of {@link AggregateReflectiveHandle} that returns an object associated with a
+ * {@link ReflectiveHandle} instead of the handle itself.
+ *
  * <h2>Usage</h2>
  * <pre>{@code
  *    String name = XReflection.any(
  *        XReflection.of(GameProfileCache.class).method().named("getProfile", "a"), "test"
  *    ).or(
- *        XReflection.of(GameProfileCache.class).method().named("getProfile", "a"), "test2"
+ *        XReflection.of(GameProfileCache.class).method().named("profile", "b"), "test2"
  *    ).get();
  * }</pre>
+ *
  * @param <H> the types of handles that are going to be checked.
  * @see AggregateReflectiveHandle
+ * @see VersionHandle
  */
 @ApiStatus.Experimental
 public class AggregateReflectiveSupplier<H extends ReflectiveHandle<?>, O> {
     private final List<ReflectivePair> handles = new ArrayList<>();
     private Consumer<H> handleModifier;
 
+    /**
+     * Use {@link XReflection#supply(ReflectiveHandle, Object)} instead.
+     */
     @ApiStatus.Internal
     public AggregateReflectiveSupplier() {}
 

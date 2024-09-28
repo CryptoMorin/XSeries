@@ -29,17 +29,17 @@ public final class PlayerProfiles {
      * It gave the error: {@code Name and ID cannot both be blank}
      * Here, "blank" is null for UUID, and {@code Character.isWhitespace} for the name field.
      */
-    public static final String DEFAULT_PROFILE_NAME = "XSeries";
+    public static final String XSERIES_SIG = "XSeries";
 
     /**
      * The signature value represents the version of XSeries library.
      * It's not needed to change it every time, but it should be changed
      * if the XSeries internals are changed.
      */
-    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(DEFAULT_PROFILE_NAME, XReflection.XSERIES_VERSION);
+    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(XSERIES_SIG, XReflection.XSERIES_VERSION);
     private static final String TEXTURES_PROPERTY = "textures";
 
-    public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, DEFAULT_PROFILE_NAME);
+    public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, XSERIES_SIG);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 
@@ -249,11 +249,11 @@ public final class PlayerProfiles {
         // I don't think a single profile is being signed multiple times.
         // Even if it was, it might be helpful?
         // properties.asMap().remove(DEFAULT_PROFILE_NAME); // Remove previous versions if any.
-        properties.put(DEFAULT_PROFILE_NAME, XSERIES_GAMEPROFILE_SIGNATURE);
+        properties.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
         return profile;
     }
 
     public static GameProfile createNamelessGameProfile(UUID id) {
-        return createGameProfile(id, DEFAULT_PROFILE_NAME);
+        return createGameProfile(id, XSERIES_SIG);
     }
 }

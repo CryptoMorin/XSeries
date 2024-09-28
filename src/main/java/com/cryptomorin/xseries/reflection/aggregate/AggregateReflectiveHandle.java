@@ -17,6 +17,7 @@ import java.util.function.Consumer;
  * but sometimes the signature of certain JVM declarations just change entirely, that's where this class could be useful.
  * <p>
  * It simply tries the {@link #reflect()} method of each handle until one of them returns without throwing an exception (order matters).
+ *
  * <h2>Usage</h2>
  * <pre>{@code
  *    MethodMemberHandle profileByName = XReflection.of(GameProfileCache.class).method().named("getProfile", "a");
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
  *        () -> profileByName.signature("public Optional<GameProfile> get(String username);")
  *    ).reflect();
  * }</pre>
+ *
  * @param <T> the JVM type of {@link H}
  * @param <H> the types of handles that are going to be checked.
  * @see ReflectiveHandle
@@ -33,6 +35,9 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
     private final List<Callable<H>> handles;
     private Consumer<H> handleModifier;
 
+    /**
+     * Use {@link XReflection#anyOf(Callable[])} instead.
+     */
     @ApiStatus.Internal
     public AggregateReflectiveHandle(Collection<Callable<H>> handles) {
         this.handles = new ArrayList<>(handles.size());

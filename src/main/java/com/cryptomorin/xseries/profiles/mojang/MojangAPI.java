@@ -266,7 +266,7 @@ public final class MojangAPI {
     public static GameProfile getOrFetchProfile(@NotNull final GameProfile profile) throws UnknownPlayerException {
         // Get real UUID for offline players
         UUID realUUID;
-        if (profile.getName().equals(PlayerProfiles.DEFAULT_PROFILE_NAME)) {
+        if (profile.getName().equals(PlayerProfiles.XSERIES_SIG)) {
             // We will assume that the requested UUID is the real one
             // since the server cache didn't find it and that player never
             // joined this server.
