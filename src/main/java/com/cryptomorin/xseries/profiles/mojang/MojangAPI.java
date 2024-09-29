@@ -93,6 +93,8 @@ public final class MojangAPI {
      * @param username The username of the profile to retrieve from the cache.
      * @return The cached {@link GameProfile} corresponding to the username, or a new profile if not found.
      */
+    @SuppressWarnings("unused")
+    @ApiStatus.Obsolete
     private static GameProfile getCachedProfileByUsername(String username) {
         try {
             // Expires after every month calendar.add(2, 1); (Persists between restarts)
@@ -118,7 +120,8 @@ public final class MojangAPI {
     }
 
     private static Optional<GameProfile> getMojangCachedProfileFromUsername0(String username) throws Throwable {
-        String normalized = username.toLowerCase(Locale.ROOT);
+        // For unknown reasons Minecraft's default UserCache methods use Locale.ROOT
+        String normalized = username.toLowerCase(Locale.ENGLISH); // A-Z 0-9 _
         Object userCacheEntry = ProfilesCore.UserCache_profilesByName.get(normalized);
         Optional<GameProfile> optional;
 
@@ -164,6 +167,8 @@ public final class MojangAPI {
         Set<String> finalUsernames = new HashSet<>(usernames);
         {
             // Remove duplicate & cached names
+            // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
+            //        for a Map<String, String> to access case-corrected usernames.
             Iterator<String> usernameIter = finalUsernames.iterator();
             while (usernameIter.hasNext()) {
                 String username = usernameIter.next();
@@ -180,6 +185,7 @@ public final class MojangAPI {
 
         // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
         // It also "normalizes" names with lowercase and sends the request.
+        // This API entry case-corrects the usernames in its response.
         Iterable<List<String>> partition = Iterables.partition(finalUsernames, 10);
         for (List<String> batch : partition) {
             JsonArray response;

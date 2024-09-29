@@ -330,7 +330,7 @@ public enum XEnchantment {
     @NotNull
     public String toString() {
         return Arrays.stream(name().split("_"))
-                .map(t -> t.charAt(0) + t.substring(1).toLowerCase())
+                .map(t -> t.charAt(0) + t.substring(1).toLowerCase(Locale.ENGLISH))
                 .collect(Collectors.joining(" "));
     }
 

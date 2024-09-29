@@ -100,8 +100,8 @@ public interface ProfileTransformer {
      * This can later be used to affect {@link Profileable#getProfileValue()} which
      * provides less verbose and compact data instead of the regular base64.
      * <p>
-     * This transformation is not applied by default and
-     * {@link #stackable()} & {@link #removeMetadata()} removes this data.
+     * This transformation is not applied by default and also,
+     * {@link #stackable()} or {@link #removeMetadata()} removes this data.
      */
     @NotNull
     static ProfileTransformer includeOriginalValue() {
