@@ -91,7 +91,13 @@ public enum XEntityType {
     MINECART,
     MOOSHROOM("MUSHROOM_COW"),
     MULE,
+    /**
+     * BOAT -> OAK_BOAT (v1.21.2)
+     */
     OAK_BOAT("BOAT"),
+    /**
+     * CHEST_BOAT -> OAK_CHEST_BOAT (v1.21.2)
+     */
     OAK_CHEST_BOAT("CHEST_BOAT"),
     OCELOT,
     OMINOUS_ITEM_SPAWNER,
