@@ -2315,6 +2315,7 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
 
         static { // This needs to be right below VERSION because of initialization order.
             if (Bukkit.getServer() == null) {
+                System.err.println("Bukkit.getServer() in null. This should not happen when running a plugin normally");
                 VERSION = 21;
             } else {
                 String version = Bukkit.getVersion();
