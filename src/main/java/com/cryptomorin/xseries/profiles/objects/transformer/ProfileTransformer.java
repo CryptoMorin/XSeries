@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Modifies a {@link GameProfile} by a set of defined operations.
  * Transformers can be composed and should be applied in order.
+ *
  * @see TransformableProfile
  */
 public interface ProfileTransformer {
@@ -61,6 +62,7 @@ public interface ProfileTransformer {
      * This currently has no observable effect on blocks.
      * Technically the same as {@link #removeMetadata()} but it's
      * here for future compatibility purposes.
+     *
      * @see #nonStackable()
      */
     @NotNull
@@ -73,6 +75,7 @@ public interface ProfileTransformer {
      * Read {@link #stackable()} for more info. This adds additional properties other than
      * the ones mentioned in the other method that ensures items can never be stacked no
      * matter how similar they are.
+     *
      * @see #stackable()
      */
     @NotNull

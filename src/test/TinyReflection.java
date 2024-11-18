@@ -1,6 +1,5 @@
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
-import org.bukkit.craftbukkit.Main;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +14,17 @@ import java.util.logging.Logger;
  * Some methods here are temporary and might switch to ReflectionUtils soon.
  */
 public final class TinyReflection {
-    protected static final Logger LOGGER = Logger.getLogger(Main.class.getCanonicalName());
+    public static final Class<?> CraftBukkit$Main;
+
+    static {
+        try {
+            CraftBukkit$Main = Class.forName("org.bukkit.craftbukkit.Main");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected static final Logger LOGGER = Logger.getLogger(CraftBukkit$Main.getCanonicalName());
     protected static final String VERSION;
     protected static final Object CraftItemFactoryInstance;
     protected static final String IMPL_VER, BUKKIT_VER;

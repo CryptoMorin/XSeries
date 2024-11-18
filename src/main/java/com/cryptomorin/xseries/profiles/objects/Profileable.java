@@ -50,9 +50,10 @@ public interface Profileable {
      * <p>
      * The texture which might be cached. If any errors occur, the check may be re-evaluated.
      * The cached values might also be re-evaluated due to expiration.
-     * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
+     *
      * @return the original profile (not cloned if possible) for an instance that's always guaranteed to be a copy
-     *         you can use {@link #getDisposableProfile()} instead. Null if no profile is set (only happens for {@link ProfileContainer}).
+     * you can use {@link #getDisposableProfile()} instead. Null if no profile is set (only happens for {@link ProfileContainer}).
+     * @throws com.cryptomorin.xseries.profiles.exceptions.ProfileException may also throw other internal exceptions (most likely bugs)
      */
     @Nullable
     @Unmodifiable
@@ -87,6 +88,7 @@ public interface Profileable {
      * method ensures that no duplicate cloning of {@link GameProfile} occurs for performance.
      * <p>
      * For most implementations however, this defaults to a simple cloning of the cached instances.
+     *
      * @return always a copied version of {@link #getProfile()} that you can change. Null if {@link #getProfile()} is null
      */
     @Nullable
@@ -104,6 +106,7 @@ public interface Profileable {
      * <p>
      * Profiles are copied before being transformed, so the main cache remains intact
      * but the result of transformed profiles are never cached.
+     *
      * @param transformers a list of transformers to apply in order once {@link #getProfile()} is called.
      */
     @NotNull
@@ -118,6 +121,7 @@ public interface Profileable {
      * Note that in some cases this is the Base64 value of the textures property, but some may
      * provide less verbose data when possible. Items and blocks can also provide compact
      * data if their profile was built using {@link ProfileTransformer#includeOriginalValue()}.
+     *
      * @return null if {@link #getProfile()} is null or the set profile doesn't have a texture property.
      */
     @Nullable

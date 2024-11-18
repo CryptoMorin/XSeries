@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * The default implementation used for {@link Profileable#transform(ProfileTransformer...)}
+ *
  * @see ProfileTransformer
  */
 public final class TransformableProfile implements Profileable {

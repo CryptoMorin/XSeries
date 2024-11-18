@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * as nicely if you're using IntelliJ because of the highlighting which is greater advantage.
  */
 @ApiStatus.Internal
-public class ReflectionParser {
+public final class ReflectionParser {
     private final String declaration;
     private Pattern pattern;
     private Matcher matcher;

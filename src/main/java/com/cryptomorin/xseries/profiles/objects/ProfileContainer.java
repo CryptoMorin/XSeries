@@ -18,6 +18,7 @@ import java.util.Objects;
 
 /**
  * Represenets any object that has a {@link GameProfile} which can also be changed.
+ *
  * @param <T> the bukkit object.
  */
 @ApiStatus.Internal

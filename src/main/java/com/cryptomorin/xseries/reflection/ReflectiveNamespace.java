@@ -109,13 +109,21 @@ public class ReflectiveNamespace {
         return this.imports;
     }
 
+    @ApiStatus.Internal
+    public void link(ClassHandle handle) {
+        if (handle.getNamespace() != this) throw new IllegalArgumentException("Not the same namespace");
+        this.handles.add(handle);
+    }
+
     @NotNull
     @ApiStatus.Internal
     public MethodHandles.Lookup getLookup() {
         return lookup;
     }
 
+
     /**
+     * Same as {@link XReflection#of(Class)}
      * @since v11.0.0
      */
     public StaticClassHandle of(Class<?> clazz) {
@@ -123,17 +131,19 @@ public class ReflectiveNamespace {
         return new StaticClassHandle(this, clazz);
     }
 
-    @ApiStatus.Internal
-    public void link(ClassHandle handle) {
-        if (handle.getNamespace() != this) throw new IllegalArgumentException("Not the same namespace");
-        this.handles.add(handle);
-    }
-
+    /**
+     * Similar to {@link XReflection#classHandle()}
+     * @since v11.0.0
+     */
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
         DynamicClassHandle classHandle = new DynamicClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }
 
+    /**
+     * Similar to {@link XReflection#ofMinecraft()}
+     * @since v11.0.0
+     */
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
         MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);

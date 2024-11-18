@@ -26,7 +26,6 @@ import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
@@ -332,7 +331,7 @@ public final class XEntity {
             LivingEntity living = (LivingEntity) entity;
             if (config.isSet("health")) {
                 double hp = config.getDouble("health");
-                living.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(hp);
+                living.getAttribute(XAttribute.MAX_HEALTH.get()).setBaseValue(hp);
                 living.setHealth(hp);
             }
 

@@ -54,6 +54,7 @@ public enum XBiome {
     SPARSE_JUNGLE("JUNGLE_EDGE", "JUNGLE_EDGE"),
     STONY_SHORE("STONE_SHORE", "STONE_BEACH"),
     CHERRY_GROVE,
+    PALE_GARDEN,
     OLD_GROWTH_PINE_TAIGA("GIANT_TREE_TAIGA", "REDWOOD_TAIGA", "MEGA_TAIGA"),
     WINDSWEPT_FOREST("WOODED_MOUNTAINS", "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
     WOODED_BADLANDS("WOODED_BADLANDS_PLATEAU", "MESA_ROCK", "MESA_PLATEAU_FOREST"),
@@ -181,16 +182,16 @@ public enum XBiome {
         Data.NAMES.put(this.name(), this);
         for (String legacy : legacies) Data.NAMES.put(legacy, this);
 
-        Biome biome = Enums.getIfPresent(Biome.class, this.name()).orNull();
-        if (biome == null) {
-            if (newVersion != null) biome = newVersion.biome;
-            if (biome == null) {
-                for (String legacy : legacies) {
-                    biome = Enums.getIfPresent(Biome.class, legacy).orNull();
-                    if (biome != null) break;
-                }
-            }
-        }
+        Biome biome = null;//Enums.getIfPresent(Biome.class, this.name()).orNull();
+        // if (biome == null) {
+        //     if (newVersion != null) biome = newVersion.biome;
+        //     if (biome == null) {
+        //         for (String legacy : legacies) {
+        //             biome = Enums.getIfPresent(Biome.class, legacy).orNull();
+        //             if (biome != null) break;
+        //         }
+        //     }
+        // }
         this.biome = biome;
     }
 

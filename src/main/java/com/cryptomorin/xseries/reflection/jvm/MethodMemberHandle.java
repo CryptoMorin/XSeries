@@ -89,7 +89,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
             try {
                 method = clazz.getDeclaredMethod(name, parameterTypes);
                 if (method.getReturnType() != returnType) {
-                    throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method);
+                    throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method.getReturnType());
                 }
             } catch (NoSuchMethodException ex) {
                 method = null;

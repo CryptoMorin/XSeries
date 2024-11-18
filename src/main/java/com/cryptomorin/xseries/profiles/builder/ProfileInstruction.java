@@ -105,6 +105,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * A list of fallback profiles in order. If the profile set in {@link #profile(Profileable)} fails,
      * these profiles will be tested in order until a correct one is found,
      * also if any of the fallback profiles are used, {@link #onFallback} will be called too.
+     *
      * @see #apply()
      */
     public ProfileInstruction<T> fallback(@NotNull Profileable... fallbacks) {
@@ -116,6 +117,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     /**
      * Called when any of the {@link #fallback(Profileable...)} profiles are used,
      * this is also called if no fallback profile is provided, but the main one {@link #profile(Profileable)} fails.
+     *
      * @see #onFallback(Runnable)
      */
     public ProfileInstruction<T> onFallback(@Nullable Consumer<ProfileFallback<T>> onFallback) {
@@ -145,8 +147,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      *
      * @return The result after setting the generated profile.
      * @throws ProfileChangeException If any type of {@link ProfileException} occurs, they will be accumulated
-     *    in form of suppressed exceptions ({@link Exception#getSuppressed()}) in this single exception
-     *    starting from the main profile, followed by the fallback profiles.
+     *                                in form of suppressed exceptions ({@link Exception#getSuppressed()}) in this single exception
+     *                                starting from the main profile, followed by the fallback profiles.
      */
     public T apply() {
         Objects.requireNonNull(profileable, "No profile was set");
@@ -213,7 +215,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * XSkull.createItem().profile(player).applyAsync()
      *     .thenAcceptAsync(item -> inventory.setItem(slot, item));
      * }</pre>
-     *
+     * <p>
      * To make this cleaner, you could change the first line of the item's lore to something like "Loading..."
      * and set it to the inventory right away so the player knows that the data is not fully loaded.
      * Once this method is done, you could change the lore back and set the item back to the inventory.

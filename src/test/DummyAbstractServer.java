@@ -1,9 +1,9 @@
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.bukkit.craftbukkit.Main;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -145,13 +145,19 @@ public abstract class DummyAbstractServer {
 //                Server instance = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, implementer);
 
                 DummyAbstractServer.print("Starting org.bukkit.craftbukkit.Main...");
-                Main.main(new String[]{ // https://www.spigotmc.org/wiki/start-up-parameters/
+                String[] startupArgs = { // https://www.spigotmc.org/wiki/start-up-parameters/
                         "nogui",
                         "noconsole",
                         "--config=" + serverProperties,
                         "--bukkit-settings=" + bukkitYml,
                         "--spigot-settings=" + spigotYml,
-                });
+                };
+                try {
+                    TinyReflection.CraftBukkit$Main.getMethod("main", String[].class).invoke(null, (Object) startupArgs);
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
+                // Main.main(startupArgs);
 
 //                DummyAbstractServer.print("Initializing server...");
                 // Bukkit.setServer(instance);

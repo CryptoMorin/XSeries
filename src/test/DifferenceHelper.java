@@ -1,5 +1,10 @@
-import com.cryptomorin.xseries.*;
+import com.cryptomorin.xseries.XEnchantment;
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XPotion;
+import com.cryptomorin.xseries.base.XModule;
+import com.cryptomorin.xseries.base.XRegistry;
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
@@ -11,11 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DifferenceHelper {
+public final class DifferenceHelper {
     /**
      * Writes the material and sound differences to files in the server's root folder for updating purposes.
      */
@@ -30,8 +37,8 @@ public class DifferenceHelper {
                 biomes = serverFolder.resolve("XBiome.txt");
 
         writeDifference(materials, org.bukkit.Material.class, XMaterial.class, mat -> mat.startsWith("LEGACY_"));
-        writeDifference(sounds, org.bukkit.Sound.class, XSound.class, null);
-        writeDifference(biomes, org.bukkit.block.Biome.class, XBiome.class, null);
+        // writeDifference(sounds, getEnumLikeFields(org.bukkit.Sound.class, XSound.class, null);
+        // writeDifference(biomes, org.bukkit.block.Biome.class, XBiome.class, null);
         writeDifference(xPotion, getEnumLikeFields(PotionEffectType.class), XPotion.class, null);
         writeDifference(xEnchant, getEnumLikeFields(Enchantment.class), XEnchantment.class, null);
     }
@@ -39,8 +46,36 @@ public class DifferenceHelper {
     public static List<String> getEnumLikeFields(Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(x -> x.getType() == clazz)
-                .filter(x -> Modifier.isStatic(x.getModifiers()))
+                .filter(x -> {
+                    int modifiers = x.getModifiers();
+                    return Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers);
+                })
                 .map(Field::getName)
+                .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<EnumLike<T>> getEnumLikePairFields(Class<T> clazz) {
+        if (clazz.isEnum()) {
+            return Arrays.stream(clazz.getEnumConstants())
+                    .map(x -> (Enum<?>) x)
+                    .map(x -> new EnumLike<>(x.name(), (T) x))
+                    .collect(Collectors.toList());
+        }
+
+        return Arrays.stream(clazz.getDeclaredFields())
+                .filter(x -> x.getType() == clazz)
+                .filter(x -> {
+                    int modifiers = x.getModifiers();
+                    return Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers);
+                })
+                .map(x -> {
+                    try {
+                        return new EnumLike<>(x.getName(), (T) x.get(null));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -66,9 +101,75 @@ public class DifferenceHelper {
         writeDifference(path, enumNames, custom, ignore);
     }
 
+    private static final class EnumLike<T> {
+        private final String name;
+        private final T value;
+
+        private EnumLike(String name, T value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
+
+    public static <X extends XModule<X, Bukkit>, Bukkit extends Keyed>
+    void writeDifference(Path path, Class<Bukkit> systemRegistryClass, XRegistry<X, Bukkit> xRegistry, java.util.function.Predicate<String> ignore) {
+        List<EnumLike<Bukkit>> systemRegistry = getEnumLikePairFields(systemRegistryClass);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            writer.write("------------------- Added -------------------");
+            writer.newLine();
+
+            for (EnumLike<Bukkit> systemConst : systemRegistry) {
+                boolean changed = false;
+                List<String> altNames = new ArrayList<>(5);
+
+                // For enums these two are the same.
+                String ns = XRegistry.getName(systemConst.value);
+                Optional<X> byNsName = xRegistry.getByName(ns);
+                Optional<X> byFieldName = xRegistry.getByName(systemConst.name);
+
+                if (!byNsName.isPresent()) {
+                    changed = true;
+                    altNames.add(ns);
+                }
+                if (!byFieldName.isPresent()) {
+                    changed = true;
+                }
+
+                X x = byNsName.orElseGet(() -> byFieldName.orElse(null));
+                if (x != null && !x.isSupported()) {
+                    changed = true;
+                    altNames.addAll(Arrays.asList(x.names));
+                }
+
+                if (changed) {
+                    String otherNames = altNames.stream().map(j -> '"' + j + '"').collect(Collectors.joining(", "));
+                    writer.write(systemConst.name + " = std(" + otherNames + "),");
+                    writer.newLine();
+                }
+            }
+
+            writer.newLine();
+            writer.write("------------------ Removed ------------------");
+            writer.newLine();
+
+            for (X customConst : xRegistry) {
+                boolean exists = customConst.isSupported();
+                if (!exists) {
+                    writer.write(customConst.name());
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static <E extends Enum<E>>
     void writeDifference(Path path, List<String> system, Class<E> custom, java.util.function.Predicate<String> ignore) {
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             writer.write("------------------- Added -------------------");
             writer.newLine();
 

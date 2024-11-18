@@ -60,13 +60,13 @@
             <id>nms-repo</id>
             <url>https://repo.codemc.org/repository/nms/</url>
         </repository>
-        <!--        <repository>-->
-        <!--            &lt;!&ndash; Sometimes codemc's snapshots don't have the mojang packages. &ndash;&gt;-->
-        <!--            &lt;!&ndash; https://libraries.minecraft.net/com/mojang/authlib/VERSION/authlib-VERSION.jar &ndash;&gt;-->
-        <!--            <id>minecraft-libraries</id>-->
-        <!--            <name>Minecraft Libraries</name>-->
-        <!--            <url>https://libraries.minecraft.net/</url>-->
-        <!--        </repository>-->
+        <repository>
+            <!-- Sometimes codemc's snapshots don't have the mojang packages. -->
+            <!-- https://libraries.minecraft.net/com/mojang/authlib/VERSION/authlib-VERSION.jar -->
+            <id>minecraft-libraries</id>
+            <name>Minecraft Libraries</name>
+            <url>https://libraries.minecraft.net/</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -85,18 +85,32 @@
         <!-- 1.19.4-R0.1-SNAPSHOT -->
         <!-- 1.20.6-R0.1-SNAPSHOT -->
         <!-- 1.21.1-R0.1-SNAPSHOT -->
-        <spigotVersion>1.21.1-R0.1-SNAPSHOT</spigotVersion>
+        <!-- 1.21.3-R0.1-SNAPSHOT -->
+        <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.3-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
+        <spigotVersion>1.21.3-R0.1-EXPR</spigotVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>com.mojang</groupId>-->
-        <!--            <artifactId>authlib</artifactId>-->
-        <!--            <version>6.0.54</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>net.sf.jopt-simple</groupId>
+            <artifactId>jopt-simple</artifactId>
+            <version>5.0.4</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-iostreams</artifactId>
+            <version>2.22.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>6.0.55</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
@@ -107,13 +121,13 @@
             <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>24.1.0</version>
+            <version>26.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
+            <version>5.11.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

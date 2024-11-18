@@ -94,8 +94,12 @@ public enum XPotion {
      * Special type of effect. Minecraft itself doesn't recognize this as a separate potion type,
      * but as a combination of two other potion types. However, Bukkit's {@link PotionType#TURTLE_MASTER} decided
      * to add this, whereas {@link PotionEffectType} doesn't have such enum.
+     * <p>
+     * This was removed in Mincraft v1.21.3, should we remove it as well?
+     *
      * @since Minecraft v1.21
      */
+    @Deprecated
     TURTLE_MASTER,
     UNLUCK("UNLUCKY"),
     WATER_BREATHING("WATER_BREATH", "UNDERWATER_BREATHING", "UNDERWATER_BREATH", "AIR"),

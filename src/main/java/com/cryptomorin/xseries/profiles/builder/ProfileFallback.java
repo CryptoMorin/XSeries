@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
 
 /**
  * An object that has all the information about failed attempts.
+ *
  * @param <T> the object that has its profile set. See {@link ProfileContainer} for a list.
  */
 public final class ProfileFallback<T> {

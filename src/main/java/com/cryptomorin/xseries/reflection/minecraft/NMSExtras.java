@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries.reflection.minecraft;
 
-import com.cryptomorin.xseries.XSound;
 import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
@@ -164,7 +163,8 @@ public final class NMSExtras {
             getDataWatcher = XReflection.of(nmsEntity)
                     .method().returns(DataWatcherClass)
                     .map(MinecraftMapping.MOJANG, "getEntityData")
-                    .map(MinecraftMapping.SPIGOT, v(21, "ar")
+                    .map(MinecraftMapping.SPIGOT, v(21, 3, "au")
+                            .v(21, "ar")
                             .v(20, 5, "ap")
                             .v(20, 4, "an")
                             .v(20, 2, "al")
@@ -350,7 +350,7 @@ public final class NMSExtras {
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BlockState));
                 tileEntitySign_getUpdatePacket = XReflection.of(TileEntitySign).method().returns(PacketPlayOutTileEntityData)
                         .map(MinecraftMapping.MOJANG, "getUpdatePacket")
-                        .map(MinecraftMapping.SPIGOT, v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
+                        .map(MinecraftMapping.SPIGOT, v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
                         .unreflect();
 
                 if (supports(20)) {
@@ -453,7 +453,7 @@ public final class NMSExtras {
                 Object packet = ENTITY_PACKET.invoke(lightningBolt);
 
                 for (Player player : players) {
-                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
+                    // if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
                     MinecraftConnection.sendPacket(player, packet);
                 }
             } else {
@@ -469,7 +469,7 @@ public final class NMSExtras {
                 Object packet = ENTITY_PACKET.invoke(lightningBoltID, lightningBoltUUID, location.getX(), location.getY(), location.getZ(), 0F, 0F, lightningType, 0, vec3D);
 
                 for (Player player : players) {
-                    if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
+                    // if (sound) XSound.ENTITY_LIGHTNING_BOLT_THUNDER.record().soundPlayer().forPlayers(player).play();
                     MinecraftConnection.sendPacket(player, packet);
                 }
             }

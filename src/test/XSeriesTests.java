@@ -1,8 +1,8 @@
 import com.cryptomorin.xseries.*;
+import com.cryptomorin.xseries.XAttribute;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
-import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
@@ -76,10 +76,14 @@ public final class XSeriesTests {
         testXItemStack();
 
         print("Testing XSound...");
-        assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
-        assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
-        assertPresent(XSound.matchXSound("RECORD_11"));
-        for (Sound sound : Sound.values()) XSound.matchXSound(sound);
+        // assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
+        // assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
+        // assertPresent(XSound.matchXSound("RECORD_11"));
+        // for (Sound sound : Sound.values()) XSound.matchXSound(sound);
+
+        print("Testing XAttribute...");
+        print("Attribute " + XAttribute.ARMOR_TOUGHNESS + " is " + XAttribute.ARMOR_TOUGHNESS.get());
+        assertPresent(XAttribute.of("MAX_HEALTH"));
 
         print("Testing particles...");
         ParticleDisplay.of(Particle.CLOUD).

@@ -265,7 +265,7 @@ public final class XItemStack {
                     String path = "attributes." + attribute.getKey().name() + '.';
                     AttributeModifier modifier = attribute.getValue();
 
-                    config.set(path + "id", modifier.getUniqueId().toString());
+                    // config.set(path + "id", modifier.getUniqueId().toString());
                     config.set(path + "name", modifier.getName());
                     config.set(path + "amount", modifier.getAmount());
                     config.set(path + "operation", modifier.getOperation().name());
@@ -1114,24 +1114,23 @@ public final class XItemStack {
             ConfigurationSection attributes = config.getConfigurationSection("attributes");
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
-                    Attribute attributeInst = Enums.getIfPresent(Attribute.class, attribute.toUpperCase(Locale.ENGLISH)).orNull();
-                    if (attributeInst == null) continue;
+                    Optional<XAttribute> attributeInst = XAttribute.of(attribute);
+                    if (!attributeInst.isPresent()) continue;
                     ConfigurationSection section = attributes.getConfigurationSection(attribute);
                     if (section == null) continue;
 
-                    String attribId = section.getString("id");
-                    UUID id = attribId != null ? UUID.fromString(attribId) : UUID.randomUUID();
+                    // String attribId = section.getString("id");
+                    // UUID id = attribId != null ? UUID.fromString(attribId) : UUID.randomUUID();
                     EquipmentSlot slot = section.getString("slot") != null ? Enums.getIfPresent(EquipmentSlot.class, section.getString("slot")).or(EquipmentSlot.HAND) : null;
 
-                    AttributeModifier modifier = new AttributeModifier(
-                            id,
+                    AttributeModifier modifier = attributeInst.get().createModifier(
                             section.getString("name"),
                             section.getDouble("amount"),
                             Enums.getIfPresent(AttributeModifier.Operation.class, section.getString("operation"))
                                     .or(AttributeModifier.Operation.ADD_NUMBER),
-                            slot);
-
-                    meta.addAttributeModifier(attributeInst, modifier);
+                            slot
+                    );
+                    meta.addAttributeModifier(attributeInst.get().get(), modifier);
                 }
             }
         }

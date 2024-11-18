@@ -239,7 +239,11 @@ public class ParticleDisplay implements Cloneable {
      * @since 9.0.0
      */
     public ParticleDisplay onlyVisibleTo(Collection<Player> players) {
-        if (players.isEmpty()) return this;
+        if (players == null || players.isEmpty()) {
+            this.players = null;
+            return this;
+        }
+
         if (this.players == null) this.players = Collections.newSetFromMap(new WeakHashMap<>());
         this.players.addAll(players);
         return this;
@@ -250,7 +254,11 @@ public class ParticleDisplay implements Cloneable {
      * @since 9.0.0
      */
     public ParticleDisplay onlyVisibleTo(Player... players) {
-        if (players.length == 0) return this;
+        if (players == null || players.length == 0) {
+            this.players = null;
+            return this;
+        }
+
         if (this.players == null) this.players = Collections.newSetFromMap(new WeakHashMap<>());
         Collections.addAll(this.players, players);
         return this;
@@ -927,6 +935,7 @@ public class ParticleDisplay implements Cloneable {
 
     /**
      * Adds note color properties to the particle settings.
+     *
      * @param note the note color.
      * @return the same particle display, but modified.
      * @since 11.0.0
@@ -1204,6 +1213,7 @@ public class ParticleDisplay implements Cloneable {
                 .withDirection(direction)
                 .withCount(count).offset(offset.clone())
                 .forceSpawn(force)
+                .onlyVisibleTo(players)
                 .preCalculation(this.preCalculation)
                 .postCalculation(this.postCalculation);
 
@@ -1650,6 +1660,7 @@ public class ParticleDisplay implements Cloneable {
     /**
      * Returns the nearest note color to the given RGB values.
      * The nearest color is returned as an index in the {@link #NOTE_COLORS} array.
+     *
      * @param color the color to find the nearest note color for.
      * @return the index of the nearest note color (see {@link #NOTE_COLORS}).
      */
@@ -1670,6 +1681,7 @@ public class ParticleDisplay implements Cloneable {
      * Computes the distance between two colors,
      * based on <a href="https://stackoverflow.com/a/6334454">this</a> SO answer
      * and <a href="https://www.compuphase.com/cmetric.htm">this</a> paper.
+     *
      * @param c1 the first color to compare
      * @param c2 the second color to compare
      * @return the square of the distance between the two colors

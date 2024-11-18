@@ -59,6 +59,7 @@ public final class PlayerProfiles {
      * Also, the {@link com.cryptomorin.xseries.profiles.mojang.MojangAPI} UUID_TO_PROFILE
      * returns HTTP for texture URL when the Base64 is decoded, so we can keep it consistent
      * when it's not explicitly defined by the user.
+     *
      * @see #getTextureValue(GameProfile)
      */
     public static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
@@ -94,6 +95,7 @@ public final class PlayerProfiles {
 
     /**
      * Retrieves the value of a {@link Property}, handling differences between versions.
+     *
      * @since 4.0.1
      */
     @NotNull
@@ -124,7 +126,7 @@ public final class PlayerProfiles {
      * @param base64 The base64 string representing the profile's textures.
      * @return The constructed {@link GameProfile}.
      * @implNote This method creates a {@link GameProfile} with a UUID derived from the provided hash
-     *           to ensure consistency after restarts.
+     * to ensure consistency after restarts.
      */
     @NotNull
     public static GameProfile profileFromHashAndBase64(String hash, String base64) {
@@ -173,9 +175,9 @@ public final class PlayerProfiles {
 
     /**
      * Uses the online/offline UUID depending on {@link Bukkit#getOnlineMode()}.
-     * @return may return the same or a new profile.
      *
      * @param profile must have complete name and UUID
+     * @return may return the same or a new profile.
      */
     public static GameProfile sanitizeProfile(GameProfile profile) {
         // We could remove the unnecessary timestamp data, but let's keep it there, the texture is Base64 encoded anyway.

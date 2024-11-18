@@ -31,6 +31,7 @@ import java.util.function.BiFunction;
 
 /**
  * Sends HTTP requests to Mojang API endpoints.
+ *
  * @see MojangAPI
  * @see MojangAPIException
  * @see MojangAPIRetryException
