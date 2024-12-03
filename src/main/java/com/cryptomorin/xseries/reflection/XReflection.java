@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 /**
  * General Java reflection handler, but specialized for Minecraft NMS/CraftBukkit reflection as well.
  * <p>
- *     <h2>Starting Points</h2>
+ * <h2>Starting Points</h2>
  * Basic reflection starting points are through the {@link com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle}
  * methods:
  * <ul>
@@ -68,6 +68,7 @@ import java.util.stream.Collectors;
  *     <li>{@link #stacktrace(CompletableFuture)}: Add stacktrace information to {@link CompletableFuture}s.</li>
  *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
  * </ul>
+ *
  * @author Crypto Morin
  * @version 11.3.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
@@ -368,9 +369,9 @@ public final class XReflection {
      * @param name        the name of the class.
      * @return the NMS class or null if not found.
      * @throws RuntimeException if the class could not be found.
-     * @deprecated use {@link #ofMinecraft()} instead.
      * @see #getNMSClass(String)
      * @since 4.0.0
+     * @deprecated use {@link #ofMinecraft()} instead.
      */
     @NotNull
     @Deprecated
@@ -464,6 +465,7 @@ public final class XReflection {
 
     /**
      * Read {@link ReflectiveNamespace} for more info.
+     *
      * @since v11.0.0
      */
     public static ReflectiveNamespace namespaced() {
@@ -515,9 +517,9 @@ public final class XReflection {
      * to throw them in case all the attempts have failed. This removes unnecessary line information to
      * help the developer focus on important, non-repeated lines.
      *
-     * @param ex the exception to have it's suppressed exceptions relativized.
-     * @return the same exception.
+     * @param ex  the exception to have it's suppressed exceptions relativized.
      * @param <T> the type of the exception.
+     * @return the same exception.
      */
     @ApiStatus.Experimental
     public static <T extends Throwable> T relativizeSuppressedExceptions(T ex) {
@@ -582,8 +584,9 @@ public final class XReflection {
      *         }
      *     }
      * }</pre>
+     *
      * @return {@code null}, but it's intended to be thrown, this is a hacky trick to stop the IDE
-     *   from complaining about non-terminating statements.
+     * from complaining about non-terminating statements.
      */
     public static RuntimeException throwCheckedException(Throwable exception) {
         Objects.requireNonNull(exception, "Cannot throw null exception");

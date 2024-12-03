@@ -21,17 +21,17 @@
  */
 package com.cryptomorin.xseries;
 
-import com.google.common.base.Enums;
+import com.cryptomorin.xseries.base.XModule;
+import com.cryptomorin.xseries.base.XRegistry;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Registry;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -45,247 +45,155 @@ import java.util.concurrent.CompletableFuture;
  * <a href="https://minecraft.wiki/w/Java_Edition_1.18">1.18 removed biomes issue.</a>
  *
  * @author Crypto Morin
- * @version 6.1.1
+ * @version 7.0.0
  * @see Biome
  */
-public enum XBiome {
-    WINDSWEPT_HILLS("MOUNTAINS", "EXTREME_HILLS"),
-    SNOWY_PLAINS("SNOWY_TUNDRA", "ICE_FLATS", "ICE_PLAINS"),
-    SPARSE_JUNGLE("JUNGLE_EDGE", "JUNGLE_EDGE"),
-    STONY_SHORE("STONE_SHORE", "STONE_BEACH"),
-    CHERRY_GROVE,
-    PALE_GARDEN,
-    OLD_GROWTH_PINE_TAIGA("GIANT_TREE_TAIGA", "REDWOOD_TAIGA", "MEGA_TAIGA"),
-    WINDSWEPT_FOREST("WOODED_MOUNTAINS", "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
-    WOODED_BADLANDS("WOODED_BADLANDS_PLATEAU", "MESA_ROCK", "MESA_PLATEAU_FOREST"),
-    WINDSWEPT_GRAVELLY_HILLS("GRAVELLY_MOUNTAINS", "MUTATED_EXTREME_HILLS", "EXTREME_HILLS_MOUNTAINS"),
-    OLD_GROWTH_BIRCH_FOREST("TALL_BIRCH_FOREST", "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS"),
-    OLD_GROWTH_SPRUCE_TAIGA("GIANT_SPRUCE_TAIGA", "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
-    WINDSWEPT_SAVANNA("SHATTERED_SAVANNA", "MUTATED_SAVANNA", "SAVANNA_MOUNTAINS"),
-    MEADOW,
-    MANGROVE_SWAMP,
-    DEEP_DARK,
-    GROVE,
-    SNOWY_SLOPES,
-    FROZEN_PEAKS,
-    JAGGED_PEAKS,
-    STONY_PEAKS,
-    CUSTOM,
-    BADLANDS("MESA"),
-    BADLANDS_PLATEAU(WOODED_BADLANDS, "MESA_CLEAR_ROCK", "MESA_PLATEAU"),
-    BEACH("BEACHES"),
-    BIRCH_FOREST(OLD_GROWTH_BIRCH_FOREST, "BIRCH_FOREST"),
-    BIRCH_FOREST_HILLS(OLD_GROWTH_BIRCH_FOREST, "BIRCH_FOREST_HILLS"),
-    COLD_OCEAN("COLD_OCEAN"),
-    DARK_FOREST("ROOFED_FOREST"),
-    DARK_FOREST_HILLS("MUTATED_ROOFED_FOREST", "ROOFED_FOREST_MOUNTAINS"),
-    DEEP_COLD_OCEAN("COLD_DEEP_OCEAN"),
-    DEEP_FROZEN_OCEAN("FROZEN_DEEP_OCEAN"),
-    DEEP_LUKEWARM_OCEAN("LUKEWARM_DEEP_OCEAN"),
-    DEEP_OCEAN("DEEP_OCEAN"),
-    DEEP_WARM_OCEAN("WARM_DEEP_OCEAN"),
-    DESERT("DESERT"),
-    DESERT_HILLS("DESERT_HILLS"),
-    DESERT_LAKES("MUTATED_DESERT", "DESERT_MOUNTAINS"),
-    END_BARRENS(World.Environment.THE_END, "SKY_ISLAND_BARREN"),
-    END_HIGHLANDS(World.Environment.THE_END, "SKY_ISLAND_HIGH"),
-    END_MIDLANDS(World.Environment.THE_END, "SKY_ISLAND_MEDIUM"),
-    ERODED_BADLANDS("MUTATED_MESA", "MESA_BRYCE"),
-    FLOWER_FOREST("MUTATED_FOREST"),
-    FOREST("FOREST"),
-    FROZEN_OCEAN("FROZEN_OCEAN"),
-    FROZEN_RIVER("FROZEN_RIVER"),
-    GIANT_SPRUCE_TAIGA(OLD_GROWTH_SPRUCE_TAIGA, "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
-    GIANT_SPRUCE_TAIGA_HILLS(OLD_GROWTH_SPRUCE_TAIGA, "MUTATED_REDWOOD_TAIGA_HILLS", "MEGA_SPRUCE_TAIGA_HILLS"),
-    GIANT_TREE_TAIGA(OLD_GROWTH_PINE_TAIGA, "REDWOOD_TAIGA", "MEGA_TAIGA"),
-    GIANT_TREE_TAIGA_HILLS(OLD_GROWTH_PINE_TAIGA, "REDWOOD_TAIGA_HILLS", "MEGA_TAIGA_HILLS"),
-    ICE_SPIKES("MUTATED_ICE_FLATS", "ICE_PLAINS_SPIKES"),
-    JUNGLE("JUNGLE"),
-    JUNGLE_HILLS("JUNGLE_HILLS"),
-    LUKEWARM_OCEAN("LUKEWARM_OCEAN"),
-    MODIFIED_BADLANDS_PLATEAU(WOODED_BADLANDS, "MUTATED_MESA_CLEAR_ROCK", "MESA_PLATEAU"),
-    MODIFIED_GRAVELLY_MOUNTAINS(WINDSWEPT_GRAVELLY_HILLS, "MUTATED_EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_MOUNTAINS"),
-    MODIFIED_JUNGLE("MUTATED_JUNGLE", "JUNGLE_MOUNTAINS"),
-    MODIFIED_JUNGLE_EDGE(SPARSE_JUNGLE, "MUTATED_JUNGLE_EDGE", "JUNGLE_EDGE_MOUNTAINS"),
-    MODIFIED_WOODED_BADLANDS_PLATEAU(WOODED_BADLANDS, "MUTATED_MESA_ROCK", "MESA_PLATEAU_FOREST_MOUNTAINS"),
-    MOUNTAIN_EDGE(SPARSE_JUNGLE, "SMALLER_EXTREME_HILLS"),
-    MUSHROOM_FIELDS("MUSHROOM_ISLAND"),
-    MUSHROOM_FIELD_SHORE(STONY_SHORE, "MUSHROOM_ISLAND_SHORE", "MUSHROOM_SHORE"),
-    SOUL_SAND_VALLEY(World.Environment.NETHER),
-    CRIMSON_FOREST(World.Environment.NETHER),
-    WARPED_FOREST(World.Environment.NETHER),
-    BASALT_DELTAS(World.Environment.NETHER),
-    NETHER_WASTES(World.Environment.NETHER, "NETHER", "HELL"),
-    OCEAN("OCEAN"),
-    PLAINS("PLAINS"),
-    RIVER("RIVER"),
-    SAVANNA("SAVANNA"),
-    SAVANNA_PLATEAU(WINDSWEPT_SAVANNA, "SAVANNA_ROCK", "SAVANNA_PLATEAU"),
-    SHATTERED_SAVANNA_PLATEAU(WINDSWEPT_SAVANNA, "MUTATED_SAVANNA_ROCK", "SAVANNA_PLATEAU_MOUNTAINS"),
-    SMALL_END_ISLANDS(World.Environment.THE_END, "SKY_ISLAND_LOW"),
-    SNOWY_BEACH("COLD_BEACH"),
-    SNOWY_MOUNTAINS(WINDSWEPT_HILLS, "ICE_MOUNTAINS"),
-    SNOWY_TAIGA("TAIGA_COLD", "COLD_TAIGA"),
-    SNOWY_TAIGA_HILLS("TAIGA_COLD_HILLS", "COLD_TAIGA_HILLS"),
-    SNOWY_TAIGA_MOUNTAINS(WINDSWEPT_FOREST, "MUTATED_TAIGA_COLD", "COLD_TAIGA_MOUNTAINS"),
-    SUNFLOWER_PLAINS("MUTATED_PLAINS"),
-    SWAMP("SWAMPLAND"),
-    SWAMP_HILLS("MUTATED_SWAMPLAND", "SWAMPLAND_MOUNTAINS"),
-    TAIGA("TAIGA"),
-    TAIGA_HILLS("TAIGA_HILLS"),
-    TAIGA_MOUNTAINS(WINDSWEPT_FOREST, "MUTATED_TAIGA"),
-    /**
-     * Removed from 1.18
-     */
-    TALL_BIRCH_FOREST(OLD_GROWTH_BIRCH_FOREST, "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS"),
-    /**
-     * Removed from 1.18
-     */
-    TALL_BIRCH_HILLS(OLD_GROWTH_BIRCH_FOREST, "MUTATED_BIRCH_FOREST_HILLS", "MESA_PLATEAU_FOREST_MOUNTAINS"),
-    THE_END(World.Environment.THE_END, "SKY"),
-    THE_VOID("VOID"),
-    WARM_OCEAN("WARM_OCEAN"),
-    WOODED_BADLANDS_PLATEAU("MESA_ROCK", "MESA_PLATEAU_FOREST"),
-    WOODED_HILLS("FOREST_HILLS"),
-    WOODED_MOUNTAINS("EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
-    BAMBOO_JUNGLE,
-    BAMBOO_JUNGLE_HILLS,
-    DRIPSTONE_CAVES,
-    LUSH_CAVES;
+public final class XBiome extends XModule<XBiome, Biome> {
+    public static final XRegistry<XBiome, Biome> REGISTRY =
+            new XRegistry<>(Biome.class, XBiome.class, () -> Registry.BIOME, XBiome::new, XBiome[]::new);
+
+    public static final XBiome
+            WINDSWEPT_HILLS = std("WINDSWEPT_HILLS", "MOUNTAINS", "EXTREME_HILLS"),
+            SNOWY_PLAINS = std("SNOWY_PLAINS", "SNOWY_TUNDRA", "ICE_FLATS", "ICE_PLAINS"),
+            SPARSE_JUNGLE = std("SPARSE_JUNGLE", "JUNGLE_EDGE", "JUNGLE_EDGE"),
+            STONY_SHORE = std("STONY_SHORE", "STONE_SHORE", "STONE_BEACH"),
+            CHERRY_GROVE = std("CHERRY_GROVE"),
+            PALE_GARDEN = std("PALE_GARDEN"),
+            OLD_GROWTH_PINE_TAIGA = std("OLD_GROWTH_PINE_TAIGA", "GIANT_TREE_TAIGA", "REDWOOD_TAIGA", "MEGA_TAIGA"),
+            WINDSWEPT_FOREST = std("WINDSWEPT_FOREST", "WOODED_MOUNTAINS", "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
+            WOODED_BADLANDS = std("WOODED_BADLANDS", "WOODED_BADLANDS_PLATEAU", "MESA_ROCK", "MESA_PLATEAU_FOREST"),
+            WINDSWEPT_GRAVELLY_HILLS = std("WINDSWEPT_GRAVELLY_HILLS", "GRAVELLY_MOUNTAINS", "MUTATED_EXTREME_HILLS", "EXTREME_HILLS_MOUNTAINS"),
+            OLD_GROWTH_BIRCH_FOREST = std("OLD_GROWTH_BIRCH_FOREST", "TALL_BIRCH_FOREST", "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS"),
+            OLD_GROWTH_SPRUCE_TAIGA = std("OLD_GROWTH_SPRUCE_TAIGA", "GIANT_SPRUCE_TAIGA", "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
+            WINDSWEPT_SAVANNA = std("WINDSWEPT_SAVANNA", "SHATTERED_SAVANNA", "MUTATED_SAVANNA", "SAVANNA_MOUNTAINS"),
+            MEADOW = std("MEADOW"),
+            MANGROVE_SWAMP = std("MANGROVE_SWAMP"),
+            DEEP_DARK = std("DEEP_DARK"),
+            GROVE = std("GROVE"),
+            SNOWY_SLOPES = std("SNOWY_SLOPES"),
+            FROZEN_PEAKS = std("FROZEN_PEAKS"),
+            JAGGED_PEAKS = std("JAGGED_PEAKS"),
+            STONY_PEAKS = std("STONY_PEAKS"),
+            BADLANDS = std("BADLANDS", "MESA"),
+            BADLANDS_PLATEAU = std(WOODED_BADLANDS, "BADLANDS_PLATEAU", "MESA_CLEAR_ROCK", "MESA_PLATEAU"),
+            BEACH = std("BEACH", "BEACHES"),
+            BIRCH_FOREST = std(OLD_GROWTH_BIRCH_FOREST, "BIRCH_FOREST"),
+            BIRCH_FOREST_HILLS = std(OLD_GROWTH_BIRCH_FOREST, "BIRCH_FOREST_HILLS"),
+            COLD_OCEAN = std("COLD_OCEAN"),
+            DARK_FOREST = std("DARK_FOREST", "ROOFED_FOREST"),
+            DARK_FOREST_HILLS = std("DARK_FOREST_HILLS", "MUTATED_ROOFED_FOREST", "ROOFED_FOREST_MOUNTAINS"),
+            DEEP_COLD_OCEAN = std("DEEP_COLD_OCEAN", "COLD_DEEP_OCEAN"),
+            DEEP_FROZEN_OCEAN = std("DEEP_FROZEN_OCEAN", "FROZEN_DEEP_OCEAN"),
+            DEEP_LUKEWARM_OCEAN = std("DEEP_LUKEWARM_OCEAN", "LUKEWARM_DEEP_OCEAN"),
+            DEEP_OCEAN = std("DEEP_OCEAN"),
+            DEEP_WARM_OCEAN = std("DEEP_WARM_OCEAN", "WARM_DEEP_OCEAN"),
+            DESERT = std("DESERT"),
+            DESERT_HILLS = std("DESERT_HILLS"),
+            DESERT_LAKES = std("DESERT_LAKES", "MUTATED_DESERT", "DESERT_MOUNTAINS"),
+            END_BARRENS = std(World.Environment.THE_END, "END_BARRENS", "SKY_ISLAND_BARREN"),
+            END_HIGHLANDS = std(World.Environment.THE_END, "END_HIGHLANDS", "SKY_ISLAND_HIGH"),
+            END_MIDLANDS = std(World.Environment.THE_END, "END_MIDLANDS", "SKY_ISLAND_MEDIUM"),
+            ERODED_BADLANDS = std("ERODED_BADLANDS", "MUTATED_MESA", "MESA_BRYCE"),
+            FLOWER_FOREST = std("FLOWER_FOREST", "MUTATED_FOREST"),
+            FOREST = std("FOREST"),
+            FROZEN_OCEAN = std("FROZEN_OCEAN"),
+            FROZEN_RIVER = std("FROZEN_RIVER"),
+            GIANT_SPRUCE_TAIGA = std(OLD_GROWTH_SPRUCE_TAIGA, "GIANT_SPRUCE_TAIGA", "MUTATED_REDWOOD_TAIGA", "MEGA_SPRUCE_TAIGA"),
+            GIANT_SPRUCE_TAIGA_HILLS = std(OLD_GROWTH_SPRUCE_TAIGA, "GIANT_SPRUCE_TAIGA_HILLS", "MUTATED_REDWOOD_TAIGA_HILLS", "MEGA_SPRUCE_TAIGA_HILLS"),
+            GIANT_TREE_TAIGA = std(OLD_GROWTH_PINE_TAIGA, "GIANT_TREE_TAIGA", "REDWOOD_TAIGA", "MEGA_TAIGA"),
+            GIANT_TREE_TAIGA_HILLS = std(OLD_GROWTH_PINE_TAIGA, "GIANT_TREE_TAIGA_HILLS", "REDWOOD_TAIGA_HILLS", "MEGA_TAIGA_HILLS"),
+            ICE_SPIKES = std("ICE_SPIKES", "MUTATED_ICE_FLATS", "ICE_PLAINS_SPIKES"),
+            JUNGLE = std("JUNGLE"),
+            JUNGLE_HILLS = std("JUNGLE_HILLS"),
+            LUKEWARM_OCEAN = std("LUKEWARM_OCEAN"),
+            MODIFIED_BADLANDS_PLATEAU = std(WOODED_BADLANDS, "MODIFIED_BADLANDS_PLATEAU", "MUTATED_MESA_CLEAR_ROCK", "MESA_PLATEAU"),
+            MODIFIED_GRAVELLY_MOUNTAINS = std(WINDSWEPT_GRAVELLY_HILLS, "MODIFIED_GRAVELLY_MOUNTAINS", "MUTATED_EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_MOUNTAINS"),
+            MODIFIED_JUNGLE = std("MODIFIED_JUNGLE", "MUTATED_JUNGLE", "JUNGLE_MOUNTAINS"),
+            MODIFIED_JUNGLE_EDGE = std(SPARSE_JUNGLE, "MODIFIED_JUNGLE_EDGE", "MUTATED_JUNGLE_EDGE", "JUNGLE_EDGE_MOUNTAINS"),
+            MODIFIED_WOODED_BADLANDS_PLATEAU = std(WOODED_BADLANDS, "MODIFIED_WOODED_BADLANDS_PLATEAU", "MUTATED_MESA_ROCK", "MESA_PLATEAU_FOREST_MOUNTAINS"),
+            MOUNTAIN_EDGE = std(SPARSE_JUNGLE, "MOUNTAIN_EDGE", "SMALLER_EXTREME_HILLS"),
+            MUSHROOM_FIELDS = std("MUSHROOM_FIELDS", "MUSHROOM_ISLAND"),
+            MUSHROOM_FIELD_SHORE = std(STONY_SHORE, "MUSHROOM_FIELD_SHORE", "MUSHROOM_ISLAND_SHORE", "MUSHROOM_SHORE"),
+            SOUL_SAND_VALLEY = std(World.Environment.NETHER, "SOUL_SAND_VALLEY"),
+            CRIMSON_FOREST = std(World.Environment.NETHER, "CRIMSON_FOREST"),
+            WARPED_FOREST = std(World.Environment.NETHER, "WARPED_FOREST"),
+            BASALT_DELTAS = std(World.Environment.NETHER, "BASALT_DELTAS"),
+            NETHER_WASTES = std(World.Environment.NETHER, "NETHER_WASTES", "NETHER", "HELL"),
+            OCEAN = std("OCEAN"),
+            PLAINS = std("PLAINS"),
+            RIVER = std("RIVER"),
+            SAVANNA = std("SAVANNA"),
+            SAVANNA_PLATEAU = std(WINDSWEPT_SAVANNA, "SAVANNA_ROCK", "SAVANNA_PLATEAU"),
+            SHATTERED_SAVANNA_PLATEAU = std(WINDSWEPT_SAVANNA, "SHATTERED_SAVANNA_PLATEAU", "MUTATED_SAVANNA_ROCK", "SAVANNA_PLATEAU_MOUNTAINS"),
+            SMALL_END_ISLANDS = std(World.Environment.THE_END, "SMALL_END_ISLANDS", "SKY_ISLAND_LOW"),
+            SNOWY_BEACH = std("SNOWY_BEACH", "COLD_BEACH"),
+            SNOWY_MOUNTAINS = std(WINDSWEPT_HILLS, "SNOWY_MOUNTAINS", "ICE_MOUNTAINS"),
+            SNOWY_TAIGA = std("SNOWY_TAIGA", "TAIGA_COLD", "COLD_TAIGA"),
+            SNOWY_TAIGA_HILLS = std("SNOWY_TAIGA_HILLS", "TAIGA_COLD_HILLS", "COLD_TAIGA_HILLS"),
+            SNOWY_TAIGA_MOUNTAINS = std(WINDSWEPT_FOREST, "SNOWY_TAIGA_MOUNTAINS", "MUTATED_TAIGA_COLD", "COLD_TAIGA_MOUNTAINS"),
+            SUNFLOWER_PLAINS = std("SUNFLOWER_PLAINS", "MUTATED_PLAINS"),
+            SWAMP = std("SWAMP", "SWAMPLAND"),
+            SWAMP_HILLS = std("SWAMP_HILLS", "MUTATED_SWAMPLAND", "SWAMPLAND_MOUNTAINS"),
+            TAIGA = std("TAIGA"),
+            TAIGA_HILLS = std("TAIGA_HILLS"),
+            TAIGA_MOUNTAINS = std(WINDSWEPT_FOREST, "TAIGA_MOUNTAINS", "MUTATED_TAIGA");
+
+    // CUSTOM = std("CUSTOM"), Since 1.21.3-1.21.3 ??? why add it in the first place?
 
     /**
-     * A cached unmodifiable list of {@link XBiome#values()} to avoid allocating memory for
-     *
-     * @since 1.0.0
+     * Removed from 1.18
      */
-    public static final XBiome[] VALUES = values();
-    private static final boolean HORIZONTAL_SUPPORT = XMaterial.supports(16), EXTENDED_MINIMUM = XMaterial.supports(17);
+    public static final XBiome
+            TALL_BIRCH_FOREST = std(OLD_GROWTH_BIRCH_FOREST, "TALL_BIRCH_FOREST", "MUTATED_BIRCH_FOREST", "BIRCH_FOREST_MOUNTAINS");
+
+    /**
+     * Removed from 1.18
+     */
+    public static final XBiome
+            TALL_BIRCH_HILLS = std(OLD_GROWTH_BIRCH_FOREST, "TALL_BIRCH_HILLS", "MUTATED_BIRCH_FOREST_HILLS", "MESA_PLATEAU_FOREST_MOUNTAINS");
+
+    public static final XBiome
+            THE_END = std(World.Environment.THE_END, "THE_END", "SKY"),
+            THE_VOID = std("THE_VOID", "VOID"),
+            WARM_OCEAN = std("WARM_OCEAN"),
+            WOODED_BADLANDS_PLATEAU = std("WOODED_BADLANDS_PLATEAU", "MESA_ROCK", "MESA_PLATEAU_FOREST"),
+            WOODED_HILLS = std("WOODED_HILLS", "FOREST_HILLS"),
+            WOODED_MOUNTAINS = std("WOODED_MOUNTAINS", "EXTREME_HILLS_WITH_TREES", "EXTREME_HILLS_PLUS"),
+            BAMBOO_JUNGLE = std("BAMBOO_JUNGLE"),
+            BAMBOO_JUNGLE_HILLS = std("BAMBOO_JUNGLE_HILLS"),
+            DRIPSTONE_CAVES = std("DRIPSTONE_CAVES"),
+            LUSH_CAVES = std("LUSH_CAVES");
+
+    private static final boolean World_getMaxHeight$SUPPORTED, World_getMinHeight$SUPPORTED;
+
+    static {
+        boolean maxHeight = false, minHeight = false;
+        try {
+            // Around v1.16.0
+            World.class.getMethod("getMaxHeight");
+            maxHeight = true;
+        } catch (Throwable ignored) {
+        }
+        try {
+            // Around v1.17.0
+            World.class.getMethod("getMinHeight");
+            maxHeight = true;
+        } catch (Throwable ignored) {
+        }
+        World_getMaxHeight$SUPPORTED = maxHeight;
+        World_getMinHeight$SUPPORTED = minHeight;
+    }
+
     @Nullable
-    private final Biome biome;
-    @NotNull
     private final World.Environment environment;
 
-    XBiome(@NotNull World.Environment environment, @NotNull String... legacies) {
-        this(environment, null, legacies);
-    }
-
-    XBiome(@NotNull String... legacies) {
-        this(World.Environment.NORMAL, legacies);
-    }
-
-    XBiome(@Nullable XBiome newVersion, @NotNull String... legacies) {
-        this(World.Environment.NORMAL, newVersion, legacies);
-    }
-
-    XBiome(@NotNull World.Environment environment, @Nullable XBiome newVersion, @NotNull String... legacies) {
+    public XBiome(World.Environment environment, Biome biome, String[] names) {
+        super(biome, names);
         this.environment = environment;
-        Data.NAMES.put(this.name(), this);
-        for (String legacy : legacies) Data.NAMES.put(legacy, this);
-
-        Biome biome = null;//Enums.getIfPresent(Biome.class, this.name()).orNull();
-        // if (biome == null) {
-        //     if (newVersion != null) biome = newVersion.biome;
-        //     if (biome == null) {
-        //         for (String legacy : legacies) {
-        //             biome = Enums.getIfPresent(Biome.class, legacy).orNull();
-        //             if (biome != null) break;
-        //         }
-        //     }
-        // }
-        this.biome = biome;
     }
 
-    /**
-     * Attempts to build the string like an enum name.<br>
-     * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
-     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
-     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
-     *
-     * @param name the biome name to format.
-     * @return an enum name.
-     * @since 1.0.0
-     */
-    @NotNull
-    private static String format(@NotNull String name) {
-        int len = name.length();
-        char[] chs = new char[len];
-        int count = 0;
-        boolean appendUnderline = false;
-
-        for (int i = 0; i < len; i++) {
-            char ch = name.charAt(i);
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
-                appendUnderline = true;
-            else {
-                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
-                    if (appendUnderline) {
-                        chs[count++] = '_';
-                        appendUnderline = false;
-                    }
-                    chs[count++] = (char) (ch & 0x5f);
-                }
-            }
-        }
-
-        return new String(chs, 0, count);
-    }
-
-    /**
-     * Parses the XBiome with the given name.
-     *
-     * @param biome the name of the biome.
-     * @return a matched XBiome.
-     * @since 1.0.0
-     */
-    @NotNull
-    public static Optional<XBiome> matchXBiome(@NotNull String biome) {
-        if (biome == null || biome.isEmpty())
-            throw new IllegalArgumentException("Cannot match XBiome of a null or empty biome name");
-        return Optional.ofNullable(Data.NAMES.get(format(biome)));
-    }
-
-    /**
-     * Parses the XBiome with the given bukkit biome.
-     *
-     * @param biome the Bukkit biome.
-     * @return a matched biome.
-     * @throws IllegalArgumentException may be thrown as an unexpected exception.
-     * @since 1.0.0
-     */
-    @NotNull
-    public static XBiome matchXBiome(@NotNull Biome biome) {
-        Objects.requireNonNull(biome, "Cannot match XBiome of a null biome");
-        return Objects.requireNonNull(Data.NAMES.get(biome.name()), () -> "Unsupported biome: " + biome.name());
-    }
-
-    /**
-     * Checks if this biome is supported in the current Minecraft version.
-     * <p>
-     * An invocation of this method yields exactly the same result as the expression:
-     * <p>
-     * <blockquote>
-     * {@link #getBiome()} != null
-     * </blockquote>
-     *
-     * @return true if the current version has this biome, otherwise false.
-     */
-    public boolean isSupported() {
-        return this.biome != null;
-    }
-
-    /**
-     * Checks if this biome is supported in the current version and
-     * returns itself if yes.
-     * <p>
-     * In the other case, the alternate biome will get returned,
-     * no matter if it is supported or not.
-     *
-     * @param alternateBiome the biome to get if this one is not supported.
-     * @return this biome or the {@code alternateBiome} if not supported.
-     */
-    @Nullable
-    public XBiome or(@Nullable XBiome alternateBiome) {
-        return isSupported() ? this : alternateBiome;
+    private XBiome(Biome biome, String[] names) {
+        this(null, biome, names);
     }
 
     /**
@@ -294,9 +202,8 @@ public enum XBiome {
      * @return the environment that this biome belongs to.
      * @since 4.0.0
      */
-    @NotNull
-    public World.Environment getEnvironment() {
-        return environment;
+    public Optional<World.Environment> getEnvironment() {
+        return Optional.ofNullable(environment);
     }
 
     /**
@@ -307,7 +214,7 @@ public enum XBiome {
      */
     @Nullable
     public Biome getBiome() {
-        return this.biome;
+        return get();
     }
 
     /**
@@ -321,14 +228,15 @@ public enum XBiome {
      */
     @NotNull
     public CompletableFuture<Void> setBiome(@NotNull Chunk chunk) {
+        Biome biome = get();
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
         if (!chunk.isLoaded()) {
             if (!chunk.load(true))
                 throw new IllegalStateException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
-        int heightMax = HORIZONTAL_SUPPORT ? chunk.getWorld().getMaxHeight() : 1;
-        int heightMin = EXTENDED_MINIMUM ? chunk.getWorld().getMinHeight() : 0;
+        int heightMax = World_getMaxHeight$SUPPORTED ? chunk.getWorld().getMaxHeight() : 1;
+        int heightMin = World_getMinHeight$SUPPORTED ? chunk.getWorld().getMinHeight() : 0;
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -360,6 +268,8 @@ public enum XBiome {
      */
     @NotNull
     public CompletableFuture<Void> setBiome(@NotNull Location start, @NotNull Location end) {
+        Biome biome = get();
+
         Objects.requireNonNull(start, "Start location cannot be null");
         Objects.requireNonNull(end, "End location cannot be null");
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
@@ -367,8 +277,8 @@ public enum XBiome {
         World world = start.getWorld(); // Avoid getting from weak reference in a loop.
         if (!world.getUID().equals(end.getWorld().getUID()))
             throw new IllegalArgumentException("Location worlds mismatch");
-        int heightMax = HORIZONTAL_SUPPORT ? world.getMaxHeight() : 1;
-        int heightMin = EXTENDED_MINIMUM ? world.getMinHeight() : 0;
+        int heightMax = World_getMaxHeight$SUPPORTED ? world.getMaxHeight() : 1;
+        int heightMin = World_getMinHeight$SUPPORTED ? world.getMinHeight() : 0;
 
         // Apparently setBiome is thread-safe.
         return CompletableFuture.runAsync(() -> {
@@ -389,12 +299,33 @@ public enum XBiome {
         });
     }
 
-    /**
-     * Used for datas that need to be accessed during enum initilization.
-     *
-     * @since 3.0.0
-     */
-    private static final class Data {
-        private static final Map<String, XBiome> NAMES = new HashMap<>();
+
+    @NotNull
+    public static XBiome of(@NotNull Biome biome) {
+        return REGISTRY.getByBukkitForm(biome);
+    }
+
+    public static Optional<XBiome> of(@NotNull String biome) {
+        return REGISTRY.getByName(biome);
+    }
+
+    @NotNull
+    public static XBiome[] values() {
+        return REGISTRY.values();
+    }
+
+    @NotNull
+    private static XBiome std(@NotNull World.Environment environment, @NotNull String... names) {
+        return REGISTRY.std(bukkit -> new XBiome(environment, bukkit, names), names);
+    }
+
+    @NotNull
+    private static XBiome std(@Nullable XBiome newVersion, @NotNull String... names) {
+        return REGISTRY.std(bukkit -> new XBiome(null, bukkit, names), newVersion, names);
+    }
+
+    @NotNull
+    private static XBiome std(@NotNull String... names) {
+        return REGISTRY.std(bukkit -> new XBiome(World.Environment.NORMAL, bukkit, names), names);
     }
 }

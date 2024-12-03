@@ -10,17 +10,35 @@ import java.util.stream.Collectors;
 
 /**
  * Do not use this class directly.
+ * <p>
+ * All XModules should implement the following static methods:
+ * <pre>{@code
+ *     public static XForm of(@NotNull BukkitForm bukkit) {
+ *         return REGISTRY.getByBukkitForm(bukkit);
+ *     }
+ *
+ *     public static Optional<XForm> of(@NotNull String bukkit) {
+ *         return REGISTRY.getByName(bukkit);
+ *     }
+ *
+ *     @NotNull
+ *     public static XForm[] values() {
+ *         return REGISTRY.values();
+ *     }
+ * }</pre>
  *
  * @param <XForm>      the class type associated with the Bukkit type defined by XSeries.
  * @param <BukkitForm> the Bukkit class type associated with the XForm.
  */
 public abstract class XModule<XForm extends XModule<XForm, BukkitForm>, BukkitForm> {
-    protected final BukkitForm bukkitForm;
-    public final String[] names;
+    private final BukkitForm bukkitForm;
+    private final String[] names;
 
     protected XModule(BukkitForm bukkitForm, String[] names) {
         this.bukkitForm = bukkitForm;
         this.names = names;
+        // this.names = new String[names.length + 1];
+        // System.arraycopy(names, 0, names, 1, names.length);
     }
 
     /**
@@ -29,6 +47,19 @@ public abstract class XModule<XForm extends XModule<XForm, BukkitForm>, BukkitFo
     @NotNull
     public final String name() {
         return names[0];
+    }
+
+    @ApiStatus.Experimental
+    protected void setEnumName(XRegistry<XForm, BukkitForm> registry, String enumName) {
+        if (names[0] != null)
+            throw new IllegalStateException("Enum name already set " + enumName + " -> " + Arrays.toString(names));
+        names[0] = enumName;
+
+        BukkitForm newForm = registry.getBukkit(names);
+        if (bukkitForm != newForm) {
+            // noinspection unchecked
+            registry.std((XForm) this);
+        }
     }
 
     @ApiStatus.Internal

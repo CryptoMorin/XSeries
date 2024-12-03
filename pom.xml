@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>11.3.0</version>
+    <version>12.0.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -87,30 +87,19 @@
         <!-- 1.21.1-R0.1-SNAPSHOT -->
         <!-- 1.21.3-R0.1-SNAPSHOT -->
         <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.3-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
-        <spigotVersion>1.21.3-R0.1-EXPR</spigotVersion>
+        <!-- <spigotVersion>1.21.3-R0.1-EXPR</spigotVersion> -->
+        <spigotVersion>1.21.3-R0.1-SNAPSHOT</spigotVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>net.sf.jopt-simple</groupId>
-            <artifactId>jopt-simple</artifactId>
-            <version>5.0.4</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-iostreams</artifactId>
-            <version>2.22.1</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <version>6.0.55</version>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.mojang</groupId>-->
+<!--            <artifactId>authlib</artifactId>-->
+<!--            <version>6.0.55</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
@@ -272,6 +261,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.13.0</version>
                         <configuration>
+                            <encoding>UTF-8</encoding>
+                            <proc>none</proc>
                             <source>21</source>
                             <target>21</target>
                         </configuration>

@@ -7,8 +7,11 @@ import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,38 +20,38 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
             new XRegistry<>(Attribute.class, XAttribute.class, () -> Registry.ATTRIBUTE, XAttribute::new, XAttribute[]::new);
 
     public static final XAttribute
-            MAX_HEALTH = std(/* v1.20.3+ */ "max_health", "generic_max_health"),
-            FOLLOW_RANGE = std("follow_range"),
-            KNOCKBACK_RESISTANCE = std("knockback_resistance"),
-            MOVEMENT_SPEED = std("movement_speed"),
-            FLYING_SPEED = std("flying_speed"),
-            ATTACK_DAMAGE = std("attack_damage"),
-            ATTACK_KNOCKBACK = std("attack_knockback"),
-            ATTACK_SPEED = std("attack_speed"),
-            ARMOR = std("armor"),
-            ARMOR_TOUGHNESS = std("armor_toughness"),
-            FALL_DAMAGE_MULTIPLIER = std("fall_damage_multiplier"),
-            LUCK = std("luck"),
-            MAX_ABSORPTION = std("max_absorption"),
-            SAFE_FALL_DISTANCE = std("safe_fall_distance"),
-            SCALE = std("scale"),
-            STEP_HEIGHT = std("step_height"),
-            GRAVITY = std("gravity"),
-            JUMP_STRENGTH = std("jump_strength"),
-            BURNING_TIME = std("burning_time"),
-            EXPLOSION_KNOCKBACK_RESISTANCE = std("explosion_knockback_resistance"),
-            MOVEMENT_EFFICIENCY = std("movement_efficiency"),
-            OXYGEN_BONUS = std("oxygen_bonus"),
-            WATER_MOVEMENT_EFFICIENCY = std("water_movement_efficiency"),
-            TEMPT_RANGE = std("tempt_range"),
-            BLOCK_INTERACTION_RANGE = std("block_interaction_range"),
-            ENTITY_INTERACTION_RANGE = std("entity_interaction_range"),
-            BLOCK_BREAK_SPEED = std("block_break_speed"),
-            MINING_EFFICIENCY = std("mining_efficiency"),
-            SNEAKING_SPEED = std("sneaking_speed"),
-            SUBMERGED_MINING_SPEED = std("submerged_mining_speed"),
-            SWEEPING_DAMAGE_RATIO = std("sweeping_damage_ratio"),
-            SPAWN_REINFORCEMENTS = std("spawn_reinforcements");
+            MAX_HEALTH = std(/* v1.20.3+ */ "max_health", "GENERIC_MAX_HEALTH"),
+            FOLLOW_RANGE = std(/* v1.20.3+ */ "follow_range", "GENERIC_FOLLOW_RANGE"),
+            KNOCKBACK_RESISTANCE = std(/* v1.20.3+ */ "knockback_resistance", "GENERIC_KNOCKBACK_RESISTANCE"),
+            MOVEMENT_SPEED = std(/* v1.20.3+ */ "movement_speed", "GENERIC_MOVEMENT_SPEED"),
+            FLYING_SPEED = std(/* v1.20.3+ */ "flying_speed", "GENERIC_FLYING_SPEED"),
+            ATTACK_DAMAGE = std(/* v1.20.3+ */ "attack_damage", "GENERIC_ATTACK_DAMAGE"),
+            ATTACK_KNOCKBACK = std(/* v1.20.3+ */ "attack_knockback", "GENERIC_ATTACK_KNOCKBACK"),
+            ATTACK_SPEED = std(/* v1.20.3+ */"attack_speed", "GENERIC_ATTACK_SPEED"),
+            ARMOR = std(/* v1.20.3+ */ "armor", "GENERIC_ARMOR"),
+            ARMOR_TOUGHNESS = std(/* v1.20.3+ */ "armor_toughness", "GENERIC_ARMOR_TOUGHNESS"),
+            FALL_DAMAGE_MULTIPLIER = std(/* v1.20.3+ */ "fall_damage_multiplier", "GENERIC_FALL_DAMAGE_MULTIPLIER"),
+            LUCK = std(/* v1.20.3+ */ "luck", "GENERIC_LUCK"),
+            MAX_ABSORPTION = std(/* v1.20.3+ */ "max_absorption", "GENERIC_MAX_ABSORPTION"),
+            SAFE_FALL_DISTANCE = std(/* v1.20.3+ */ "safe_fall_distance", "GENERIC_SAFE_FALL_DISTANCE"),
+            SCALE = std(/* v1.20.3+ */ "scale", "GENERIC_SCALE"),
+            STEP_HEIGHT = std(/* v1.20.3+ */ "step_height", "GENERIC_STEP_HEIGHT"),
+            GRAVITY = std(/* v1.20.3+ */ "gravity", "GENERIC_GRAVITY"),
+            JUMP_STRENGTH = std(/* v1.20.3+ */ "jump_strength", "GENERIC_JUMP_STRENGTH"),
+            BURNING_TIME = std(/* v1.20.3+ */ "burning_time", "GENERIC_BURNING_TIME"),
+            EXPLOSION_KNOCKBACK_RESISTANCE = std(/* v1.20.3+ */"explosion_knockback_resistance", "GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE"),
+            MOVEMENT_EFFICIENCY = std(/* v1.20.3+ */"movement_efficiency", "GENERIC_MOVEMENT_EFFICIENCY"),
+            OXYGEN_BONUS = std(/* v1.20.3+ */"oxygen_bonus", "GENERIC_OXYGEN_BONUS"),
+            WATER_MOVEMENT_EFFICIENCY = std(/* v1.20.3+ */"water_movement_efficiency", "GENERIC_WATER_MOVEMENT_EFFICIENCY"),
+            TEMPT_RANGE = std(/* v1.20.3+ */"tempt_range", "GENERIC_TEMPT_RANGE"),
+            BLOCK_INTERACTION_RANGE = std(/* v1.20.3+ */"block_interaction_range", "PLAYER_BLOCK_INTERACTION_RANGE"),
+            ENTITY_INTERACTION_RANGE = std(/* v1.20.3+ */"entity_interaction_range", "PLAYER_ENTITY_INTERACTION_RANGE"),
+            BLOCK_BREAK_SPEED = std(/* v1.20.3+ */"block_break_speed", "PLAYER_BLOCK_BREAK_SPEED"),
+            MINING_EFFICIENCY = std(/* v1.20.3+ */"mining_efficiency", "PLAYER_MINING_EFFICIENCY"),
+            SNEAKING_SPEED = std(/* v1.20.3+ */"sneaking_speed", "PLAYER_SNEAKING_SPEED"),
+            SUBMERGED_MINING_SPEED = std(/* v1.20.3+ */"submerged_mining_speed", "PLAYER_SUBMERGED_MINING_SPEED"),
+            SWEEPING_DAMAGE_RATIO = std(/* v1.20.3+ */"sweeping_damage_ratio", "PLAYER_SWEEPING_DAMAGE_RATIO"),
+            SPAWN_REINFORCEMENTS = std(/* v1.20.3+ */"spawn_reinforcements", "ZOMBIE_SPAWN_REINFORCEMENTS");
 
     private static final boolean SUPPORTS_MODERN_MODIFIERS;
 
@@ -74,10 +77,17 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
         super(attribute, names);
     }
 
-    public AttributeModifier createModifier(@NotNull String key, double amount, @NotNull AttributeModifier.Operation operation, @NotNull EquipmentSlot slot) {
+    /**
+     * @param slot when null, defaults to {@link org.bukkit.inventory.EquipmentSlotGroup#ANY}
+     */
+    public AttributeModifier createModifier(@NotNull String key, double amount, @NotNull AttributeModifier.Operation operation, @Nullable EquipmentSlot slot) {
+        Objects.requireNonNull(key, "Key is null");
+        Objects.requireNonNull(operation, "Operation is null");
+
         if (SUPPORTS_MODERN_MODIFIERS) {
+            NamespacedKey ns = Objects.requireNonNull(NamespacedKey.fromString(key), () -> "Invalid namespace: " + key);
             // noinspection UnstableApiUsage
-            return new AttributeModifier(NamespacedKey.fromString(key), amount, operation, slot.getGroup());
+            return new AttributeModifier(ns, amount, operation, (slot == null ? EquipmentSlotGroup.ANY : slot.getGroup()));
         } else {
             // noinspection removal
             return new AttributeModifier(UUID.randomUUID(), key, amount, operation, slot);

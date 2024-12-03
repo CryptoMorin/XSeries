@@ -1,5 +1,4 @@
 import com.cryptomorin.xseries.*;
-import com.cryptomorin.xseries.XAttribute;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
@@ -7,7 +6,10 @@ import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.github.cryptomorin.test.ReflectionTests;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,15 +18,27 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public final class XSeriesTests {
+    private static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
+    /**
+     * This sends unnecessary requests to Mojang and also delays out work too,
+     * so let's not test when it's not needed.
+     */
+    private static final boolean TEST_MOJANG_API = false;
+
     private XSeriesTests() {
     }
 
@@ -34,6 +48,17 @@ public final class XSeriesTests {
 
     private static void err(String str) {
         System.err.println(str);
+    }
+
+    // @Test
+    public void simpleEnumer() {
+        URL resource = XSeriesTests.class.getResource("XBiome.java");
+        try {
+            Path path = Paths.get(resource.toURI());
+            DifferenceHelper.enumToRegistry(path, DESKTOP);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -99,7 +124,7 @@ public final class XSeriesTests {
         print("Version pack: " + XReflection.getVersionInformation());
         ReflectionTests.parser();
         initializeReflection();
-        testSkulls();
+        if (TEST_MOJANG_API) testSkulls();
         print("\n\n\nTest end...");
     }
 

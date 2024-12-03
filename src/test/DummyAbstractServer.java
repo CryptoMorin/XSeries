@@ -1,9 +1,9 @@
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.bukkit.craftbukkit.Main;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -153,8 +153,18 @@ public abstract class DummyAbstractServer {
                         "--spigot-settings=" + spigotYml,
                 };
                 try {
-                    TinyReflection.CraftBukkit$Main.getMethod("main", String[].class).invoke(null, (Object) startupArgs);
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    // org.bukkit.craftbukkit.Main
+                    Main.main(startupArgs);
+
+                    // This doesn't work, because XReflection depends on Bukkit.getBukkitVersion()
+                    // but the server isn't started at this point.
+                    // XReflection.ofMinecraft().inPackage(MinecraftPackage.CB).named("Main")
+                    //         .method("public static void main(String[] args);")
+                    //         .unreflect().invoke(null, (Object) startupArgs);
+
+                    // Class.forName("org.bukkit.craftbukkit.Main").getMethod("main", String[].class).invoke(null, (Object) startupArgs);
+                    // TinyReflection.CraftBukkit$Main.getMethod("main", String[].class).invoke(null, (Object) startupArgs);
+                } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
                 // Main.main(startupArgs);

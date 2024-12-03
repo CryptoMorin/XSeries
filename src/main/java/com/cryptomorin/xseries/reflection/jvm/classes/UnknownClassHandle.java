@@ -9,6 +9,7 @@ import java.util.Set;
 /**
  * A class handle that was parsed from string, the name is known, but it doesn't exist
  * at runtime.
+ *
  * @see StaticClassHandle
  */
 public class UnknownClassHandle extends ClassHandle {

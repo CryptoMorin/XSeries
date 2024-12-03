@@ -155,6 +155,15 @@ public final class MojangAPI {
         return optional;
     }
 
+    /**
+     * Occasionally a {@code 401 - Unauthorized} error is received which is not likely caused by rate-limiting
+     * because first of all, it'd return {@code 429} if that was the case, and secondly,
+     * the code was run with a 6hr delay. It's currently unknown why this happens.
+     *
+     * @param usernames Case-insensitive list of usernames. Duplicates are ignored and cached names are not requested but returned.
+     * @param config    Request configuration.
+     * @return Map of players that exist.
+     */
     public static Map<UUID, String> usernamesToUUIDs(@NotNull Collection<String> usernames, @Nullable ProfileRequestConfiguration config) {
         if (usernames == null || usernames.isEmpty()) throw new IllegalArgumentException("Usernames are null or empty");
         for (String username : usernames) {

@@ -47,6 +47,7 @@ public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
     /**
      * It's preferred to use one of the {@link MethodHandle} methods instead.
      * This method should only be used for special cases when a direct JVM object is needed.
+     *
      * @see #reflect()
      */
     public abstract <T extends AccessibleObject & Member> T reflectJvm() throws ReflectiveOperationException;

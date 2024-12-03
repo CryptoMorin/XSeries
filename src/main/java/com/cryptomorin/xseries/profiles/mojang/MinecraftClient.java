@@ -41,6 +41,9 @@ public class MinecraftClient {
     private static final AtomicInteger SESSION_ID = new AtomicInteger();
     private static final Proxy PROXY = ProfilesCore.PROXY == null ? Proxy.NO_PROXY : ProfilesCore.PROXY;
     private static final Gson GSON = new Gson();
+    /**
+     * It's not known whether there is a global rate limit that's shared for all requests or not.
+     */
     private static final RateLimiter TOTAL_REQUESTS = new RateLimiter(Integer.MAX_VALUE, Duration.ofMinutes(10));
     /**
      * For example:

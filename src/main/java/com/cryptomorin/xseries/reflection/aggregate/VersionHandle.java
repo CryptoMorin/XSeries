@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
  * Provides objects based on the current version of the server ({@link XReflection#supports(int, int, int)}),
  * it's mostly useful for primitive values, for reflection you should use the specialized
  * {@link XReflection} class instead.
+ *
  * @param <T> the type of object to check.
  */
 public final class VersionHandle<T> {
@@ -91,6 +92,7 @@ public final class VersionHandle<T> {
 
     /**
      * If none of the previous version checks matched, it'll return this object.
+     *
      * @see #orElse(Callable)
      */
     public T orElse(T handle) {
@@ -99,6 +101,7 @@ public final class VersionHandle<T> {
 
     /**
      * If none of the previous version checks matched, it'll return this object.
+     *
      * @see #orElse(Object)
      */
     public T orElse(Callable<T> handle) {

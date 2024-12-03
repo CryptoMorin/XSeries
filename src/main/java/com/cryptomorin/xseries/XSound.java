@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 10.2.0
+ * @version 11.0.0
  * @see Sound
  */
 public final class XSound extends XModule<XSound, Sound> {

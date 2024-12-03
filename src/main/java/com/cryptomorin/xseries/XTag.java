@@ -1106,14 +1106,14 @@ public final class XTag<T extends Enum<T>> {
         COAL_ORES = new XTag<>(XMaterial.COAL_ORE, XMaterial.DEEPSLATE_COAL_ORE);
         IRON_ORES = new XTag<>(XMaterial.IRON_ORE, XMaterial.DEEPSLATE_IRON_ORE);
         COPPER_ORES = new XTag<>(XMaterial.COPPER_ORE, XMaterial.DEEPSLATE_COPPER_ORE);
-        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE,
-                XMaterial.DEEPSLATE_REDSTONE_ORE);
+        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE, XMaterial.DEEPSLATE_REDSTONE_ORE);
         LAPIS_ORES = new XTag<>(XMaterial.LAPIS_ORE, XMaterial.DEEPSLATE_LAPIS_ORE);
-        GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE,
-                XMaterial.DEEPSLATE_GOLD_ORE,
-                XMaterial.NETHER_GOLD_ORE);
+        GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE, XMaterial.DEEPSLATE_GOLD_ORE, XMaterial.NETHER_GOLD_ORE);
+        DIAMOND_ORES = new XTag<>(XMaterial.DIAMOND_ORE, XMaterial.DEEPSLATE_DIAMOND_ORE);
+        EMERALD_ORES = new XTag<>(XMaterial.EMERALD_ORE, XMaterial.DEEPSLATE_EMERALD_ORE);
+
         ORES = new XTag<>(XMaterial.ANCIENT_DEBRIS, XMaterial.NETHER_QUARTZ_ORE);
-        ORES.inheritFrom(COAL_ORES, IRON_ORES, COPPER_ORES, REDSTONE_ORES, LAPIS_ORES, GOLD_ORES);
+        ORES.inheritFrom(COAL_ORES, IRON_ORES, COPPER_ORES, REDSTONE_ORES, LAPIS_ORES, GOLD_ORES, DIAMOND_ORES, EMERALD_ORES);
     }
 
     static { // corals
@@ -1253,8 +1253,6 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BUDDING_AMETHYST);
         DEEPSLATE_ORE_REPLACEABLES = new XTag<>(XMaterial.TUFF,
                 XMaterial.DEEPSLATE);
-        DIAMOND_ORES = new XTag<>(XMaterial.DIAMOND_ORE,
-                XMaterial.DEEPSLATE_DIAMOND_ORE);
         DOORS = new XTag<>(XMaterial.IRON_DOOR);
         DOORS.inheritFrom(WOODEN_DOORS);
         WITHER_IMMUNE = new XTag<>(XMaterial.STRUCTURE_BLOCK,
@@ -1268,13 +1266,10 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BARRIER,
                 XMaterial.END_PORTAL_FRAME,
                 XMaterial.JIGSAW);
-        WITHER_SUMMON_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
-                XMaterial.SOUL_SAND);
-        EMERALD_ORES = new XTag<>(XMaterial.EMERALD_ORE,
-                XMaterial.DEEPSLATE_EMERALD_ORE);
-        NYLIUM = new XTag<>(XMaterial.CRIMSON_NYLIUM,
-                XMaterial.WARPED_NYLIUM);
-        SMALL_FLOWERS = new XTag<>(XMaterial.RED_TULIP,
+        WITHER_SUMMON_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL, XMaterial.SOUL_SAND);
+        NYLIUM = new XTag<>(XMaterial.CRIMSON_NYLIUM, XMaterial.WARPED_NYLIUM);
+        SMALL_FLOWERS = new XTag<>(
+                XMaterial.RED_TULIP,
                 XMaterial.AZURE_BLUET,
                 XMaterial.OXEYE_DAISY,
                 XMaterial.BLUE_ORCHID,
@@ -1286,15 +1281,20 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CORNFLOWER,
                 XMaterial.ORANGE_TULIP,
                 XMaterial.LILY_OF_THE_VALLEY,
-                XMaterial.WITHER_ROSE);
-        TALL_FLOWERS = new XTag<>(XMaterial.PEONY,
+                XMaterial.WITHER_ROSE
+        );
+        TALL_FLOWERS = new XTag<>(
+                XMaterial.PEONY,
                 XMaterial.SUNFLOWER,
                 XMaterial.LILAC,
-                XMaterial.ROSE_BUSH);
-        FEATURES_CANNOT_REPLACE = new XTag<>(XMaterial.SPAWNER,
+                XMaterial.ROSE_BUSH
+        );
+        FEATURES_CANNOT_REPLACE = new XTag<>(
+                XMaterial.SPAWNER,
                 XMaterial.END_PORTAL_FRAME,
                 XMaterial.BEDROCK,
-                XMaterial.CHEST);
+                XMaterial.CHEST
+        );
         FENCE_GATES = new XTag<>(XMaterial.class, WOODEN_FENCE_GATES);
         FENCES = new XTag<>(XMaterial.NETHER_BRICK_FENCE);
         FENCES.inheritFrom(WOODEN_FENCES);

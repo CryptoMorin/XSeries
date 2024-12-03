@@ -6,6 +6,7 @@ import org.bukkit.Registry;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -17,14 +18,18 @@ import java.util.function.Supplier;
 
 @ApiStatus.Internal
 public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitForm> implements Iterable<XForm> {
-    private static final boolean PERFORM_AUTO_ADD = false;
+    /**
+     * Lenient system that adds unknown values automatically on the fly.
+     * Should be turned off for {@code DifferenceHelper}.
+     */
+    private static final boolean PERFORM_AUTO_ADD = true;
 
     /**
      * All entries are lowercase.
      * Entries that belong to "minecraft" namespace, are added without the namespace.
      */
-    private final Map<String, XForm> nameMappings = new HashMap<>();
-    public final Map<BukkitForm, XForm> bukkitToX = new IdentityHashMap<>();
+    private final Map<String, XForm> nameMappings = new HashMap<>(20);
+    private final Map<BukkitForm, XForm> bukkitToX = new IdentityHashMap<>(20);
 
     private final Class<BukkitForm> bukkitFormClass;
     private final Class<XForm> xFormClass;
@@ -77,7 +82,7 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     private void pullValues() {
         if (!pulled) {
             pulled = true;
-            pullFieldNames();
+            // pullFieldNames();
             if (PERFORM_AUTO_ADD) pullSystemValues();
         }
     }
@@ -89,7 +94,6 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
             if (field.getType() == clazz &&
                     Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) {
                 try {
-                    System.out.println("putting " + field.getName() + " ---> " + field.get(null));
                     consumer.accept(field.getName(), (T) field.get(null));
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
@@ -102,8 +106,13 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         nameMappings.put(normalizeName(name), xForm);
     }
 
+    @SuppressWarnings("unused")
     private void pullFieldNames() {
         processEnumLikeFields(xFormClass, this::registerName);
+        // processEnumLikeFields(xFormClass, (name, xForm) -> {
+        //     xForm.setEnumName(normalizeName(name));
+        //     registerName(name, xForm);
+        // });
     }
 
     @SuppressWarnings("unchecked")
@@ -114,7 +123,10 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
                 std(bukkitForm);
             }
         } else {
-            processEnumLikeFields(bukkitFormClass, this::std);
+            processEnumLikeFields(bukkitFormClass, (name, bukkit) -> {
+                if (bukkit == null) return; // Experimental value of declared field.
+                std(name, bukkit);
+            });
         }
 
         // Minecraft namespaces
@@ -137,13 +149,15 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     }
 
     @SuppressWarnings("unchecked")
-    protected BukkitForm getBukkit(String... names) {
+    @Nullable
+    protected BukkitForm getBukkit(String[] names) {
         for (String name : names) {
             if (supportsRegistry) {
-                if (!name.equals(name.toLowerCase(Locale.ENGLISH))) {
-                    // Namespaces don't support uppercase names which is for enums.
-                    continue;
-                }
+                name = name.toLowerCase(Locale.ENGLISH);
+                // if (!name.equals(name.toLowerCase(Locale.ENGLISH))) {
+                //     // Namespaces don't support uppercase names which is for enums.
+                //     continue;
+                // }
 
                 NamespacedKey key;
                 if (name.contains(":")) key = NamespacedKey.fromString(name);
@@ -161,13 +175,20 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         return null;
     }
 
-    private Collection<XForm> getValues() {
+    /**
+     * @see #values()
+     */
+    @Unmodifiable
+    public Collection<XForm> getValues() {
         pullValues();
 
         // Don't use nameMapping because it will return duplicates.
-        return bukkitToX.values();
+        return Collections.unmodifiableCollection(bukkitToX.values());
     }
 
+    /**
+     * @see #getValues()
+     */
     public XForm[] values() {
         Collection<XForm> values = getValues();
         return values.toArray(createArray.apply(values.size()));
@@ -199,8 +220,9 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         return Optional.ofNullable(nameMappings.get(normalizeName(name)));
     }
 
+    @ApiStatus.Internal
     public static String getName(Object bukkitForm) {
-        Objects.requireNonNull(bukkitForm);
+        Objects.requireNonNull(bukkitForm, "Cannot get name of a null bukkit form");
 
         if (bukkitForm instanceof Enum) {
             return ((Enum<?>) bukkitForm).name();
@@ -255,6 +277,7 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     }
 
     private static String normalizeName(String name) {
+        // TODO convert this into the format() method above.
         name = name.toLowerCase(Locale.ENGLISH);
         if (name.startsWith("minecraft:")) name = name.substring("minecraft:".length());
         name = name.replace('.', '_'); // This is very unlikely to cause a conflict.
@@ -269,10 +292,15 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         XForm xForm = bukkitToX.get(bukkit);
         if (xForm != null) return xForm;
 
-        String name = supportsRegistry ? ((Keyed) bukkit).getKey().toString() : ((Enum<?>) bukkit).name();
+        String name = getName(bukkit);
 
-        if (getBukkit(name) == null) {
-            throw new IllegalArgumentException("Unknown standard bukkit form: " + bukkit + " named " + name);
+        if (getBukkit(new String[]{name}) == null) {
+            // This happens in very rare cases, such as Biome's:
+            // Biome CUSTOM = Bukkit.getUnsafe().getCustomBiome();
+            // These values are not registered in the registry, but available for use.
+            if (extraFieldName == null) {
+                throw new IllegalArgumentException("Unknown standard bukkit form: " + bukkit + " named " + name);
+            }
         }
 
         xForm = creator.apply(bukkit, extraFieldName == null ? new String[]{name} : new String[]{extraFieldName, name});
@@ -285,15 +313,33 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         return xForm;
     }
 
-    public XForm std(String... names) {
+    @ApiStatus.Internal
+    public XForm std(String[] names) {
         // Doesn't matter if it's not supported, we should still create it.
-        @Nullable BukkitForm bukkit = getBukkit(names);
-        XForm standardXForm = creator.apply(bukkit, names);
+        BukkitForm bukkit = getBukkit(names);
+        XForm xForm = creator.apply(bukkit, names);
+        return std(xForm);
+    }
 
-        for (String name : names) {
-            registerName(name, standardXForm);
+    @ApiStatus.Internal
+    public XForm std(Function<BukkitForm, XForm> xForm, String[] names) {
+        BukkitForm bukkit = getBukkit(names);
+        return std(xForm.apply(bukkit));
+    }
+
+    @ApiStatus.Internal
+    public XForm std(Function<BukkitForm, XForm> xForm, XForm tryOther, String[] names) {
+        BukkitForm bukkit = getBukkit(names);
+        if (bukkit == null) bukkit = tryOther.get();
+        return std(xForm.apply(bukkit));
+    }
+
+    @ApiStatus.Internal
+    public XForm std(XForm xForm) {
+        for (String name : xForm.getNames()) {
+            registerName(name, xForm);
         }
-        if (bukkit != null) bukkitToX.put(bukkit, standardXForm);
-        return standardXForm;
+        if (xForm.isSupported()) bukkitToX.put(xForm.get(), xForm);
+        return xForm;
     }
 }

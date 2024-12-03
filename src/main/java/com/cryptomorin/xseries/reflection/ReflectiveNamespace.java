@@ -32,7 +32,7 @@ import java.util.*;
  * <pre>{@code
  *      XReflection.of(Test.class).method("public MyCustomClass getCustomData();").unreflect();
  * }</pre>
- *  This will fail, because it doesn't know where {@code MyCustomClass} is, you could give it the fully qualified name:
+ * This will fail, because it doesn't know where {@code MyCustomClass} is, you could give it the fully qualified name:
  * <pre>{@code
  *      XReflection.of(Test.class).method("public my.package.MyCustomClass getCustomData();").unreflect();
  * }</pre>
@@ -84,7 +84,8 @@ public class ReflectiveNamespace {
 
     /**
      * Imports a class with a custom name.
-     * @param name the custom name of the class.
+     *
+     * @param name  the custom name of the class.
      * @param clazz the actual definition of the class.
      * @see #imports(Class[])
      */
@@ -124,6 +125,7 @@ public class ReflectiveNamespace {
 
     /**
      * Same as {@link XReflection#of(Class)}
+     *
      * @since v11.0.0
      */
     public StaticClassHandle of(Class<?> clazz) {
@@ -133,6 +135,7 @@ public class ReflectiveNamespace {
 
     /**
      * Similar to {@link XReflection#classHandle()}
+     *
      * @since v11.0.0
      */
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
@@ -142,6 +145,7 @@ public class ReflectiveNamespace {
 
     /**
      * Similar to {@link XReflection#ofMinecraft()}
+     *
      * @since v11.0.0
      */
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {

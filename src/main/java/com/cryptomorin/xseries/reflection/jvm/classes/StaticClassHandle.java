@@ -13,6 +13,7 @@ import java.util.Set;
  * <p>
  * The purpose of this handle is to use reflection on the members
  * (fields, methods and constructors) of the corresponding class.
+ *
  * @see DynamicClassHandle
  */
 public class StaticClassHandle extends ClassHandle {

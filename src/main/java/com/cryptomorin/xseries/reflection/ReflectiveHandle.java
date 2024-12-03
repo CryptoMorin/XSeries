@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents an object that can be used for reflection operations.
+ *
  * @param <T> The JVM type associated with this handle (e.g. {@link Class}, {@link java.lang.reflect.Field},
  *            {@link java.lang.reflect.Method}, or {@link java.lang.reflect.Constructor})
  * @see AggregateReflectiveHandle
@@ -36,6 +37,7 @@ public interface ReflectiveHandle<T> extends Cloneable {
 
     /**
      * Catches any {@link ReflectiveOperationException} thrown by {@link #reflect()}
+     *
      * @deprecated I don't think there's going to be any practical use for this method.
      */
     @Nullable
@@ -52,9 +54,10 @@ public interface ReflectiveHandle<T> extends Cloneable {
 
     /**
      * An unchecked exception version of {@link #reflect()} (throws the original exception, not the a {@link RuntimeException})
+     *
+     * @throws ReflectiveOperationException throws silently.
      * @see #reflect()
      * @see #reflectOrNull()
-     * @throws ReflectiveOperationException throws silently.
      */
     @SuppressWarnings("JavadocDeclaration")
     @NotNull
@@ -68,6 +71,7 @@ public interface ReflectiveHandle<T> extends Cloneable {
 
     /**
      * Same as {@link #reflect()} except that it will return null if any {@link ReflectiveOperationException} errors occur.
+     *
      * @see #reflect()
      * @see #unreflect()
      */
@@ -82,6 +86,7 @@ public interface ReflectiveHandle<T> extends Cloneable {
 
     /**
      * The heart of the class.
+     *
      * @return the final JVM object that exists in this runtime.
      * @throws ReflectiveOperationException if any errors occur while getting the object, including unknown objects, security issues, etc...
      * @see #reflectOrNull()

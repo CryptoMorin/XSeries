@@ -34,8 +34,8 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
 
     /**
      * @param handle the handle to put the inner class information in.
+     * @param <T>    the type of the class handle.
      * @return the same object as the one provided in the parameter.
-     * @param <T> the type of the class handle.
      */
     public <T extends DynamicClassHandle> T inner(T handle) {
         Objects.requireNonNull(handle, "Inner handle is null");
@@ -47,6 +47,7 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
 
     /**
      * The array dimension of this class.
+     *
      * @return -1 if this class cannot be found, 0 if not an array, otherwise a positive number.
      */
     public int getDimensionCount() {
