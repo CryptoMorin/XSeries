@@ -31,7 +31,9 @@ import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -198,6 +200,7 @@ public final class XBiome extends XModule<XBiome, Biome> {
 
     /**
      * Gets the environment (world type) which this biome originally belongs to.
+     * If the biome is non-standard (registered by another program) this will return {@link Optional#empty()}.
      *
      * @return the environment that this biome belongs to.
      * @since 4.0.0
@@ -211,8 +214,10 @@ public final class XBiome extends XModule<XBiome, Biome> {
      *
      * @return the vanilla biome.
      * @since 1.0.0
+     * @deprecated use {@link #get()} instead.
      */
     @Nullable
+    @Deprecated
     public Biome getBiome() {
         return get();
     }
@@ -309,9 +314,18 @@ public final class XBiome extends XModule<XBiome, Biome> {
         return REGISTRY.getByName(biome);
     }
 
-    @NotNull
+    /**
+     * Use {@link #getValues()} instead.
+     */
+    @Deprecated
     public static XBiome[] values() {
         return REGISTRY.values();
+    }
+
+    @NotNull
+    @Unmodifiable
+    public static Collection<XBiome> getValues() {
+        return REGISTRY.getValues();
     }
 
     @NotNull

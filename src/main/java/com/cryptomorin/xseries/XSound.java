@@ -1796,8 +1796,10 @@ public final class XSound extends XModule<XSound, Sound> {
      * @param sound the name of the sound.
      * @return a matched XSound.
      * @since 1.0.0
+     * @deprecated use {@link #of(String)} instead.
      */
     @NotNull
+    @Deprecated
     public static Optional<XSound> matchXSound(@NotNull String sound) {
         return REGISTRY.getByName(sound);
     }
@@ -1809,14 +1811,30 @@ public final class XSound extends XModule<XSound, Sound> {
      * @return a matched sound.
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 2.0.0
+     * @deprecated use {@link #of(Sound)} instead.
      */
     @NotNull
+    @Deprecated
     public static XSound matchXSound(@NotNull Sound sound) {
         return REGISTRY.getByBukkitForm(sound);
     }
 
+    public static XSound of(@NotNull Sound bukkit) {return REGISTRY.getByBukkitForm(bukkit);}
+
+    public static Optional<XSound> of(@NotNull String bukkit) {return REGISTRY.getByName(bukkit);}
+
+    /**
+     * Use {@link #getValues()} instead.
+     */
+    @Deprecated
     public static XSound[] values() {
         return REGISTRY.values();
+    }
+
+    @NotNull
+    @Unmodifiable
+    public static Collection<XSound> getValues() {
+        return REGISTRY.getValues();
     }
 
     private static List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
@@ -1945,7 +1963,7 @@ public final class XSound extends XModule<XSound, Sound> {
                 throw new IllegalArgumentException("No sound name specified: " + name);
             }
 
-            Optional<XSound> soundType = matchXSound(soundName);
+            Optional<XSound> soundType = of(soundName);
             if (!soundType.isPresent()) {
                 if (soundName.indexOf(':') != -1) {
                     soundName = soundName.toLowerCase(Locale.ENGLISH);

@@ -187,10 +187,17 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     }
 
     /**
+     * Use of {@code values()} should be discouraged by static {@link XModule} implementations,
+     * instead {@link #getValues()} should be used.
+     *
      * @see #getValues()
      */
+    @Deprecated
     public XForm[] values() {
-        Collection<XForm> values = getValues();
+        pullValues();
+
+        // Don't use getValues() for extra unmodifiable overhead.
+        Collection<XForm> values = bukkitToX.values();
         return values.toArray(createArray.apply(values.size()));
     }
 

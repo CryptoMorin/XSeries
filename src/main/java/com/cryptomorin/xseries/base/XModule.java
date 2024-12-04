@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
  * <p>
  * All XModules should implement the following static methods:
  * <pre>{@code
+ *     public static final XRegistry<XAttribute, Attribute> REGISTRY;
+ *
  *     public static XForm of(@NotNull BukkitForm bukkit) {
  *         return REGISTRY.getByBukkitForm(bukkit);
  *     }
@@ -22,10 +24,19 @@ import java.util.stream.Collectors;
  *     }
  *
  *     @NotNull
+ *     @Deprecated
  *     public static XForm[] values() {
  *         return REGISTRY.values();
  *     }
+ *
+ *     @NotNull
+ *     @Unmodifable
+ *     public static Collection<XAttribute> getValues() {
+ *         return REGISTRY.getValues();
+ *     }
  * }</pre>
+ * All these methods are available from their {@link XRegistry}, however these are for
+ * cross-compatibility (which will be removed later) and ease of use.
  *
  * @param <XForm>      the class type associated with the Bukkit type defined by XSeries.
  * @param <BukkitForm> the Bukkit class type associated with the XForm.
