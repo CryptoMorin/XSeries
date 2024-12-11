@@ -236,7 +236,8 @@ public enum XParticle {
     /**
      * BARRIER, LIGHT -> BLOCK_MARKER (v1.18)
      */
-    BLOCK_MARKER("BARRIER", "LIGHT");
+    BLOCK_MARKER("BARRIER", "LIGHT"),
+    PALE_OAK_LEAVES;
 
     private final Particle particle;
 
