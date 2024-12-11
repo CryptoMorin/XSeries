@@ -1697,7 +1697,22 @@ public final class XSound extends XModule<XSound, Sound> {
             UI_TOAST_CHALLENGE_COMPLETE = std("ui.toast.challenge_complete"),
             UI_TOAST_IN = std("ui.toast.in"),
             UI_TOAST_OUT = std("ui.toast.out"),
-            WEATHER_RAIN_ABOVE = std("weather.rain.above");
+            WEATHER_RAIN_ABOVE = std("weather.rain.above"),
+            BLOCK_EYEBLOSSOM_CLOSE = std("block.eyeblossom.close"),
+            BLOCK_RESIN_BRICKS_FALL = std("block.resin_bricks.fall"),
+            BLOCK_RESIN_BRICKS_STEP = std("block.resin_bricks.step"),
+            BLOCK_RESIN_PLACE = std("block.resin.place"),
+            ENTITY_CREAKING_TWITCH = std("entity.creaking.twitch"),
+            BLOCK_EYEBLOSSOM_IDLE = std("block.eyeblossom.idle"),
+            BLOCK_RESIN_BREAK = std("block.resin.break"),
+            BLOCK_RESIN_BRICKS_PLACE = std("block.resin_bricks.place"),
+            BLOCK_RESIN_BRICKS_BREAK = std("block.resin_bricks.break"),
+            BLOCK_EYEBLOSSOM_CLOSE_LONG = std("block.eyeblossom.close_long"),
+            BLOCK_RESIN_FALL = std("block.resin.fall"),
+            BLOCK_RESIN_STEP = std("block.resin.step"),
+            BLOCK_EYEBLOSSOM_OPEN = std("block.eyeblossom.open"),
+            BLOCK_RESIN_BRICKS_HIT = std("block.resin_bricks.hit"),
+            BLOCK_EYEBLOSSOM_OPEN_LONG = std("block.eyeblossom.open_long");
     /**
      * ENTITY_GENERIC_WIND_BURST -> ENTITY_WIND_CHARGE_WIND_BURST (v1.20.5)
      */
