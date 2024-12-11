@@ -1135,7 +1135,8 @@ public final class XItemStack {
                         attrName = UUID.randomUUID().toString().toLowerCase(Locale.ENGLISH);
                     }
 
-                    AttributeModifier modifier = attributeInst.get().createModifier(
+                    attributeInst.get();
+                    AttributeModifier modifier = XAttribute.createModifier(
                             attrName,
                             section.getDouble("amount"),
                             Enums.getIfPresent(AttributeModifier.Operation.class, section.getString("operation"))

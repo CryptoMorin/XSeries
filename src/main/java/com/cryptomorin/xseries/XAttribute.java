@@ -1,3 +1,24 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2024 Crypto Morin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XModule;
@@ -80,9 +101,12 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
     }
 
     /**
+     * {@link AttributeModifier}s aren't related to {@link Attribute}s at all, but I figured this is the
+     * closest place I can put this method which can be needed for cross-compatibility.
+     *
      * @param slot when null, defaults to {@link org.bukkit.inventory.EquipmentSlotGroup#ANY}
      */
-    public AttributeModifier createModifier(@NotNull String key, double amount, @NotNull AttributeModifier.Operation operation, @Nullable EquipmentSlot slot) {
+    public static AttributeModifier createModifier(@NotNull String key, double amount, @NotNull AttributeModifier.Operation operation, @Nullable EquipmentSlot slot) {
         Objects.requireNonNull(key, "Key is null");
         Objects.requireNonNull(operation, "Operation is null");
 

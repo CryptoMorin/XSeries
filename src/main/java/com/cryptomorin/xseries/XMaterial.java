@@ -1,7 +1,6 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Hex_27
  * Copyright (c) 2024 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
