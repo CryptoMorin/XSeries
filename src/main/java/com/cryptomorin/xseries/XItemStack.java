@@ -86,7 +86,6 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @see ItemStack
  */
 public final class XItemStack {
-    public static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
     public static final boolean SUPPORTS_CUSTOM_MODEL_DATA;
 
     /**
@@ -700,7 +699,7 @@ public final class XItemStack {
             if (tempMeta == null) {
                 // When AIR is null. Useful for when you just want to use the meta to save data and
                 // set the type later. A simple CraftMetaItem.
-                meta = Bukkit.getItemFactory().getItemMeta(XMaterial.STONE.parseMaterial());
+                meta = Bukkit.getItemFactory().getItemMeta(XMaterial.STONE.get());
             } else {
                 meta = tempMeta;
             }
@@ -1084,7 +1083,7 @@ public final class XItemStack {
             }
         } else if (config.getBoolean("glow")) {
             meta.addEnchant(XEnchantment.UNBREAKING.getEnchant(), 1, false);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS); // HIDE_UNBREAKABLE is not for UNBREAKING enchant.
+            XItemFlag.HIDE_ENCHANTS.set(meta);
         }
 
         // Enchanted Books
@@ -1103,17 +1102,16 @@ public final class XItemStack {
             for (String flag : flags) {
                 flag = flag.toUpperCase(Locale.ENGLISH);
                 if (flag.equals("ALL")) {
-                    meta.addItemFlags(ITEM_FLAGS);
+                    XItemFlag.hideEverything(meta);
                     break;
                 }
 
-                ItemFlag itemFlag = Enums.getIfPresent(ItemFlag.class, flag).orNull();
-                if (itemFlag != null) meta.addItemFlags(itemFlag);
+                XItemFlag.of(flag).ifPresent(itemFlag -> itemFlag.set(meta));
             }
         } else {
             String allFlags = config.getString("flags");
             if (!Strings.isNullOrEmpty(allFlags) && allFlags.equalsIgnoreCase("ALL"))
-                meta.addItemFlags(ITEM_FLAGS);
+                XItemFlag.hideEverything(meta);
         }
 
         // Atrributes - https://minecraft.wiki/w/Attribute

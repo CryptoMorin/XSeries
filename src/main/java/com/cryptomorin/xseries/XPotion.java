@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.google.common.base.Strings;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -94,11 +95,8 @@ public enum XPotion {
      * Special type of effect. Minecraft itself doesn't recognize this as a separate potion type,
      * but as a combination of two other potion types. However, Bukkit's {@link PotionType#TURTLE_MASTER} decided
      * to add this, whereas {@link PotionEffectType} doesn't have such enum.
-     * <p>
-     * This was removed in Mincraft v1.21.3, should we remove it as well?
-     *
-     * @since Minecraft v1.21
      */
+    @XInfo(since = "1.21", removedSince = "1.21.3")
     @Deprecated
     TURTLE_MASTER,
     UNLUCK("UNLUCKY"),
@@ -215,6 +213,10 @@ public enum XPotion {
             if (type == null) throw new NullPointerException("Unsupported potion effect type ID: " + idType);
             return Optional.of(type);
         }
+
+        // The getName() for some reasons returns enum-like names for some potion types
+        // and Minecraft namespaced names for some others.
+        if (potion.startsWith("minecraft:")) potion = potion.substring("minecraft:".length());
         return Optional.ofNullable(Data.NAMES.get(format(potion)));
     }
 

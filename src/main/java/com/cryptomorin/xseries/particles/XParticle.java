@@ -22,9 +22,12 @@
 
 package com.cryptomorin.xseries.particles;
 
+import com.cryptomorin.xseries.base.XBase;
+import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XChange;
 import org.bukkit.Particle;
 
-import java.util.*;
+import java.util.Optional;
 
 /**
  * <b>XParticle</b> - Particle enum for <b>XSeries</b>
@@ -34,60 +37,79 @@ import java.util.*;
  *
  * @author Crypto Morin, Collin Barber
  */
-public enum XParticle {
+public enum XParticle implements XBase<XParticle, Particle> {
     /**
-     * EXPLOSION_NORMAL -> POOF (v1.20.5)
+     * VILLAGER_ANGRY -> ANGRY_VILLAGER (v1.20.5)
      */
-    POOF("EXPLOSION_NORMAL"),
+    ANGRY_VILLAGER("VILLAGER_ANGRY"),
+    ASH,
     /**
-     * EXPLOSION_LARGE -> EXPLOSION (v1.20.5)
+     * BLOCK_CRACK, BLOCK_DUST -> BLOCK (v1.20.5)
      */
-    EXPLOSION("EXPLOSION_LARGE"),
+    BLOCK("BLOCK_CRACK", "BLOCK_DUST"),
     /**
-     * EXPLOSION_HUGE -> EXPLOSION_EMITTER (v1.20.5)
+     * Added v1.21.4
      */
-    EXPLOSION_EMITTER("EXPLOSION_HUGE"),
+    BLOCK_CRUMBLE,
     /**
-     * FIREWORKS_SPARK -> FIREWORK (v1.20.5)
+     * BARRIER, LIGHT -> BLOCK_MARKER (v1.18)
      */
-    FIREWORK("FIREWORKS_SPARK"),
+    BLOCK_MARKER("BARRIER", "LIGHT"),
     /**
      * WATER_BUBBLE -> BUBBLE (v1.20.5)
      */
     BUBBLE("WATER_BUBBLE"),
-    /**
-     * WATER_SPLASH -> SPLASH (v1.20.5)
-     */
-    SPLASH("WATER_SPLASH"),
-    /**
-     * WATER_WAKE -> FISHING (v1.20.5)
-     */
-    FISHING("WATER_WAKE"),
-    /**
-     * SUSPENDED -> UNDERWATER (v1.20.5)
-     */
-    UNDERWATER("SUSPENDED"),
+    BUBBLE_COLUMN_UP,
+    BUBBLE_POP,
+    CAMPFIRE_COSY_SMOKE,
+    CAMPFIRE_SIGNAL_SMOKE,
+    CHERRY_LEAVES,
+    CLOUD,
+    COMPOSTER,
+    CRIMSON_SPORE,
     CRIT,
+    CURRENT_DOWN,
+    DAMAGE_INDICATOR,
+    DOLPHIN,
+    DRAGON_BREATH,
+    DRIPPING_DRIPSTONE_LAVA,
+    DRIPPING_DRIPSTONE_WATER,
+    DRIPPING_HONEY,
     /**
-     * CRIT_MAGIC -> ENCHANTED_HIT (v1.20.5)
+     * DRIP_LAVA -> DRIPPING_LAVA (v1.20.5)
      */
-    ENCHANTED_HIT("CRIT_MAGIC"),
+    DRIPPING_LAVA("DRIP_LAVA"),
+    DRIPPING_OBSIDIAN_TEAR,
     /**
-     * SMOKE_NORMAL -> SMOKE (v1.20.5)
+     * DRIP_WATER -> DRIPPING_WATER (v1.20.5)
      */
-    SMOKE("SMOKE_NORMAL"),
+    DRIPPING_WATER("DRIP_WATER"),
     /**
-     * SMOKE_LARGE -> LARGE_SMOKE (v1.20.5)
+     * REDSTONE -> DUST (v1.20.5)
      */
-    LARGE_SMOKE("SMOKE_LARGE"),
+    DUST("REDSTONE"),
+    DUST_COLOR_TRANSITION,
+    DUST_PILLAR,
+    DUST_PLUME,
     /**
      * SPELL -> EFFECT (v1.20.5)
      */
     EFFECT("SPELL"),
+    EGG_CRACK,
     /**
-     * SPELL_INSTANT -> INSTANT_EFFECT (v1.20.5)
+     * MOB_APPEARANCE -> ELDER_GUARDIAN (v1.20.5)
      */
-    INSTANT_EFFECT("SPELL_INSTANT"),
+    ELDER_GUARDIAN("MOB_APPEARANCE"),
+    ELECTRIC_SPARK,
+    /**
+     * ENCHANTMENT_TABLE -> ENCHANT (v1.20.5)
+     */
+    ENCHANT("ENCHANTMENT_TABLE"),
+    /**
+     * CRIT_MAGIC -> ENCHANTED_HIT (v1.20.5)
+     */
+    ENCHANTED_HIT("CRIT_MAGIC"),
+    END_ROD,
     /**
      * SPELL_MOB_AMBIENT -> SPELL_MOB -> ENTITY_EFFECT (v1.20.5)
      * The name was changed multiple times during the parity update
@@ -96,190 +118,152 @@ public enum XParticle {
      */
     ENTITY_EFFECT("SPELL_MOB", "SPELL_MOB_AMBIENT"),
     /**
-     * SPELL_WITCH -> WITCH (v1.20.5)
+     * EXPLOSION_LARGE -> EXPLOSION (v1.20.5)
      */
-    WITCH("SPELL_WITCH"),
+    EXPLOSION("EXPLOSION_LARGE"),
     /**
-     * DRIP_WATER -> DRIPPING_WATER (v1.20.5)
+     * EXPLOSION_HUGE -> EXPLOSION_EMITTER (v1.20.5)
      */
-    DRIPPING_WATER("DRIP_WATER"),
+    EXPLOSION_EMITTER("EXPLOSION_HUGE"),
+    FALLING_DRIPSTONE_LAVA,
+    FALLING_DRIPSTONE_WATER,
+    FALLING_DUST,
+    FALLING_HONEY,
+    FALLING_LAVA,
+    FALLING_NECTAR,
+    FALLING_OBSIDIAN_TEAR,
+    FALLING_SPORE_BLOSSOM,
+    FALLING_WATER,
     /**
-     * DRIP_LAVA -> DRIPPING_LAVA (v1.20.5)
+     * FIREWORKS_SPARK -> FIREWORK (v1.20.5)
      */
-    DRIPPING_LAVA("DRIP_LAVA"),
+    FIREWORK("FIREWORKS_SPARK"),
     /**
-     * VILLAGER_ANGRY -> ANGRY_VILLAGER (v1.20.5)
+     * WATER_WAKE -> FISHING (v1.20.5)
      */
-    ANGRY_VILLAGER("VILLAGER_ANGRY"),
+    FISHING("WATER_WAKE"),
+    FLAME,
+    FLASH,
+    GLOW,
+    GLOW_SQUID_INK,
+    GUST,
+    GUST_EMITTER_LARGE,
+    GUST_EMITTER_SMALL,
     /**
      * VILLAGER_HAPPY -> HAPPY_VILLAGER (v1.20.5)
      */
     HAPPY_VILLAGER("VILLAGER_HAPPY"),
-    /**
-     * TOWN_AURA -> MYCELIUM (v1.20.5)
-     */
-    MYCELIUM("TOWN_AURA"),
-    NOTE,
-    PORTAL,
-    /**
-     * ENCHANTMENT_TABLE -> ENCHANT (v1.20.5)
-     */
-    ENCHANT("ENCHANTMENT_TABLE"),
-    FLAME,
-    LAVA,
-    CLOUD,
-    /**
-     * REDSTONE -> DUST (v1.20.5)
-     */
-    DUST("REDSTONE"),
-    /**
-     * SNOWBALL, SNOW_SHOVEL -> ITEM_SNOWBALL (v1.20.5)
-     */
-    ITEM_SNOWBALL("SNOWBALL", "SNOW_SHOVEL"),
-    /**
-     * SLIME -> ITEM_SLIME (v1.20.5)
-     */
-    ITEM_SLIME("SLIME"),
     HEART,
+    INFESTED,
+    /**
+     * SPELL_INSTANT -> INSTANT_EFFECT (v1.20.5)
+     */
+    INSTANT_EFFECT("SPELL_INSTANT"),
     /**
      * ITEM_CRACK -> ITEM (v1.20.5)
      */
     ITEM("ITEM_CRACK"),
+    ITEM_COBWEB,
     /**
-     * BLOCK_CRACK, BLOCK_DUST -> BLOCK (v1.20.5)
+     * SLIME -> ITEM_SLIME (v1.20.5)
      */
-    BLOCK("BLOCK_CRACK", "BLOCK_DUST"),
+    ITEM_SLIME("SLIME"),
+    /**
+     * SNOWBALL, SNOW_SHOVEL -> ITEM_SNOWBALL (v1.20.5)
+     */
+    ITEM_SNOWBALL("SNOWBALL", "SNOW_SHOVEL"),
+    LANDING_HONEY,
+    LANDING_LAVA,
+    LANDING_OBSIDIAN_TEAR,
+    /**
+     * SMOKE_LARGE -> LARGE_SMOKE (v1.20.5)
+     */
+    LARGE_SMOKE("SMOKE_LARGE"),
+    LAVA,
+    /**
+     * TOWN_AURA -> MYCELIUM (v1.20.5)
+     */
+    MYCELIUM("TOWN_AURA"),
+    NAUTILUS,
+    NOTE,
+    OMINOUS_SPAWNING,
+    PALE_OAK_LEAVES,
+    @XChange(version = "1.20.5", from = "EXPLOSION_NORMAL", to = "POOF")
+    POOF("EXPLOSION_NORMAL"),
+    PORTAL,
+    RAID_OMEN,
     /**
      * WATER_DROP -> RAIN (v1.20.5)
      */
     RAIN("WATER_DROP"),
+    REVERSE_PORTAL,
+    SCRAPE,
+    SCULK_CHARGE,
+    SCULK_CHARGE_POP,
+    SCULK_SOUL,
+    SHRIEK,
+    SMALL_FLAME,
+    SMALL_GUST,
     /**
-     * MOB_APPEARANCE -> ELDER_GUARDIAN (v1.20.5)
+     * SMOKE_NORMAL -> SMOKE (v1.20.5)
      */
-    ELDER_GUARDIAN("MOB_APPEARANCE"),
-    DRAGON_BREATH,
-    END_ROD,
-    DAMAGE_INDICATOR,
+    SMOKE("SMOKE_NORMAL"),
+    SNEEZE,
+    SNOWFLAKE,
+    SONIC_BOOM,
+    SOUL,
+    SOUL_FIRE_FLAME,
+    SPIT,
+    /**
+     * WATER_SPLASH -> SPLASH (v1.20.5)
+     */
+    SPLASH("WATER_SPLASH"),
+    SPORE_BLOSSOM_AIR,
+    SQUID_INK,
     SWEEP_ATTACK,
-    FALLING_DUST,
     /**
      * TOTEM -> TOTEM_OF_UNDYING (v1.20.5)
      */
     TOTEM_OF_UNDYING("TOTEM"),
-    SPIT,
-    SQUID_INK,
-    BUBBLE_POP,
-    CURRENT_DOWN,
-    BUBBLE_COLUMN_UP,
-    NAUTILUS,
-    DOLPHIN,
-    SNEEZE,
-    CAMPFIRE_COSY_SMOKE,
-    CAMPFIRE_SIGNAL_SMOKE,
-    COMPOSTER,
-    FLASH,
-    FALLING_LAVA,
-    LANDING_LAVA,
-    FALLING_WATER,
-    DRIPPING_HONEY,
-    FALLING_HONEY,
-    LANDING_HONEY,
-    FALLING_NECTAR,
-    SOUL_FIRE_FLAME,
-    ASH,
-    CRIMSON_SPORE,
-    WARPED_SPORE,
-    SOUL,
-    DRIPPING_OBSIDIAN_TEAR,
-    FALLING_OBSIDIAN_TEAR,
-    LANDING_OBSIDIAN_TEAR,
-    REVERSE_PORTAL,
-    WHITE_ASH,
-    DUST_COLOR_TRANSITION,
-    VIBRATION,
-    FALLING_SPORE_BLOSSOM,
-    SPORE_BLOSSOM_AIR,
-    SMALL_FLAME,
-    SNOWFLAKE,
-    DRIPPING_DRIPSTONE_LAVA,
-    FALLING_DRIPSTONE_LAVA,
-    DRIPPING_DRIPSTONE_WATER,
-    FALLING_DRIPSTONE_WATER,
-    GLOW_SQUID_INK,
-    GLOW,
-    WAX_ON,
-    WAX_OFF,
-    ELECTRIC_SPARK,
-    SCRAPE,
-    SONIC_BOOM,
-    SCULK_SOUL,
-    SCULK_CHARGE,
-    SCULK_CHARGE_POP,
-    SHRIEK,
-    CHERRY_LEAVES,
-    EGG_CRACK,
-    DUST_PLUME,
-    WHITE_SMOKE,
-    GUST,
-    SMALL_GUST,
-    GUST_EMITTER_LARGE,
-    GUST_EMITTER_SMALL,
+    /**
+     * Added v1.21.4
+     */
+    TRAIL,
+    TRIAL_OMEN,
     TRIAL_SPAWNER_DETECTION,
     TRIAL_SPAWNER_DETECTION_OMINOUS,
-    VAULT_CONNECTION,
-    INFESTED,
-    ITEM_COBWEB,
-    DUST_PILLAR,
-    OMINOUS_SPAWNING,
-    RAID_OMEN,
-    TRIAL_OMEN,
     /**
-     * BARRIER, LIGHT -> BLOCK_MARKER (v1.18)
+     * SUSPENDED -> UNDERWATER (v1.20.5)
      */
-    BLOCK_MARKER("BARRIER", "LIGHT"),
-    PALE_OAK_LEAVES;
+    UNDERWATER("SUSPENDED"),
+    VAULT_CONNECTION,
+    VIBRATION,
+    WARPED_SPORE,
+    WAX_OFF,
+    WAX_ON,
+    WHITE_ASH,
+    WHITE_SMOKE,
+    /**
+     * SPELL_WITCH -> WITCH (v1.20.5)
+     */
+    WITCH("SPELL_WITCH");
+
+    public static final XRegistry<XParticle, Particle> REGISTRY = Data.REGISTRY;
 
     private final Particle particle;
 
-    XParticle(String... alts) {
-        Particle testParticle = tryGetParticle(this.name());
-        Data.NAME_MAPPING.put(this.name(), this);
-
-        for (String alt : alts) {
-            if (testParticle == null) testParticle = tryGetParticle(alt);
-            Data.NAME_MAPPING.put(alt, this);
-        }
-
-        this.particle = testParticle;
-        if (particle != null) Data.BUKKIT_MAPPING.put(particle, this);
+    XParticle(String... names) {
+        this.particle = Data.REGISTRY.stdEnum(this, names);
     }
 
-    /**
-     * Returns the bukkit particle.
-     *
-     * @return the particle
-     */
+    @Override
+    public String[] getNames() {
+        return new String[]{name()};
+    }
+
+    @Override
     public Particle get() {
         return particle;
-    }
-
-    /**
-     * Returns if the particle is supported.
-     *
-     * @return true if the particle is supported
-     */
-    public boolean isSupported() {
-        return particle != null;
-    }
-
-    /**
-     * Returns this particle if it is supported, otherwise returns the particle argument you passed.
-     *
-     * @param other the particle to return if this particle is not supported
-     * @return this particle if it is supported, otherwise returns the particle argument you passed
-     */
-    public XParticle or(XParticle other) {
-        return this.isSupported() ? this : other;
     }
 
     /**
@@ -290,10 +274,7 @@ public enum XParticle {
      * @throws UnsupportedOperationException if the given particle does not exist.
      */
     public static XParticle of(Particle particle) {
-        Objects.requireNonNull(particle, "Cannot match null particle");
-        XParticle mapping = Data.BUKKIT_MAPPING.get(particle);
-        if (mapping != null) return mapping;
-        throw new UnsupportedOperationException("Unknown particle: " + particle);
+        return REGISTRY.getByBukkitForm(particle);
     }
 
     /**
@@ -303,20 +284,11 @@ public enum XParticle {
      * @return the XParticle associated with the given particle name
      */
     public static Optional<XParticle> of(String particle) {
-        Objects.requireNonNull(particle, "Cannot match null particle");
-        return Optional.ofNullable(Data.NAME_MAPPING.get(particle));
-    }
-
-    private static Particle tryGetParticle(String particle) {
-        try {
-            return Particle.valueOf(particle);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+        return REGISTRY.getByName(particle);
     }
 
     private static final class Data {
-        private static final Map<String, XParticle> NAME_MAPPING = new HashMap<>();
-        private static final Map<Particle, XParticle> BUKKIT_MAPPING = new EnumMap<>(Particle.class);
+        private static final XRegistry<XParticle, Particle> REGISTRY =
+                new XRegistry<>(Particle.class, XParticle.class, XParticle[]::new);
     }
 }

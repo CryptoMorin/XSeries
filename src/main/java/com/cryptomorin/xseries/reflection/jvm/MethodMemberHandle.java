@@ -113,10 +113,24 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
                 if (method.getReturnType() != returnType) {
                     throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method.getReturnType());
                 }
-            } catch (NoSuchMethodException ex) {
-                method = null;
+            } catch (NoSuchMethodException ignored) {
+                NoSuchMethodException realEx;
+
+                try {
+                    // Maybe the method was moved to a superclass?
+                    // We won't be able to get it if it's private/protected tho.
+                    method = clazz.getMethod(name, parameterTypes);
+                    if (method.getReturnType() != returnType) {
+                        throw new NoSuchMethodException("Method named '" + name + "' was found but the return types don't match: " + this.returnType + " != " + method.getReturnType());
+                    }
+                    continue;
+                } catch (NoSuchMethodException ex2) {
+                    realEx = ex2; // Might give more info?
+                    method = null;
+                }
+
                 if (errors == null) errors = new NoSuchMethodException("None of the methods were found for " + this);
-                errors.addSuppressed(ex);
+                errors.addSuppressed(realEx);
             }
         }
 

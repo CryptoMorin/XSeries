@@ -630,7 +630,7 @@ public final class NoteBlockMusic {
 
         @Override
         public void play(Player player, Supplier<Location> location, boolean playAtLocation) {
-            org.bukkit.Sound bukkitSound = sound.parseSound();
+            org.bukkit.Sound bukkitSound = sound.get();
             for (int repeat = restatement; repeat > 0; repeat--) {
                 Location finalLocation = location.get();
                 if (bukkitSound != null) {

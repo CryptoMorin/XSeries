@@ -36,9 +36,11 @@ mvn clean package -Ptester,latest
 
 ### Rules
 
-* One of the main principles of XSeries is that each utility should be independent except the ones that cannot be
+* ~~One of the main principles of XSeries is that each utility should be independent except the ones that cannot be
   independent. Functions such as the common ISFLAT boolean check should not depend on XMaterial's isNewVersion() except
-  XBlock which is intended, since it already uses XMaterial for materials. Same for Particles and ParticleDisplay.
+  XBlock which is intended, since it already uses XMaterial for materials. Same for Particles and ParticleDisplay.~~
+  This is no longer the case because of Minecraft's new registry system. It's going to make a lot of boilerplate code
+  if we decide to stick to this principle.
 * Only Java 8 should be used. All the functions in the latest version of Java 8 can be used.
 * Make sure the utility works on different Minecraft server versions.
 * Use method and variable names that make sense and are related to the context.

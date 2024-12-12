@@ -248,7 +248,7 @@ public final class XBlock {
         XMaterial smartConversion = ITEM_TO_BLOCK.get(material);
         if (smartConversion != null) material = smartConversion;
 
-        Material parsedMat = material.parseMaterial();
+        Material parsedMat = material.get();
         if (parsedMat == null) return false;
 
         String parsedName = parsedMat.name();

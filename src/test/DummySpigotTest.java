@@ -9,9 +9,13 @@ public class DummySpigotTest extends DummyAbstractServer implements InvocationHa
         return new DummySpigotTest();
     }
 
+    private static boolean run = false;
+
     @Test
     void test() {
-        DummyAbstractServer.print("Running tests...");
+        if (run) throw new IllegalStateException("Server is already running");
+        run = true;
+        DummyAbstractServer.print("Running tests... with Java " + System.getProperty("java.version"));
         runServer();
     }
 

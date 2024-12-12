@@ -2509,7 +2509,7 @@ public final class XTag<T extends Enum<T>> {
      */
     public static boolean isItem(XMaterial material) {
         if (XMaterial.supports(13)) {
-            Material mat = material.parseMaterial();
+            Material mat = material.get();
             return mat != null && mat.isItem();
         }
 
@@ -2610,7 +2610,7 @@ public final class XTag<T extends Enum<T>> {
      * @since 1.13
      */
     public static boolean isInteractable(XMaterial material) {
-        if (XMaterial.supports(13)) return material.parseMaterial().isInteractable();
+        if (XMaterial.supports(13)) return material.get().isInteractable();
         switch (material) { // 1.12 materials only
             case ACACIA_BUTTON:
             case ACACIA_DOOR:

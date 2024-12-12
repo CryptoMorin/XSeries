@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XModule;
 import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Registry;
@@ -140,7 +141,11 @@ public final class XBiome extends XModule<XBiome, Biome> {
             TAIGA_HILLS = std("TAIGA_HILLS"),
             TAIGA_MOUNTAINS = std(WINDSWEPT_FOREST, "TAIGA_MOUNTAINS", "MUTATED_TAIGA");
 
-    // CUSTOM = std("CUSTOM"), Since 1.21.3-1.21.3 ??? why add it in the first place?
+    /**
+     * Why add it in the first place if it was removed in a few builds?
+     */
+    @XInfo(since = "1.21.3", removedSince = "1.21.3")
+    public static final XBiome CUSTOM = std("CUSTOM");
 
     /**
      * Removed from 1.18

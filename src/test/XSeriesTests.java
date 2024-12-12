@@ -1,5 +1,7 @@
 import com.cryptomorin.xseries.*;
+import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.particles.XParticle;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
@@ -9,7 +11,6 @@ import com.github.cryptomorin.test.ReflectionTests;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("deprecation")
 public final class XSeriesTests {
     private static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
     /**
@@ -51,43 +52,90 @@ public final class XSeriesTests {
     }
 
     // @Test
-    public void simpleEnumer() {
+    public void enumToRegistry() {
         URL resource = XSeriesTests.class.getResource("XBiome.java");
         try {
             Path path = Paths.get(resource.toURI());
-            DifferenceHelper.enumToRegistry(path, DESKTOP);
+            ClassConverter.enumToRegistry(path, DESKTOP);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @SuppressWarnings("deprecation")
     public static void test() {
         print("\n\n\nTest begin...");
 
         print("Writing enum differences...");
         DifferenceHelper.versionDifference();
 
-        print("Testing XMaterial...");
-        assertPresent(XMaterial.matchXMaterial("AIR"));
-        assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
-        assertMaterial("RED_BED", "RED_BED");
-        assertMaterial("MELON", "MELON");
-        assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
-        // assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
-        // assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
-        for (Material material : Material.values())
-            if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
+        testXMaterial();
+        testXSound();
+        testXPotion();
+        testXItemStack();
+        testXAttribute();
+        testXParticle();
 
+        testXTag();
+        testReflection();
+
+        if (TEST_MOJANG_API) testSkulls();
+
+        print("\n\n\nTest end...");
+    }
+
+    private static void testReflection() {
+        print("Testing reflection...");
+        print("Version pack: " + XReflection.getVersionInformation());
+        ReflectionTests.parser();
+        if (XReflection.supports(12)) initializeReflection();
+
+        print("Testing XWorldBorder...");
+        XWorldBorder.of(Bukkit.getWorlds().iterator().next().getSpawnLocation());
+    }
+
+    private static void testXTag() {
+        print("Testing XTag...");
+        assertTrue(XTag.CORALS.isTagged(XMaterial.TUBE_CORAL));
+        assertTrue(XTag.LOGS_THAT_BURN.isTagged(XMaterial.STRIPPED_ACACIA_LOG));
+        assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
+    }
+
+    private static void testXParticle() {
+        if (XReflection.supports(9)) {
+            print("Testing particles...");
+            ParticleDisplay.of(XParticle.CLOUD).
+                    withLocation(new Location(null, 1, 1, 1))
+                    .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true);
+        }
+    }
+
+    private static void testXAttribute() {
+        if (XReflection.supports(9)) {
+            print("Testing XAttribute...");
+            print("Attribute " + XAttribute.ARMOR_TOUGHNESS + " is " + XAttribute.ARMOR_TOUGHNESS.get());
+            assertPresent(XAttribute.of("MAX_HEALTH"));
+        }
+    }
+
+    private static void testXSound() {
+        print("Testing XSound...");
+        // assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
+        // assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
+        // assertPresent(XSound.matchXSound("RECORD_11"));
+        // for (Sound sound : Sound.values()) XSound.matchXSound(sound);
+    }
+
+    private static void testXPotion() {
         print("Testing XPotion...");
         assertPresent(XPotion.matchXPotion("INVIS"));
         assertPresent(XPotion.matchXPotion("AIR"));
         assertPresent(XPotion.matchXPotion("BLIND"));
         assertPresent(XPotion.matchXPotion("DAMAGE_RESISTANCE"));
         for (PotionEffectType effect : PotionEffectType.values()) {
+            if (effect == null) continue; // Experiemental PotionEffectType
             try {
                 XPotion.matchXPotion(effect);
-                assertPresent(XPotion.matchXPotion(effect.getKey().getKey()), "Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
+                assertPresent(XPotion.matchXPotion(XRegistry.getName(effect)), "Unknown effect: " + effect + " -> " + XRegistry.getName(effect) + " | " + effect.getId());
             } catch (ArrayIndexOutOfBoundsException ex) {
                 err("Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
                 throw ex;
@@ -97,35 +145,39 @@ public final class XSeriesTests {
             assertNotNull(XEnchantment.matchXEnchantment(enchant), () -> "null for " + enchant);
             assertPresent(XEnchantment.matchXEnchantment(enchant.getName()), "Unknown enchantment: " + enchant.getName());
         }
+    }
 
-        testXItemStack();
+    private static void testXMaterial() {
+        print("Testing XMaterial...");
+        assertPresent(XMaterial.matchXMaterial("AIR"));
+        assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
+        assertMaterial("MELON", "MELON");
 
-        print("Testing XSound...");
-        // assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
-        // assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
-        // assertPresent(XSound.matchXSound("RECORD_11"));
-        // for (Sound sound : Sound.values()) XSound.matchXSound(sound);
+        if (XMaterial.supports(13)) {
+            assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
+            assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
+            assertMaterial(XMaterial.BLACK_DYE, Material.BLACK_DYE);
 
-        print("Testing XAttribute...");
-        print("Attribute " + XAttribute.ARMOR_TOUGHNESS + " is " + XAttribute.ARMOR_TOUGHNESS.get());
-        assertPresent(XAttribute.of("MAX_HEALTH"));
+            assertMaterial("RED_BED", "RED_BED");
+            assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
+        } else {
+            Material inkSack = XMaterial.INK_SAC.get(); // INK_SACK for 1.8
+            assertMaterial(XMaterial.RED_DYE, inkSack);
+            assertMaterial(XMaterial.GREEN_DYE, inkSack);
+            assertMaterial(XMaterial.BLACK_DYE, inkSack);
+        }
 
-        print("Testing particles...");
-        ParticleDisplay.of(Particle.CLOUD).
-                withLocation(new Location(null, 1, 1, 1))
-                .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true);
+        // assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
+        // assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
+        for (Material material : Material.values())
+            if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
+    }
 
-        print("Testing XTag...");
-        assertTrue(XTag.CORALS.isTagged(XMaterial.TUBE_CORAL));
-        assertTrue(XTag.LOGS_THAT_BURN.isTagged(XMaterial.STRIPPED_ACACIA_LOG));
-        assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
-
-        print("Testing reflection...");
-        print("Version pack: " + XReflection.getVersionInformation());
-        ReflectionTests.parser();
-        initializeReflection();
-        if (TEST_MOJANG_API) testSkulls();
-        print("\n\n\nTest end...");
+    private static void assertMaterial(XMaterial original, Material expect) {
+        assertSame(XMaterial.matchXMaterial(original.name()), original);
+        Assertions.assertSame(original.get(), expect);
+        Assertions.assertSame(XMaterial.matchXMaterial(original.parseItem()), original);
+        Assertions.assertSame(XMaterial.matchXMaterial(XMaterial.matchXMaterial(original.name()).get().parseItem()), original);
     }
 
     private static void testXItemStack() {
@@ -293,6 +345,6 @@ public final class XSeriesTests {
     private static void assertMaterial(String bukkitMaterial, String xMaterial) {
         Optional<XMaterial> mat = XMaterial.matchXMaterial(xMaterial);
         assertPresent(mat);
-        Assertions.assertSame(Material.matchMaterial(bukkitMaterial), mat.get().parseMaterial());
+        Assertions.assertSame(Material.matchMaterial(bukkitMaterial), mat.get().get());
     }
 }

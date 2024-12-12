@@ -350,7 +350,7 @@ public final class NMSExtras {
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BlockState));
                 tileEntitySign_getUpdatePacket = XReflection.of(TileEntitySign).method().returns(PacketPlayOutTileEntityData)
                         .map(MinecraftMapping.MOJANG, "getUpdatePacket")
-                        .map(MinecraftMapping.SPIGOT, v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
+                        .map(MinecraftMapping.SPIGOT, v(21, 4, "s").v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
                         .unreflect();
 
                 if (supports(20)) {

@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XModule;
 import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.bukkit.*;
@@ -1734,12 +1735,11 @@ public final class XSound extends XModule<XSound, Sound> {
     @Deprecated
     public static final XSound
             ITEM_BRUSH_BRUSH_SAND_COMPLETED = std("ITEM_BRUSH_BRUSH_SAND_COMPLETED"),
-            ITEM_GOAT_HORN_PLAY = std("test"),
+            ITEM_GOAT_HORN_PLAY = std("ITEM_GOAT_HORN_PLAY"),
             ITEM_BRUSH_BRUSHING = std("ITEM_BRUSH_BRUSHING");
-    /**
-     * Removed in 1.15
-     */
+
     @Deprecated
+    @XInfo(since = "1.12", removedSince = "1.15")
     public static final XSound
             ENTITY_PARROT_IMITATE_WOLF = std("ENTITY_PARROT_IMITATE_WOLF"),
             ENTITY_PARROT_IMITATE_POLAR_BEAR = std("ENTITY_PARROT_IMITATE_POLAR_BEAR"),

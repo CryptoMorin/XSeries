@@ -99,7 +99,7 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "11.3.0";
+    public static final String XSERIES_VERSION = "12.1.0";
 
     @Nullable
     @ApiStatus.Internal
@@ -251,7 +251,7 @@ public final class XReflection {
                 /* 18 */ 2,
                 /* 19 */ 4,
                 /* 20 */ 6,
-                /* 21 */ 1,
+                /* 21 */ 4,
         };
 
         if (minorVersion > patches.length) return null;

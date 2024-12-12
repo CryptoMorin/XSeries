@@ -1,16 +1,17 @@
+import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.reflection.XReflection;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.bukkit.craftbukkit.Main;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class DummyAbstractServer {
     private static final OptionParser OPTION_PARSER = new OptionParser() {
@@ -132,9 +133,14 @@ public abstract class DummyAbstractServer {
             Path serverProperties = testClassesPath.resolve("server.properties");
             Path bukkitYml = testClassesPath.resolve("bukkit.yml");
             Path spigotYml = testClassesPath.resolve("spigot.yml");
-            Files.deleteIfExists(path.resolve("world"));
-            Files.deleteIfExists(path.resolve("world_nether"));
-            Files.deleteIfExists(path.resolve("world_the_end"));
+
+            // Don't delete worlds, it takes ages to regenerate.
+            // TODO delete only if versions downgrade. Generate some kind of file?
+            // Files.deleteIfExists(path.resolve("world"));
+            // Files.deleteIfExists(path.resolve("world_nether"));
+            // Files.deleteIfExists(path.resolve("world_the_end"));
+
+            AtomicReference<Throwable> startException = new AtomicReference<>();
             Thread thread = new Thread(() -> {
                 System.setProperty("com.mojang.eula.agree", "true");
                 System.setProperty("IReallyKnowWhatIAmDoingISwear", "true");
@@ -154,7 +160,7 @@ public abstract class DummyAbstractServer {
                 };
                 try {
                     // org.bukkit.craftbukkit.Main
-                    Main.main(startupArgs);
+                    // Main.main(startupArgs);
 
                     // This doesn't work, because XReflection depends on Bukkit.getBukkitVersion()
                     // but the server isn't started at this point.
@@ -162,10 +168,11 @@ public abstract class DummyAbstractServer {
                     //         .method("public static void main(String[] args);")
                     //         .unreflect().invoke(null, (Object) startupArgs);
 
-                    // Class.forName("org.bukkit.craftbukkit.Main").getMethod("main", String[].class).invoke(null, (Object) startupArgs);
+                    Class.forName("org.bukkit.craftbukkit.Main").getMethod("main", String[].class).invoke(null, (Object) startupArgs);
                     // TinyReflection.CraftBukkit$Main.getMethod("main", String[].class).invoke(null, (Object) startupArgs);
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    startException.set(e);
+                    return;
                 }
                 // Main.main(startupArgs);
 
@@ -176,11 +183,34 @@ public abstract class DummyAbstractServer {
             });
 
             // I'm still not sure how to make this part more reliable.
+            print("Starting thread " + thread + "...");
             thread.start();
+            print("Joining thread " + thread + "...");
             thread.join();
-            Thread.sleep(2000L);
+            print("Joined thread " + thread);
+            Thread.sleep(2000L); // It's still a mystery why this is needed. Why doesn't join() properly block?
+
+            if (startException.get() != null) {
+                print("Server startup failed. Not continuing.");
+                throw new RuntimeException(startException.get());
+            }
+
+            try {
+                XReflection.of(XRegistry.class)
+                        .field("private static boolean PERFORM_AUTO_ADD;")
+                        .setter().makeAccessible()
+                        .reflect().invoke(false);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
             XSeriesTests.test();
-            Executors.newSingleThreadScheduledExecutor(Executors.defaultThreadFactory()).schedule(thread::interrupt, 10, TimeUnit.SECONDS);
+            Executors.newSingleThreadScheduledExecutor(Executors.defaultThreadFactory())
+                    .schedule(() -> {
+                        // It wants to load the world and all that bullshit. Just stop it.
+                        print("Interrupting thread: " + thread + "...");
+                        thread.interrupt();
+                        print("Interrupted thread " + thread);
+                    }, 5, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

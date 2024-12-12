@@ -92,15 +92,19 @@
         <spigotVersion>1.21.4-R0.1-SNAPSHOT</spigotVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jopt>5.0.4</jopt>
+        <testVer/>
+        <testJavaPath/>
+        <testJava>21</testJava>
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>com.mojang</groupId>-->
-<!--            <artifactId>authlib</artifactId>-->
-<!--            <version>6.0.55</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.mojang</groupId>-->
+        <!--            <artifactId>authlib</artifactId>-->
+        <!--            <version>6.0.55</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
@@ -219,7 +223,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>3.5.2</version>
                 <configuration>
                     <!--<failIfNoTests>true</failIfNoTests>-->
                     <!-- <skipTests>true</skipTests>-->
@@ -231,7 +235,73 @@
                     <includes>
                         <include>**/*.java</include>
                     </includes>
+                    <!-- Any way to do this without exposing the path and without using a toolchain? -->
+                    <!-- https://maven.apache.org/surefire/maven-surefire-plugin/examples/toolchains.html -->
+                    <!-- <jvm>${testJavaPath}</jvm>-->
+                    <!-- You can also use the following argument from the cmd line: -->
+                    <!-- <dash><dash>toolchains "\.m2\toolchains.xml" -->
+                    <jdkToolchain>
+                        <version>${testJava}</version>
+                    </jdkToolchain>
                 </configuration>
+            </plugin>
+            <plugin>
+                <!-- mvn exec:exec@compile exec:exec@test -->
+                <!-- Doesn't work... Failed to execute goal org.codehaus.mojo:exec-maven-plugin:3.5.0:exec (default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified(default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <!-- <executable>IntelliJ\plugins\maven\lib\maven3\bin\mvn.cmd</executable>-->
+                    <executable>mvn</executable>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>compiler:compile</argument>
+                                <argument>compiler:testCompile</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test</id>
+                        <phase>none</phase>
+                        <!-- Configuring the correct phase here, which would be 'test' causes this to get run twice. -->
+                        <!-- https://stackoverflow.com/questions/4253700/maven-phase-executing-twice -->
+
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>test</argument>
+                                <argument>-Ptester,${testVer}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- This won't properly set the propery for some reason: -->
+                        <!-- mvn exec:exec@everything -DtestVer=8 -->
+                        <id>everything</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>exec:exec@compile</argument>
+                                <argument>exec:exec@test</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
@@ -259,13 +329,59 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-toolchains-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>toolchain</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <toolchains>
+                                <jdk>
+                                    <version>[${testJava}]</version>
+                                </jdk>
+                            </toolchains>
+                        </configuration>
+                    </plugin>
+
+                    <!--                    <plugin>-->
+                    <!--                        &lt;!&ndash; For cleaning the tests folder that the server files are generated in &ndash;&gt;-->
+                    <!--                        <artifactId>maven-clean-plugin</artifactId>-->
+                    <!--                        <version>3.4.0</version>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>auto-clean</id>-->
+                    <!--                                <phase>initialize</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>clean</goal>-->
+                    <!--                                </goals>-->
+                    <!--                                <configuration>-->
+                    <!--                                    <excludeDefaultDirectories>true</excludeDefaultDirectories>-->
+                    <!--                                    <filesets>-->
+                    <!--                                        <fileset>-->
+                    <!--                                            <directory>target/tests</directory>-->
+                    <!--                                        </fileset>-->
+                    <!--                                    </filesets>-->
+                    <!--                                </configuration>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                    </plugin>-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.13.0</version>
                         <configuration>
                             <encoding>UTF-8</encoding>
                             <proc>none</proc>
-                            <source>21</source>
-                            <target>21</target>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <testSource>1.8</testSource>
+                            <testTarget>1.8</testTarget>
+                            <useIncrementalCompilation>false</useIncrementalCompilation>
                         </configuration>
                         <executions>
                             <execution>
@@ -290,6 +406,15 @@
             <id>latest</id>
             <properties>
                 <nms>21_R0</nms>
+                <testJava>21</testJava>
+            </properties>
+        </profile>
+        <profile>
+            <id>21</id>
+            <properties>
+                <nms>21_R0</nms>
+                <spigotVersion>1.21.1-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>21</testJava>
             </properties>
         </profile>
         <profile>
@@ -297,6 +422,7 @@
             <properties>
                 <nms>20_R0</nms>
                 <spigotVersion>1.20.6-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>21</testJava>
             </properties>
         </profile>
         <profile>
@@ -304,6 +430,7 @@
             <properties>
                 <nms>19_R1</nms>
                 <spigotVersion>1.19.4-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>21</testJava>
             </properties>
         </profile>
         <profile>
@@ -311,6 +438,7 @@
             <properties>
                 <nms>18_R1</nms>
                 <spigotVersion>1.18.2-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>21</testJava>
             </properties>
         </profile>
         <profile>
@@ -318,6 +446,7 @@
             <properties>
                 <nms>17_R1</nms>
                 <spigotVersion>1.17.1-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>21</testJava>
             </properties>
         </profile>
         <profile>
@@ -326,7 +455,46 @@
             <properties>
                 <nms>16_R3</nms>
                 <spigotVersion>1.16.5-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>11</testJava>
             </properties>
+        </profile>
+        <profile>
+            <id>15</id>
+            <properties>
+                <nms>15_R3</nms>
+                <spigotVersion>1.15.2-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>11</testJava>
+            </properties>
+        </profile>
+        <profile>
+            <id>12</id>
+            <properties>
+                <nms>12_R3</nms>
+                <spigotVersion>1.12.2-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>1.8</testJava>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>net.sf.jopt-simple</groupId>
+                    <artifactId>jopt-simple</artifactId>
+                    <version>${jopt}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>8</id>
+            <properties>
+                <nms>8_R3</nms>
+                <spigotVersion>1.8.8-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>1.8</testJava>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>net.sf.jopt-simple</groupId>
+                    <artifactId>jopt-simple</artifactId>
+                    <version>${jopt}</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>

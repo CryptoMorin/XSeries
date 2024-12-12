@@ -21,13 +21,19 @@
  */
 package com.cryptomorin.xseries;
 
-import com.google.common.base.Enums;
+import com.cryptomorin.xseries.base.XBase;
+import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
-public enum XEntityType {
+public enum XEntityType implements XBase<XEntityType, EntityType> {
     ACACIA_BOAT,
     ACACIA_CHEST_BOAT,
     ALLAY,
@@ -36,8 +42,8 @@ public enum XEntityType {
     ARMOR_STAND,
     ARROW,
     AXOLOTL,
-    BAMBOO_RAFT,
     BAMBOO_CHEST_RAFT,
+    BAMBOO_RAFT,
     BAT,
     BEE,
     BIRCH_BOAT,
@@ -58,7 +64,11 @@ public enum XEntityType {
     COMMAND_BLOCK_MINECART("MINECART_COMMAND"),
     COW,
     CREAKING,
+
+    @XInfo(since = "1.21.3", removedSince = "1.21.4")
+    @Deprecated
     CREAKING_TRANSIENT,
+
     CREEPER,
     DARK_OAK_BOAT,
     DARK_OAK_CHEST_BOAT,
@@ -186,59 +196,46 @@ public enum XEntityType {
     ZOMBIE_VILLAGER,
     ZOMBIFIED_PIGLIN;
 
+    public static final XRegistry<XEntityType, EntityType> REGISTRY = Data.REGISTRY;
+
+    private static final class Data {
+        public static final XRegistry<XEntityType, EntityType> REGISTRY =
+                new XRegistry<>(EntityType.class, XEntityType.class, XEntityType[]::new);
+    }
+
     private final EntityType entityType;
 
-    XEntityType(String... alts) {
-        EntityType entityType = Enums.getIfPresent(EntityType.class, this.name()).orNull();
-        Data.NAME_MAPPING.put(this.name(), this);
-
-        for (String alt : alts) {
-            if (entityType == null) entityType = tryGetEntityType(alt);
-            Data.NAME_MAPPING.put(alt, this);
-        }
-
-        this.entityType = entityType;
-        if (entityType != null) Data.BUKKIT_MAPPING.put(entityType, this);
+    XEntityType(String... names) {
+        this.entityType = Data.REGISTRY.stdEnum(this, names);
     }
 
-    private static EntityType tryGetEntityType(String particle) {
-        try {
-            return EntityType.valueOf(particle);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+    @NotNull
+    @Unmodifiable
+    public static Collection<XEntityType> getValues() {
+        return REGISTRY.getValues();
     }
 
-    public static final class Data {
-        private static final Map<String, XEntityType> NAME_MAPPING = new HashMap<>();
-        private static final Map<EntityType, XEntityType> BUKKIT_MAPPING = new EnumMap<>(EntityType.class);
-    }
-
-    public boolean isSupported() {
-        return entityType != null;
-    }
-
-    public XEntityType or(XEntityType other) {
-        return this.isSupported() ? this : other;
-    }
-
-    public static XEntityType of(Entity entity) {
+    @NotNull
+    public static XEntityType of(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "Cannot match entity type from null entity");
         return of(entity.getType());
     }
 
-    public static XEntityType of(EntityType entityType) {
-        Objects.requireNonNull(entityType, "Cannot match null entity type");
-        XEntityType mapping = Data.BUKKIT_MAPPING.get(entityType);
-        if (mapping != null) return mapping;
-        throw new UnsupportedOperationException("Unknown entity type: " + entityType);
+    @NotNull
+    public static XEntityType of(@NotNull EntityType entityType) {
+        return REGISTRY.getByBukkitForm(entityType);
     }
 
-    public static Optional<XEntityType> of(String entityType) {
-        Objects.requireNonNull(entityType, "Cannot match null entity type");
-        return Optional.ofNullable(Data.NAME_MAPPING.get(entityType));
+    public static Optional<XEntityType> of(@NotNull String entityType) {
+        return REGISTRY.getByName(entityType);
     }
 
+    @Override
+    public String[] getNames() {
+        return new String[]{name()};
+    }
+
+    @Override
     public EntityType get() {
         return entityType;
     }

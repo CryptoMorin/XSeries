@@ -448,8 +448,7 @@ public class XWorldBorder implements Cloneable {
     }
 
     public XWorldBorder send(boolean forceInit) {
-        Player player = getPlayer();
-        if (player == null) return this;
+        Player player = Objects.requireNonNull(getPlayer(), "No player set for world border");
         boolean init = forceInit || this.init;
         this.init = false;
 

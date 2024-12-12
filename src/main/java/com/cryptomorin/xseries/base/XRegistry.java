@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.base;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,12 +39,27 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @ApiStatus.Internal
-public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitForm> implements Iterable<XForm> {
+public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm> implements Iterable<XForm> {
     /**
      * Lenient system that adds unknown values automatically on the fly.
-     * Should be turned off for {@code DifferenceHelper}.
+     * Should be turned off for {@code DifferenceHelper} which is handled
+     * by reflection.
      */
-    private static final boolean PERFORM_AUTO_ADD = true;
+    @SuppressWarnings("FieldMayBeFinal")
+    private static boolean PERFORM_AUTO_ADD = true;
+
+    private static final boolean KEYED_EXISTS;
+
+    static {
+        boolean keyedExists = false;
+        try {
+            Class.forName("org.bukkit.Keyed");
+            keyedExists = true;
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        KEYED_EXISTS = keyedExists;
+    }
 
     /**
      * All entries are lowercase.
@@ -60,9 +76,10 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     private final Function<Integer, XForm[]> createArray;
     private final String registryName;
 
-    private final boolean supportsRegistry, isEnum;
+    private final boolean supportsRegistry, isBukkitEnum;
     private boolean pulled = false;
 
+    @ApiStatus.Internal
     public XRegistry(Class<BukkitForm> bukkitFormClass, Class<XForm> xFormClass,
                      Supplier<Object> registrySupplier,
                      BiFunction<BukkitForm, String[], XForm> creator,
@@ -75,34 +92,42 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
             supported = false;
         }
 
-        this.bukkitFormClass = bukkitFormClass;
-        this.xFormClass = xFormClass;
+        this.bukkitFormClass = Objects.requireNonNull(bukkitFormClass);
+        this.xFormClass = Objects.requireNonNull(xFormClass);
         this.registryName = this.bukkitFormClass.getSimpleName();
         this.registrySupplier = registrySupplier;
-        this.createArray = createArray;
+        this.createArray = Objects.requireNonNull(createArray);
         this.creator = creator;
 
         // Just because the registry exists, doesn't necessarily mean that
         // the class itself cannot be an enum.
         supportsRegistry = supported;
-        isEnum = bukkitFormClass.isEnum();
+        isBukkitEnum = bukkitFormClass.isEnum();
 
-        if (!supportsRegistry && !isEnum) {
+        if (!supportsRegistry && !isBukkitEnum) {
             throw new IllegalStateException("Bukkit form is neither an enum nor a registry " + bukkitFormClass);
         }
     }
 
+    @ApiStatus.Internal
+    public XRegistry(Class<BukkitForm> bukkitFormClass, Class<XForm> xFormClass, Function<Integer, XForm[]> createArray) {
+        this(bukkitFormClass, xFormClass, null, null, createArray);
+    }
+
+    @ApiStatus.Internal
     public Map<String, XForm> nameMapping() {
         return nameMappings;
     }
 
-    public Map<BukkitForm, XForm> mapping() {
+    @ApiStatus.Internal
+    public Map<BukkitForm, XForm> bukkitMapping() {
         return bukkitToX;
     }
 
     private void pullValues() {
         if (!pulled) {
             pulled = true;
+            if (creator == null) return;
             // pullFieldNames();
             if (PERFORM_AUTO_ADD) pullSystemValues();
         }
@@ -139,9 +164,9 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     @SuppressWarnings("unchecked")
     private void pullSystemValues() {
         // Enum-life names
-        if (isEnum) {
+        if (isBukkitEnum) {
             for (BukkitForm bukkitForm : bukkitFormClass.getEnumConstants()) {
-                std(bukkitForm);
+                std(((Enum<?>) bukkitForm).name(), bukkitForm);
             }
         } else {
             processEnumLikeFields(bukkitFormClass, (name, bukkit) -> {
@@ -162,7 +187,8 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
     private BukkitForm valueOf(String name) {
         name = name.toUpperCase(Locale.ENGLISH).replace('.', '_');
         Class<Enum> clazz = (Class<Enum>) bukkitFormClass;
-        return (BukkitForm) Enum.valueOf(clazz, name);
+        BukkitForm bukkitForm = (BukkitForm) Enum.valueOf(clazz, name);
+        return bukkitForm;
     }
 
     private Registry<?> bukkitRegistry() {
@@ -233,8 +259,10 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         XForm mapping = bukkitToX.get(bukkit);
 
         if (mapping == null) {
+            if (creator == null)
+                throw new UnsupportedOperationException("Unsupported value for " + registryName + ": " + bukkit);
             XForm xForm = std(bukkit);
-            if (xForm == null) throw new UnsupportedOperationException("Unknown " + registryName + ": " + bukkit);
+            if (xForm == null) throw new IllegalStateException("Unknown " + registryName + ": " + bukkit);
         }
 
         return mapping;
@@ -248,14 +276,18 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         return Optional.ofNullable(nameMappings.get(normalizeName(name)));
     }
 
+    @SuppressWarnings("deprecation")
     @ApiStatus.Internal
     public static String getName(Object bukkitForm) {
         Objects.requireNonNull(bukkitForm, "Cannot get name of a null bukkit form");
 
         if (bukkitForm instanceof Enum) {
             return ((Enum<?>) bukkitForm).name();
-        } else if (bukkitForm instanceof Keyed) {
+        } else if (KEYED_EXISTS && bukkitForm instanceof Keyed) {
             return ((Keyed) bukkitForm).getKey().toString();
+        } else if (bukkitForm instanceof PotionEffectType) {
+            // For older versions which didn't even have Keyed (as far as v1.16?)
+            return ((PotionEffectType) bukkitForm).getName();
         } else {
             throw new AssertionError("Unknown xform type: " + bukkitForm + " (" + bukkitForm.getClass() + ')');
         }
@@ -326,8 +358,13 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
             // This happens in very rare cases, such as Biome's:
             // Biome CUSTOM = Bukkit.getUnsafe().getCustomBiome();
             // These values are not registered in the registry, but available for use.
+
+            // This could also happen if registry is supported but the Bukkit classes uses an enum
+            // in that case enum names are not supported with namespace type (even if we uppercase
+            // it, we don't know the placement of dots instead of underscores)
             if (extraFieldName == null) {
-                throw new IllegalArgumentException("Unknown standard bukkit form: " + bukkit + " named " + name);
+                throw new IllegalArgumentException("Unknown standard bukkit form for " + registryName + ": " + bukkit
+                        + (bukkit.toString().equals(name) ? "" : (" (" + name + ')')));
             }
         }
 
@@ -347,6 +384,21 @@ public final class XRegistry<XForm extends XModule<XForm, BukkitForm>, BukkitFor
         BukkitForm bukkit = getBukkit(names);
         XForm xForm = creator.apply(bukkit, names);
         return std(xForm);
+    }
+
+    @ApiStatus.Internal
+    public BukkitForm stdEnum(XForm xForm, String[] names) {
+        // Doesn't matter if it's not supported, we should still create it.
+        String enumName = xForm.name();
+        BukkitForm bukkit = getBukkit(new String[]{enumName});
+        if (bukkit == null) bukkit = getBukkit(names);
+
+        registerName(enumName, xForm);
+        for (String name : names) {
+            registerName(name, xForm);
+        }
+        if (bukkit != null) bukkitToX.put(bukkit, xForm);
+        return bukkit;
     }
 
     @ApiStatus.Internal
