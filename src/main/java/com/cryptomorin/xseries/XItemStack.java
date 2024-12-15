@@ -35,7 +35,6 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.banner.Pattern;
-import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -84,6 +83,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @see XSkull
  * @see XEnchantment
  * @see ItemStack
+ * @see XPatternType
  */
 public final class XItemStack {
     public static final boolean SUPPORTS_CUSTOM_MODEL_DATA;
@@ -93,8 +93,6 @@ public final class XItemStack {
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
     private static final boolean SUPPORTS_POTION_COLOR, SUPPORTS_Inventory_getStorageContents;
-    private static final Object REGISTRY_BANNER_PATTERN = supportsRegistry("BANNER_PATTERN");
-    private static final PatternType DEFAULT_PATTERN_TYPE = getPatternType("BASE");
 
     static {
         boolean supportsPotionColor = false, supportsGetStorageContents = false;
@@ -107,11 +105,11 @@ public final class XItemStack {
         try {
             Inventory.class.getDeclaredMethod("getStorageContents");
             supportsGetStorageContents = true;
-        } catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException ignored) {
         }
 
         SUPPORTS_POTION_COLOR = supportsPotionColor;
-        SUPPORTS_Inventory_getStorageContents = true;
+        SUPPORTS_Inventory_getStorageContents = supportsGetStorageContents;
     }
 
     static {
@@ -165,14 +163,6 @@ public final class XItemStack {
 
         if (type == null) return (T) defaultValue;
         return type;
-    }
-
-    @NotNull
-    private static PatternType getPatternType(@Nullable String name) {
-        return getRegistryOrEnum(
-                PatternType.class, REGISTRY_BANNER_PATTERN,
-                name, DEFAULT_PATTERN_TYPE
-        );
     }
 
     private XItemStack() {}
@@ -251,7 +241,7 @@ public final class XItemStack {
 
         // Enchantments
         for (Map.Entry<Enchantment, Integer> enchant : meta.getEnchants().entrySet()) {
-            String entry = "enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
+            String entry = "enchants." + XEnchantment.of(enchant.getKey()).name();
             config.set(entry, enchant.getValue());
         }
 
@@ -298,7 +288,7 @@ public final class XItemStack {
         } else if (meta instanceof EnchantmentStorageMeta) {
             EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
             for (Map.Entry<Enchantment, Integer> enchant : book.getStoredEnchants().entrySet()) {
-                String entry = "stored-enchants." + XEnchantment.matchXEnchantment(enchant.getKey()).name();
+                String entry = "stored-enchants." + XEnchantment.of(enchant.getKey()).name();
                 config.set(entry, enchant.getValue());
             }
         } else if (meta instanceof SkullMeta) {
@@ -733,10 +723,11 @@ public final class XItemStack {
 
             if (patterns != null) {
                 for (String pattern : patterns.getKeys(false)) {
-                    PatternType type = getPatternType(pattern);
-                    DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
-
-                    banner.addPattern(new Pattern(color, type));
+                    Optional<XPatternType> patternType = XPatternType.of(pattern);
+                    if (patternType.isPresent() && patternType.get().isSupported()) {
+                        DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
+                        banner.addPattern(new Pattern(color, patternType.get().get()));
+                    }
                 }
             }
         } else if (meta instanceof LeatherArmorMeta) {
@@ -823,10 +814,11 @@ public final class XItemStack {
 
                 if (patterns != null) {
                     for (String pattern : patterns.getKeys(false)) {
-                        PatternType type = getPatternType(pattern);
-                        DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
-
-                        banner.addPattern(new Pattern(color, type));
+                        Optional<XPatternType> patternType = XPatternType.of(pattern);
+                        if (patternType.isPresent() && patternType.get().isSupported()) {
+                            DyeColor color = Enums.getIfPresent(DyeColor.class, patterns.getString(pattern).toUpperCase(Locale.ENGLISH)).or(DyeColor.WHITE);
+                            banner.addPattern(new Pattern(color, patternType.get().get()));
+                        }
                     }
 
                     banner.update(true);
@@ -1078,7 +1070,7 @@ public final class XItemStack {
         ConfigurationSection enchants = config.getConfigurationSection("enchants");
         if (enchants != null) {
             for (String ench : enchants.getKeys(false)) {
-                Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
+                Optional<XEnchantment> enchant = XEnchantment.of(ench);
                 enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.getEnchant(), enchants.getInt(ench), true));
             }
         } else if (config.getBoolean("glow")) {
@@ -1090,7 +1082,7 @@ public final class XItemStack {
         ConfigurationSection enchantment = config.getConfigurationSection("stored-enchants");
         if (enchantment != null) {
             for (String ench : enchantment.getKeys(false)) {
-                Optional<XEnchantment> enchant = XEnchantment.matchXEnchantment(ench);
+                Optional<XEnchantment> enchant = XEnchantment.of(ench);
                 EnchantmentStorageMeta book = (EnchantmentStorageMeta) meta;
                 enchant.ifPresent(xEnchantment -> book.addStoredEnchant(xEnchantment.getEnchant(), enchantment.getInt(ench), true));
             }

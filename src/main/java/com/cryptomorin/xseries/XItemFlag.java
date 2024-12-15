@@ -119,7 +119,7 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
      * @see #HIDE_ENCHANTS for hiding actual enchants rather than the stored ones.
      * @see org.bukkit.inventory.meta.EnchantmentStorageMeta
      */
-    @XInfo(since = "1.21.4")
+    @XInfo(since = "1.21.3")
     HIDE_STORED_ENCHANTS,
 
     /**

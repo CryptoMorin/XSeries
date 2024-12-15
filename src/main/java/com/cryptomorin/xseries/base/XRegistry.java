@@ -21,9 +21,11 @@
  */
 package com.cryptomorin.xseries.base;
 
+import com.cryptomorin.xseries.base.annotations.XMerge;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +39,16 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+/**
+ * A registry similar to Bukkit's {@link Registry}. It holds values as a form of {@link XBase} and
+ * allows cross-version name mappings and also direct bukkit-to-xform mappings as well.
+ * @param <XForm> The type used within this library.
+ * @param <BukkitForm> The corresponding Bukkit type of the {@link XForm}.
+ * @see XBase
+ * @see XModule
+ */
 @ApiStatus.Internal
 public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm> implements Iterable<XForm> {
     /**
@@ -76,7 +87,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     private final Function<Integer, XForm[]> createArray;
     private final String registryName;
 
-    private final boolean supportsRegistry, isBukkitEnum;
+    private final boolean supportsRegistry;
+    private final ClassType bukkitClassType;
     private boolean pulled = false;
 
     @ApiStatus.Internal
@@ -102,11 +114,21 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         // Just because the registry exists, doesn't necessarily mean that
         // the class itself cannot be an enum.
         supportsRegistry = supported;
-        isBukkitEnum = bukkitFormClass.isEnum();
-
-        if (!supportsRegistry && !isBukkitEnum) {
-            throw new IllegalStateException("Bukkit form is neither an enum nor a registry " + bukkitFormClass);
+        if (bukkitFormClass.isEnum()) {
+            bukkitClassType = ClassType.ENUM;
+        } else if (Modifier.isAbstract(bukkitFormClass.getModifiers())) {
+            bukkitClassType = ClassType.ABSTRACTION;
+        } else {
+            bukkitClassType = null;
         }
+
+        if (!supportsRegistry && bukkitClassType == null) {
+            throw new IllegalStateException("Bukkit form is not an enum, abstraction or a registry " + bukkitFormClass);
+        }
+    }
+
+    private enum ClassType {
+        ENUM, ABSTRACTION;
     }
 
     @ApiStatus.Internal
@@ -115,13 +137,22 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     }
 
     @ApiStatus.Internal
+    @NotNull
     public Map<String, XForm> nameMapping() {
         return nameMappings;
     }
 
     @ApiStatus.Internal
+    @NotNull
     public Map<BukkitForm, XForm> bukkitMapping() {
         return bukkitToX;
+    }
+
+    /**
+     * Gets the name of the registry, which is usually the bukkit form's simple class name.
+     */
+    public String getName() {
+        return registryName;
     }
 
     private void pullValues() {
@@ -148,7 +179,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         }
     }
 
-    private void registerName(String name, XForm xForm) {
+    @ApiStatus.Internal
+    public void registerName(String name, XForm xForm) {
         nameMappings.put(normalizeName(name), xForm);
     }
 
@@ -164,7 +196,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     @SuppressWarnings("unchecked")
     private void pullSystemValues() {
         // Enum-life names
-        if (isBukkitEnum) {
+        if (bukkitClassType == ClassType.ENUM) {
             for (BukkitForm bukkitForm : bukkitFormClass.getEnumConstants()) {
                 std(((Enum<?>) bukkitForm).name(), bukkitForm);
             }
@@ -187,10 +219,25 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     private BukkitForm valueOf(String name) {
         name = name.toUpperCase(Locale.ENGLISH).replace('.', '_');
         Class<Enum> clazz = (Class<Enum>) bukkitFormClass;
-        BukkitForm bukkitForm = (BukkitForm) Enum.valueOf(clazz, name);
-        return bukkitForm;
+
+        try {
+            return (BukkitForm) Enum.valueOf(clazz, name);
+        } catch (IllegalArgumentException ignored) {
+            // Thrown even if this is not an enum, which shouldn't happen.
+            return null;
+        }
     }
 
+    @SuppressWarnings("unchecked")
+    private BukkitForm fieldOf(String name) {
+        try {
+            return (BukkitForm) bukkitFormClass.getDeclaredField(name).get(null);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            return null;
+        }
+    }
+
+    @NotNull
     private Registry<?> bukkitRegistry() {
         return ((Registry<?>) registrySupplier.get());
     }
@@ -199,6 +246,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     @Nullable
     protected BukkitForm getBukkit(String[] names) {
         for (String name : names) {
+            BukkitForm bukkitForm;
+
             if (supportsRegistry) {
                 name = name.toLowerCase(Locale.ENGLISH);
                 // if (!name.equals(name.toLowerCase(Locale.ENGLISH))) {
@@ -211,13 +260,18 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
                 else key = NamespacedKey.minecraft(name);
 
                 Keyed bukkit = bukkitRegistry().get(key);
-                return (BukkitForm) bukkit;
+                if (bukkit != null) bukkitForm = (BukkitForm) bukkit;
+                else bukkitForm = null;
+            } else if (bukkitClassType == ClassType.ENUM) {
+                bukkitForm = valueOf(name);
+            } else if (bukkitClassType == ClassType.ABSTRACTION) {
+                // For classes like the Enchantment class for older versions.
+                bukkitForm = fieldOf(name);
             } else {
-                try {
-                    return valueOf(name);
-                } catch (IllegalArgumentException ignored) {
-                }
+                throw new AssertionError("None of the class strategies worked for " + this);
             }
+
+            if (bukkitForm != null) return bukkitForm;
         }
         return null;
     }
@@ -226,6 +280,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
      * @see #values()
      */
     @Unmodifiable
+    @NotNull
     public Collection<XForm> getValues() {
         pullValues();
 
@@ -254,11 +309,14 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         return getValues().iterator();
     }
 
+    @NotNull
     public XForm getByBukkitForm(BukkitForm bukkit) {
         Objects.requireNonNull(bukkit, () -> "Cannot match null " + registryName);
         XForm mapping = bukkitToX.get(bukkit);
 
         if (mapping == null) {
+            if (!PERFORM_AUTO_ADD) // If you ever get this error, it could mean that you're not following Minecraft's new dot separated namespace format.
+                throw new UnsupportedOperationException("Unknown standard bukkit form (no auto-add) for " + registryName + ": " + bukkit);
             if (creator == null)
                 throw new UnsupportedOperationException("Unsupported value for " + registryName + ": " + bukkit);
             XForm xForm = std(bukkit);
@@ -278,7 +336,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
 
     @SuppressWarnings("deprecation")
     @ApiStatus.Internal
-    public static String getName(Object bukkitForm) {
+    @NotNull
+    public static String getBukkitName(@NotNull Object bukkitForm) {
         Objects.requireNonNull(bukkitForm, "Cannot get name of a null bukkit form");
 
         if (bukkitForm instanceof Enum) {
@@ -288,6 +347,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         } else if (bukkitForm instanceof PotionEffectType) {
             // For older versions which didn't even have Keyed (as far as v1.16?)
             return ((PotionEffectType) bukkitForm).getName();
+        } else if (bukkitForm instanceof Enchantment) {
+            return ((Enchantment) bukkitForm).getName();
         } else {
             throw new AssertionError("Unknown xform type: " + bukkitForm + " (" + bukkitForm.getClass() + ')');
         }
@@ -352,7 +413,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         XForm xForm = bukkitToX.get(bukkit);
         if (xForm != null) return xForm;
 
-        String name = getName(bukkit);
+        String name = getBukkitName(bukkit);
 
         if (getBukkit(new String[]{name}) == null) {
             // This happens in very rare cases, such as Biome's:
@@ -388,10 +449,29 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
 
     @ApiStatus.Internal
     public BukkitForm stdEnum(XForm xForm, String[] names) {
-        // Doesn't matter if it's not supported, we should still create it.
         String enumName = xForm.name();
+
+        boolean merged = false;
         BukkitForm bukkit = getBukkit(new String[]{enumName});
         if (bukkit == null) bukkit = getBukkit(names);
+        if (bukkit == null) {
+            bukkit = registerMerged(xForm);
+            merged = true;
+        }
+
+        return stdEnum0(xForm, names, bukkit, merged);
+    }
+
+    public BukkitForm stdEnum(XForm xForm, String[] names, BukkitForm bukkit) {
+        return stdEnum0(xForm, names, bukkit, false);
+    }
+
+    @ApiStatus.Internal
+    private BukkitForm stdEnum0(XForm xForm, String[] names, BukkitForm bukkit, boolean merged) {
+        // Doesn't matter if it's not supported, we should still create it.
+        String enumName = xForm.name();
+
+        if (!merged) registerMerged(xForm);
 
         registerName(enumName, xForm);
         for (String name : names) {
@@ -399,6 +479,22 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         }
         if (bukkit != null) bukkitToX.put(bukkit, xForm);
         return bukkit;
+    }
+
+    private BukkitForm registerMerged(XForm xForm) {
+        try {
+            Field formField = xForm.getClass().getDeclaredField(xForm.name());
+            XMerge[] merges = formField.getAnnotationsByType(XMerge.class);
+            BukkitForm mergedBukkit = null;
+            for (XMerge merge : merges) { // Will be an empty array if null.
+                mergedBukkit = getBukkit(new String[]{merge.name()});
+                registerName(merge.name(), xForm);
+                if (mergedBukkit != null) bukkitToX.put(mergedBukkit, xForm);
+            }
+            return mergedBukkit;
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @ApiStatus.Internal
@@ -421,5 +517,18 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         }
         if (xForm.isSupported()) bukkitToX.put(xForm.get(), xForm);
         return xForm;
+    }
+
+    @Override
+    public String toString() {
+        return "XRegistry<" + registryName + ">(" +
+                "nameMappings=" + nameMappings.size() + ", bukkitToX=" + bukkitToX.size() +
+                ", bukkitFormClass=" + bukkitFormClass.getName() +
+                ", xFormClass=" + xFormClass.getName() +
+                ", supportsRegistry=" + supportsRegistry +
+                ", bukkitFormClassType=" + bukkitClassType +
+                ", pulled=" + pulled +
+                ", values=[" + bukkitToX.values().stream().limit(10).map(XBase::name).collect(Collectors.joining(", ")) + ']' +
+                ')';
     }
 }

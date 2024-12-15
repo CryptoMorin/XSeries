@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
  * @author Crypto Morin
  * @version 12.0.0
  * @see Material
+ * @see XItemStack
  * @see ItemStack
  */
 public enum XMaterial implements XBase<XMaterial, Material> {
@@ -196,7 +197,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     BLACK_CARPET(15, "CARPET"),
     BLACK_CONCRETE(15, "CONCRETE"),
     BLACK_CONCRETE_POWDER(15, "CONCRETE_POWDER"),
-    BLACK_DYE(0, "INK_SACK"),
+    BLACK_DYE(0, "INK_SACK", "INK_SAC"),
     BLACK_GLAZED_TERRACOTTA,
     BLACK_SHULKER_BOX,
     BLACK_STAINED_GLASS(15, "STAINED_GLASS"),

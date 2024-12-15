@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XModule;
 import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
@@ -120,7 +121,7 @@ public final class XSound extends XModule<XSound, Sound> {
             BLOCK_STONE_PRESSURE_PLATE_CLICK_OFF = std("block.stone_pressure_plate.click_off", "BLOCK_STONE_PRESSUREPLATE_CLICK_OFF"),
             BLOCK_STONE_PRESSURE_PLATE_CLICK_ON = std("block.stone_pressure_plate.click_on", "BLOCK_STONE_PRESSUREPLATE_CLICK_ON"),
             BLOCK_STONE_STEP = std("block.stone.step", "STEP_STONE"),
-            BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES = std("block.sweet_berry_bush.pick_berries", "ITEM_SWEET_BERRIES_PICK_FROM_BUSH"),
+            BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES = std("block.sweet_berry_bush.pick_berries", "item.sweet_berries.pick_from_bush"),
             BLOCK_WATER_AMBIENT = std("block.water.ambient", "WATER"),
             BLOCK_WET_GRASS_PLACE = std("block.wet_grass.place", "BLOCK_WET_GRASS_HIT"),
             BLOCK_WET_GRASS_STEP = std("block.wet_grass.step", "BLOCK_WET_GRASS_HIT"),
@@ -133,7 +134,7 @@ public final class XSound extends XModule<XSound, Sound> {
             BLOCK_WOOD_BREAK = std("block.wood.break", "DIG_WOOD"),
             BLOCK_WOOD_STEP = std("block.wood.step", "STEP_WOOD"),
             BLOCK_WOOL_BREAK = std("block.wool.break", "DIG_WOOL", "BLOCK_CLOTH_BREAK"),
-            BLOCK_WOOL_HIT = std("block.wool.hit", "BLOCK_WOOL_FALL", "BLOCK_CLOTH_FALL", "BLOCK_CLOTH_HIT"),
+            BLOCK_WOOL_HIT = std("block.wool.hit", "BLOCK_CLOTH_HIT"),
             BLOCK_WOOL_PLACE = std("block.wool.place", "BLOCK_WOOL_FALL", "BLOCK_CLOTH_PLACE"),
             BLOCK_WOOL_STEP = std("block.wool.step", "STEP_WOOL", "BLOCK_CLOTH_STEP"),
             ENTITY_ARMOR_STAND_BREAK = std("entity.armor_stand.break", "ENTITY_ARMORSTAND_BREAK"),
@@ -183,7 +184,7 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_ENDER_DRAGON_GROWL = std("entity.ender_dragon.growl", "ENDERDRAGON_GROWL", "ENTITY_ENDERDRAGON_GROWL"),
             ENTITY_ENDER_DRAGON_HURT = std("entity.ender_dragon.hurt", "ENDERDRAGON_HIT", "ENTITY_ENDERDRAGON_HURT"),
             ENTITY_ENDER_DRAGON_SHOOT = std("entity.ender_dragon.shoot", "ENTITY_ENDERDRAGON_SHOOT"),
-            ENTITY_ENDER_EYE_LAUNCH = std("entity.ender_eye.launch", "ENTITY_ENDER_EYE_DEATH", "ENTITY_ENDEREYE_DEATH", "ENTITY_ENDEREYE_LAUNCH"),
+            ENTITY_ENDER_EYE_LAUNCH = std("entity.ender_eye.launch", "ENTITY_ENDEREYE_LAUNCH"),
             ENTITY_ENDER_PEARL_THROW = std("entity.ender_pearl.throw", "ENTITY_ENDERPEARL_THROW"),
             ENTITY_EVOKER_AMBIENT = std("entity.evoker.ambient", "ENTITY_EVOCATION_ILLAGER_AMBIENT"),
             ENTITY_EVOKER_CAST_SPELL = std("entity.evoker.cast_spell", "ENTITY_EVOCATION_ILLAGER_CAST_SPELL"),
@@ -298,8 +299,8 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_SKELETON_STEP = std("entity.skeleton.step", "SKELETON_WALK"),
             ENTITY_SLIME_ATTACK = std("entity.slime.attack", "SLIME_ATTACK"),
             ENTITY_SLIME_HURT_SMALL = std("entity.slime.hurt_small", "ENTITY_SMALL_SLIME_HURT"),
-            ENTITY_SLIME_JUMP = std("entity.slime.jump", "SLIME_WALK", "ENTITY_SMALL_SLIME_DEATH"),
-            ENTITY_SLIME_JUMP_SMALL = std("entity.slime.jump_small", "SLIME_WALK2", "ENTITY_SMALL_SLIME_SQUISH", "ENTITY_SMALL_SLIME_JUMP"),
+            ENTITY_SLIME_JUMP = std("entity.slime.jump", "SLIME_WALK"),
+            ENTITY_SLIME_JUMP_SMALL = std("entity.slime.jump_small", "SLIME_WALK2", "ENTITY_SMALL_SLIME_JUMP"),
             ENTITY_SLIME_SQUISH = std("entity.slime.squish", "SLIME_WALK2"),
             ENTITY_SLIME_SQUISH_SMALL = std("entity.slime.squish_small", "ENTITY_SMALL_SLIME_SQUISH"),
             ENTITY_SNOW_GOLEM_AMBIENT = std("entity.snow_golem.ambient", "ENTITY_SNOWMAN_AMBIENT"),
@@ -1061,7 +1062,7 @@ public final class XSound extends XModule<XSound, Sound> {
             BLOCK_WOOD_FALL = std("block.wood.fall"),
             BLOCK_WOOD_HIT = std("block.wood.hit"),
             BLOCK_WOOD_PLACE = std("block.wood.place"),
-            BLOCK_WOOL_FALL = std("block.wool.fall"),
+            BLOCK_WOOL_FALL = std("block.wool.fall", "BLOCK_WOOL_FALL", "BLOCK_CLOTH_FALL"),
             ENCHANT_THORNS_HIT = std("enchant.thorns.hit"),
             ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM = std("entity.allay.ambient_without_item"),
             ENTITY_ALLAY_AMBIENT_WITH_ITEM = std("entity.allay.ambient_with_item"),
@@ -1185,7 +1186,7 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_ENDERMITE_DEATH = std("entity.endermite.death"),
             ENTITY_ENDERMITE_HURT = std("entity.endermite.hurt"),
             ENTITY_ENDERMITE_STEP = std("entity.endermite.step"),
-            ENTITY_ENDER_EYE_DEATH = std("entity.ender_eye.death"),
+            ENTITY_ENDER_EYE_DEATH = std("entity.ender_eye.death", "ENTITY_ENDER_EYE_DEATH", "ENTITY_ENDEREYE_DEATH"),
             ENTITY_EVOKER_CELEBRATE = std("entity.evoker.celebrate"),
             ENTITY_EXPERIENCE_BOTTLE_THROW = std("entity.experience_bottle.throw"),
             ENTITY_FIREWORK_ROCKET_SHOOT = std("entity.firework_rocket.shoot", "ENTITY_FIREWORK_SHOOT"),
@@ -1429,8 +1430,8 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_SKELETON_HORSE_STEP_WATER = std("entity.skeleton_horse.step_water"),
             ENTITY_SKELETON_HORSE_SWIM = std("entity.skeleton_horse.swim"),
             ENTITY_SKELETON_SHOOT = std("entity.skeleton.shoot"),
-            ENTITY_SLIME_DEATH = std("entity.slime.death"),
-            ENTITY_SLIME_DEATH_SMALL = std("entity.slime.death_small"),
+            ENTITY_SLIME_DEATH = std("entity.slime.death", "ENTITY_SMALL_SLIME_DEATH"),
+            ENTITY_SLIME_DEATH_SMALL = std("entity.slime.death_small", "ENTITY_SMALL_SLIME_DEATH"),
             ENTITY_SLIME_HURT = std("entity.slime.hurt"),
             ENTITY_SNIFFER_DEATH = std("entity.sniffer.death"),
             ENTITY_SNIFFER_DIGGING = std("entity.sniffer.digging"),
@@ -1714,35 +1715,31 @@ public final class XSound extends XModule<XSound, Sound> {
             BLOCK_EYEBLOSSOM_OPEN = std("block.eyeblossom.open"),
             BLOCK_RESIN_BRICKS_HIT = std("block.resin_bricks.hit"),
             BLOCK_EYEBLOSSOM_OPEN_LONG = std("block.eyeblossom.open_long");
-    /**
-     * ENTITY_GENERIC_WIND_BURST -> ENTITY_WIND_CHARGE_WIND_BURST (v1.20.5)
-     */
 
+    @XChange(version = "v1.20.5", from = "ENTITY_GENERIC_WIND_BURST", to = "ENTITY_WIND_CHARGE_WIND_BURST")
     public static final XSound ENTITY_WIND_CHARGE_WIND_BURST = std("entity.wind_charge.wind_burst", "ENTITY_GENERIC_WIND_BURST");
-    /**
-     * Removed in v1.21.3
-     */
-    @Deprecated
-    public static final XSound
-            MUSIC_OVERWORLD_JUNGLE_AND_FOREST = std("MUSIC_OVERWORLD_JUNGLE_AND_FOREST"),
-            BLOCK_TRIAL_SPAWNER_AMBIENT_CHARGED = std("BLOCK_TRIAL_SPAWNER_AMBIENT_CHARGED"),
-            BLOCK_TRIAL_SPAWNER_CHARGE_ACTIVATE = std("BLOCK_TRIAL_SPAWNER_CHARGE_ACTIVATE"),
-            ENTITY_GOAT_SCREAMING_HORN_BREAK = std("ENTITY_GOAT_SCREAMING_HORN_BREAK");
 
-    /**
-     * Removed in v1.20
-     */
+    @XInfo(since = "?", removedSince = "1.21.3")
     @Deprecated
     public static final XSound
-            ITEM_BRUSH_BRUSH_SAND_COMPLETED = std("ITEM_BRUSH_BRUSH_SAND_COMPLETED"),
-            ITEM_GOAT_HORN_PLAY = std("ITEM_GOAT_HORN_PLAY"),
-            ITEM_BRUSH_BRUSHING = std("ITEM_BRUSH_BRUSHING");
+            MUSIC_OVERWORLD_JUNGLE_AND_FOREST = std("music.overworld.jungle_and_forest"),
+            BLOCK_TRIAL_SPAWNER_AMBIENT_CHARGED = std("block.trial_spawner.ambient_charged"),
+            BLOCK_TRIAL_SPAWNER_CHARGE_ACTIVATE = std("block.trial_spawner.charge_activate"),
+            ENTITY_GOAT_SCREAMING_HORN_BREAK = std("entity.goat.screaming.horn_break");
+
+    @XInfo(since = "?", removedSince = "1.20")
+    @Deprecated
+    public static final XSound
+            ITEM_BRUSH_BRUSH_SAND_COMPLETED = std("item.brush.brush_sand_completed"),
+            ITEM_GOAT_HORN_PLAY = std("item.goat_horn.play"),
+            ITEM_BRUSH_BRUSHING = std("item.brush.brushing");
 
     @Deprecated
     @XInfo(since = "1.12", removedSince = "1.15")
     public static final XSound
             ENTITY_PARROT_IMITATE_WOLF = std("ENTITY_PARROT_IMITATE_WOLF"),
             ENTITY_PARROT_IMITATE_POLAR_BEAR = std("ENTITY_PARROT_IMITATE_POLAR_BEAR"),
+            ENTITY_PARROT_IMITATE_PANDA = std("ENTITY_PARROT_IMITATE_PANDA"),
             ENTITY_PARROT_IMITATE_ENDERMAN = std("ENTITY_PARROT_IMITATE_ENDERMAN");
 
     /**

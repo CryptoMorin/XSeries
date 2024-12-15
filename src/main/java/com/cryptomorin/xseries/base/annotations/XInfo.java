@@ -31,6 +31,4 @@ public @interface XInfo {
     String since();
 
     String removedSince() default "";
-
-    XChange[] changes() default @XChange(version = "", from = "", to = "");
 }

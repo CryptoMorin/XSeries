@@ -109,7 +109,7 @@ public final class ClassConverter {
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             writeTo(writer, "public final class XForm extends XModule<XForm, BForm> {}", xForm, bukkitForm, 1);
             writer.newLine();
-            writeTo(writer, "    private static final XRegistry<XForm, BForm> REGISTRY = \n" +
+            writeTo(writer, "    public static final XRegistry<XForm, BForm> REGISTRY = \n" +
                     "       new XRegistry<>(BForm.class, XForm.class, () -> Registry.UBForm, XForm::new, XForm[]::new);", xForm, bukkitForm);
 
             writer.newLine();

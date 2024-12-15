@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XBase;
 import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -124,13 +125,11 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     MINECART,
     MOOSHROOM("MUSHROOM_COW"),
     MULE,
-    /**
-     * BOAT -> OAK_BOAT (v1.21.2)
-     */
+
+    @XChange(version = "v1.21.2", from = "BOAT", to = "OAK_BOAT")
     OAK_BOAT("BOAT"),
-    /**
-     * CHEST_BOAT -> OAK_CHEST_BOAT (v1.21.2)
-     */
+
+    @XChange(version = "v1.21.2", from = "CHEST_BOAT", to = "OAK_CHEST_BOAT")
     OAK_CHEST_BOAT("CHEST_BOAT"),
     OCELOT,
     OMINOUS_ITEM_SPAWNER,

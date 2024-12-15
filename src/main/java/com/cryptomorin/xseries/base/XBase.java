@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
  *
  * @param <XForm>      the class type associated with the Bukkit type defined by XSeries.
  * @param <BukkitForm> the Bukkit class type associated with the XForm.
+ * @see XModule
  */
 public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
     /**

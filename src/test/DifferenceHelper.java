@@ -59,7 +59,7 @@ public final class DifferenceHelper {
         writeDifference(entityType, getEnumLikeFields(EntityType.class), XEntityType.class, null);
         writeDifference(itemFlag, getEnumLikeFields(ItemFlag.class), XItemFlag.class, null);
         writeDifference(potion, getEnumLikeFields(PotionEffectType.class), XPotion.class, null);
-        writeDifference(enchantment, getEnumLikeFields(Enchantment.class), XEnchantment.class, null);
+        writeDifference(enchantment, Enchantment.class, XEnchantment.REGISTRY, null);
 
         if (XReflection.supports(9))
             writeDifference(particle, getEnumLikeFields(Particle.class), XParticle.class, null);
@@ -163,7 +163,7 @@ public final class DifferenceHelper {
                 List<String> altNames = new ArrayList<>(5);
 
                 // For enums these two are the same.
-                String ns = systemConst.value == null ? null : XRegistry.getName(systemConst.value);
+                String ns = systemConst.value == null ? null : XRegistry.getBukkitName(systemConst.value);
                 Optional<X> byNsName = ns == null ? Optional.empty() : xRegistry.getByName(ns);
                 Optional<X> byFieldName = xRegistry.getByName(systemConst.name);
 

@@ -24,19 +24,12 @@ package com.cryptomorin.xseries.base.annotations;
 
 import java.lang.annotation.*;
 
-/**
- * Regex used:
- * * Search: {@code \s+/\*\*\s+\* (?<from>\w+) -> (?<to>\w+) \((?<version>[\w\.]+)\)\s+\*\/}
- * * Replace: {@code \n\n@XChange(version = "$3", from = "$1", to = "$2")}
- */
 @Target(ElementType.FIELD)
-@Retention(RetentionPolicy.SOURCE)
-@Repeatable(XChanges.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(XMerges.class)
 @Documented
-public @interface XChange {
+public @interface XMerge {
     String version();
 
-    String from();
-
-    String to();
+    String name();
 }

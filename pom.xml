@@ -6,7 +6,7 @@
 
     <groupId>com.github.cryptomorin</groupId>
     <artifactId>XSeries</artifactId>
-    <version>12.0.0</version>
+    <version>12.1.0</version>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
@@ -82,6 +82,7 @@
         <!-- 1.15.2-R0.1-SNAPSHOT -->
         <!-- 1.16.5-R0.1-SNAPSHOT -->
         <!-- 1.17.1-R0.1-SNAPSHOT -->
+        <!-- 1.18.2-R0.1-SNAPSHOT -->
         <!-- 1.19.4-R0.1-SNAPSHOT -->
         <!-- 1.20.6-R0.1-SNAPSHOT -->
         <!-- 1.21.1-R0.1-SNAPSHOT -->
@@ -95,7 +96,7 @@
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>
-        <testJava>21</testJava>
+        <testJava>11</testJava>
     </properties>
 
     <dependencies>
@@ -128,6 +129,26 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>[${testJava}]</version>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -241,7 +262,7 @@
                     <!-- You can also use the following argument from the cmd line: -->
                     <!-- <dash><dash>toolchains "\.m2\toolchains.xml" -->
                     <jdkToolchain>
-                        <version>${testJava}</version>
+                        <version>[${testJava}]</version>
                     </jdkToolchain>
                 </configuration>
             </plugin>
@@ -327,27 +348,6 @@
             </dependencies>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-toolchains-plugin</artifactId>
-                        <version>3.2.0</version>
-                        <executions>
-                            <execution>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>toolchain</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <toolchains>
-                                <jdk>
-                                    <version>[${testJava}]</version>
-                                </jdk>
-                            </toolchains>
-                        </configuration>
-                    </plugin>
-
                     <!--                    <plugin>-->
                     <!--                        &lt;!&ndash; For cleaning the tests folder that the server files are generated in &ndash;&gt;-->
                     <!--                        <artifactId>maven-clean-plugin</artifactId>-->
@@ -438,7 +438,7 @@
             <properties>
                 <nms>18_R1</nms>
                 <spigotVersion>1.18.2-R0.1-SNAPSHOT</spigotVersion>
-                <testJava>21</testJava>
+                <testJava>17</testJava>
             </properties>
         </profile>
         <profile>
@@ -446,7 +446,7 @@
             <properties>
                 <nms>17_R1</nms>
                 <spigotVersion>1.17.1-R0.1-SNAPSHOT</spigotVersion>
-                <testJava>21</testJava>
+                <testJava>17</testJava>
             </properties>
         </profile>
         <profile>
@@ -463,6 +463,22 @@
             <properties>
                 <nms>15_R3</nms>
                 <spigotVersion>1.15.2-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>11</testJava>
+            </properties>
+        </profile>
+        <profile>
+            <id>14</id>
+            <properties>
+                <nms>15_R3</nms>
+                <spigotVersion>1.14.4-R0.1-SNAPSHOT</spigotVersion>
+                <testJava>11</testJava>
+            </properties>
+        </profile>
+        <profile>
+            <id>13</id>
+            <properties>
+                <nms>15_R3</nms>
+                <spigotVersion>1.13.2-R0.1-SNAPSHOT</spigotVersion>
                 <testJava>11</testJava>
             </properties>
         </profile>

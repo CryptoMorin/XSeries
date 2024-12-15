@@ -21,10 +21,12 @@
  */
 package com.cryptomorin.xseries;
 
-import com.cryptomorin.xseries.base.annotations.XInfo;
+import com.cryptomorin.xseries.base.XBase;
+import com.cryptomorin.xseries.base.XRegistry;
 import com.google.common.base.Strings;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.inventory.ItemStack;
@@ -37,27 +39,46 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Potion type support for multiple aliases.
  * Uses EssentialsX potion list for aliases.
  * <p>
- * Duration: The duration of the effect in ticks. Values 0 or lower are treated as 1. Optional, and defaults to 1 tick.
- * Amplifier: The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
+ * <b>Duration:</b> The duration of the effect in ticks. Values 0 or lower are treated as 1. Optional, and defaults to 1 tick.
+ * <br>
+ * <b>Amplifier:</b> The amplifier of the effect, with level I having value 0. Optional, and defaults to level I.
+ * <p>
+ * There are two types of classes that we should distinguish between each other.
+ * A <b>Potion</b> is an {@link ItemStack} (with meta {@link PotionMeta}) that can have one or multiple {@link PotionEffectType}s.
+ * <ul>
+ *     <li>{@link PotionEffectType}: These are all the available Minecraft effects. Some of these effects cannot be gained in form of potions.</li>
+ *     <li>{@link PotionType}: A potion type doesn't only contain information about a {@link PotionEffectType} but also its amplifier and duration.
+ *        <ul>
+ *            <li>A PotionType with enhanced amplifier (level 2 amplifier) starts with the prefix {@code STRONG} (using {@link XMaterial#GLOWSTONE} within a {@link org.bukkit.block.BrewingStand}). These potions cannot have extended duration.</li>
+ *            <li>A PotionType with extended duration (base duration multiplied by {@code 2.666}) starts with the prefix {@code LONG} (using {@link XMaterial#REDSTONE} within a {@link org.bukkit.block.BrewingStand}). These potions cannot be enhanced.</li>
+ *            <li>{@link PotionType#AWKWARD} A potion with no effects (using {@link XMaterial#NETHER_WART} within a {@link org.bukkit.block.BrewingStand})</li>
+ *            <li>{@link PotionType#MUNDANE} Created when using {@link XMaterial#GLOWSTONE} on an {@link PotionType#AWKWARD} potion within a {@link org.bukkit.block.BrewingStand}.</li>
+ *            <li>{@link PotionType#THICK} Created when using {@link XMaterial#REDSTONE} on an {@link PotionType#AWKWARD} potion within a {@link org.bukkit.block.BrewingStand}.</li>
+ *            <li>{@link PotionType#TURTLE_MASTER} There is no {@link PotionEffectType} for this potion type because it's a combination of {@link PotionEffectType#SLOWNESS} and {@link PotionEffectType#RESISTANCE}, not a completely different PotionEffectType of itself.</li>
+ *        </ul>
+ *     </li>
+ *     <li>{@link PotionEffect} is a custom type of {@link PotionType} (with custom amplifier and duration) that is not defined by Vanilla potions.</li>
+ * </ul>
+ * With that being said, this class is mainly a {@link PotionEffectType} mapping. However, it does provide a few utilities
+ * for {@link PotionType} and maps them when possible.
  * <p>
  * EssentialsX Potions: https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/com/earth2me/essentials/Potions.java
  * Status Effect: https://minecraft.wiki/w/Status_effect
  * Potions: https://minecraft.wiki/w/Potion
  *
  * @author Crypto Morin
- * @version 4.1.0
+ * @version 5.0.0
  * @see PotionEffect
  * @see PotionEffectType
  * @see PotionType
  */
-public enum XPotion {
+public enum XPotion implements XBase<XPotion, PotionEffectType> {
     ABSORPTION("ABSORB"),
     BAD_OMEN("OMEN_BAD", "PILLAGER"),
     BLINDNESS("BLIND"),
@@ -72,9 +93,9 @@ public enum XPotion {
     HUNGER("STARVE", "HUNGRY"),
     INFESTED,
     INSTANT_DAMAGE("INJURE", "DAMAGE", "HARMING", "INFLICT", "HARM"),
-    INSTANT_HEALTH("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "HEAL"),
+    INSTANT_HEALTH("HEALTH", "INSTA_HEAL", "INSTANT_HEAL", "INSTA_HEALTH", "HEAL", /* Added because of PotionType, but it's vague */ "HEALING"),
     INVISIBILITY("INVISIBLE", "VANISH", "INVIS", "DISAPPEAR", "HIDE"),
-    JUMP_BOOST("LEAP", "JUMP"),
+    JUMP_BOOST("LEAP", /* Added because of PotionType.LEAPING */ "LEAPING", "JUMP"),
     LEVITATION("LEVITATE"),
     LUCK("LUCKY"),
     MINING_FATIGUE("SLOW_DIGGING", "FATIGUE", "DULL", "DIGGING", "SLOW_DIG", "DIG_SLOW"),
@@ -88,17 +109,9 @@ public enum XPotion {
     SATURATION("FOOD"),
     SLOWNESS("SLOW", "SLUGGISH"),
     SLOW_FALLING("SLOW_FALL", "FALL_SLOW"),
-    SPEED("SPRINT", "RUNFAST", "SWIFT", "FAST"),
+    SPEED("SPRINT", "RUNFAST", "SWIFT", /* Added because of PotionType.SWIFTNESS */ "SWIFTNESS", "FAST"),
     STRENGTH("INCREASE_DAMAGE", "BULL", "STRONG", "ATTACK"),
     TRIAL_OMEN,
-    /**
-     * Special type of effect. Minecraft itself doesn't recognize this as a separate potion type,
-     * but as a combination of two other potion types. However, Bukkit's {@link PotionType#TURTLE_MASTER} decided
-     * to add this, whereas {@link PotionEffectType} doesn't have such enum.
-     */
-    @XInfo(since = "1.21", removedSince = "1.21.3")
-    @Deprecated
-    TURTLE_MASTER,
     UNLUCK("UNLUCKY"),
     WATER_BREATHING("WATER_BREATH", "UNDERWATER_BREATHING", "UNDERWATER_BREATH", "AIR"),
     WEAKNESS("WEAK"),
@@ -118,7 +131,9 @@ public enum XPotion {
      * An unmodifiable set of "bad" potion effects.
      *
      * @since 1.1.0
+     * @deprecated Use {@link XTag#DEBUFFS} instead.
      */
+    @Deprecated
     public static final Set<XPotion> DEBUFFS = Collections.unmodifiableSet(EnumSet.of(
             BAD_OMEN, BLINDNESS, NAUSEA, INSTANT_DAMAGE, HUNGER, LEVITATION, POISON,
             SLOWNESS, MINING_FATIGUE, UNLUCK, WEAKNESS, WITHER)
@@ -132,21 +147,52 @@ public enum XPotion {
 
     static {
         for (XPotion pot : VALUES)
-            if (pot.type != null)
-                POTIONEFFECTTYPE_MAPPING[pot.type.getId()] = pot;
+            if (pot.potionEffectType != null)
+                POTIONEFFECTTYPE_MAPPING[pot.potionEffectType.getId()] = pot;
     }
 
-    private final PotionEffectType type;
+    public static final XRegistry<XPotion, PotionEffectType> REGISTRY = Data.REGISTRY;
+    private final PotionEffectType potionEffectType;
+    private final PotionType potionType;
 
+    @SuppressWarnings("deprecation")
     XPotion(@NotNull String... aliases) {
         PotionEffectType tempType = PotionEffectType.getByName(this.name());
-        Data.NAMES.put(this.name(), this);
         for (String legacy : aliases) {
-            Data.NAMES.put(legacy, this);
             if (tempType == null) tempType = PotionEffectType.getByName(legacy);
         }
         if (this.name().equals("TURTLE_MASTER")) tempType = findSlowness(); // Bukkit uses this too.
-        this.type = tempType;
+        this.potionEffectType = tempType;
+
+        // This basically just loops all the types and tries to match them
+        // against a registry.
+        // There are no potions for some effects.
+        this.potionType = PotionType.getByEffect(potionEffectType);
+        Data.REGISTRY.stdEnum(this, aliases, potionEffectType);
+
+        if (potionType != null) {
+            String basePotionType = potionType.name();
+            String strongPotionType = "STRONG_" + basePotionType;
+            String longPotionType = "LONG_" + basePotionType;
+
+            Data.POTION_TYPE_MAPPING.put(potionType, this);
+            try {
+                Data.POTION_TYPE_MAPPING.put(PotionType.valueOf(strongPotionType), this);
+                Data.REGISTRY.registerName(strongPotionType, this);
+            } catch (IllegalArgumentException ignored) {
+            }
+            try {
+                Data.POTION_TYPE_MAPPING.put(PotionType.valueOf(longPotionType), this);
+                Data.REGISTRY.registerName(longPotionType, this);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    private static final class Data {
+        private static final Map<PotionType, XPotion> POTION_TYPE_MAPPING = new EnumMap<>(PotionType.class);
+        private static final XRegistry<XPotion, PotionEffectType> REGISTRY =
+                new XRegistry<>(PotionEffectType.class, XPotion.class, () -> Registry.EFFECT, null, XPotion[]::new);
     }
 
     private static PotionEffectType findSlowness() {
@@ -160,68 +206,61 @@ public enum XPotion {
     }
 
     /**
-     * Attempts to build the string like an enum name.<br>
-     * Removes all the spaces, numbers and extra non-English characters. Also removes some config/in-game based strings.
-     * While this method is hard to maintain, it's extremely efficient. It's approximately more than x5 times faster than
-     * the normal RegEx + String Methods approach for both formatted and unformatted material names.
-     *
-     * @param name the potion effect type name to format.
-     * @return an enum name.
-     * @since 1.0.0
-     */
-    @NotNull
-    private static String format(@NotNull String name) {
-        int len = name.length();
-        char[] chs = new char[len];
-        int count = 0;
-        boolean appendUnderline = false;
-
-        for (int i = 0; i < len; i++) {
-            char ch = name.charAt(i);
-
-            if (!appendUnderline && count != 0 && (ch == '-' || ch == ' ' || ch == '_') && chs[count] != '_')
-                appendUnderline = true;
-            else {
-                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
-                    if (appendUnderline) {
-                        chs[count++] = '_';
-                        appendUnderline = false;
-                    }
-                    chs[count++] = (char) (ch & 0x5f);
-                }
-            }
-        }
-
-        return new String(chs, 0, count);
-    }
-
-    /**
      * Parses a potion effect type from the given string.
      * Supports type IDs.
      *
      * @param potion the type of the type's ID of the potion effect type.
      * @return a potion effect type.
      * @since 1.0.0
+     * @deprecated Use {@link #of(String)} instead.
      */
     @NotNull
+    @Deprecated
     public static Optional<XPotion> matchXPotion(@NotNull String potion) {
+        return of(potion);
+    }
+
+    @NotNull
+    public static XPotion of(@NotNull PotionType potion) {
+        return Data.POTION_TYPE_MAPPING.get(potion);
+    }
+
+    public static Optional<XPotion> of(@NotNull String potion) {
         if (potion == null || potion.isEmpty())
             throw new IllegalArgumentException("Cannot match XPotion of a null or empty potion effect type");
         PotionEffectType idType = fromId(potion);
         if (idType != null) {
-            XPotion type = Data.NAMES.get(idType.getName());
-            if (type == null) throw new NullPointerException("Unsupported potion effect type ID: " + idType);
-            return Optional.of(type);
+            Optional<XPotion> type = REGISTRY.getByName(idType.getName());
+            if (!type.isPresent()) throw new NullPointerException("Unsupported potion effect type ID: " + idType);
+            return type;
         }
 
         // The getName() for some reasons returns enum-like names for some potion types
         // and Minecraft namespaced names for some others.
-        if (potion.startsWith("minecraft:")) potion = potion.substring("minecraft:".length());
-        return Optional.ofNullable(Data.NAMES.get(format(potion)));
+        return REGISTRY.getByName(potion);
     }
 
+    /**
+     * @deprecated Use {@link #of(PotionType)} instead.
+     */
+    @Deprecated
     public static XPotion matchXPotion(@NotNull PotionType type) {
-        return matchXPotion(type.name()).orElseThrow(() -> new UnsupportedOperationException("PotionType " + type.name()));
+        return of(type);
+    }
+
+    /**
+     * Parses the XPotion for this potion effect.
+     *
+     * @param type the potion effect type.
+     * @return the XPotion of this potion effect.
+     * @throws IllegalArgumentException may be thrown as an unexpected exception.
+     * @since 1.0.0
+     * @deprecated Use {@link #of(PotionEffectType)} instead.
+     */
+    @NotNull
+    @Deprecated
+    public static XPotion matchXPotion(@NotNull PotionEffectType type) {
+        return of(type);
     }
 
     /**
@@ -232,11 +271,11 @@ public enum XPotion {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 1.0.0
      */
-    @SuppressWarnings("deprecation")
     @NotNull
-    public static XPotion matchXPotion(@NotNull PotionEffectType type) {
+    public static XPotion of(@NotNull PotionEffectType type) {
         Objects.requireNonNull(type, "Cannot match XPotion of a null potion effect type");
-        return POTIONEFFECTTYPE_MAPPING[type.getId()];
+        // return POTIONEFFECTTYPE_MAPPING[type.getId()];
+        return REGISTRY.getByBukkitForm(type);
     }
 
     /**
@@ -321,9 +360,9 @@ public enum XPotion {
             }
         }
 
-        Optional<XPotion> typeOpt = matchXPotion(split.get(0));
+        Optional<XPotion> typeOpt = of(split.get(0));
         if (!typeOpt.isPresent()) return null;
-        PotionEffectType type = typeOpt.get().type;
+        PotionEffectType type = typeOpt.get().potionEffectType;
         if (type == null) return null;
 
         int duration = 2400; // 20 ticks * 60 seconds * 2 minutes
@@ -461,38 +500,17 @@ public enum XPotion {
      */
     @Nullable
     public PotionEffectType getPotionEffectType() {
-        return this.type;
+        return this.potionEffectType;
     }
 
-    /**
-     * Checks if this potion is supported in the current Minecraft version.
-     * <p>
-     * An invocation of this method yields exactly the same result as the expression:
-     * <p>
-     * <blockquote>
-     * {@link #getPotionEffectType()} != null
-     * </blockquote>
-     *
-     * @return true if the current version has this potion effect type, otherwise false.
-     * @since 1.0.0
-     */
-    public boolean isSupported() {
-        return this.type != null;
+    @Override
+    public String[] getNames() {
+        return new String[]{name()};
     }
 
-    /**
-     * Checks if this potion is supported in the current version and
-     * returns itself if yes.
-     * <p>
-     * In the other case, the alternate potion will get returned,
-     * no matter if it is supported or not.
-     *
-     * @param alternatePotion the potion to get if this one is not supported.
-     * @return this potion or the {@code alternatePotion} if not supported.
-     */
-    @Nullable
-    public XPotion or(@Nullable XPotion alternatePotion) {
-        return isSupported() ? this : alternatePotion;
+    @Override
+    public @Nullable PotionEffectType get() {
+        return this.potionEffectType;
     }
 
     /**
@@ -505,9 +523,7 @@ public enum XPotion {
      */
     @Nullable
     public PotionType getPotionType() {
-        // This basically just loops all the types and tries to match them
-        // against a registry.
-        return type == null ? null : PotionType.getByEffect(type);
+        return potionType;
     }
 
     /**
@@ -521,7 +537,7 @@ public enum XPotion {
      */
     @Nullable
     public PotionEffect buildPotionEffect(int duration, int amplifier) {
-        return type == null ? null : new PotionEffect(type, duration, amplifier - 1);
+        return potionEffectType == null ? null : new PotionEffect(potionEffectType, duration, amplifier - 1);
     }
 
     /**
@@ -531,18 +547,7 @@ public enum XPotion {
      */
     @Override
     public String toString() {
-        return Arrays.stream(name().split("_"))
-                .map(t -> t.charAt(0) + t.substring(1).toLowerCase(Locale.ENGLISH))
-                .collect(Collectors.joining(" "));
-    }
-
-    /**
-     * Used for data that need to be accessed during enum initialization.
-     *
-     * @since 2.0.0
-     */
-    private static final class Data {
-        private static final Map<String, XPotion> NAMES = new HashMap<>();
+        return this.friendlyName();
     }
 
     /**
@@ -560,7 +565,7 @@ public enum XPotion {
         }
 
         public XPotion getXPotion() {
-            return XPotion.matchXPotion(effect.getType());
+            return XPotion.of(effect.getType());
         }
 
         public double getChance() {

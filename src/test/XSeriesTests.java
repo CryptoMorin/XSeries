@@ -1,4 +1,5 @@
 import com.cryptomorin.xseries.*;
+import com.cryptomorin.xseries.base.XBase;
 import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
@@ -8,9 +9,8 @@ import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.github.cryptomorin.test.ReflectionTests;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,6 +18,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.junit.jupiter.api.Assertions;
 
 import java.io.File;
@@ -28,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,8 +42,7 @@ public final class XSeriesTests {
      */
     private static final boolean TEST_MOJANG_API = false;
 
-    private XSeriesTests() {
-    }
+    private XSeriesTests() {}
 
     private static void print(String str) {
         System.out.println(str);
@@ -53,7 +54,7 @@ public final class XSeriesTests {
 
     // @Test
     public void enumToRegistry() {
-        URL resource = XSeriesTests.class.getResource("XBiome.java");
+        URL resource = XSeriesTests.class.getResource("XEnchantment.java");
         try {
             Path path = Paths.get(resource.toURI());
             ClassConverter.enumToRegistry(path, DESKTOP);
@@ -71,6 +72,7 @@ public final class XSeriesTests {
         testXMaterial();
         testXSound();
         testXPotion();
+        testXEnchantment();
         testXItemStack();
         testXAttribute();
         testXParticle();
@@ -79,6 +81,13 @@ public final class XSeriesTests {
         testReflection();
 
         if (TEST_MOJANG_API) testSkulls();
+        else {
+            try {
+                Class.forName("com.cryptomorin.xseries.profiles.mojang.MojangAPI");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         print("\n\n\nTest end...");
     }
@@ -90,11 +99,19 @@ public final class XSeriesTests {
         if (XReflection.supports(12)) initializeReflection();
 
         print("Testing XWorldBorder...");
-        XWorldBorder.of(Bukkit.getWorlds().iterator().next().getSpawnLocation());
+        Iterator<World> worldIter = Bukkit.getWorlds().iterator();
+        if (worldIter.hasNext()) XWorldBorder.of(worldIter.next().getSpawnLocation());
+        else {
+            double init = XWorldBorder.MAX_SIZE;
+            System.err.println("Cannot test XWorldBorder because no worlds are loaded.");
+        }
     }
 
     private static void testXTag() {
         print("Testing XTag...");
+        assertPresent(XTag.getTag("INVENTORY_NOT_DISPLAYABLE"));
+        assertTrue(XTag.DEBUFFS.isTagged(XPotion.POISON));
+        assertTrue(XTag.EFFECTIVE_SMITE_ENTITIES.isTagged(XEntityType.ZOMBIE));
         assertTrue(XTag.CORALS.isTagged(XMaterial.TUBE_CORAL));
         assertTrue(XTag.LOGS_THAT_BURN.isTagged(XMaterial.STRIPPED_ACACIA_LOG));
         assertFalse(XTag.ANVIL.isTagged(XMaterial.BEDROCK));
@@ -106,6 +123,18 @@ public final class XSeriesTests {
             ParticleDisplay.of(XParticle.CLOUD).
                     withLocation(new Location(null, 1, 1, 1))
                     .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true);
+            commonRegistryTest(XParticle.REGISTRY, Arrays.asList(values(Particle.class)));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E> E[] values(Class<?> clazz) {
+        try {
+            return (E[]) XReflection.of(clazz).method()
+                    .asStatic().named("values").returns(XReflection.of(clazz).asArray())
+                    .reflect().invoke();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -114,36 +143,78 @@ public final class XSeriesTests {
             print("Testing XAttribute...");
             print("Attribute " + XAttribute.ARMOR_TOUGHNESS + " is " + XAttribute.ARMOR_TOUGHNESS.get());
             assertPresent(XAttribute.of("MAX_HEALTH"));
+            commonRegistryTest(XAttribute.REGISTRY, Arrays.asList(values(Attribute.class)));
         }
     }
 
     private static void testXSound() {
         print("Testing XSound...");
-        // assertPresent(XSound.matchXSound("BLOCK_ENCHANTMENT_TABLE_USE"));
-        // assertPresent(XSound.matchXSound("AMBIENCE_CAVE"));
-        // assertPresent(XSound.matchXSound("RECORD_11"));
-        // for (Sound sound : Sound.values()) XSound.matchXSound(sound);
+        assertPresent(XSound.of("BLOCK_ENCHANTMENT_TABLE_USE"));
+        assertPresent(XSound.of("AMBIENCE_CAVE"));
+        assertPresent(XSound.of("RECORD_11"));
+        commonRegistryTest(XSound.REGISTRY, Arrays.asList(values(Sound.class)));
     }
 
     private static void testXPotion() {
         print("Testing XPotion...");
-        assertPresent(XPotion.matchXPotion("INVIS"));
-        assertPresent(XPotion.matchXPotion("AIR"));
-        assertPresent(XPotion.matchXPotion("BLIND"));
-        assertPresent(XPotion.matchXPotion("DAMAGE_RESISTANCE"));
-        for (PotionEffectType effect : PotionEffectType.values()) {
-            if (effect == null) continue; // Experiemental PotionEffectType
-            try {
-                XPotion.matchXPotion(effect);
-                assertPresent(XPotion.matchXPotion(XRegistry.getName(effect)), "Unknown effect: " + effect + " -> " + XRegistry.getName(effect) + " | " + effect.getId());
-            } catch (ArrayIndexOutOfBoundsException ex) {
-                err("Unknown effect: " + effect + " -> " + effect.getName() + " | " + effect.getId());
-                throw ex;
+        assertPresent(XPotion.of("INVIS"));
+        assertPresent(XPotion.of("AIR"));
+        assertPresent(XPotion.of("BLIND"));
+        assertPresent(XPotion.of("DAMAGE_RESISTANCE"));
+        commonRegistryTest(XPotion.REGISTRY, Arrays.asList(values(PotionEffectType.class)));
+        for (PotionType potionType : PotionType.values()) {
+            switch (potionType) {
+                // These aren't really "effects" they're literally just potion types without an effect.
+                case WATER:
+                case THICK:
+                case AWKWARD:
+                case MUNDANE:
+
+                case TURTLE_MASTER:
+                case LONG_TURTLE_MASTER:
+                case STRONG_TURTLE_MASTER:
+                    continue;
             }
+            if (potionType.name().equals("UNCRAFTABLE")) continue; // Present in 1.12
+
+            String bukkitName = potionType.name();
+
+            assertNotNull(XPotion.of(potionType), () -> "null for (Bukkit -> XForm): " + potionType);
+            assertPresent(XPotion.of(bukkitName), "null for (String -> XForm): " + bukkitName);
         }
-        for (Enchantment enchant : Enchantment.values()) {
-            assertNotNull(XEnchantment.matchXEnchantment(enchant), () -> "null for " + enchant);
-            assertPresent(XEnchantment.matchXEnchantment(enchant.getName()), "Unknown enchantment: " + enchant.getName());
+    }
+
+    private static void testXEnchantment() {
+        print("Testing XEnchantment...");
+        assertPresent(XEnchantment.of("EFFICIENCY"));
+        print("XENchants: " + Enchantment.KNOCKBACK + ':' + Enchantment.KNOCKBACK.getClass().getName() + ':' + Enchantment.KNOCKBACK.hashCode());
+        print("XENchants: " + XEnchantment.REGISTRY.bukkitMapping().keySet().stream().map(x -> x.toString() + ':' + x.getClass().getName() + ':' + x.hashCode()).collect(Collectors.joining(", ")));
+        assertNotNull(XEnchantment.of(Enchantment.KNOCKBACK));
+        if (XReflection.supports(11)) assertNotNull(XEnchantment.of(Enchantment.SWEEPING_EDGE));
+        commonRegistryTest(XEnchantment.REGISTRY, Arrays.asList(values(Enchantment.class)));
+    }
+
+    private static <XForm extends XBase<XForm, BukkitForm>, BukkitForm> void commonRegistryTest(
+            XRegistry<XForm, BukkitForm> xRegistry,
+            Collection<BukkitForm> bukkitRegistry
+    ) {
+        for (BukkitForm bukkitForm : bukkitRegistry) {
+            if (bukkitForm == null) {
+                print("Detected null standard field for: " + xRegistry);
+                continue;
+            }
+            if (bukkitForm.toString().startsWith("LEGACY_")) {
+                print("Skipping legacy bukkit form: " + xRegistry.getName() + "::" + bukkitForm);
+                continue;
+            }
+            String bukkitName = XRegistry.getBukkitName(bukkitForm);
+
+            assertNotNull(xRegistry.getByBukkitForm(bukkitForm), () -> "null for (Bukkit -> XForm): " + bukkitForm);
+            assertPresent(xRegistry.getByName(bukkitName), "null for (String -> XForm): " + bukkitName);
+        }
+        for (XForm xForm : xRegistry) {
+            assertNotNull(xRegistry.getByBukkitForm(xForm.get()), () -> "null for (Bukkit -> XForm): " + xForm.get() + " -> " + xForm);
+            assertPresent(xRegistry.getByName(xForm.name()), "null for (String -> XForm): " + xForm.name());
         }
     }
 
@@ -153,22 +224,41 @@ public final class XSeriesTests {
         assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
         assertMaterial("MELON", "MELON");
 
-        if (XMaterial.supports(13)) {
+        if (XMaterial.supports(14)) {
             assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
             assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
             assertMaterial(XMaterial.BLACK_DYE, Material.BLACK_DYE);
 
             assertMaterial("RED_BED", "RED_BED");
             assertMaterial("GREEN_CONCRETE_POWDER", "CONCRETE_POWDER:13");
+        } else if (XMaterial.supports(13)) {
+            print("Black dye is " + XMaterial.BLACK_DYE.get() + " - " + XMaterial.BLACK_DYE.parseItem());
+            assertMaterial(XMaterial.CYAN_DYE, Material.CYAN_DYE);
+            assertMaterial(XMaterial.GREEN_DYE, Material.valueOf("CACTUS_GREEN"));
+
+            // BLACK_DYE doesn't exist in 1.13 but INK_SACK does.
+            // So naturally, INK_SAC:0 gets mapped to XMaterial.INK_SAC because
+            // INK_SAC remains a material for later versions.
+            // But should we expect it to get mapped to BLACK_DYE instead?
+            // Well, no and yes. The conclusion is that we just chose for
+            // it to get mapped to INK_SAC because that'd make more sense on this version.
+            // So this would happen: XMaterial.BLACK_DYE -> Material.INK_SACK -> XMaterial.INK_SAC
+            Material inkSack = Material.valueOf("INK_SAC");
+            Assertions.assertSame(XMaterial.BLACK_DYE.get(), inkSack);
+            Assertions.assertSame(XMaterial.matchXMaterial("BLACK_DYE").get(), XMaterial.BLACK_DYE);
+            Assertions.assertSame(XMaterial.matchXMaterial("INK_SAC").get(), XMaterial.INK_SAC);
+
+            assertMaterial(XMaterial.INK_SAC, inkSack);
         } else {
             Material inkSack = XMaterial.INK_SAC.get(); // INK_SACK for 1.8
-            assertMaterial(XMaterial.RED_DYE, inkSack);
+            assertMaterial(XMaterial.CYAN_DYE, inkSack);
             assertMaterial(XMaterial.GREEN_DYE, inkSack);
             assertMaterial(XMaterial.BLACK_DYE, inkSack);
         }
 
         // assertFalse(XMaterial.MAGENTA_TERRACOTTA.isOneOf(Arrays.asList("GREEN_TERRACOTTA", "BLACK_BED", "DIRT")));
         // assertTrue(XMaterial.BLACK_CONCRETE.isOneOf(Arrays.asList("RED_CONCRETE", "CONCRETE:15", "CONCRETE:14")));
+        // commonRegistryTest(XMaterial.REGISTRY, Arrays.asList(Material.values()));
         for (Material material : Material.values())
             if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
     }

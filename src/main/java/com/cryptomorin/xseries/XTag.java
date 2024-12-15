@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.base.XBase;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,26 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public final class XTag<T extends Enum<T>> {
+/**
+ * A class used for grouping various things together based on a common trait.
+ * <p>
+ * The main usage of this class is simply done by choosing your category and using {@link #isTagged(Enum)} or {@link #getValues()}:
+ * <pre>{@code
+ * boolean isTagged = XTag.CATEGORY.isTagged(element);
+ * Set<T> values = XTag.CATEGORY.getValues();
+ * }</pre>
+ * <p>
+ * You may also want to make this easier as a configurable value for users to change using {@link #stringMatcher(Collection, Collection)}:
+ * <pre>{@code
+ * List<Matcher<E>> compiledMatchers = XTag.stringMatcher(elements); // for compiled matchers
+ * boolean anyMatched = XTag.anyMatchString(element, compiledMatchers); // or pass the elements directly
+ * }</pre>
+ */
+public final class XTag<T extends XBase<?, ?>> {
 
     @NotNull
-    public static final XTag<XMaterial> AIR;
+    public static final XTag<XMaterial> AIR = TagBuilder.simple(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
 
     @NotNull
     public static final XTag<XMaterial> INVENTORY_NOT_DISPLAYABLE;
@@ -44,9 +59,6 @@ public final class XTag<T extends Enum<T>> {
      */
     @NotNull
     public static final XTag<XMaterial> ACACIA_LOGS;
-    /**
-     *
-     */
     @NotNull
     public static final XTag<XMaterial> CORAL_FANS;
     @NotNull
@@ -327,7 +339,7 @@ public final class XTag<T extends Enum<T>> {
      * Tag representing all possible variants fire
      */
     @NotNull
-    public static final XTag<XMaterial> FIRE;
+    public static final XTag<XMaterial> FIRE = TagBuilder.simple(XMaterial.FIRE, XMaterial.SOUL_FIRE);
     /**
      * Tag representing all possible variants of flower pots
      */
@@ -649,7 +661,7 @@ public final class XTag<T extends Enum<T>> {
      * Tag representing all possible block types that be used as portals
      */
     @NotNull
-    public static final XTag<XMaterial> PORTALS;
+    public static final XTag<XMaterial> PORTALS = TagBuilder.simple(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
     /**
      * Tag representing all possible pottery sherds
      */
@@ -936,7 +948,7 @@ public final class XTag<T extends Enum<T>> {
      * This doesn't refer to all materials that contain fluids, but pure fluids.
      */
     @NotNull
-    public static final XTag<XMaterial> FLUID;
+    public static final XTag<XMaterial> FLUID = TagBuilder.simple(XMaterial.LAVA, XMaterial.WATER);
     /**
      * Tag representing all stone tools and swords
      */
@@ -957,6 +969,12 @@ public final class XTag<T extends Enum<T>> {
      */
     @NotNull
     public static final XTag<XMaterial> NETHERITE_TOOLS;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////>                                                                  <//////////////////////
+    //////////////////////>                           XEnchantment                           <//////////////////////
+    //////////////////////>                                                                  <//////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Tag representing all possible enchants that can be applied to all armor pieces (excluding elytras)
@@ -1029,112 +1047,159 @@ public final class XTag<T extends Enum<T>> {
     @NotNull
     public static final XTag<XEnchantment> CROSSBOW_ENCHANTS;
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////>                                                                  <//////////////////////
+    //////////////////////>                           XEntityType                            <//////////////////////
+    //////////////////////>                                                                  <//////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Entity types that {@link XEnchantment#SMITE} enchantment is effective against.
+     * This set is unmodifiable.
+     *
+     * @since 1.2.0
+     */
+    @NotNull
+    public static final XTag<XEntityType> EFFECTIVE_SMITE_ENTITIES = TagBuilder.simple(
+            XEntityType.ZOMBIE, XEntityType.SKELETON, XEntityType.WITHER,
+            XEntityType.BEE, XEntityType.PHANTOM, XEntityType.DROWNED, XEntityType.WITHER_SKELETON,
+            XEntityType.SKELETON_HORSE, XEntityType.STRAY, XEntityType.HUSK
+    );
+
+    /**
+     * Entity types that {@link XEnchantment#BANE_OF_ARTHROPODS} enchantment is effective against.
+     * This set is unmodifiable.
+     *
+     * @since 1.2.0
+     */
+    @NotNull
+    public static final XTag<XEntityType> EFFECTIVE_BANE_OF_ARTHROPODS_ENTITIES = TagBuilder.simple(
+            XEntityType.SPIDER, XEntityType.CAVE_SPIDER, XEntityType.SILVERFISH, XEntityType.ENDERMITE
+    );
+
+    /**
+     * An unmodifiable set of "bad" potion effects.
+     *
+     * @since 1.1.0
+     */
+    @NotNull
+    public static final XTag<XPotion> DEBUFFS = TagBuilder.simple(
+            XPotion.BAD_OMEN, XPotion.BLINDNESS, XPotion.NAUSEA, XPotion.INSTANT_DAMAGE, XPotion.HUNGER,
+            XPotion.LEVITATION, XPotion.POISON, XPotion.SLOWNESS, XPotion.MINING_FATIGUE, XPotion.UNLUCK,
+            XPotion.WEAKNESS, XPotion.WITHER
+    );
+
     static { // logs
-        ACACIA_LOGS = new XTag<>(XMaterial.STRIPPED_ACACIA_LOG,
+        ACACIA_LOGS = TagBuilder.simple(XMaterial.STRIPPED_ACACIA_LOG,
                 XMaterial.ACACIA_LOG,
                 XMaterial.ACACIA_WOOD,
                 XMaterial.STRIPPED_ACACIA_WOOD);
-        BIRCH_LOGS = new XTag<>(XMaterial.STRIPPED_BIRCH_LOG,
+        BIRCH_LOGS = TagBuilder.simple(XMaterial.STRIPPED_BIRCH_LOG,
                 XMaterial.BIRCH_LOG,
                 XMaterial.BIRCH_WOOD,
                 XMaterial.STRIPPED_BIRCH_WOOD);
-        DARK_OAK_LOGS = new XTag<>(XMaterial.STRIPPED_DARK_OAK_LOG,
+        DARK_OAK_LOGS = TagBuilder.simple(XMaterial.STRIPPED_DARK_OAK_LOG,
                 XMaterial.DARK_OAK_LOG,
                 XMaterial.DARK_OAK_WOOD,
                 XMaterial.STRIPPED_DARK_OAK_WOOD);
-        JUNGLE_LOGS = new XTag<>(XMaterial.STRIPPED_JUNGLE_LOG,
+        JUNGLE_LOGS = TagBuilder.simple(XMaterial.STRIPPED_JUNGLE_LOG,
                 XMaterial.JUNGLE_LOG,
                 XMaterial.JUNGLE_WOOD,
                 XMaterial.STRIPPED_JUNGLE_WOOD);
-        MANGROVE_LOGS = new XTag<>(XMaterial.STRIPPED_MANGROVE_LOG,
+        MANGROVE_LOGS = TagBuilder.simple(XMaterial.STRIPPED_MANGROVE_LOG,
                 XMaterial.MANGROVE_LOG,
                 XMaterial.MANGROVE_WOOD,
                 XMaterial.STRIPPED_MANGROVE_WOOD);
-        OAK_LOGS = new XTag<>(XMaterial.STRIPPED_OAK_LOG,
+        OAK_LOGS = TagBuilder.simple(XMaterial.STRIPPED_OAK_LOG,
                 XMaterial.OAK_LOG,
                 XMaterial.OAK_WOOD,
                 XMaterial.STRIPPED_OAK_WOOD);
-        SPRUCE_LOGS = new XTag<>(XMaterial.STRIPPED_SPRUCE_LOG,
+        SPRUCE_LOGS = TagBuilder.simple(XMaterial.STRIPPED_SPRUCE_LOG,
                 XMaterial.SPRUCE_LOG,
                 XMaterial.SPRUCE_WOOD,
                 XMaterial.STRIPPED_SPRUCE_WOOD);
-        CHERRY_LOGS = new XTag<>(XMaterial.STRIPPED_CHERRY_LOG,
+        CHERRY_LOGS = TagBuilder.simple(XMaterial.STRIPPED_CHERRY_LOG,
                 XMaterial.CHERRY_LOG,
                 XMaterial.CHERRY_WOOD,
                 XMaterial.STRIPPED_CHERRY_WOOD);
-        BAMBOO_LOGS = new XTag<>(XMaterial.STRIPPED_BAMBOO_BLOCK,
+        BAMBOO_LOGS = TagBuilder.simple(XMaterial.STRIPPED_BAMBOO_BLOCK,
                 XMaterial.BAMBOO_BLOCK,
                 XMaterial.BAMBOO_MOSAIC,
                 XMaterial.BAMBOO_PLANKS);
     }
 
     static { // colorable
-        CANDLE_CAKES = new XTag<>(findAllColors("CANDLE_CAKE"));
-        CANDLES = new XTag<>(findAllColors("CANDLE"));
-        TERRACOTTA = new XTag<>(findAllColors("TERRACOTTA"));
-        GLAZED_TERRACOTTA = new XTag<>(findAllColors("GLAZED_TERRACOTTA"));
-        SHULKER_BOXES = new XTag<>(findAllColors("SHULKER_BOX"));
-        CARPETS = new XTag<>(findAllColors("CARPET"));
-        WOOL = new XTag<>(findAllColors("WOOL"));
-        GLASS = new XTag<>(findAllColors("GLASS"));
-        GLASS.inheritFrom(new XTag<>(XMaterial.TINTED_GLASS));
-        ITEMS_BANNERS = new XTag<>(findAllColors("BANNER"));
-        WALL_BANNERS = new XTag<>(findAllColors("WALL_BANNER"));
-        BANNERS = new XTag<>(XMaterial.class, ITEMS_BANNERS, WALL_BANNERS);
-        BEDS = new XTag<>(findAllColors("BED"));
-        CONCRETE = new XTag<>(findAllColors("CONCRETE"));
-        CONCRETE_POWDER = new XTag<>(findAllColors("CONCRETE_POWDER"));
+        CANDLE_CAKES = TagBuilder.simple(findAllColors("CANDLE_CAKE"));
+        CANDLES = TagBuilder.simple(findAllColors("CANDLE"));
+        TERRACOTTA = TagBuilder.simple(findAllColors("TERRACOTTA"));
+        GLAZED_TERRACOTTA = TagBuilder.simple(findAllColors("GLAZED_TERRACOTTA"));
+        SHULKER_BOXES = TagBuilder.simple(findAllColors("SHULKER_BOX"));
+        CARPETS = TagBuilder.simple(findAllColors("CARPET"));
+        WOOL = TagBuilder.simple(findAllColors("WOOL"));
+        GLASS = TagBuilder.of(findAllColors("GLASS"))
+                .inheritFrom(TagBuilder.simple(XMaterial.TINTED_GLASS))
+                .build();
+        ITEMS_BANNERS = TagBuilder.simple(findAllColors("BANNER"));
+        WALL_BANNERS = TagBuilder.simple(findAllColors("WALL_BANNER"));
+        BANNERS = TagBuilder.simple(ITEMS_BANNERS, WALL_BANNERS);
+        BEDS = TagBuilder.simple(findAllColors("BED"));
+        CONCRETE = TagBuilder.simple(findAllColors("CONCRETE"));
+        CONCRETE_POWDER = TagBuilder.simple(findAllColors("CONCRETE_POWDER"));
     }
 
     static { // wooded material
-        STANDING_SIGNS = new XTag<>(findAllWoodTypes("SIGN"));
-        WALL_SIGNS = new XTag<>(findAllWoodTypes("WALL_SIGN"));
-        WALL_HANGING_SIGNS = new XTag<>(findAllWoodTypes("WALL_HANGING_SIGN"));
-        HANGING_SIGNS = new XTag<>(findAllWoodTypes("HANGING_SIGN"));
-        WOODEN_PRESSURE_PLATES = new XTag<>(findAllWoodTypes("PRESSURE_PLATE"));
-        WOODEN_DOORS = new XTag<>(findAllWoodTypes("DOOR"));
-        WOODEN_FENCE_GATES = new XTag<>(findAllWoodTypes("FENCE_GATE"));
-        WOODEN_FENCES = new XTag<>(findAllWoodTypes("FENCE"));
-        WOODEN_SLABS = new XTag<>(findAllWoodTypes("SLAB"));
-        WOODEN_STAIRS = new XTag<>(findAllWoodTypes("STAIRS"));
-        WOODEN_TRAPDOORS = new XTag<>(findAllWoodTypes("TRAPDOOR"));
-        PLANKS = new XTag<>(findAllWoodTypes("PLANKS"));
-        WOODEN_BUTTONS = new XTag<>(findAllWoodTypes("BUTTON"));
+        STANDING_SIGNS = TagBuilder.simple(findAllWoodTypes("SIGN"));
+        WALL_SIGNS = TagBuilder.simple(findAllWoodTypes("WALL_SIGN"));
+        WALL_HANGING_SIGNS = TagBuilder.simple(findAllWoodTypes("WALL_HANGING_SIGN"));
+        HANGING_SIGNS = TagBuilder.simple(findAllWoodTypes("HANGING_SIGN"));
+        WOODEN_PRESSURE_PLATES = TagBuilder.simple(findAllWoodTypes("PRESSURE_PLATE"));
+        WOODEN_DOORS = TagBuilder.simple(findAllWoodTypes("DOOR"));
+        WOODEN_FENCE_GATES = TagBuilder.simple(findAllWoodTypes("FENCE_GATE"));
+        WOODEN_FENCES = TagBuilder.simple(findAllWoodTypes("FENCE"));
+        WOODEN_SLABS = TagBuilder.simple(findAllWoodTypes("SLAB"));
+        WOODEN_STAIRS = TagBuilder.simple(findAllWoodTypes("STAIRS"));
+        WOODEN_TRAPDOORS = TagBuilder.simple(findAllWoodTypes("TRAPDOOR"));
+        PLANKS = TagBuilder.simple(findAllWoodTypes("PLANKS"));
+        WOODEN_BUTTONS = TagBuilder.simple(findAllWoodTypes("BUTTON"));
     }
 
     static { // ores
-        COAL_ORES = new XTag<>(XMaterial.COAL_ORE, XMaterial.DEEPSLATE_COAL_ORE);
-        IRON_ORES = new XTag<>(XMaterial.IRON_ORE, XMaterial.DEEPSLATE_IRON_ORE);
-        COPPER_ORES = new XTag<>(XMaterial.COPPER_ORE, XMaterial.DEEPSLATE_COPPER_ORE);
-        REDSTONE_ORES = new XTag<>(XMaterial.REDSTONE_ORE, XMaterial.DEEPSLATE_REDSTONE_ORE);
-        LAPIS_ORES = new XTag<>(XMaterial.LAPIS_ORE, XMaterial.DEEPSLATE_LAPIS_ORE);
-        GOLD_ORES = new XTag<>(XMaterial.GOLD_ORE, XMaterial.DEEPSLATE_GOLD_ORE, XMaterial.NETHER_GOLD_ORE);
-        DIAMOND_ORES = new XTag<>(XMaterial.DIAMOND_ORE, XMaterial.DEEPSLATE_DIAMOND_ORE);
-        EMERALD_ORES = new XTag<>(XMaterial.EMERALD_ORE, XMaterial.DEEPSLATE_EMERALD_ORE);
+        COAL_ORES = TagBuilder.simple(XMaterial.COAL_ORE, XMaterial.DEEPSLATE_COAL_ORE);
+        IRON_ORES = TagBuilder.simple(XMaterial.IRON_ORE, XMaterial.DEEPSLATE_IRON_ORE);
+        COPPER_ORES = TagBuilder.simple(XMaterial.COPPER_ORE, XMaterial.DEEPSLATE_COPPER_ORE);
+        REDSTONE_ORES = TagBuilder.simple(XMaterial.REDSTONE_ORE, XMaterial.DEEPSLATE_REDSTONE_ORE);
+        LAPIS_ORES = TagBuilder.simple(XMaterial.LAPIS_ORE, XMaterial.DEEPSLATE_LAPIS_ORE);
+        GOLD_ORES = TagBuilder.simple(XMaterial.GOLD_ORE, XMaterial.DEEPSLATE_GOLD_ORE, XMaterial.NETHER_GOLD_ORE);
+        DIAMOND_ORES = TagBuilder.simple(XMaterial.DIAMOND_ORE, XMaterial.DEEPSLATE_DIAMOND_ORE);
+        EMERALD_ORES = TagBuilder.simple(XMaterial.EMERALD_ORE, XMaterial.DEEPSLATE_EMERALD_ORE);
 
-        ORES = new XTag<>(XMaterial.ANCIENT_DEBRIS, XMaterial.NETHER_QUARTZ_ORE);
-        ORES.inheritFrom(COAL_ORES, IRON_ORES, COPPER_ORES, REDSTONE_ORES, LAPIS_ORES, GOLD_ORES, DIAMOND_ORES, EMERALD_ORES);
+        ORES = TagBuilder
+                .of(XMaterial.ANCIENT_DEBRIS, XMaterial.NETHER_QUARTZ_ORE)
+                .inheritFrom(COAL_ORES, IRON_ORES, COPPER_ORES, REDSTONE_ORES, LAPIS_ORES, GOLD_ORES, DIAMOND_ORES, EMERALD_ORES)
+                .build();
     }
 
     static { // corals
-        ALIVE_CORAL_WALL_FANS = new XTag<>(findAllCorals(true, false, true, true));
-        ALIVE_CORAL_FANS = new XTag<>(findAllCorals(true, false, true, false));
-        ALIVE_CORAL_BLOCKS = new XTag<>(findAllCorals(true, true, false, false));
-        ALIVE_CORAL_PLANTS = new XTag<>(findAllCorals(true, false, false, false));
-        DEAD_CORAL_WALL_FANS = new XTag<>(findAllCorals(false, false, true, true));
-        DEAD_CORAL_FANS = new XTag<>(findAllCorals(false, false, true, false));
-        DEAD_CORAL_BLOCKS = new XTag<>(findAllCorals(false, true, false, false));
-        DEAD_CORAL_PLANTS = new XTag<>(findAllCorals(false, false, false, false));
-        CORAL_FANS = new XTag<>(XMaterial.class, ALIVE_CORAL_FANS, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, DEAD_CORAL_FANS);
+        ALIVE_CORAL_WALL_FANS = TagBuilder.simple(findAllCorals(true, false, true, true));
+        ALIVE_CORAL_FANS = TagBuilder.simple(findAllCorals(true, false, true, false));
+        ALIVE_CORAL_BLOCKS = TagBuilder.simple(findAllCorals(true, true, false, false));
+        ALIVE_CORAL_PLANTS = TagBuilder.simple(findAllCorals(true, false, false, false));
+        DEAD_CORAL_WALL_FANS = TagBuilder.simple(findAllCorals(false, false, true, true));
+        DEAD_CORAL_FANS = TagBuilder.simple(findAllCorals(false, false, true, false));
+        DEAD_CORAL_BLOCKS = TagBuilder.simple(findAllCorals(false, true, false, false));
+        DEAD_CORAL_PLANTS = TagBuilder.simple(findAllCorals(false, false, false, false));
+        CORAL_FANS = TagBuilder.simple(ALIVE_CORAL_FANS, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, DEAD_CORAL_FANS);
 
-        CORALS = new XTag<>(XMaterial.class, ALIVE_CORAL_WALL_FANS,
+        CORALS = TagBuilder.simple(
+                ALIVE_CORAL_WALL_FANS,
                 ALIVE_CORAL_FANS,
                 ALIVE_CORAL_BLOCKS,
                 ALIVE_CORAL_PLANTS,
                 DEAD_CORAL_WALL_FANS,
                 DEAD_CORAL_FANS,
                 DEAD_CORAL_BLOCKS,
-                DEAD_CORAL_PLANTS);
+                DEAD_CORAL_PLANTS
+        );
 
         /*BRAIN_CORALS = filterCorals("BRAIN");
         BUBBLE_CORALS = filterCorals("BUBBLE");
@@ -1144,13 +1209,15 @@ public final class XTag<T extends Enum<T>> {
     }
 
     static {
-        WALL_HEADS = new XTag<>(XMaterial.class, new XTag<>(findMaterialsEndingWith("WALL_HEAD")),
-                new XTag<>(XMaterial.WITHER_SKELETON_WALL_SKULL, XMaterial.SKELETON_WALL_SKULL));
+        WALL_HEADS = TagBuilder.simple(
+                TagBuilder.simple(findMaterialsEndingWith("WALL_HEAD")),
+                TagBuilder.simple(XMaterial.WITHER_SKELETON_WALL_SKULL, XMaterial.SKELETON_WALL_SKULL)
+        );
 
-        WALL_TORCHES = new XTag<>(XMaterial.WALL_TORCH,
+        WALL_TORCHES = TagBuilder.simple(XMaterial.WALL_TORCH,
                 XMaterial.SOUL_WALL_TORCH,
                 XMaterial.REDSTONE_WALL_TORCH);
-        WALLS = new XTag<>(XMaterial.POLISHED_DEEPSLATE_WALL,
+        WALLS = TagBuilder.simple(XMaterial.POLISHED_DEEPSLATE_WALL,
                 XMaterial.NETHER_BRICK_WALL,
                 XMaterial.POLISHED_BLACKSTONE_WALL,
                 XMaterial.DEEPSLATE_BRICK_WALL,
@@ -1171,91 +1238,91 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.MOSSY_STONE_BRICK_WALL,
                 XMaterial.END_STONE_BRICK_WALL,
                 XMaterial.COBBLED_DEEPSLATE_WALL);
-        STONE_PRESSURE_PLATES = new XTag<>(XMaterial.STONE_PRESSURE_PLATE,
+        STONE_PRESSURE_PLATES = TagBuilder.simple(XMaterial.STONE_PRESSURE_PLATE,
                 XMaterial.POLISHED_BLACKSTONE_PRESSURE_PLATE);
-        RAILS = new XTag<>(XMaterial.RAIL,
+        RAILS = TagBuilder.simple(XMaterial.RAIL,
                 XMaterial.ACTIVATOR_RAIL,
                 XMaterial.DETECTOR_RAIL,
                 XMaterial.POWERED_RAIL);
-        ANIMALS_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK);
-        ANVIL = new XTag<>(XMaterial.ANVIL,
+        ANIMALS_SPAWNABLE_ON = TagBuilder.simple(XMaterial.GRASS_BLOCK);
+        ANVIL = TagBuilder.simple(XMaterial.ANVIL,
                 XMaterial.CHIPPED_ANVIL,
                 XMaterial.DAMAGED_ANVIL);
-        AXOLOTL_TEMPT_ITEMS = new XTag<>(XMaterial.TROPICAL_FISH_BUCKET);
-        AXOLOTLS_SPAWNABLE_ON = new XTag<>(XMaterial.CLAY);
+        AXOLOTL_TEMPT_ITEMS = TagBuilder.simple(XMaterial.TROPICAL_FISH_BUCKET);
+        AXOLOTLS_SPAWNABLE_ON = TagBuilder.simple(XMaterial.CLAY);
 
-        SNOW = new XTag<>(XMaterial.SNOW_BLOCK,
+        SNOW = TagBuilder.simple(XMaterial.SNOW_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.POWDER_SNOW);
-        SAND = new XTag<>(XMaterial.SAND,
+        SAND = TagBuilder.simple(XMaterial.SAND,
                 XMaterial.RED_SAND);
-        DIRT = new XTag<>(XMaterial.MOSS_BLOCK,
+        DIRT = TagBuilder.simple(XMaterial.MOSS_BLOCK,
                 XMaterial.COARSE_DIRT,
                 XMaterial.PODZOL,
                 XMaterial.DIRT,
                 XMaterial.ROOTED_DIRT,
                 XMaterial.MYCELIUM,
                 XMaterial.GRASS_BLOCK);
-        CAVE_VINES = new XTag<>(XMaterial.CAVE_VINES,
+        CAVE_VINES = TagBuilder.simple(XMaterial.CAVE_VINES,
                 XMaterial.CAVE_VINES_PLANT);
-        BASE_STONE_NETHER = new XTag<>(XMaterial.NETHERRACK,
+        BASE_STONE_NETHER = TagBuilder.simple(XMaterial.NETHERRACK,
                 XMaterial.BASALT,
                 XMaterial.BLACKSTONE);
-        BASE_STONE_OVERWORLD = new XTag<>(XMaterial.TUFF,
+        BASE_STONE_OVERWORLD = TagBuilder.simple(XMaterial.TUFF,
                 XMaterial.DIORITE,
                 XMaterial.DEEPSLATE,
                 XMaterial.ANDESITE,
                 XMaterial.GRANITE,
                 XMaterial.STONE);
-        BEACON_BASE_BLOCKS = new XTag<>(XMaterial.NETHERITE_BLOCK,
+        BEACON_BASE_BLOCKS = TagBuilder.simple(XMaterial.NETHERITE_BLOCK,
                 XMaterial.GOLD_BLOCK,
                 XMaterial.IRON_BLOCK,
                 XMaterial.EMERALD_BLOCK,
                 XMaterial.DIAMOND_BLOCK);
-        CROPS = new XTag<>(XMaterial.CARROTS,
+        CROPS = TagBuilder.simple(XMaterial.CARROTS,
                 XMaterial.POTATOES,
                 XMaterial.WHEAT,
                 XMaterial.MELON_STEM,
                 XMaterial.BEETROOTS,
                 XMaterial.PUMPKIN_STEM);
-        CAMPFIRES = new XTag<>(XMaterial.CAMPFIRE,
+        CAMPFIRES = TagBuilder.simple(XMaterial.CAMPFIRE,
                 XMaterial.SOUL_CAMPFIRE);
-        FILLED_CAULDRONS = new XTag<>(XMaterial.LAVA_CAULDRON,
+        FILLED_CAULDRONS = TagBuilder.simple(XMaterial.LAVA_CAULDRON,
                 XMaterial.POWDER_SNOW_CAULDRON,
                 XMaterial.WATER_CAULDRON);
-        CAULDRONS = new XTag<>(XMaterial.CAULDRON,
+        CAULDRONS = TagBuilder.simple(XMaterial.CAULDRON,
                 XMaterial.LAVA_CAULDRON,
                 XMaterial.POWDER_SNOW_CAULDRON,
                 XMaterial.WATER_CAULDRON);
-        CLIMBABLE = new XTag<>(XMaterial.SCAFFOLDING,
+        CLIMBABLE = TagBuilder.of(
+                XMaterial.SCAFFOLDING,
                 XMaterial.WEEPING_VINES_PLANT,
                 XMaterial.WEEPING_VINES,
                 XMaterial.TWISTING_VINES,
                 XMaterial.TWISTING_VINES_PLANT,
                 XMaterial.VINE,
-                XMaterial.LADDER);
-        CLIMBABLE.inheritFrom(CAVE_VINES);
-        CLUSTER_MAX_HARVESTABLES = new XTag<>(XMaterial.DIAMOND_PICKAXE,
+                XMaterial.LADDER
+        ).inheritFrom(CAVE_VINES).build();
+        CLUSTER_MAX_HARVESTABLES = TagBuilder.simple(XMaterial.DIAMOND_PICKAXE,
                 XMaterial.GOLDEN_PICKAXE,
                 XMaterial.STONE_PICKAXE,
                 XMaterial.NETHERITE_PICKAXE,
                 XMaterial.WOODEN_PICKAXE,
                 XMaterial.IRON_PICKAXE);
-        CRIMSON_STEMS = new XTag<>(XMaterial.CRIMSON_HYPHAE,
+        CRIMSON_STEMS = TagBuilder.simple(XMaterial.CRIMSON_HYPHAE,
                 XMaterial.STRIPPED_CRIMSON_STEM,
                 XMaterial.CRIMSON_STEM,
                 XMaterial.STRIPPED_CRIMSON_HYPHAE);
-        WARPED_STEMS = new XTag<>(XMaterial.WARPED_HYPHAE,
+        WARPED_STEMS = TagBuilder.simple(XMaterial.WARPED_HYPHAE,
                 XMaterial.STRIPPED_WARPED_STEM,
                 XMaterial.WARPED_STEM,
                 XMaterial.STRIPPED_WARPED_HYPHAE);
-        CRYSTAL_SOUND_BLOCKS = new XTag<>(XMaterial.AMETHYST_BLOCK,
+        CRYSTAL_SOUND_BLOCKS = TagBuilder.simple(XMaterial.AMETHYST_BLOCK,
                 XMaterial.BUDDING_AMETHYST);
-        DEEPSLATE_ORE_REPLACEABLES = new XTag<>(XMaterial.TUFF,
+        DEEPSLATE_ORE_REPLACEABLES = TagBuilder.simple(XMaterial.TUFF,
                 XMaterial.DEEPSLATE);
-        DOORS = new XTag<>(XMaterial.IRON_DOOR);
-        DOORS.inheritFrom(WOODEN_DOORS);
-        WITHER_IMMUNE = new XTag<>(XMaterial.STRUCTURE_BLOCK,
+        DOORS = TagBuilder.of(XMaterial.IRON_DOOR).inheritFrom(WOODEN_DOORS).build();
+        WITHER_IMMUNE = TagBuilder.simple(XMaterial.STRUCTURE_BLOCK,
                 XMaterial.END_GATEWAY,
                 XMaterial.BEDROCK,
                 XMaterial.END_PORTAL,
@@ -1265,10 +1332,11 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CHAIN_COMMAND_BLOCK,
                 XMaterial.BARRIER,
                 XMaterial.END_PORTAL_FRAME,
-                XMaterial.JIGSAW);
-        WITHER_SUMMON_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL, XMaterial.SOUL_SAND);
-        NYLIUM = new XTag<>(XMaterial.CRIMSON_NYLIUM, XMaterial.WARPED_NYLIUM);
-        SMALL_FLOWERS = new XTag<>(
+                XMaterial.JIGSAW
+        );
+        WITHER_SUMMON_BASE_BLOCKS = TagBuilder.simple(XMaterial.SOUL_SOIL, XMaterial.SOUL_SAND);
+        NYLIUM = TagBuilder.simple(XMaterial.CRIMSON_NYLIUM, XMaterial.WARPED_NYLIUM);
+        SMALL_FLOWERS = TagBuilder.simple(
                 XMaterial.RED_TULIP,
                 XMaterial.AZURE_BLUET,
                 XMaterial.OXEYE_DAISY,
@@ -1283,22 +1351,22 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.LILY_OF_THE_VALLEY,
                 XMaterial.WITHER_ROSE
         );
-        TALL_FLOWERS = new XTag<>(
+        TALL_FLOWERS = TagBuilder.simple(
                 XMaterial.PEONY,
                 XMaterial.SUNFLOWER,
                 XMaterial.LILAC,
                 XMaterial.ROSE_BUSH
         );
-        FEATURES_CANNOT_REPLACE = new XTag<>(
+        FEATURES_CANNOT_REPLACE = TagBuilder.simple(
                 XMaterial.SPAWNER,
                 XMaterial.END_PORTAL_FRAME,
                 XMaterial.BEDROCK,
                 XMaterial.CHEST
         );
-        FENCE_GATES = new XTag<>(XMaterial.class, WOODEN_FENCE_GATES);
-        FENCES = new XTag<>(XMaterial.NETHER_BRICK_FENCE);
-        FENCES.inheritFrom(WOODEN_FENCES);
-        FLOWER_POTS = new XTag<>(XMaterial.POTTED_OAK_SAPLING,
+        FENCE_GATES = TagBuilder.simple(WOODEN_FENCE_GATES);
+        FENCES = TagBuilder.of(XMaterial.NETHER_BRICK_FENCE).inheritFrom(WOODEN_FENCES).build();
+        FLOWER_POTS = TagBuilder.simple(
+                XMaterial.POTTED_OAK_SAPLING,
                 XMaterial.POTTED_WITHER_ROSE,
                 XMaterial.POTTED_ACACIA_SAPLING,
                 XMaterial.POTTED_LILY_OF_THE_VALLEY,
@@ -1332,52 +1400,61 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.POTTED_BIRCH_SAPLING,
                 XMaterial.POTTED_MANGROVE_PROPAGULE,
                 XMaterial.POTTED_CHERRY_SAPLING,
-                XMaterial.POTTED_TORCHFLOWER);
-        FOX_FOOD = new XTag<>(XMaterial.GLOW_BERRIES,
-                XMaterial.SWEET_BERRIES);
-        FOXES_SPAWNABLE_ON = new XTag<>(XMaterial.SNOW,
+                XMaterial.POTTED_TORCHFLOWER
+        );
+        FOX_FOOD = TagBuilder.simple(XMaterial.GLOW_BERRIES, XMaterial.SWEET_BERRIES);
+        FOXES_SPAWNABLE_ON = TagBuilder.simple(
+                XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK,
                 XMaterial.PODZOL,
                 XMaterial.GRASS_BLOCK,
-                XMaterial.COARSE_DIRT);
-        FREEZE_IMMUNE_WEARABLES = new XTag<>(XMaterial.LEATHER_BOOTS,
+                XMaterial.COARSE_DIRT
+        );
+        FREEZE_IMMUNE_WEARABLES = TagBuilder.simple(
+                XMaterial.LEATHER_BOOTS,
                 XMaterial.LEATHER_CHESTPLATE,
                 XMaterial.LEATHER_HELMET,
                 XMaterial.LEATHER_LEGGINGS,
-                XMaterial.LEATHER_HORSE_ARMOR);
-        ICE = new XTag<>(XMaterial.ICE,
+                XMaterial.LEATHER_HORSE_ARMOR
+        );
+        ICE = TagBuilder.simple(
+                XMaterial.ICE,
                 XMaterial.PACKED_ICE,
                 XMaterial.BLUE_ICE,
-                XMaterial.FROSTED_ICE);
-        GEODE_INVALID_BLOCKS = new XTag<>(XMaterial.BEDROCK,
+                XMaterial.FROSTED_ICE
+        );
+        GEODE_INVALID_BLOCKS = TagBuilder.simple(
+                XMaterial.BEDROCK,
                 XMaterial.WATER,
                 XMaterial.LAVA,
                 XMaterial.ICE,
                 XMaterial.PACKED_ICE,
-                XMaterial.BLUE_ICE);
-        HOGLIN_REPELLENTS = new XTag<>(XMaterial.WARPED_FUNGUS,
+                XMaterial.BLUE_ICE
+        );
+        HOGLIN_REPELLENTS = TagBuilder.simple(XMaterial.WARPED_FUNGUS,
                 XMaterial.NETHER_PORTAL,
                 XMaterial.POTTED_WARPED_FUNGUS,
                 XMaterial.RESPAWN_ANCHOR);
-        IGNORED_BY_PIGLIN_BABIES = new XTag<>(XMaterial.LEATHER);
-        IMPERMEABLE = new XTag<>(XMaterial.class, GLASS);
-        INFINIBURN_END = new XTag<>(XMaterial.BEDROCK,
+        IGNORED_BY_PIGLIN_BABIES = TagBuilder.simple(XMaterial.LEATHER);
+        IMPERMEABLE = TagBuilder.simple(GLASS);
+        INFINIBURN_END = TagBuilder.simple(
+                XMaterial.BEDROCK,
                 XMaterial.NETHERRACK,
-                XMaterial.MAGMA_BLOCK);
-        INFINIBURN_NETHER = new XTag<>(XMaterial.NETHERRACK,
-                XMaterial.MAGMA_BLOCK);
-        INFINIBURN_OVERWORLD = new XTag<>(XMaterial.NETHERRACK,
-                XMaterial.MAGMA_BLOCK);
-        INSIDE_STEP_SOUND_BLOCKS = new XTag<>(XMaterial.SNOW, XMaterial.POWDER_SNOW);
-        ITEMS_ARROWS = new XTag<>(XMaterial.ARROW,
-                XMaterial.SPECTRAL_ARROW,
-                XMaterial.TIPPED_ARROW);
-        ITEMS_BEACON_PAYMENT_ITEMS = new XTag<>(XMaterial.EMERALD,
-                XMaterial.DIAMOND,
-                XMaterial.NETHERITE_INGOT,
-                XMaterial.IRON_INGOT,
-                XMaterial.GOLD_INGOT);
-        ITEMS_BOATS = new XTag<>(XMaterial.OAK_BOAT,
+                XMaterial.MAGMA_BLOCK
+        );
+        INFINIBURN_NETHER = TagBuilder.simple(XMaterial.NETHERRACK, XMaterial.MAGMA_BLOCK);
+        INFINIBURN_OVERWORLD = TagBuilder.simple(XMaterial.NETHERRACK, XMaterial.MAGMA_BLOCK);
+        INSIDE_STEP_SOUND_BLOCKS = TagBuilder.simple(XMaterial.SNOW, XMaterial.POWDER_SNOW);
+        ITEMS_ARROWS = TagBuilder.simple(XMaterial.ARROW, XMaterial.SPECTRAL_ARROW, XMaterial.TIPPED_ARROW);
+        ITEMS_BEACON_PAYMENT_ITEMS = TagBuilder.simple
+                (XMaterial.EMERALD,
+                        XMaterial.DIAMOND,
+                        XMaterial.NETHERITE_INGOT,
+                        XMaterial.IRON_INGOT,
+                        XMaterial.GOLD_INGOT
+                );
+        ITEMS_BOATS = TagBuilder.simple(
+                XMaterial.OAK_BOAT,
                 XMaterial.ACACIA_BOAT,
                 XMaterial.DARK_OAK_BOAT,
                 XMaterial.BIRCH_BOAT,
@@ -1385,10 +1462,11 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.JUNGLE_BOAT,
                 XMaterial.MANGROVE_BOAT,
                 XMaterial.CHERRY_BOAT,
-                XMaterial.BAMBOO_RAFT);
-        ITEMS_COALS = new XTag<>(XMaterial.COAL,
-                XMaterial.CHARCOAL);
-        ITEMS_CREEPER_DROP_MUSIC_DISCS = new XTag<>(XMaterial.MUSIC_DISC_BLOCKS,
+                XMaterial.BAMBOO_RAFT
+        );
+        ITEMS_COALS = TagBuilder.simple(XMaterial.COAL, XMaterial.CHARCOAL);
+        ITEMS_CREEPER_DROP_MUSIC_DISCS = TagBuilder.simple(
+                XMaterial.MUSIC_DISC_BLOCKS,
                 XMaterial.MUSIC_DISC_11,
                 XMaterial.MUSIC_DISC_WAIT,
                 XMaterial.MUSIC_DISC_MELLOHI,
@@ -1399,20 +1477,21 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.MUSIC_DISC_CHIRP,
                 XMaterial.MUSIC_DISC_MALL,
                 XMaterial.MUSIC_DISC_FAR,
-                XMaterial.MUSIC_DISC_STRAD);
-        ITEMS_FISHES = new XTag<>(XMaterial.TROPICAL_FISH,
+                XMaterial.MUSIC_DISC_STRAD
+        );
+        ITEMS_FISHES = TagBuilder.simple(
+                XMaterial.TROPICAL_FISH,
                 XMaterial.SALMON,
                 XMaterial.PUFFERFISH,
                 XMaterial.COOKED_COD,
                 XMaterial.COD,
-                XMaterial.COOKED_SALMON);
-        ITEMS_FURNACE_MATERIALS = new XTag<>(XMaterial.class);
-        ITEMS_LECTERN_BOOKS = new XTag<>(XMaterial.WRITABLE_BOOK,
-                XMaterial.WRITTEN_BOOK);
-        ITEMS_STONE_TOOL_MATERIALS = new XTag<>(XMaterial.COBBLED_DEEPSLATE,
+                XMaterial.COOKED_SALMON
+        );
+        ITEMS_LECTERN_BOOKS = TagBuilder.simple(XMaterial.WRITABLE_BOOK, XMaterial.WRITTEN_BOOK);
+        ITEMS_STONE_TOOL_MATERIALS = TagBuilder.simple(XMaterial.COBBLED_DEEPSLATE,
                 XMaterial.BLACKSTONE,
                 XMaterial.COBBLESTONE);
-        LEAVES = new XTag<>(XMaterial.SPRUCE_LEAVES,
+        LEAVES = TagBuilder.simple(XMaterial.SPRUCE_LEAVES,
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.DARK_OAK_LEAVES,
                 XMaterial.AZALEA_LEAVES,
@@ -1422,7 +1501,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.OAK_LEAVES,
                 XMaterial.MANGROVE_LEAVES,
                 XMaterial.CHERRY_LEAVES);
-        NON_WOODEN_STAIRS = new XTag<>(XMaterial.STONE_BRICK_STAIRS,
+        NON_WOODEN_STAIRS = TagBuilder.simple(XMaterial.STONE_BRICK_STAIRS,
                 XMaterial.STONE_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
                 XMaterial.RED_SANDSTONE_STAIRS,
@@ -1462,8 +1541,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
                 XMaterial.SMOOTH_SANDSTONE_STAIRS,
                 XMaterial.BLACKSTONE_STAIRS);
-        STAIRS = new XTag<>(XMaterial.class, NON_WOODEN_STAIRS, WOODEN_STAIRS);
-        NON_WOODEN_SLABS = new XTag<>(XMaterial.MOSSY_COBBLESTONE_SLAB,
+        STAIRS = TagBuilder.simple(NON_WOODEN_STAIRS, WOODEN_STAIRS);
+        NON_WOODEN_SLABS = TagBuilder.simple(XMaterial.MOSSY_COBBLESTONE_SLAB,
                 XMaterial.EXPOSED_CUT_COPPER_SLAB,
                 XMaterial.SMOOTH_QUARTZ_SLAB,
                 XMaterial.COBBLESTONE_SLAB,
@@ -1507,7 +1586,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
                 XMaterial.BRICK_SLAB,
                 XMaterial.POLISHED_GRANITE_SLAB);
-        POTTERY_SHERDS = new XTag<>(XMaterial.ANGLER_POTTERY_SHERD,
+        POTTERY_SHERDS = TagBuilder.simple(XMaterial.ANGLER_POTTERY_SHERD,
                 XMaterial.ARCHER_POTTERY_SHERD,
                 XMaterial.ARMS_UP_POTTERY_SHERD,
                 XMaterial.BLADE_POTTERY_SHERD,
@@ -1527,22 +1606,22 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.SHELTER_POTTERY_SHERD,
                 XMaterial.SKULL_POTTERY_SHERD,
                 XMaterial.SNORT_POTTERY_SHERD);
-        SOUL_FIRE_BASE_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
+        SOUL_FIRE_BASE_BLOCKS = TagBuilder.simple(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
-        SOUL_SPEED_BLOCKS = new XTag<>(XMaterial.SOUL_SOIL,
+        SOUL_SPEED_BLOCKS = TagBuilder.simple(XMaterial.SOUL_SOIL,
                 XMaterial.SOUL_SAND);
-        STONE_ORE_REPLACEABLES = new XTag<>(XMaterial.STONE,
+        STONE_ORE_REPLACEABLES = TagBuilder.simple(XMaterial.STONE,
                 XMaterial.DIORITE,
                 XMaterial.ANDESITE,
                 XMaterial.GRANITE);
-        STRIDER_WARM_BLOCKS = new XTag<>(XMaterial.LAVA);
-        VALID_SPAWN = new XTag<>(XMaterial.PODZOL,
+        STRIDER_WARM_BLOCKS = TagBuilder.simple(XMaterial.LAVA);
+        VALID_SPAWN = TagBuilder.simple(XMaterial.PODZOL,
                 XMaterial.GRASS_BLOCK);
-        STONE_BRICKS = new XTag<>(XMaterial.CHISELED_STONE_BRICKS,
+        STONE_BRICKS = TagBuilder.simple(XMaterial.CHISELED_STONE_BRICKS,
                 XMaterial.CRACKED_STONE_BRICKS,
                 XMaterial.MOSSY_STONE_BRICKS,
                 XMaterial.STONE_BRICKS);
-        SAPLINGS = new XTag<>(XMaterial.ACACIA_SAPLING,
+        SAPLINGS = TagBuilder.simple(XMaterial.ACACIA_SAPLING,
                 XMaterial.JUNGLE_SAPLING,
                 XMaterial.SPRUCE_SAPLING,
                 XMaterial.DARK_OAK_SAPLING,
@@ -1552,22 +1631,22 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.BIRCH_SAPLING,
                 XMaterial.MANGROVE_PROPAGULE,
                 XMaterial.CHERRY_SAPLING);
-        WOLVES_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
+        WOLVES_SPAWNABLE_ON = TagBuilder.simple(XMaterial.GRASS_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK);
-        POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN = new XTag<>(XMaterial.ICE);
-        RABBITS_SPAWNABLE_ON = new XTag<>(XMaterial.GRASS_BLOCK,
+        POLAR_BEARS_SPAWNABLE_ON_IN_FROZEN_OCEAN = TagBuilder.simple(XMaterial.ICE);
+        RABBITS_SPAWNABLE_ON = TagBuilder.simple(XMaterial.GRASS_BLOCK,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK,
                 XMaterial.SAND);
-        PIGLIN_FOOD = new XTag<>(XMaterial.COOKED_PORKCHOP,
+        PIGLIN_FOOD = TagBuilder.simple(XMaterial.COOKED_PORKCHOP,
                 XMaterial.PORKCHOP);
-        PIGLIN_REPELLENTS = new XTag<>(XMaterial.SOUL_WALL_TORCH,
+        PIGLIN_REPELLENTS = TagBuilder.simple(XMaterial.SOUL_WALL_TORCH,
                 XMaterial.SOUL_TORCH,
                 XMaterial.SOUL_CAMPFIRE,
                 XMaterial.SOUL_LANTERN,
                 XMaterial.SOUL_FIRE);
-        REPLACEABLE_PLANTS = new XTag<>(XMaterial.FERN,
+        REPLACEABLE_PLANTS = TagBuilder.simple(XMaterial.FERN,
                 XMaterial.GLOW_LICHEN,
                 XMaterial.DEAD_BUSH,
                 XMaterial.PEONY,
@@ -1579,9 +1658,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.LILAC,
                 XMaterial.ROSE_BUSH,
                 XMaterial.SHORT_GRASS);
-        SMALL_DRIPLEAF_PLACEABLE = new XTag<>(XMaterial.CLAY,
+        SMALL_DRIPLEAF_PLACEABLE = TagBuilder.simple(XMaterial.CLAY,
                 XMaterial.MOSS_BLOCK);
-        NON_FLAMMABLE_WOOD = new XTag<>(XMaterial.CRIMSON_PLANKS,
+        NON_FLAMMABLE_WOOD = TagBuilder.simple(XMaterial.CRIMSON_PLANKS,
                 XMaterial.WARPED_WALL_SIGN,
                 XMaterial.CRIMSON_FENCE_GATE,
                 XMaterial.WARPED_HYPHAE,
@@ -1611,9 +1690,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CRIMSON_DOOR,
                 XMaterial.CRIMSON_BUTTON,
                 XMaterial.WARPED_SIGN);
-        MOOSHROOMS_SPAWNABLE_ON = new XTag<>(XMaterial.MYCELIUM);
+        MOOSHROOMS_SPAWNABLE_ON = TagBuilder.simple(XMaterial.MYCELIUM);
 
-        NEEDS_STONE_TOOL = new XTag<>(XMaterial.OXIDIZED_CUT_COPPER,
+        NEEDS_STONE_TOOL = TagBuilder.simple(XMaterial.OXIDIZED_CUT_COPPER,
                 XMaterial.DEEPSLATE_COPPER_ORE,
                 XMaterial.EXPOSED_CUT_COPPER_SLAB,
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_SLAB,
@@ -1656,7 +1735,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.LIGHTNING_ROD,
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
                 XMaterial.CUT_COPPER);
-        NEEDS_IRON_TOOL = new XTag<>(XMaterial.GOLD_ORE,
+        NEEDS_IRON_TOOL = TagBuilder.simple(XMaterial.GOLD_ORE,
                 XMaterial.GOLD_BLOCK,
                 XMaterial.REDSTONE_ORE,
                 XMaterial.RAW_GOLD_BLOCK,
@@ -1668,13 +1747,14 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.EMERALD_ORE,
                 XMaterial.DEEPSLATE_REDSTONE_ORE,
                 XMaterial.DEEPSLATE_DIAMOND_ORE);
-        NEEDS_DIAMOND_TOOL = new XTag<>(XMaterial.OBSIDIAN,
+        NEEDS_DIAMOND_TOOL = TagBuilder.simple(XMaterial.OBSIDIAN,
                 XMaterial.NETHERITE_BLOCK,
                 XMaterial.ANCIENT_DEBRIS,
                 XMaterial.RESPAWN_ANCHOR,
                 XMaterial.CRYING_OBSIDIAN);
 
-        MINEABLE_PICKAXE = new XTag<>(XMaterial.OXIDIZED_CUT_COPPER,
+        MINEABLE_PICKAXE = TagBuilder.of(
+                XMaterial.OXIDIZED_CUT_COPPER,
                 XMaterial.GOLD_BLOCK,
                 XMaterial.SMOOTH_SANDSTONE,
                 XMaterial.IRON_DOOR,
@@ -1816,8 +1896,8 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CRIMSON_NYLIUM,
                 XMaterial.STICKY_PISTON,
                 XMaterial.DIAMOND_BLOCK,
-                XMaterial.POINTED_DRIPSTONE);
-        MINEABLE_PICKAXE.inheritFrom(TERRACOTTA,
+                XMaterial.POINTED_DRIPSTONE
+        ).inheritFrom(TERRACOTTA,
                 GLAZED_TERRACOTTA,
                 WALLS,
                 CORALS,
@@ -1832,9 +1912,11 @@ public final class XTag<T extends Enum<T>> {
                 CONCRETE,
                 NON_WOODEN_STAIRS,
                 NON_WOODEN_SLABS,
-                CAULDRONS);
+                CAULDRONS
+        ).build();
 
-        MINEABLE_SHOVEL = new XTag<>(XMaterial.FARMLAND,
+        MINEABLE_SHOVEL = TagBuilder.of(
+                XMaterial.FARMLAND,
                 XMaterial.DIRT_PATH,
                 XMaterial.SNOW,
                 XMaterial.SNOW_BLOCK,
@@ -1849,10 +1931,10 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.ROOTED_DIRT,
                 XMaterial.MYCELIUM,
                 XMaterial.SOUL_SOIL,
-                XMaterial.GRASS_BLOCK);
-        MINEABLE_SHOVEL.inheritFrom(CONCRETE_POWDER);
+                XMaterial.GRASS_BLOCK
+        ).inheritFrom(CONCRETE_POWDER).build();
 
-        MINEABLE_HOE = new XTag<>(XMaterial.FLOWERING_AZALEA_LEAVES,
+        MINEABLE_HOE = TagBuilder.simple(XMaterial.FLOWERING_AZALEA_LEAVES,
                 XMaterial.DARK_OAK_LEAVES,
                 XMaterial.SHROOMLIGHT,
                 XMaterial.BIRCH_LEAVES,
@@ -1874,7 +1956,7 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.CHERRY_LEAVES,
                 XMaterial.MOSS_BLOCK);
 
-        LAVA_POOL_STONE_CANNOT_REPLACE = new XTag<>(XMaterial.DARK_OAK_LEAVES,
+        LAVA_POOL_STONE_CANNOT_REPLACE = TagBuilder.simple(XMaterial.DARK_OAK_LEAVES,
                 XMaterial.STRIPPED_DARK_OAK_WOOD,
                 XMaterial.OAK_WOOD,
                 XMaterial.CRIMSON_HYPHAE,
@@ -1928,63 +2010,67 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.ACACIA_LEAVES,
                 XMaterial.STRIPPED_WARPED_HYPHAE,
                 XMaterial.BIRCH_LOG);
-        LEATHER_ARMOR_PIECES = new XTag<>(XMaterial.LEATHER_HELMET,
+        LEATHER_ARMOR_PIECES = TagBuilder.simple(XMaterial.LEATHER_HELMET,
                 XMaterial.LEATHER_CHESTPLATE,
                 XMaterial.LEATHER_LEGGINGS,
                 XMaterial.LEATHER_BOOTS);
-        IRON_ARMOR_PIECES = new XTag<>(XMaterial.IRON_HELMET,
+        IRON_ARMOR_PIECES = TagBuilder.simple(XMaterial.IRON_HELMET,
                 XMaterial.IRON_CHESTPLATE,
                 XMaterial.IRON_LEGGINGS,
                 XMaterial.IRON_BOOTS);
-        CHAINMAIL_ARMOR_PIECES = new XTag<>(XMaterial.CHAINMAIL_HELMET,
+        CHAINMAIL_ARMOR_PIECES = TagBuilder.simple(XMaterial.CHAINMAIL_HELMET,
                 XMaterial.CHAINMAIL_CHESTPLATE,
                 XMaterial.CHAINMAIL_LEGGINGS,
                 XMaterial.CHAINMAIL_BOOTS);
-        GOLDEN_ARMOR_PIECES = new XTag<>(XMaterial.GOLDEN_HELMET,
+        GOLDEN_ARMOR_PIECES = TagBuilder.simple(XMaterial.GOLDEN_HELMET,
                 XMaterial.GOLDEN_CHESTPLATE,
                 XMaterial.GOLDEN_LEGGINGS,
                 XMaterial.GOLDEN_BOOTS);
-        DIAMOND_ARMOR_PIECES = new XTag<>(XMaterial.DIAMOND_HELMET,
+        DIAMOND_ARMOR_PIECES = TagBuilder.simple(XMaterial.DIAMOND_HELMET,
                 XMaterial.DIAMOND_CHESTPLATE,
                 XMaterial.DIAMOND_LEGGINGS,
                 XMaterial.DIAMOND_BOOTS);
-        NETHERITE_ARMOR_PIECES = new XTag<>(XMaterial.NETHERITE_HELMET,
+        NETHERITE_ARMOR_PIECES = TagBuilder.simple(XMaterial.NETHERITE_HELMET,
                 XMaterial.NETHERITE_CHESTPLATE,
                 XMaterial.NETHERITE_LEGGINGS,
                 XMaterial.NETHERITE_BOOTS);
-        WOODEN_TOOLS = new XTag<>(XMaterial.WOODEN_PICKAXE,
+        WOODEN_TOOLS = TagBuilder.simple(XMaterial.WOODEN_PICKAXE,
                 XMaterial.WOODEN_AXE,
                 XMaterial.WOODEN_HOE,
                 XMaterial.WOODEN_SHOVEL,
                 XMaterial.WOODEN_SWORD);
-        STONE_TOOLS = new XTag<>(XMaterial.STONE_PICKAXE,
+        STONE_TOOLS = TagBuilder.simple(XMaterial.STONE_PICKAXE,
                 XMaterial.STONE_AXE,
                 XMaterial.STONE_HOE,
                 XMaterial.STONE_SHOVEL,
                 XMaterial.STONE_SWORD);
-        IRON_TOOLS = new XTag<>(XMaterial.IRON_PICKAXE,
+        IRON_TOOLS = TagBuilder.simple(XMaterial.IRON_PICKAXE,
                 XMaterial.IRON_AXE,
                 XMaterial.IRON_HOE,
                 XMaterial.IRON_SHOVEL,
                 XMaterial.IRON_SWORD);
-        DIAMOND_TOOLS = new XTag<>(XMaterial.DIAMOND_PICKAXE,
+        DIAMOND_TOOLS = TagBuilder.simple(XMaterial.DIAMOND_PICKAXE,
                 XMaterial.DIAMOND_AXE,
                 XMaterial.DIAMOND_HOE,
                 XMaterial.DIAMOND_SHOVEL,
                 XMaterial.DIAMOND_SHOVEL);
-        NETHERITE_TOOLS = new XTag<>(XMaterial.NETHERITE_PICKAXE,
+        NETHERITE_TOOLS = TagBuilder.simple(XMaterial.NETHERITE_PICKAXE,
                 XMaterial.NETHERITE_AXE,
                 XMaterial.NETHERITE_HOE,
                 XMaterial.NETHERITE_SHOVEL,
                 XMaterial.NETHERITE_SHOVEL);
-        ARMOR_PIECES = new XTag<>(XMaterial.TURTLE_HELMET);
-        ARMOR_PIECES.inheritFrom(LEATHER_ARMOR_PIECES,
-                CHAINMAIL_ARMOR_PIECES,
-                IRON_ARMOR_PIECES,
-                GOLDEN_ARMOR_PIECES,
-                DIAMOND_ARMOR_PIECES,
-                NETHERITE_ARMOR_PIECES);
-        SMITHING_TEMPLATES = new XTag<>(XMaterial.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
+        ARMOR_PIECES = TagBuilder
+                .of(XMaterial.TURTLE_HELMET)
+                .inheritFrom(
+                        LEATHER_ARMOR_PIECES,
+                        CHAINMAIL_ARMOR_PIECES,
+                        IRON_ARMOR_PIECES,
+                        GOLDEN_ARMOR_PIECES,
+                        DIAMOND_ARMOR_PIECES,
+                        NETHERITE_ARMOR_PIECES
+                ).build();
+        SMITHING_TEMPLATES = TagBuilder.simple(
+                XMaterial.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
                 XMaterial.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
                 XMaterial.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE,
                 XMaterial.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
@@ -2000,128 +2086,163 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
                 XMaterial.WARD_ARMOR_TRIM_SMITHING_TEMPLATE,
                 XMaterial.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
-                XMaterial.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
+                XMaterial.WILD_ARMOR_TRIM_SMITHING_TEMPLATE
+        );
 
-        AZALEA_GROWS_ON = new XTag<>(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW);
-        AZALEA_GROWS_ON.inheritFrom(TERRACOTTA, SAND, DIRT);
-        AZALEA_ROOT_REPLACEABLE = new XTag<>(XMaterial.CLAY, XMaterial.GRAVEL);
-        AZALEA_ROOT_REPLACEABLE.inheritFrom(AZALEA_GROWS_ON, CAVE_VINES, BASE_STONE_OVERWORLD);
-        BAMBOO_PLANTABLE_ON = new XTag<>(XMaterial.GRAVEL, XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO);
-        BAMBOO_PLANTABLE_ON.inheritFrom(DIRT, SAND);
-        BEE_GROWABLES = new XTag<>(XMaterial.SWEET_BERRY_BUSH);
-        BEE_GROWABLES.inheritFrom(CROPS, CAVE_VINES);
-        BIG_DRIPLEAF_PLACEABLE = new XTag<>(XMaterial.CLAY, XMaterial.FARMLAND);
-        BIG_DRIPLEAF_PLACEABLE.inheritFrom(DIRT);
-        BUTTONS = new XTag<>(XMaterial.STONE_BUTTON,
-                XMaterial.POLISHED_BLACKSTONE_BUTTON);
-        BUTTONS.inheritFrom(WOODEN_BUTTONS);
-        DRIPSTONE_REPLACEABLE = new XTag<>(XMaterial.DIRT);
-        DRIPSTONE_REPLACEABLE.inheritFrom(BASE_STONE_OVERWORLD);
-        ENDERMAN_HOLDABLE = new XTag<>(XMaterial.TNT,
-                XMaterial.PUMPKIN,
-                XMaterial.CARVED_PUMPKIN,
-                XMaterial.MELON,
-                XMaterial.CRIMSON_FUNGUS,
-                XMaterial.WARPED_FUNGUS,
-                XMaterial.WARPED_ROOTS,
-                XMaterial.CRIMSON_ROOTS,
-                XMaterial.RED_MUSHROOM,
-                XMaterial.BROWN_MUSHROOM,
-                XMaterial.CACTUS,
-                XMaterial.GRAVEL,
-                XMaterial.CLAY);
-        ENDERMAN_HOLDABLE.inheritFrom(DIRT, NYLIUM, SAND, SMALL_FLOWERS);
-        FLOWERS = new XTag<>(XMaterial.FLOWERING_AZALEA,
-                XMaterial.FLOWERING_AZALEA_LEAVES);
-        FLOWERS.inheritFrom(SMALL_FLOWERS, TALL_FLOWERS);
-        GOATS_SPAWNABLE_ON = new XTag<>(XMaterial.GRAVEL,
-                XMaterial.STONE,
-                XMaterial.PACKED_ICE);
-        GOATS_SPAWNABLE_ON.inheritFrom(SNOW);
-        GUARDED_BY_PIGLINS = new XTag<>(XMaterial.GOLD_BLOCK,
-                XMaterial.ENDER_CHEST,
-                XMaterial.RAW_GOLD_BLOCK,
-                XMaterial.GILDED_BLACKSTONE,
-                XMaterial.CHEST,
-                XMaterial.BARREL,
-                XMaterial.TRAPPED_CHEST);
-        GUARDED_BY_PIGLINS.inheritFrom(SHULKER_BOXES, GOLD_ORES);
-        ITEMS_MUSIC_DISCS = new XTag<>(XMaterial.MUSIC_DISC_OTHERSIDE,
-                XMaterial.MUSIC_DISC_PIGSTEP);
-        ITEMS_MUSIC_DISCS.inheritFrom(ITEMS_CREEPER_DROP_MUSIC_DISCS);
-        ITEMS_PIGLIN_LOVED = new XTag<>(XMaterial.GOLD_BLOCK,
-                XMaterial.RAW_GOLD,
-                XMaterial.GLISTERING_MELON_SLICE,
-                XMaterial.GOLDEN_HORSE_ARMOR,
-                XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
-                XMaterial.GOLDEN_SWORD,
-                XMaterial.GOLDEN_AXE,
-                XMaterial.BELL,
-                XMaterial.ENCHANTED_GOLDEN_APPLE,
-                XMaterial.RAW_GOLD_BLOCK,
-                XMaterial.GILDED_BLACKSTONE,
-                XMaterial.CLOCK,
-                XMaterial.GOLDEN_CARROT,
-                XMaterial.GOLDEN_APPLE,
-                XMaterial.GOLDEN_SHOVEL,
-                XMaterial.GOLDEN_PICKAXE,
-                XMaterial.GOLDEN_HOE,
-                XMaterial.GOLD_INGOT);
-        ITEMS_PIGLIN_LOVED.inheritFrom(GOLD_ORES, GOLDEN_ARMOR_PIECES);
-        SIGNS = new XTag<>(XMaterial.class,
-                WALL_SIGNS,
-                STANDING_SIGNS);
-        PRESSURE_PLATES = new XTag<>(XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
-                XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE);
-        PRESSURE_PLATES.inheritFrom(STONE_PRESSURE_PLATES, WOODEN_PRESSURE_PLATES);
-        DRAGON_IMMUNE = new XTag<>(XMaterial.IRON_BARS,
-                XMaterial.OBSIDIAN,
-                XMaterial.RESPAWN_ANCHOR,
-                XMaterial.END_STONE,
-                XMaterial.CRYING_OBSIDIAN);
-        DRAGON_IMMUNE.inheritFrom(WITHER_IMMUNE);
-        WALL_POST_OVERRIDE = new XTag<>(XMaterial.TORCH,
-                XMaterial.TRIPWIRE,
-                XMaterial.REDSTONE_TORCH,
-                XMaterial.SOUL_TORCH);
-        WALL_POST_OVERRIDE.inheritFrom(SIGNS, BANNERS, PRESSURE_PLATES);
-        UNDERWATER_BONEMEALS = new XTag<>(XMaterial.SEAGRASS);
-        UNDERWATER_BONEMEALS.inheritFrom(CORALS, ALIVE_CORAL_WALL_FANS);
-        UNSTABLE_BOTTOM_CENTER = new XTag<>(XMaterial.class,
-                FENCE_GATES);
-        PREVENT_MOB_SPAWNING_INSIDE = new XTag<>(XMaterial.class,
-                RAILS);
-        PARROTS_SPAWNABLE_ON = new XTag<>(XMaterial.AIR, XMaterial.GRASS_BLOCK);
-        OCCLUDES_VIBRATION_SIGNALS = new XTag<>(XMaterial.class, WOOL);
-        LOGS_THAT_BURN = new XTag<>(XMaterial.class, ACACIA_LOGS,
+        AZALEA_GROWS_ON = TagBuilder
+                .of(XMaterial.SNOW_BLOCK, XMaterial.POWDER_SNOW)
+                .inheritFrom(TERRACOTTA, SAND, DIRT)
+                .build();
+        AZALEA_ROOT_REPLACEABLE = TagBuilder
+                .of(XMaterial.CLAY, XMaterial.GRAVEL)
+                .inheritFrom(AZALEA_GROWS_ON, CAVE_VINES, BASE_STONE_OVERWORLD)
+                .build();
+        BAMBOO_PLANTABLE_ON = TagBuilder
+                .of(XMaterial.GRAVEL, XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO)
+                .inheritFrom(DIRT, SAND)
+                .build();
+        BEE_GROWABLES = TagBuilder
+                .of(XMaterial.SWEET_BERRY_BUSH)
+                .inheritFrom(CROPS, CAVE_VINES)
+                .build();
+        BIG_DRIPLEAF_PLACEABLE = TagBuilder
+                .of(XMaterial.CLAY, XMaterial.FARMLAND)
+                .inheritFrom(DIRT)
+                .build();
+        BUTTONS = TagBuilder
+                .of(XMaterial.STONE_BUTTON, XMaterial.POLISHED_BLACKSTONE_BUTTON)
+                .inheritFrom(WOODEN_BUTTONS)
+                .build();
+        DRIPSTONE_REPLACEABLE = TagBuilder
+                .of(XMaterial.DIRT)
+                .inheritFrom(BASE_STONE_OVERWORLD)
+                .build();
+        ENDERMAN_HOLDABLE = TagBuilder.of(
+                        XMaterial.TNT,
+                        XMaterial.PUMPKIN,
+                        XMaterial.CARVED_PUMPKIN,
+                        XMaterial.MELON,
+                        XMaterial.CRIMSON_FUNGUS,
+                        XMaterial.WARPED_FUNGUS,
+                        XMaterial.WARPED_ROOTS,
+                        XMaterial.CRIMSON_ROOTS,
+                        XMaterial.RED_MUSHROOM,
+                        XMaterial.BROWN_MUSHROOM,
+                        XMaterial.CACTUS,
+                        XMaterial.GRAVEL,
+                        XMaterial.CLAY
+                ).inheritFrom(DIRT, NYLIUM, SAND, SMALL_FLOWERS)
+                .build();
+        FLOWERS = TagBuilder
+                .of(XMaterial.FLOWERING_AZALEA, XMaterial.FLOWERING_AZALEA_LEAVES)
+                .inheritFrom(SMALL_FLOWERS, TALL_FLOWERS)
+                .build();
+        GOATS_SPAWNABLE_ON = TagBuilder.of(
+                        XMaterial.GRAVEL,
+                        XMaterial.STONE,
+                        XMaterial.PACKED_ICE
+                ).inheritFrom(SNOW)
+                .build();
+        GUARDED_BY_PIGLINS = TagBuilder.of(XMaterial.GOLD_BLOCK,
+                        XMaterial.ENDER_CHEST,
+                        XMaterial.RAW_GOLD_BLOCK,
+                        XMaterial.GILDED_BLACKSTONE,
+                        XMaterial.CHEST,
+                        XMaterial.BARREL,
+                        XMaterial.TRAPPED_CHEST
+                ).inheritFrom(SHULKER_BOXES, GOLD_ORES)
+                .build();
+        ITEMS_MUSIC_DISCS = TagBuilder.of(XMaterial.MUSIC_DISC_OTHERSIDE, XMaterial.MUSIC_DISC_PIGSTEP)
+                .inheritFrom(ITEMS_CREEPER_DROP_MUSIC_DISCS)
+                .build();
+        ITEMS_PIGLIN_LOVED = TagBuilder.of(XMaterial.GOLD_BLOCK,
+                        XMaterial.RAW_GOLD,
+                        XMaterial.GLISTERING_MELON_SLICE,
+                        XMaterial.GOLDEN_HORSE_ARMOR,
+                        XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
+                        XMaterial.GOLDEN_SWORD,
+                        XMaterial.GOLDEN_AXE,
+                        XMaterial.BELL,
+                        XMaterial.ENCHANTED_GOLDEN_APPLE,
+                        XMaterial.RAW_GOLD_BLOCK,
+                        XMaterial.GILDED_BLACKSTONE,
+                        XMaterial.CLOCK,
+                        XMaterial.GOLDEN_CARROT,
+                        XMaterial.GOLDEN_APPLE,
+                        XMaterial.GOLDEN_SHOVEL,
+                        XMaterial.GOLDEN_PICKAXE,
+                        XMaterial.GOLDEN_HOE,
+                        XMaterial.GOLD_INGOT
+                ).inheritFrom(GOLD_ORES, GOLDEN_ARMOR_PIECES)
+                .build();
+        SIGNS = TagBuilder.simple(WALL_SIGNS, STANDING_SIGNS);
+        PRESSURE_PLATES = TagBuilder.of(
+                        XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
+                        XMaterial.HEAVY_WEIGHTED_PRESSURE_PLATE
+                ).inheritFrom(STONE_PRESSURE_PLATES, WOODEN_PRESSURE_PLATES)
+                .build();
+        DRAGON_IMMUNE = TagBuilder.of(XMaterial.IRON_BARS,
+                        XMaterial.OBSIDIAN,
+                        XMaterial.RESPAWN_ANCHOR,
+                        XMaterial.END_STONE,
+                        XMaterial.CRYING_OBSIDIAN
+                ).inheritFrom(WITHER_IMMUNE)
+                .build();
+        WALL_POST_OVERRIDE = TagBuilder.of(
+                        XMaterial.TORCH,
+                        XMaterial.TRIPWIRE,
+                        XMaterial.REDSTONE_TORCH,
+                        XMaterial.SOUL_TORCH
+                ).inheritFrom(SIGNS, BANNERS, PRESSURE_PLATES)
+                .build();
+        UNDERWATER_BONEMEALS = TagBuilder.of(XMaterial.SEAGRASS)
+                .inheritFrom(CORALS, ALIVE_CORAL_WALL_FANS)
+                .build();
+        UNSTABLE_BOTTOM_CENTER = TagBuilder.simple(FENCE_GATES);
+        PREVENT_MOB_SPAWNING_INSIDE = TagBuilder.simple(RAILS);
+        OCCLUDES_VIBRATION_SIGNALS = TagBuilder.simple(WOOL);
+        LOGS_THAT_BURN = TagBuilder.simple(
+                ACACIA_LOGS,
                 OAK_LOGS,
                 DARK_OAK_LOGS,
                 SPRUCE_LOGS,
                 JUNGLE_LOGS,
                 BIRCH_LOGS,
                 MANGROVE_LOGS,
-                CHERRY_LOGS);
-        LOGS = new XTag<>(XMaterial.class,
+                CHERRY_LOGS
+        );
+        LOGS = TagBuilder.simple(
                 LOGS_THAT_BURN,
                 CRIMSON_STEMS,
-                WARPED_STEMS);
-        PARROTS_SPAWNABLE_ON.inheritFrom(LEAVES, LOGS);
-        LUSH_GROUND_REPLACEABLE = new XTag<>(XMaterial.GRAVEL,
+                WARPED_STEMS
+        );
+
+        ITEMS_FURNACE_MATERIALS = TagBuilder.of(XMaterial.COAL, XMaterial.CHARCOAL, XMaterial.COAL_BLOCK)
+                .inheritFrom(LOGS, PLANKS).build();
+
+        PARROTS_SPAWNABLE_ON = TagBuilder.of(XMaterial.GRASS_BLOCK).inheritFrom(AIR, LEAVES, LOGS).build();
+        LUSH_GROUND_REPLACEABLE = TagBuilder.of(
+                XMaterial.GRAVEL,
                 XMaterial.SAND,
-                XMaterial.CLAY);
-        LUSH_GROUND_REPLACEABLE.inheritFrom(CAVE_VINES,
+                XMaterial.CLAY
+        ).inheritFrom(CAVE_VINES,
                 DIRT,
-                BASE_STONE_OVERWORLD);
-        TRAPDOORS = new XTag<>(XMaterial.IRON_TRAPDOOR);
-        TRAPDOORS.inheritFrom(WOODEN_TRAPDOORS);
-        MUSHROOM_GROW_BLOCK = new XTag<>(XMaterial.PODZOL, XMaterial.MYCELIUM);
-        MUSHROOM_GROW_BLOCK.inheritFrom(NYLIUM);
-        MOSS_REPLACEABLE = new XTag<>(XMaterial.class,
+                BASE_STONE_OVERWORLD
+        ).build();
+        TRAPDOORS = TagBuilder.of(XMaterial.IRON_TRAPDOOR)
+                .inheritFrom(WOODEN_TRAPDOORS)
+                .build();
+        MUSHROOM_GROW_BLOCK = TagBuilder.of(XMaterial.PODZOL, XMaterial.MYCELIUM)
+                .inheritFrom(NYLIUM)
+                .build();
+        MOSS_REPLACEABLE = TagBuilder.simple(
                 CAVE_VINES,
                 DIRT,
-                BASE_STONE_OVERWORLD);
+                BASE_STONE_OVERWORLD
+        );
 
-        ARMOR_ENCHANTS = new XTag<>(XEnchantment.BLAST_PROTECTION,
+        ARMOR_ENCHANTS = TagBuilder.simple(
+                XEnchantment.BLAST_PROTECTION,
                 XEnchantment.BINDING_CURSE,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.FIRE_PROTECTION,
@@ -2129,27 +2250,32 @@ public final class XTag<T extends Enum<T>> {
                 XEnchantment.PROJECTILE_PROTECTION,
                 XEnchantment.PROTECTION,
                 XEnchantment.THORNS,
-                XEnchantment.UNBREAKING);
+                XEnchantment.UNBREAKING
+        );
 
-        HELEMT_ENCHANTS = new XTag<>(XEnchantment.AQUA_AFFINITY,
-                XEnchantment.RESPIRATION);
-        HELEMT_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
+        HELEMT_ENCHANTS = TagBuilder
+                .of(XEnchantment.AQUA_AFFINITY, XEnchantment.RESPIRATION)
+                .inheritFrom(ARMOR_ENCHANTS)
+                .build();
 
-        CHESTPLATE_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
+        CHESTPLATE_ENCHANTS = TagBuilder.simple(ARMOR_ENCHANTS);
+        LEGGINGS_ENCHANTS = TagBuilder.simple(ARMOR_ENCHANTS);
+        BOOTS_ENCHANTS = TagBuilder.of(
+                        XEnchantment.DEPTH_STRIDER,
+                        XEnchantment.FEATHER_FALLING,
+                        XEnchantment.FROST_WALKER
+                ).inheritFrom(ARMOR_ENCHANTS)
+                .build();
 
-        LEGGINGS_ENCHANTS = new XTag<>(XEnchantment.class, ARMOR_ENCHANTS);
-
-        BOOTS_ENCHANTS = new XTag<>(XEnchantment.DEPTH_STRIDER,
-                XEnchantment.FEATHER_FALLING,
-                XEnchantment.FROST_WALKER);
-        BOOTS_ENCHANTS.inheritFrom(ARMOR_ENCHANTS);
-
-        ELYTRA_ENCHANTS = new XTag<>(XEnchantment.BINDING_CURSE,
+        ELYTRA_ENCHANTS = TagBuilder.simple(
+                XEnchantment.BINDING_CURSE,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.MENDING,
-                XEnchantment.UNBREAKING);
+                XEnchantment.UNBREAKING
+        );
 
-        SWORD_ENCHANTS = new XTag<>(XEnchantment.BANE_OF_ARTHROPODS,
+        SWORD_ENCHANTS = TagBuilder.simple(
+                XEnchantment.BANE_OF_ARTHROPODS,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.FIRE_ASPECT,
                 XEnchantment.KNOCKBACK,
@@ -2158,9 +2284,11 @@ public final class XTag<T extends Enum<T>> {
                 XEnchantment.SHARPNESS,
                 XEnchantment.SMITE,
                 XEnchantment.SWEEPING_EDGE,
-                XEnchantment.UNBREAKING);
+                XEnchantment.UNBREAKING
+        );
 
-        AXE_ENCHANTS = new XTag<>(XEnchantment.BANE_OF_ARTHROPODS,
+        AXE_ENCHANTS = TagBuilder.simple(
+                XEnchantment.BANE_OF_ARTHROPODS,
                 XEnchantment.VANISHING_CURSE,
                 XEnchantment.EFFICIENCY,
                 XEnchantment.FORTUNE,
@@ -2168,42 +2296,44 @@ public final class XTag<T extends Enum<T>> {
                 XEnchantment.SHARPNESS,
                 XEnchantment.SILK_TOUCH,
                 XEnchantment.SMITE,
-                XEnchantment.UNBREAKING);
+                XEnchantment.UNBREAKING
+        );
 
-        HOE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        HOE_ENCHANTS = TagBuilder.simple(XEnchantment.VANISHING_CURSE,
                 XEnchantment.EFFICIENCY,
                 XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
                 XEnchantment.UNBREAKING);
 
-        PICKAXE_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        PICKAXE_ENCHANTS = TagBuilder.simple(XEnchantment.VANISHING_CURSE,
                 XEnchantment.EFFICIENCY,
                 XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
                 XEnchantment.UNBREAKING);
 
-        SHOVEL_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        SHOVEL_ENCHANTS = TagBuilder.simple(XEnchantment.VANISHING_CURSE,
                 XEnchantment.EFFICIENCY,
                 XEnchantment.FORTUNE,
                 XEnchantment.MENDING,
                 XEnchantment.SILK_TOUCH,
                 XEnchantment.UNBREAKING);
 
-        SHEARS_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        SHEARS_ENCHANTS = TagBuilder.of(
+                XEnchantment.VANISHING_CURSE,
                 XEnchantment.EFFICIENCY,
                 XEnchantment.MENDING,
-                XEnchantment.UNBREAKING);
+                XEnchantment.UNBREAKING).build();
 
-        BOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        BOW_ENCHANTS = TagBuilder.simple(XEnchantment.VANISHING_CURSE,
                 XEnchantment.FLAME,
                 XEnchantment.INFINITY,
                 XEnchantment.MENDING,
                 XEnchantment.PUNCH,
                 XEnchantment.UNBREAKING);
 
-        CROSSBOW_ENCHANTS = new XTag<>(XEnchantment.VANISHING_CURSE,
+        CROSSBOW_ENCHANTS = TagBuilder.simple(XEnchantment.VANISHING_CURSE,
                 XEnchantment.MENDING,
                 XEnchantment.MULTISHOT,
                 XEnchantment.PIERCING,
@@ -2211,7 +2341,7 @@ public final class XTag<T extends Enum<T>> {
                 XEnchantment.UNBREAKING);
 
 
-        MINEABLE_AXE = new XTag<>(XMaterial.COMPOSTER,
+        MINEABLE_AXE = TagBuilder.of(XMaterial.COMPOSTER,
                 XMaterial.COCOA,
                 XMaterial.RED_MUSHROOM_BLOCK,
                 XMaterial.CRAFTING_TABLE,
@@ -2258,9 +2388,9 @@ public final class XTag<T extends Enum<T>> {
                 XMaterial.PUMPKIN,
                 XMaterial.BAMBOO,
                 XMaterial.FLETCHING_TABLE,
-                XMaterial.BOOKSHELF);
-
-        MINEABLE_AXE.inheritFrom(BANNERS,
+                XMaterial.BOOKSHELF
+        ).inheritFrom(
+                BANNERS,
                 SIGNS,
                 CAVE_VINES,
                 CROPS,
@@ -2276,33 +2406,32 @@ public final class XTag<T extends Enum<T>> {
                 PLANKS,
                 SAPLINGS,
                 CLIMBABLE,
-                CAMPFIRES);
-
+                CAMPFIRES
+        ).build();
     }
 
     static {
-        AIR = new XTag<>(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
-        PORTALS = new XTag<>(XMaterial.END_GATEWAY, XMaterial.END_PORTAL, XMaterial.NETHER_PORTAL);
-        FIRE = new XTag<>(XMaterial.FIRE, XMaterial.SOUL_FIRE);
-        FLUID = new XTag<>(XMaterial.LAVA, XMaterial.WATER);
-
-        INVENTORY_NOT_DISPLAYABLE = new XTag<>(XMaterial.class, AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS,
-                WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS,
-                CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT), CROPS.without(XMaterial.WHEAT),
-                new XTag<>(XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
+        INVENTORY_NOT_DISPLAYABLE = TagBuilder
+                .of(
+                        XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
                         XMaterial.FROSTED_ICE, XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM,
                         XMaterial.COCOA, XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.PITCHER_CROP,
                         XMaterial.POWDER_SNOW, XMaterial.REDSTONE_WIRE, XMaterial.TALL_SEAGRASS, XMaterial.TRIPWIRE,
                         XMaterial.TORCHFLOWER_CROP, XMaterial.BUBBLE_COLUMN, XMaterial.TWISTING_VINES_PLANT,
-                        XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING));
+                        XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING
+                )
+                .inheritFrom(
+                        AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS,
+                        WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS,
+                        CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT), CROPS.without(XMaterial.WHEAT)
+                ).build();
     }
 
     @NotNull
-    private Set<T> values;
+    private final Set<T> values;
 
-    @SafeVarargs
-    private XTag(@NotNull T... values) {
-        this.values = Collections.unmodifiableSet(EnumSet.copyOf(Arrays.asList(values)));
+    private XTag(@NotNull Set<T> values) {
+        this.values = values;
     }
 
     public static <E> List<Matcher<E>> stringMatcher(@Nullable Collection<String> elements) {
@@ -2365,13 +2494,9 @@ public final class XTag<T extends Enum<T>> {
             }
             if (checker.startsWith("TAG:")) {
                 comp = XMaterial.format(comp.substring(4));
-                try {
-                    Field field = XTag.class.getField(comp);
-                    XTag<?> obj = (XTag<?>) field.get(null);
-                    matchers.add(new Matcher.XTagMatcher(obj));
-                } catch (Throwable e) {
-                    if (errors != null) errors.add(new Matcher.Error(comp, "TAG", e));
-                }
+                Optional<XTag<?>> tag = getTag(comp);
+                if (tag.isPresent()) matchers.add(new Matcher.XTagMatcher(tag.get()));
+                else errors.add(new Matcher.Error("Cannot find tag: " + comp, "TAG"));
             }
 
             matchers.add(new Matcher.TextMatcher<>(comp, false));
@@ -2391,6 +2516,11 @@ public final class XTag<T extends Enum<T>> {
     public abstract static class Matcher<T> {
         public static final class Error extends RuntimeException {
             public final String matcher;
+
+            public Error(String matcher, String message) {
+                super(message);
+                this.matcher = matcher;
+            }
 
             public Error(String matcher, String message, Throwable cause) {
                 super(message, cause);
@@ -2430,7 +2560,7 @@ public final class XTag<T extends Enum<T>> {
             }
         }
 
-        public static final class XTagMatcher<T extends Enum<T>> extends Matcher<T> {
+        public static final class XTagMatcher<T extends XBase<?, ?>> extends Matcher<T> {
             public final XTag<T> matcher;
 
             public XTagMatcher(XTag<T> matcher) {
@@ -2442,16 +2572,6 @@ public final class XTag<T extends Enum<T>> {
                 return matcher.isTagged(object);
             }
         }
-    }
-
-    @SafeVarargs
-    private XTag(@NotNull Class<T> clazz, @NotNull XTag<T>... values) {
-        this.values = EnumSet.noneOf(clazz);
-        this.inheritFrom(values);
-    }
-
-    private XTag(@NotNull Set<T> values) {
-        this.values = Collections.unmodifiableSet(values);
     }
 
     private static XMaterial[] findAllColors(String material) {
@@ -2466,7 +2586,8 @@ public final class XTag<T extends Enum<T>> {
     }
 
     private static XMaterial[] findAllWoodTypes(String material) {
-        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON", "MANGROVE", "CHERRY", "BAMBOO"};
+        String[] woodPrefixes = {"ACACIA", "DARK_OAK", "JUNGLE", "BIRCH", "WARPED", "OAK", "SPRUCE", "CRIMSON",
+                "MANGROVE", "CHERRY", "BAMBOO"};
         List<XMaterial> list = new ArrayList<>();
         for (String wood : woodPrefixes) {
             XMaterial.matchXMaterial(wood + '_' + material).ifPresent(list::add);
@@ -2779,28 +2900,80 @@ public final class XTag<T extends Enum<T>> {
         return value != null && this.values.contains(value);
     }
 
-    @SafeVarargs
-    private final XTag<T> without(T... without) {
-        Set<T> ignore = new HashSet<>();
-        Collections.addAll(ignore, without);
-        Set<T> newValues = values.stream().filter(t -> !ignore.contains(t)).collect(Collectors.toSet());
-        return new XTag<>(newValues);
+    private static final class TagBuilder<T extends XBase<?, ?>> {
+        private final Set<T> values;
+
+        private TagBuilder(Collection<T> values) {
+            if (values.isEmpty()) {
+                this.values = Collections.newSetFromMap(new IdentityHashMap<>());
+            } else if (values.iterator().next() instanceof Enum) {
+                // this.values = EnumSet.copyOf((Collection<Enum>) values);
+
+                Iterator<T> iter = values.iterator();
+                T first = iter.next();
+
+                // noinspection unchecked,rawtypes
+                this.values = EnumSet.of((Enum) first);
+                while (iter.hasNext())
+                    this.values.add(iter.next());
+            } else {
+                this.values = Collections.newSetFromMap(new IdentityHashMap<>(values.size()));
+                this.values.addAll(values);
+            }
+        }
+
+        @SafeVarargs
+        private static <T extends XBase<?, ?>> XTag<T> simple(T... values) {
+            return of(values).build();
+        }
+
+        @SafeVarargs
+        private static <T extends XBase<?, ?>> XTag<T> simple(XTag<T>... values) {
+            return new TagBuilder<>(Collections.singletonList(values[0].values.iterator().next()))
+                    .inheritFrom(values)
+                    .build();
+        }
+
+        @SafeVarargs
+        private static <T extends XBase<?, ?>> TagBuilder<T> of(T... values) {
+            return new TagBuilder<>(Arrays.asList(values));
+        }
+
+        @SafeVarargs
+        private final TagBuilder<T> inheritFrom(@NotNull XTag<T>... values) {
+            for (XTag<T> value : values) {
+                this.values.addAll(value.values);
+            }
+            return this;
+        }
+
+        private XTag<T> build() {
+            return new XTag<>(Collections.unmodifiableSet(values));
+        }
     }
 
     @SafeVarargs
-    private final XTag<T> inheritFrom(@NotNull XTag<T>... values) {
-        // Copied because of Collections.unmodifiableSet.
-        // Better than wrapping it during getValues() every single time.
+    private final XTag<T> without(T... without) {
+        Set<T> newSet = new HashSet<>(this.values);
+        for (T value : without) newSet.remove(value);
+        return new XTag<>(newSet);
+    }
 
-        Set<T> newValues;
-        if (this.values.isEmpty()) newValues = EnumSet.copyOf((EnumSet<T>) this.values);
-        else newValues = EnumSet.copyOf(this.values);
+    private static final Map<String, XTag<?>> TAGS = new HashMap<>(30);
 
-        for (XTag<T> value : values) {
-            newValues.addAll(value.values);
+    public static Optional<XTag<?>> getTag(String name) {
+        return Optional.ofNullable(TAGS.get(name));
+    }
+
+    static {
+        for (Field field : XTag.class.getDeclaredFields()) {
+            try {
+                if (field.getType() == XTag.class) {
+                    TAGS.put(field.getName(), (XTag<?>) field.get(null));
+                }
+            } catch (IllegalAccessException ex) {
+                new RuntimeException("Failed to get XTag " + field, ex).printStackTrace();
+            }
         }
-
-        this.values = Collections.unmodifiableSet(newValues);
-        return this;
     }
 }

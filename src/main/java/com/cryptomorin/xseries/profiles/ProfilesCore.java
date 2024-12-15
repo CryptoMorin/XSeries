@@ -128,7 +128,7 @@ public final class ProfilesCore {
             Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer();").reflect().invoke();
 
             minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService();")
-                    .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar")
+                    .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
                     .reflect().invoke(minecraftServer);
 
             {
