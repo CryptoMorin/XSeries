@@ -93,7 +93,7 @@ public class ReflectiveNamespace {
 
     /**
      * Imports the specified classes into this namespace so the names can be used directly.
-     * (For more info read {@link ReflectiveNamespace}.
+     * (For more info read {@link ReflectiveNamespace}).
      * <p>
      * This can also override predefined Java standard types if the names are the same.
      */
@@ -148,7 +148,8 @@ public class ReflectiveNamespace {
     /**
      * Same as {@link XReflection#of(Class)}
      *
-     * @since v11.0.0
+     * @since 11.0.0
+     * @see #classHandle(String)
      */
     public StaticClassHandle of(Class<?> clazz) {
         imports(clazz);
@@ -158,7 +159,9 @@ public class ReflectiveNamespace {
     /**
      * Similar to {@link XReflection#classHandle()}
      *
-     * @since v11.0.0
+     * @since 11.0.0
+     * @see #ofMinecraft(String)
+     * @see #classHandle()
      */
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
         DynamicClassHandle classHandle = new DynamicClassHandle(this);
@@ -166,12 +169,34 @@ public class ReflectiveNamespace {
     }
 
     /**
+     * Similar to {@link XReflection#classHandle()}
+     *
+     * @since 12.0.0
+     * @see #ofMinecraft(String)
+     * @see #classHandle(String)
+     */
+    public DynamicClassHandle classHandle() {
+        return new DynamicClassHandle(this);
+    }
+
+    /**
      * Similar to {@link XReflection#ofMinecraft()}
      *
-     * @since v11.0.0
+     * @since 11.0.0
+     * @see #ofMinecraft(String)
      */
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
         MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
+    }
+
+    /**
+     * Similar to {@link XReflection#ofMinecraft()}
+     *
+     * @since 12.0.0
+     * @see #ofMinecraft(String)
+     */
+    public MinecraftClassHandle ofMinecraft() {
+        return new MinecraftClassHandle(this);
     }
 }

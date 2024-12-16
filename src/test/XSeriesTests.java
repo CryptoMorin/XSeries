@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -96,12 +95,14 @@ public final class XSeriesTests {
         print("Testing reflection...");
         print("Version pack: " + XReflection.getVersionInformation());
         ReflectionTests.parser();
+        XReflectionTests.test();
         if (XReflection.supports(12)) initializeReflection();
 
         print("Testing XWorldBorder...");
         Iterator<World> worldIter = Bukkit.getWorlds().iterator();
         if (worldIter.hasNext()) XWorldBorder.of(worldIter.next().getSpawnLocation());
         else {
+            // noinspection unused
             double init = XWorldBorder.MAX_SIZE;
             System.err.println("Cannot test XWorldBorder because no worlds are loaded.");
         }
@@ -187,8 +188,6 @@ public final class XSeriesTests {
     private static void testXEnchantment() {
         print("Testing XEnchantment...");
         assertPresent(XEnchantment.of("EFFICIENCY"));
-        print("XENchants: " + Enchantment.KNOCKBACK + ':' + Enchantment.KNOCKBACK.getClass().getName() + ':' + Enchantment.KNOCKBACK.hashCode());
-        print("XENchants: " + XEnchantment.REGISTRY.bukkitMapping().keySet().stream().map(x -> x.toString() + ':' + x.getClass().getName() + ':' + x.hashCode()).collect(Collectors.joining(", ")));
         assertNotNull(XEnchantment.of(Enchantment.KNOCKBACK));
         if (XReflection.supports(11)) assertNotNull(XEnchantment.of(Enchantment.SWEEPING_EDGE));
         commonRegistryTest(XEnchantment.REGISTRY, Arrays.asList(values(Enchantment.class)));

@@ -22,6 +22,7 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
@@ -29,6 +30,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Pattern;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -183,7 +185,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     protected <T extends AccessibleObject & Member> T handleAccessible(T field) throws ReflectiveOperationException {
         field = super.handleAccessible(field);
         if (field == null) return null;
-        if ((getter != null && !getter) && isFinal && isStatic) {
+        if ((getter != null && !getter) && isFinal && accessFlags.contains(XAccessFlag.STATIC)) {
             try {
                 int unfinalModifiers = field.getModifiers() & ~Modifier.FINAL;
                 if (MODIFIERS_VAR_HANDLE != null) {
@@ -198,6 +200,24 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
             }
         }
         return field;
+    }
+
+    @Nullable
+    public Object get(Object instance) {
+        try {
+            return getter().reflectJvm().get(instance);
+        } catch (ReflectiveOperationException ex) {
+            throw XReflection.throwCheckedException(ex);
+        }
+    }
+
+    @Nullable
+    public Object getStatic() {
+        try {
+            return asStatic().getter().reflectJvm().get(null);
+        } catch (ReflectiveOperationException ex) {
+            throw XReflection.throwCheckedException(ex);
+        }
     }
 
     @SuppressWarnings("unchecked")

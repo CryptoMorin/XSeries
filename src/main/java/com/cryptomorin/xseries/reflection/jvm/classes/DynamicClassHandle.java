@@ -113,7 +113,7 @@ public class DynamicClassHandle extends ClassHandle {
         ClassNotFoundException errors = null;
         for (String className : classNames) {
             try {
-                return Class.forName(className);
+                return checkConstraints(Class.forName(className));
             } catch (ClassNotFoundException ex) {
                 if (errors == null) errors = new ClassNotFoundException("None of the classes were found");
                 errors.addSuppressed(ex);

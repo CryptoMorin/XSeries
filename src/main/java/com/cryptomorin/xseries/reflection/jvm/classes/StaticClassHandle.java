@@ -72,7 +72,7 @@ public class StaticClassHandle extends ClassHandle {
 
     @Override
     public Class<?> reflect() throws ClassNotFoundException {
-        return this.clazz;
+        return checkConstraints(this.clazz);
     }
 
     @Override

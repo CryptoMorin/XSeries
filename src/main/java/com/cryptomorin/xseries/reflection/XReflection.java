@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
  * </ul>
  *
  * @author Crypto Morin
- * @version 11.3.0
+ * @version 12.0.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
  * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */

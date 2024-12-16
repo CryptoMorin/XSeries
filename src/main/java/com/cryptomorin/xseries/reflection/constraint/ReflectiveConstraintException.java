@@ -22,41 +22,11 @@
 
 package com.cryptomorin.xseries.reflection.constraint;
 
-import com.cryptomorin.xseries.reflection.ReflectiveHandle;
-import org.jetbrains.annotations.ApiStatus;
-
-import java.util.Optional;
-
 /**
- * A set of checks performed on a {@link ReflectiveHandle} to determine whether it meets
- * certain requirements based on its JVM signature before we can use it.
- * <p>
- * If the check against {@link #appliesTo(ReflectiveHandle, Object)} fails,
- * a {@link ReflectiveConstraintException} should be thrown.
- *
  * @since 12.0.0
- * @see VisibilityConstraint
- * @see ClassTypeConstraint
  */
-@ApiStatus.Experimental
-public interface ReflectiveConstraint {
-    /**
-     * The category name of this constraint.
-     */
-    String category();
-
-    /**
-     * The name of this constraint.
-     */
-    String name();
-
-    /**
-     * Whether this constraint can be applied and applies to the given item.
-     *
-     * @param handle the reflective handle of the object.
-     * @param jvm the corresponding JVM object (not {@link java.lang.invoke.MethodHandle}) of the handle.
-     * @return {@link Optional#empty()} if this constraint can't be applied at all this item, or
-     * true/false depending on whether it applies or not.
-     */
-    Optional<Boolean> appliesTo(ReflectiveHandle<?> handle, Object jvm);
+public class ReflectiveConstraintException extends RuntimeException {
+    public ReflectiveConstraintException(String message) {
+        super(message);
+    }
 }

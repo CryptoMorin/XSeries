@@ -26,47 +26,82 @@ import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.lang.reflect.Member;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Optional;
 
 /**
  * @since 12.0.0
  */
 @ApiStatus.Experimental
-public enum VisibilityConstraint implements ReflectiveConstraint {
-    PUBLIC(XAccessFlag.PUBLIC), PRIVATE(XAccessFlag.PRIVATE), PROTECTED(XAccessFlag.PROTECTED);
+public enum ClassTypeConstraint implements ReflectiveConstraint {
+    INTERFACE {
+        @Override
+        protected boolean test(Class<?> clazz) {
+            return clazz.isInterface();
+        }
+    },
 
-    private final XAccessFlag accessFlag;
+    ABSTRACT {
+        @Override
+        protected boolean test(Class<?> clazz) {
+            return XAccessFlag.ABSTRACT.isSet(clazz.getModifiers());
+        }
+    },
 
-    VisibilityConstraint(XAccessFlag accessFlag) {this.accessFlag = accessFlag;}
+    ENUM {
+        @Override
+        protected boolean test(Class<?> clazz) {
+            return clazz.isEnum();
+        }
+    },
+
+    RECORD {
+        /**
+         * What the fuck is this syntax??? Last time I checked we're not in kotlin...
+         */
+        private final MethodHandle isRecord;{
+            MethodHandle isRecord0;
+            try {
+                isRecord0 = MethodHandles.lookup()
+                        .findVirtual(Class.class, "isRecord", MethodType.methodType(boolean.class));
+            } catch (NoSuchMethodException | IllegalAccessException ex) {
+                isRecord0 = null;
+            }
+            isRecord = isRecord0;
+        }
+
+        @Override
+        protected boolean test(Class<?> clazz) {
+            try {
+                return (boolean) isRecord.invoke(clazz);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+    },
+
+    ANNOTATION {
+        @Override
+        protected boolean test(Class<?> clazz) {
+            return clazz.isAnnotation();
+        }
+    };
+
+    protected abstract boolean test(Class<?> clazz);
 
     @Override
     public Optional<Boolean> appliesTo(ReflectiveHandle<?> handle, Object jvm) {
-        int mods;
-
         if (jvm instanceof Class) {
-            mods = ((Class<?>) jvm).getModifiers();
-
-            if (this == PRIVATE) return Optional.empty();
-            if (this == PROTECTED) {
-                // The so called "package-private" classes basically have no visibility flags.
-                // Classes in general can only have the "public" visibility flag, so we simply
-                // check if this is set or not.
-                return Optional.of(!XAccessFlag.PUBLIC.isSet(mods));
-            }
-        } else if (jvm instanceof Member) {
-            // Fields, methods and constructors
-            mods = ((Member) jvm).getModifiers();
-        } else {
-            return Optional.empty();
+            return Optional.of(test((Class<?>) jvm));
         }
-
-        return Optional.of(accessFlag.isSet(mods));
+        return Optional.empty();
     }
 
     @Override
     public String category() {
-        return "Visibility";
+        return "ClassType";
     }
 
     @Override

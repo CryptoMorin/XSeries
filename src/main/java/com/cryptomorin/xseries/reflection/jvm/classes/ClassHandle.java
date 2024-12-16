@@ -24,11 +24,18 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
+import com.cryptomorin.xseries.reflection.XAccessFlag;
+import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
+import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraintException;
 import com.cryptomorin.xseries.reflection.jvm.*;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.ApiStatus;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @see DynamicClassHandle
@@ -36,10 +43,36 @@ import java.util.Objects;
  */
 public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedReflectiveHandle {
     protected final ReflectiveNamespace namespace;
+    private final Map<Class<ReflectiveConstraint>, ReflectiveConstraint> constraints = new IdentityHashMap<>();
 
     protected ClassHandle(ReflectiveNamespace namespace) {
         this.namespace = namespace;
         namespace.link(this);
+    }
+
+    /**
+     * @since 12.0.0
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.Experimental
+    public ClassHandle constraint(ReflectiveConstraint constraint) {
+        this.constraints.put((Class<ReflectiveConstraint>) constraint.getClass(), constraint);
+        return this;
+    }
+
+    protected <T extends Class<?>> T checkConstraints(T jvm) {
+        for (ReflectiveConstraint constraint : this.constraints.values()) {
+            Optional<Boolean> applyState = constraint.appliesTo(this, jvm);
+
+            if (!applyState.isPresent())
+                throw new ReflectiveConstraintException("The constraint " + constraint + " cannot be applied to " + this);
+
+            if (!applyState.get())
+                throw new ReflectiveConstraintException("Found " + this + " with JVM " + jvm
+                        + ", however it doesn't match the constraint: "
+                        + constraint + " - " + XAccessFlag.toString(jvm.getModifiers()));
+        }
+        return jvm;
     }
 
     public abstract ClassHandle asArray(int dimensions);
