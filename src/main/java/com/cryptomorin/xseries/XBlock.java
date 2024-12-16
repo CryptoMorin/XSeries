@@ -56,7 +56,9 @@ import java.util.*;
 public final class XBlock {
     /**
      * This list contains both block and item version of the same material.
+     * @deprecated Use {@link XTag#CROPS} instead.
      */
+    @Deprecated
     public static final Set<XMaterial> CROPS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.CARROT, XMaterial.CARROTS, XMaterial.POTATO, XMaterial.POTATOES,
             XMaterial.NETHER_WART, XMaterial.PUMPKIN_SEEDS, XMaterial.WHEAT_SEEDS, XMaterial.WHEAT,
@@ -66,6 +68,10 @@ public final class XBlock {
             XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM, XMaterial.COCOA, XMaterial.COCOA_BEANS
 
     ));
+    /**
+     * @deprecated Use {@link XTag#DANGEROUS_BLOCKS} instead.
+     */
+    @Deprecated
     public static final Set<XMaterial> DANGEROUS = Collections.unmodifiableSet(EnumSet.of(
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
     ));
@@ -141,7 +147,9 @@ public final class XBlock {
      *
      * @param material the material to check.
      * @return true if this material is a crop, otherwise false.
+     * @deprecated Use {@link XTag#CROPS} instead.
      */
+    @Deprecated
     public static boolean isCrop(XMaterial material) {
         return CROPS.contains(material);
     }
@@ -151,7 +159,9 @@ public final class XBlock {
      *
      * @param material the material to check.
      * @return true if this material is dangerous, otherwise false.
+     * @deprecated Use {@link XTag#DANGEROUS_BLOCKS} instead.
      */
+    @Deprecated
     public static boolean isDangerous(XMaterial material) {
         return DANGEROUS.contains(material);
     }

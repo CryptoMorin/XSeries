@@ -975,6 +975,13 @@ public final class XTag<T extends XBase<?, ?>> {
      */
     @NotNull
     public static final XTag<XMaterial> NETHERITE_TOOLS;
+    /**
+     * Tag representing all blocks that could harm a player.
+     */
+    @NotNull
+    public static final XTag<XMaterial> DANGEROUS_BLOCKS = TagBuilder.simple(
+            XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
+    );
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////>                                                                  <//////////////////////
@@ -1285,12 +1292,13 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.IRON_BLOCK,
                 XMaterial.EMERALD_BLOCK,
                 XMaterial.DIAMOND_BLOCK);
-        CROPS = TagBuilder.simple(XMaterial.CARROTS,
-                XMaterial.POTATOES,
-                XMaterial.WHEAT,
-                XMaterial.MELON_STEM,
-                XMaterial.BEETROOTS,
-                XMaterial.PUMPKIN_STEM);
+        CROPS = TagBuilder.simple(
+                XMaterial.CARROT, XMaterial.CARROTS, XMaterial.POTATO, XMaterial.POTATOES,
+                XMaterial.NETHER_WART, XMaterial.PUMPKIN_SEEDS, XMaterial.WHEAT_SEEDS, XMaterial.WHEAT,
+                XMaterial.MELON_SEEDS, XMaterial.BEETROOT_SEEDS, XMaterial.BEETROOTS, XMaterial.SUGAR_CANE,
+                XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO, XMaterial.CHORUS_PLANT,
+                XMaterial.KELP, XMaterial.KELP_PLANT, XMaterial.SEA_PICKLE, XMaterial.BROWN_MUSHROOM, XMaterial.RED_MUSHROOM,
+                XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM, XMaterial.COCOA, XMaterial.COCOA_BEANS);
         CAMPFIRES = TagBuilder.simple(XMaterial.CAMPFIRE,
                 XMaterial.SOUL_CAMPFIRE);
         FILLED_CAULDRONS = TagBuilder.simple(XMaterial.LAVA_CAULDRON,

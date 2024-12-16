@@ -37,6 +37,7 @@ public abstract class XModule<XForm extends XModule<XForm, BukkitForm>, BukkitFo
     private final BukkitForm bukkitForm;
     private final String[] names;
 
+    @ApiStatus.Internal
     protected XModule(BukkitForm bukkitForm, String[] names) {
         this.bukkitForm = bukkitForm;
         this.names = names;
