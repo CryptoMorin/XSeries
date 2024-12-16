@@ -22,6 +22,8 @@
 
 package com.cryptomorin.xseries.base.annotations;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 /**
@@ -33,6 +35,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(XChanges.class)
 @Documented
+@ApiStatus.Internal
 public @interface XChange {
     String version();
 

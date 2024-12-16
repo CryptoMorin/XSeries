@@ -33,8 +33,11 @@ import java.util.regex.Pattern;
 
 /**
  * A class used for grouping various things together based on a common trait.
+ * This class is kind of memory-heavy and should not be initialized when not needed, on the other hand
+ * if you're going to use this class, it's recommended to intialize it from before, since the startup
+ * may take a while and cause a single lag spike.
  * <p>
- * The main usage of this class is simply done by choosing your category and using {@link #isTagged(Enum)} or {@link #getValues()}:
+ * The main usage of this class is simply done by choosing your category and using {@link #isTagged(XBase)} or {@link #getValues()}:
  * <pre>{@code
  * boolean isTagged = XTag.CATEGORY.isTagged(element);
  * Set<T> values = XTag.CATEGORY.getValues();
@@ -45,9 +48,12 @@ import java.util.regex.Pattern;
  * List<Matcher<E>> compiledMatchers = XTag.stringMatcher(elements); // for compiled matchers
  * boolean anyMatched = XTag.anyMatchString(element, compiledMatchers); // or pass the elements directly
  * }</pre>
+ * <p>
+ * You can also use some kind of registry-based system for tags using {@link #getTag(String)}.
+ * However, not all methods here follow the common XTag system, and there are a few tags that
+ * are only available as a static boolean method, such as {@link #isInteractable(XMaterial)} and {@link #isItem(XMaterial)}.
  */
 public final class XTag<T extends XBase<?, ?>> {
-
     @NotNull
     public static final XTag<XMaterial> AIR = TagBuilder.simple(XMaterial.AIR, XMaterial.CAVE_AIR, XMaterial.VOID_AIR);
 
@@ -2599,6 +2605,7 @@ public final class XTag<T extends XBase<?, ?>> {
         return Arrays.stream(XMaterial.VALUES).filter(x -> x.name().endsWith(material)).toArray(XMaterial[]::new);
     }
 
+    @SuppressWarnings("unused")
     private static XMaterial[] findMaterialsStartingWith(String material) {
         return Arrays.stream(XMaterial.VALUES).filter(x -> x.name().startsWith(material)).toArray(XMaterial[]::new);
     }

@@ -22,11 +22,14 @@
 
 package com.cryptomorin.xseries.base.annotations;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
 @Documented
+@ApiStatus.Internal
 public @interface XInfo {
     String since();
 

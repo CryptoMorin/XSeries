@@ -22,12 +22,15 @@
 
 package com.cryptomorin.xseries.base.annotations;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(XMerges.class)
 @Documented
+@ApiStatus.Internal
 public @interface XMerge {
     String version();
 
