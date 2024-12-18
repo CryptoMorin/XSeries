@@ -123,7 +123,7 @@ public final class RateLimiter {
         try {
             Thread.sleep(sleepUntil);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("RateLimiter lock was interrupted unexpectedly", e);
         }
     }
 

@@ -80,7 +80,7 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
 
     static {
         // public AttributeModifier(NamespacedKey key, double amount, AttributeModifier.Operation operation, EquipmentSlotGroup slot)
-        boolean supportsModernModifiers = false;
+        boolean supportsModernModifiers;
         try {
             // noinspection UnstableApiUsage
             AttributeModifier.class.getConstructor(
@@ -91,6 +91,7 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
             );
             supportsModernModifiers = true;
         } catch (NoSuchMethodException | NoClassDefFoundError ignored) {
+            supportsModernModifiers = false;
         }
 
         SUPPORTS_MODERN_MODIFIERS = supportsModernModifiers;
@@ -101,8 +102,7 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
     }
 
     /**
-     * {@link AttributeModifier}s aren't related to {@link Attribute}s at all, but I figured this is the
-     * closest place I can put this method which can be needed for cross-compatibility.
+     * Creates a new {@link AttributeModifier}.
      *
      * @param slot when null, defaults to {@link org.bukkit.inventory.EquipmentSlotGroup#ANY}
      */
@@ -130,7 +130,7 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
     }
 
     /**
-     * Use {@link #getValues()} instead.
+     * @deprecated Use {@link #getValues()} instead.
      */
     @Deprecated
     public static XAttribute[] values() {

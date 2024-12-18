@@ -131,7 +131,7 @@ public final class VersionHandle<T> {
             try {
                 return handle.call();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new IllegalArgumentException("The last handle also failed", e);
             }
         }
         return this.handle;

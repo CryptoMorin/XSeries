@@ -111,6 +111,8 @@ public class EnumMemberHandle extends NamedMemberHandle {
         Field field = null;
 
         Class<?> clazz = this.clazz.reflect();
+        if (!clazz.isEnum()) throw new IllegalStateException("Class is not an enum: " + this.clazz + " -> " + clazz);
+
         for (String name : this.names) {
             if (field != null) break;
             try {
@@ -134,7 +136,7 @@ public class EnumMemberHandle extends NamedMemberHandle {
      */
     @Override
     @ApiStatus.Obsolete
-    public EnumMemberHandle clone() {
+    public EnumMemberHandle copy() {
         throw new UnsupportedOperationException();
     }
 }

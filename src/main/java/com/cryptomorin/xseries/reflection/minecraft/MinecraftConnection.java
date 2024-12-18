@@ -140,7 +140,7 @@ public final class MinecraftConnection {
                 }
             }
         } catch (Throwable throwable) {
-            throw new RuntimeException("Failed to send packet to " + player + ": " + Arrays.toString(packets), throwable);
+            throw new IllegalStateException("Failed to send packet to " + player + ": " + Arrays.toString(packets), throwable);
         }
     }
 }

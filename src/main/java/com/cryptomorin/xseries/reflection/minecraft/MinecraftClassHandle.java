@@ -63,7 +63,7 @@ public class MinecraftClassHandle extends DynamicClassHandle {
     }
 
     @Override
-    public MinecraftClassHandle clone() {
+    public MinecraftClassHandle copy() {
         MinecraftClassHandle handle = new MinecraftClassHandle(namespace);
         handle.array = this.array;
         handle.parent = this.parent;

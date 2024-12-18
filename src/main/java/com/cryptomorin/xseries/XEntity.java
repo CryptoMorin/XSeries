@@ -57,7 +57,7 @@ import java.util.function.Function;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.2
+ * @version 4.0.2.1
  * @see XMaterial
  * @see XItemStack
  * @see XPotion
@@ -94,7 +94,7 @@ public final class XEntity {
                 try {
                     setter.invoke(setter, configurationValue.apply(config));
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
             }
         }
@@ -114,7 +114,7 @@ public final class XEntity {
                 try {
                     setter = lookup.unreflect(method);
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
 
                 mappedConfigObjects.add(new MappedConfigObject(configEntry, setter, null));
@@ -123,7 +123,7 @@ public final class XEntity {
     }
 
     static {
-        if (XMaterial.supports(19)) {
+        if (XReflection.supports(19)) {
             register(Frog.class, XEntity::frog);
         }
     }
@@ -151,16 +151,16 @@ public final class XEntity {
                 EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE
         );
 
-        if (XMaterial.supports(10)) {
+        if (XReflection.supports(10)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
-            if (XMaterial.supports(11)) {
+            if (XReflection.supports(11)) {
                 // Added in v1.6.1 but wasn't available in the API until v1.11
                 undead.add(EntityType.SKELETON_HORSE);
-                if (XMaterial.supports(13)) {
+                if (XReflection.supports(13)) {
                     undead.add(EntityType.DROWNED);
                     undead.add(EntityType.PHANTOM);
-                    if (XMaterial.supports(16)) {
+                    if (XReflection.supports(16)) {
                         undead.add(EntityType.ZOGLIN);
                         undead.add(EntityType.PIGLIN);
                         undead.add(EntityType.ZOMBIFIED_PIGLIN);
@@ -168,7 +168,7 @@ public final class XEntity {
                 }
             }
         }
-        if (!XMaterial.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
+        if (!XReflection.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
         UNDEAD = Collections.unmodifiableSet(undead);
     }
 
@@ -292,7 +292,7 @@ public final class XEntity {
         if (config.isSet("portal-cooldown")) entity.setPortalCooldown(config.getInt("portal-cooldown", -1));
         // We don't need damage cause.
 
-        if (XMaterial.supports(13)) {
+        if (XReflection.supports(13)) {
             if (entity instanceof Lootable) {
                 Lootable lootable = (Lootable) entity;
                 long seed = config.getLong("seed");
@@ -335,14 +335,14 @@ public final class XEntity {
                 living.setHealth(hp);
             }
 
-            if (XMaterial.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
+            if (XReflection.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
             if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
             if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
             if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
             if (config.isSet("remove-when-far-away"))
                 living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (XMaterial.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+            if (XReflection.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));
@@ -499,24 +499,24 @@ public final class XEntity {
                 creeper.setExplosionRadius(config.getInt("explosion-radius"));
                 creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
                 creeper.setPowered(config.getBoolean("powered"));
-            } else if (XMaterial.supports(10)) {
-                if (XMaterial.supports(11)) {
+            } else if (XReflection.supports(10)) {
+                if (XReflection.supports(11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
                         com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
                         if (color.isPresent()) llama.setColor(color.get());
-                    } else if (XMaterial.supports(12)) {
+                    } else if (XReflection.supports(12)) {
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("color")).or(Parrot.Variant.RED));
                         }
 
-                        if (XMaterial.supports(13)) thirteen(entity, config);
-                        if (XMaterial.supports(14)) fourteen(entity, config);
-                        if (XMaterial.supports(15)) fifteen(entity, config);
-                        if (XMaterial.supports(16)) sixteen(entity, config);
-                        if (XMaterial.supports(17)) seventeen(entity, config);
+                        if (XReflection.supports(13)) thirteen(entity, config);
+                        if (XReflection.supports(14)) fourteen(entity, config);
+                        if (XReflection.supports(15)) fifteen(entity, config);
+                        if (XReflection.supports(16)) sixteen(entity, config);
+                        if (XReflection.supports(17)) seventeen(entity, config);
                     }
                 }
             }

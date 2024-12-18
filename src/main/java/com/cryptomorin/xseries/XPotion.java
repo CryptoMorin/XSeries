@@ -231,7 +231,8 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
         PotionEffectType idType = fromId(potion);
         if (idType != null) {
             Optional<XPotion> type = REGISTRY.getByName(idType.getName());
-            if (!type.isPresent()) throw new NullPointerException("Unsupported potion effect type ID: " + idType);
+            if (!type.isPresent())
+                throw new UnsupportedOperationException("Unsupported potion effect type ID: " + idType);
             return type;
         }
 

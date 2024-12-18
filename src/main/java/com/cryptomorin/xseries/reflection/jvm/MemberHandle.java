@@ -85,5 +85,5 @@ public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
     }
 
     @Override
-    public abstract MemberHandle clone();
+    public abstract MemberHandle copy();
 }

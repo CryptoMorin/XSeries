@@ -159,21 +159,21 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         if (!pulled) {
             pulled = true;
             if (creator == null) return;
-            // pullFieldNames();
+            pullFieldNames();
             if (PERFORM_AUTO_ADD) pullSystemValues();
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> void processEnumLikeFields(Class<T> clazz, BiConsumer<String, T> consumer) {
+    private static <T> void processEnumLikeFields(Class<T> clazz, BiConsumer<Field, T> consumer) {
         for (Field field : clazz.getDeclaredFields()) {
             int modifiers = field.getModifiers();
             if (field.getType() == clazz &&
                     Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) {
                 try {
-                    consumer.accept(field.getName(), (T) field.get(null));
+                    consumer.accept(field, (T) field.get(null));
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException("Cannot process enum-like fields of: " + clazz, e);
                 }
             }
         }
@@ -186,7 +186,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
 
     @SuppressWarnings("unused")
     private void pullFieldNames() {
-        processEnumLikeFields(xFormClass, this::registerName);
+        processEnumLikeFields(xFormClass, (field, x) -> registerMerged(x, field));
         // processEnumLikeFields(xFormClass, (name, xForm) -> {
         //     xForm.setEnumName(normalizeName(name));
         //     registerName(name, xForm);
@@ -201,9 +201,9 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
                 std(((Enum<?>) bukkitForm).name(), bukkitForm);
             }
         } else {
-            processEnumLikeFields(bukkitFormClass, (name, bukkit) -> {
+            processEnumLikeFields(bukkitFormClass, (field, bukkit) -> {
                 if (bukkit == null) return; // Experimental value of declared field.
-                std(name, bukkit);
+                std(field.getName(), bukkit);
             });
         }
 
@@ -289,10 +289,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     }
 
     /**
-     * Use of {@code values()} should be discouraged by static {@link XModule} implementations,
+     * @deprecated Use of {@code values()} should be discouraged by static {@link XModule} implementations,
      * instead {@link #getValues()} should be used.
-     *
-     * @see #getValues()
      */
     @Deprecated
     public XForm[] values() {
@@ -415,7 +413,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
 
         String name = getBukkitName(bukkit);
 
-        if (getBukkit(new String[]{name}) == null) {
+        if (getBukkit(new String[]{name}) == null && extraFieldName == null) {
             // This happens in very rare cases, such as Biome's:
             // Biome CUSTOM = Bukkit.getUnsafe().getCustomBiome();
             // These values are not registered in the registry, but available for use.
@@ -423,10 +421,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
             // This could also happen if registry is supported but the Bukkit classes uses an enum
             // in that case enum names are not supported with namespace type (even if we uppercase
             // it, we don't know the placement of dots instead of underscores)
-            if (extraFieldName == null) {
-                throw new IllegalArgumentException("Unknown standard bukkit form for " + registryName + ": " + bukkit
-                        + (bukkit.toString().equals(name) ? "" : (" (" + name + ')')));
-            }
+            throw new IllegalArgumentException("Unknown standard bukkit form for " + registryName + ": " + bukkit
+                    + (bukkit.toString().equals(name) ? "" : (" (" + name + ')')));
         }
 
         xForm = creator.apply(bukkit, extraFieldName == null ? new String[]{name} : new String[]{extraFieldName, name});
@@ -482,19 +478,24 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     }
 
     private BukkitForm registerMerged(XForm xForm) {
+        Field formField;
         try {
-            Field formField = xForm.getClass().getDeclaredField(xForm.name());
-            XMerge[] merges = formField.getAnnotationsByType(XMerge.class);
-            BukkitForm mergedBukkit = null;
-            for (XMerge merge : merges) { // Will be an empty array if null.
-                mergedBukkit = getBukkit(new String[]{merge.name()});
-                registerName(merge.name(), xForm);
-                if (mergedBukkit != null) bukkitToX.put(mergedBukkit, xForm);
-            }
-            return mergedBukkit;
+            formField = xForm.getClass().getDeclaredField(xForm.name());
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Cannot find field for XForm: " + xForm, e);
         }
+        return registerMerged(xForm, formField);
+    }
+
+    private BukkitForm registerMerged(XForm xForm, Field formField) {
+        XMerge[] merges = formField.getAnnotationsByType(XMerge.class);
+        BukkitForm mergedBukkit = null;
+        for (XMerge merge : merges) { // Will be an empty array if null.
+            mergedBukkit = getBukkit(new String[]{merge.name()});
+            registerName(merge.name(), xForm);
+            if (mergedBukkit != null) bukkitToX.put(mergedBukkit, xForm);
+        }
+        return mergedBukkit;
     }
 
     @ApiStatus.Internal

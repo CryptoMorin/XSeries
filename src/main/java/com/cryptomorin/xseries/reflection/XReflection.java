@@ -192,7 +192,7 @@ public final class XReflection {
                 MINOR_NUMBER = Integer.parseInt(bukkitVer.group("minor"));
                 PATCH_NUMBER = Integer.parseInt((patch == null || patch.isEmpty()) ? "0" : patch);
             } catch (Throwable ex) {
-                throw new RuntimeException("Failed to parse minor number: " + bukkitVer + ' ' + getVersionInformation(), ex);
+                throw new IllegalStateException("Failed to parse minor number: " + bukkitVer + ' ' + getVersionInformation(), ex);
             }
         } else {
             throw new IllegalStateException("Cannot parse server version: \"" + Bukkit.getBukkitVersion() + '"');
@@ -368,7 +368,7 @@ public final class XReflection {
      * @param packageName the 1.17+ package name of this class.
      * @param name        the name of the class.
      * @return the NMS class or null if not found.
-     * @throws RuntimeException if the class could not be found.
+     * @throws IllegalArgumentException if the class could not be found.
      * @see #getNMSClass(String)
      * @since 4.0.0
      * @deprecated use {@link #ofMinecraft()} instead.
@@ -381,7 +381,7 @@ public final class XReflection {
         try {
             return Class.forName(NMS_PACKAGE + '.' + name);
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalArgumentException(ex);
         }
     }
 
@@ -390,7 +390,7 @@ public final class XReflection {
      *
      * @param name the name of the class.
      * @return the NMS class or null if not found.
-     * @throws RuntimeException if the class could not be found.
+     * @throws IllegalArgumentException if the class could not be found.
      * @see #getNMSClass(String, String)
      * @since 1.0.0
      * @deprecated use {@link #ofMinecraft()}
@@ -406,7 +406,7 @@ public final class XReflection {
      *
      * @param name the name of the class to load.
      * @return the CraftBukkit class or null if not found.
-     * @throws RuntimeException if the class could not be found.
+     * @throws IllegalArgumentException if the class could not be found.
      * @since 1.0.0
      * @deprecated use {@link #ofMinecraft()} instead.
      */
@@ -416,7 +416,7 @@ public final class XReflection {
         try {
             return Class.forName(CRAFTBUKKIT_PACKAGE + '.' + name);
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalArgumentException(ex);
         }
     }
 
@@ -430,14 +430,14 @@ public final class XReflection {
      * Note that this doesn't work on primitive classes.
      *
      * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
-     * @throws RuntimeException if the class could not be found.
+     * @throws IllegalArgumentException if the class could not be found.
      */
     @NotNull
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException("Cannot find array class for class: " + clazz, ex);
+            throw new IllegalArgumentException("Cannot find array class for class: " + clazz, ex);
         }
     }
 

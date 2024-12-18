@@ -48,6 +48,11 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Note: <a href="https://wiki.vg/">Wiki.vg</a> is no longer availabe because it was
+ * <a href="https://minecraft.wiki/w/Forum:Wiki.vg_merge">sunset on November 30, 2024</a>.
+ * Now it's being merged into <a href="https://minecraft.wiki/">minecraft.wiki</a>.
+ */
 @ApiStatus.Internal
 public final class MojangAPI {
     private static final MojangProfileCache MOJANG_PROFILE_CACHE = !ProfilesCore.NULLABILITY_RECORD_UPDATE ?
@@ -75,6 +80,8 @@ public final class MojangAPI {
 
     /**
      * https://wiki.vg/Mojang_API#Usernames_to_UUIDs
+     * <p>
+     * This API was previously accessed from {@code https://sessionserver.mojang.com/session/minecraft/profile/lookup/bulk/byname}.
      */
     private static final MinecraftClient USERNAMES_TO_UUIDS = new MinecraftClient(
             "POST",
@@ -102,7 +109,7 @@ public final class MojangAPI {
         JsonObject userJson = requestElement.getAsJsonObject();
         JsonElement idElement = userJson.get("id");
         if (idElement == null)
-            throw new RuntimeException("No 'id' field for UUID request for '" + username + "': " + userJson);
+            throw new IllegalArgumentException("No 'id' field for UUID request for '" + username + "': " + userJson);
 
         return PlayerUUIDs.UUIDFromDashlessString(idElement.getAsString());
     }
@@ -178,9 +185,18 @@ public final class MojangAPI {
     }
 
     /**
-     * Occasionally a {@code 401 - Unauthorized} error is received which is not likely caused by rate-limiting
-     * because first of all, it'd return {@code 429} if that was the case, and secondly,
-     * the code was run with a 6hr delay. It's currently unknown why this happens.
+     * Occasionally a {@code 401 - Unauthorized} or {@code 403 - Forbidden} error is received which is not
+     * likely caused by rate-limiting because first of all, it'd return {@code 429} if that was the case,
+     * and secondly, the code was run with a 6hr delay. It's currently unknown why this happens.
+     * In these cases, the raw URL returns this JSON response:
+     * <pre>{@code
+     * {
+     *   "path" : "/minecraft/profile/lookup/bulk/byname",
+     *   "error" : "METHOD_NOT_ALLOWED",
+     *   "errorMessage" : "Method Not Allowed"
+     * }
+     * }</pre>
+     * <p>
      *
      * @param usernames Case-insensitive list of usernames. Duplicates are ignored and cached names are not requested but returned.
      * @param config    Request configuration.
@@ -245,7 +261,7 @@ public final class MojangAPI {
 
                 String prev = mapped.put(realId, name);
                 if (prev != null)
-                    throw new RuntimeException("Got duplicate usernames for UUID: " + realId + " (" + prev + " -> " + name + ')');
+                    throw new IllegalArgumentException("Got duplicate usernames for UUID: " + realId + " (" + prev + " -> " + name + ')');
             }
         }
 
@@ -291,6 +307,7 @@ public final class MojangAPI {
         }
     }
 
+
     /**
      * Fetches additional properties for the given {@link GameProfile} if possible (like the texture) and caches the result.
      *
@@ -298,7 +315,6 @@ public final class MojangAPI {
      * @return The updated {@link GameProfile} with fetched properties, sanitized for consistency.
      * @throws UnknownPlayerException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
-    @SuppressWarnings("OptionalAssignedToNull")
     @NotNull
     public static GameProfile getOrFetchProfile(@NotNull final GameProfile profile) throws UnknownPlayerException {
         // Get real UUID for offline players
@@ -318,6 +334,25 @@ public final class MojangAPI {
             }
         }
 
+        GameProfile cached = handleCache(profile, realUUID);
+        if (cached != null) return cached;
+
+        JsonElement request = requestProfile(profile, realUUID);
+        JsonObject profileData = request.getAsJsonObject();
+        List<String> profileActions = new ArrayList<>();
+        GameProfile fetchedProfile = createGameProfile(profileData, profileActions);
+
+        fetchedProfile = PlayerProfiles.sanitizeProfile(fetchedProfile);
+        cacheProfile(fetchedProfile);
+
+        INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
+        MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
+
+        return fetchedProfile;
+    }
+
+    @SuppressWarnings("OptionalAssignedToNull")
+    private static @Nullable GameProfile handleCache(@NotNull GameProfile profile, UUID realUUID) {
         Optional<GameProfile> cached = INSECURE_PROFILES.getIfPresent(realUUID);
         // noinspection OptionalAssignedToNull
         if (cached != null) {
@@ -332,26 +367,33 @@ public final class MojangAPI {
             if (mojangCache.isPresent()) return mojangCache.get();
             else throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
+        return null;
+    }
 
+    private static @NotNull JsonElement requestProfile(@NotNull GameProfile profile, UUID realUUID) {
         JsonElement request;
         try {
             request = UUID_TO_PROFILE.session(null)
                     .append(PlayerUUIDs.toUndashedUUID(realUUID) + "?unsigned=" + !REQUIRE_SECURE_PROFILES)
                     .request();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to request profile: " + profile + " with real UUID: " + realUUID, e);
         }
         if (request == null) {
             INSECURE_PROFILES.put(realUUID, Optional.empty());
             MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, null, null));
             throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
-        JsonObject profileData = request.getAsJsonObject();
+        return request;
+    }
 
+    private static @NotNull GameProfile createGameProfile(JsonObject profileData, List<String> profileActions) {
+        // Two main fields, name and UUID
         UUID id = PlayerUUIDs.UUIDFromDashlessString(profileData.get("id").getAsString());
         String name = profileData.get("name").getAsString();
         GameProfile fetchedProfile = PlayerProfiles.createGameProfile(id, name);
 
+        // Basic properties
         JsonElement propertiesEle = profileData.get("properties");
         if (propertiesEle != null) {
             JsonArray props = propertiesEle.getAsJsonArray();
@@ -373,19 +415,13 @@ public final class MojangAPI {
             }
         }
 
-        List<String> profileActions = new ArrayList<>();
+        // Create profile actions
         JsonElement profileActionsElement = profileData.get("profileActions");
         if (profileActionsElement != null) {
             for (JsonElement action : profileActionsElement.getAsJsonArray()) {
                 profileActions.add(action.getAsString());
             }
         }
-
-        fetchedProfile = PlayerProfiles.sanitizeProfile(fetchedProfile);
-        cacheProfile(fetchedProfile);
-
-        INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
-        MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
 
         return fetchedProfile;
     }

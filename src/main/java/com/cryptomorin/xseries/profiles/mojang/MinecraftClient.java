@@ -91,7 +91,7 @@ public class MinecraftClient {
         try {
             this.baseURL = new URI(baseURL);
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Invalid Minecraft API URL: " + baseURL, e);
         }
         this.rateLimiter = rateLimiter;
     }
@@ -172,7 +172,7 @@ public class MinecraftClient {
                         try {
                             Thread.sleep(retryDelay.toMillis());
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+                            throw new IllegalStateException("Mojang API retry thread was interrupted unexpectedly", e);
                         }
                     }
                     return request();
@@ -229,8 +229,11 @@ public class MinecraftClient {
                 connection.setDoOutput(false);
             }
 
-            debug("Sending request to {}", connection.getURL());
+            return request00();
+        }
 
+        private @Nullable JsonElement request00() {
+            debug("Sending request to {}", connection.getURL());
             try {
                 return connectionStreamToJson(false);
             } catch (Throwable ex) {
@@ -263,7 +266,7 @@ public class MinecraftClient {
             }
         }
 
-        private JsonElement connectionStreamToJson(boolean error) throws IOException, RuntimeException {
+        private JsonElement connectionStreamToJson(boolean error) throws IOException, IllegalStateException {
             try (
                     InputStream inputStream = error ? connection.getErrorStream() : connection.getInputStream();
             ) {
@@ -284,7 +287,7 @@ public class MinecraftClient {
                                 error ? connection.getErrorStream() : connection.getInputStream(),
                                 Charsets.UTF_8)
                         );
-                        throw new RuntimeException((error ? "error response" : "normal response")
+                        throw new IllegalStateException((error ? "error response" : "normal response")
                                 + " is not a JSON object '"
                                 + connection.getResponseCode() + " - " + connection.getResponseMessage() + "': " +
                                 rawResponse, ex);

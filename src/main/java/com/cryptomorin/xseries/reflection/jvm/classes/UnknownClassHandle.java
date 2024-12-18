@@ -58,7 +58,7 @@ public class UnknownClassHandle extends ClassHandle {
     }
 
     @Override
-    public UnknownClassHandle clone() {
+    public UnknownClassHandle copy() {
         return new UnknownClassHandle(namespace, this.name);
     }
 

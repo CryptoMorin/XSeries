@@ -37,6 +37,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 
 import static com.cryptomorin.xseries.reflection.XReflection.*;
@@ -298,7 +300,12 @@ public final class NMSExtras {
                 animationType = lookup.unreflectSetter(field);
             }
 
-
+            String privateField = AccessController.doPrivileged(new PrivilegedAction<String>() {
+                @Override
+                public String run() {
+                    return "";
+                }
+            });
             Class<?> blockPos = ofMinecraft().inPackage(MinecraftPackage.NMS, "core")
                     .map(MinecraftMapping.MOJANG, "BlockPos")
                     .map(MinecraftMapping.SPIGOT, "BlockPosition")
@@ -482,7 +489,7 @@ public final class NMSExtras {
         try {
             return DATA_WATCHER_GET_ITEM.invoke(dataWatcher, dataWatcherObject);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Failed to create data watcher", e);
         }
     }
 
@@ -501,7 +508,7 @@ public final class NMSExtras {
         try {
             return GET_DATA_WATCHER.invoke(handle);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Failed to get data watcher", e);
         }
     }
 
@@ -509,7 +516,7 @@ public final class NMSExtras {
         try {
             return DATA_WATCHER_SET_ITEM.invoke(dataWatcher, dataWatcherObject, value);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Failed to set data watcher item", e);
         }
     }
 
@@ -523,7 +530,8 @@ public final class NMSExtras {
             field.setAccessible(true);
             return field.get(null);
         } catch (Throwable e) {
-            if (!silent) throw new RuntimeException(e);
+            if (!silent)
+                throw new IllegalArgumentException("Failed to get static field of " + clazz + " named " + name, e);
             else return null;
         }
     }
@@ -699,7 +707,7 @@ public final class NMSExtras {
                         try {
                             return BLOCK_POSITION.invoke(location.getBlockX(), location.getBlockY(), location.getBlockZ());
                         } catch (Throwable e) {
-                            throw new RuntimeException(e);
+                            throw new IllegalArgumentException("Failed to set block position", e);
                         }
                     }).orElse(
                     () ->
@@ -707,7 +715,7 @@ public final class NMSExtras {
                         try {
                             return BLOCK_POSITION.invoke(location.getX(), location.getY(), location.getZ());
                         } catch (Throwable e) {
-                            throw new RuntimeException(e);
+                            throw new IllegalArgumentException("Failed to set block position", e);
                         }
                     });
             Object block = GET_BLOCK.invoke(GET_BLOCK_TYPE.invoke(world, position));

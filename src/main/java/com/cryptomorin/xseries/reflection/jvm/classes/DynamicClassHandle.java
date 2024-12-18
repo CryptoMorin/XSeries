@@ -96,7 +96,7 @@ public class DynamicClassHandle extends ClassHandle {
     }
 
     @Override
-    public DynamicClassHandle clone() {
+    public DynamicClassHandle copy() {
         DynamicClassHandle handle = new DynamicClassHandle(namespace);
         handle.array = this.array;
         handle.parent = this.parent;

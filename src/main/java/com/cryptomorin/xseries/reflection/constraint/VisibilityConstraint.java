@@ -27,9 +27,9 @@ import com.cryptomorin.xseries.reflection.XAccessFlag;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Member;
-import java.util.Optional;
 
 /**
+ * A constraint that controls the {@code public, protected, private} state of a {@link Class} or {@link Member}.
  * @since 12.0.0
  */
 @ApiStatus.Experimental
@@ -40,28 +40,32 @@ public enum VisibilityConstraint implements ReflectiveConstraint {
 
     VisibilityConstraint(XAccessFlag accessFlag) {this.accessFlag = accessFlag;}
 
+    /**
+     * @param handle the reflective handle of the object.
+     * @param jvm A {@link Class} or {@link Member}.
+     */
     @Override
-    public Optional<Boolean> appliesTo(ReflectiveHandle<?> handle, Object jvm) {
+    public Result appliesTo(ReflectiveHandle<?> handle, Object jvm) {
         int mods;
 
         if (jvm instanceof Class) {
             mods = ((Class<?>) jvm).getModifiers();
 
-            if (this == PRIVATE) return Optional.empty();
+            if (this == PRIVATE) return Result.INCOMPATIBLE;
             if (this == PROTECTED) {
                 // The so called "package-private" classes basically have no visibility flags.
                 // Classes in general can only have the "public" visibility flag, so we simply
                 // check if this is set or not.
-                return Optional.of(!XAccessFlag.PUBLIC.isSet(mods));
+                return Result.of(!XAccessFlag.PUBLIC.isSet(mods));
             }
         } else if (jvm instanceof Member) {
             // Fields, methods and constructors
             mods = ((Member) jvm).getModifiers();
         } else {
-            return Optional.empty();
+            return Result.INCOMPATIBLE;
         }
 
-        return Optional.of(accessFlag.isSet(mods));
+        return Result.of(accessFlag.isSet(mods));
     }
 
     @Override

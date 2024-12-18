@@ -126,7 +126,7 @@ public final class PlayerProfiles {
         try {
             return (String) ProfilesCore.Property_getValue.invoke(property);
         } catch (Throwable throwable) {
-            throw new RuntimeException("Unable to get a property value: " + property, throwable);
+            throw new IllegalArgumentException("Unable to get a property value: " + property, throwable);
         }
     }
 
@@ -177,10 +177,9 @@ public final class PlayerProfiles {
     @Nullable
     public static GameProfile unwrapProfile(@Nullable Object profile) throws Throwable {
         if (profile == null) return null;
-        if (!(profile instanceof GameProfile)) {
-            if (ProfilesCore.ResolvableProfile_gameProfile != null) { // Unwrap from ResolvableProfile
-                profile = ProfilesCore.ResolvableProfile_gameProfile.invoke(profile);
-            }
+        if (!(profile instanceof GameProfile) && ProfilesCore.ResolvableProfile_gameProfile != null) {
+            // Unwrap from ResolvableProfile
+            profile = ProfilesCore.ResolvableProfile_gameProfile.invoke(profile);
         }
         return (GameProfile) profile;
     }

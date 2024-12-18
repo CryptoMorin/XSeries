@@ -38,12 +38,12 @@ import org.jetbrains.annotations.Nullable;
  * @see com.cryptomorin.xseries.reflection.jvm.FieldMemberHandle
  * @see com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle
  */
-public interface ReflectiveHandle<T> extends Cloneable {
+public interface ReflectiveHandle<T> {
     /**
      * Creates a new handle with the same properties.
      */
     @ApiStatus.Experimental
-    ReflectiveHandle<T> clone();
+    ReflectiveHandle<T> copy();
 
     /**
      * @return true if this object exists at runtime, otherwise false.

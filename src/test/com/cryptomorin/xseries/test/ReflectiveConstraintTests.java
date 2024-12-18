@@ -20,16 +20,19 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package com.cryptomorin.xseries.test;
+
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.constraint.ClassTypeConstraint;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraintException;
 import com.cryptomorin.xseries.reflection.constraint.VisibilityConstraint;
+import com.cryptomorin.xseries.test.util.XLogger;
 import org.junit.jupiter.api.Assertions;
 
-public class XReflectionTests {
-    private static void print(String msg) {
-        System.out.println(msg);
+public class ReflectiveConstraintTests {
+    private static void testing(String msg) {
+        XLogger.log("[Constraints] Testing " + msg + "...");
     }
 
     public static void test() {
@@ -40,70 +43,41 @@ public class XReflectionTests {
     }
 
     private static void testXReflection_constraint_visibility() {
-        print("Testing constraints...");
-        try {
+        testing("invalid VisibilityConstraint.PROTECTED");
+        Assertions.assertThrows(ReflectiveConstraintException.class, () -> {
             XReflection.of(String.class)
                     .constraint(VisibilityConstraint.PROTECTED)
                     .reflect();
-        } catch (ReflectiveConstraintException ex) {
-            print("VisibilityConstraint check failed successfully: " + ex);
-            return;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-
-        Assertions.fail(() -> "VisibilityConstraint check failed. " + XAccessFlag.toString(String.class.getModifiers()));
+        }, () -> "VisibilityConstraint check failed. " + XAccessFlag.toString(String.class.getModifiers()));
     }
 
     private static void testXReflection_constraint_visibility_dontFail() {
-        print("Testing constraints...");
-        try {
+        testing("valid VisibilityConstraint.PROTECTED");
+        Assertions.assertDoesNotThrow(() -> {
             // Might be implementation specific?
             XReflection.classHandle()
                     .inPackage("java.lang")
                     .named("Terminator")
                     .constraint(VisibilityConstraint.PROTECTED)
                     .reflect();
-        } catch (ReflectiveConstraintException ex) {
-            Assertions.fail("VisibilityConstraint check failed", ex);
-            return;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-
-        print("VisibilityConstraint check succeeded successfully.");
+        }, "VisibilityConstraint check failed");
     }
 
     private static void testXReflection_constraint_classType() {
-        print("Testing constraints...");
-        try {
+        testing("invalid ClassTypeConstraint.ENUM");
+        Assertions.assertThrows(ReflectiveConstraintException.class, () -> {
             XReflection.of(String.class)
                     .constraint(ClassTypeConstraint.ENUM)
                     .reflect();
-        } catch (ReflectiveConstraintException ex) {
-            print("ClassTypeConstraint check failed successfully: " + ex);
-            return;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-
-        Assertions.fail("ClassTypeConstraint check failed.");
+        }, "ClassTypeConstraint check failed.");
     }
 
     private static void testXReflection_constraint_classType_dontFail() {
-        print("Testing constraints...");
-        try {
+        testing("valid ClassTypeConstraint.ENUM");
+        Assertions.assertDoesNotThrow(() -> {
             XReflection.of(ClassTypeConstraint.class)
                     .constraint(ClassTypeConstraint.ENUM)
                     .reflect();
-        } catch (ReflectiveConstraintException ex) {
-            Assertions.fail("ClassTypeConstraint check failed.", ex);
-            return;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-
-        print("ClassTypeConstraint check succeeded successfully.");
+        }, "ClassTypeConstraint check succeeded successfully.");
     }
-
 }

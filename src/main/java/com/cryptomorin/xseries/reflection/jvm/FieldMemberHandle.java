@@ -132,7 +132,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     @Override
-    public FieldMemberHandle clone() {
+    public FieldMemberHandle copy() {
         FieldMemberHandle handle = new FieldMemberHandle(clazz);
         handle.returnType = this.returnType;
         handle.getter = this.getter;

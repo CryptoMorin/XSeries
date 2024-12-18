@@ -251,7 +251,7 @@ public final class ProfilesCore {
             // MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")
             //         .getter().reflectOrNull();
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to initialize ProfilesCore", e);
         }
     }
 }

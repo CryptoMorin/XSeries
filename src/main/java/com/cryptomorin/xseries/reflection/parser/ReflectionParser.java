@@ -30,6 +30,8 @@ import com.cryptomorin.xseries.reflection.jvm.classes.*;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
@@ -74,18 +76,23 @@ public final class ReflectionParser {
                 + ")\\s*)+)?";
     }
 
+    @SuppressWarnings("RegExpUnnecessaryNonCapturingGroup")
     @Language("RegExp")
     private static final String
             GENERIC = "(?:\\s*<\\s*[.\\w<>\\[\\], ]+\\s*>)?",
-            ARRAY = "((?:\\[])*)",
+            ARRAY = "(?:(?:\\[])*)",
             PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?",
-            CLASS_TYPES = "(?<classType>class|interface|enum)",
+            CLASS_TYPES = "(?<classType>class|interface|enum|record)",
             PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)",
             END_DECL = "\\s*;?\\s*";
 
+    @SuppressWarnings("RegExpUnnecessaryNonCapturingGroup")
     private static final Pattern
-            CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + type("className") +
-            "(?:\\s+extends\\s+" + id("superclasses") + ")?\\s+(implements\\s+" + id("interfaces") + ")?(?:\\s*\\{\\s*})?\\s*");
+            CLASS = Pattern.compile(PACKAGE_REGEX + Flag.FLAGS_REGEX + CLASS_TYPES + "\\s+" + type("className")
+            + "(?:\\(\\))?" + // for record classes, the fields should not be specified
+            "(?:\\s+extends\\s+" + id("superclasses") + ")?" +
+            "(?:\\s+implements\\s+(?<interfaces>(?:" + type(null).array(false) + ")(?:\\s*,\\s*" + type(null).array(false) + ")*))?" +
+            "(?:\\s*\\{\\s*})?\\s*");
     private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
             + id("methodName") + PARAMETERS + END_DECL);
     private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
@@ -93,17 +100,43 @@ public final class ReflectionParser {
     private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + type("fieldType") + "\\s+"
             + id("fieldName") + END_DECL);
 
-    @Language("RegExp")
-    private static String id(@Language("RegExp") String groupName) {
-        if (groupName == null) return PackageHandle.JAVA_IDENTIFIER_PATTERN;
-        return "(?<" + groupName + '>' + PackageHandle.JAVA_IDENTIFIER_PATTERN + ')';
+    private static IDHandler id(@NotNull @Language("RegExp") String groupName) {
+        return new IDHandler(groupName, false);
     }
 
-    @SuppressWarnings("LanguageMismatch")
-    @Language("RegExp")
-    private static String type(@Language("RegExp") String groupName) {
-        String type = PackageHandle.JAVA_PACKAGE_PATTERN + GENERIC + ARRAY;
-        return "(?<" + groupName + '>' + type + ')';
+    private static IDHandler type(@Language("RegExp") String groupName) {
+        return new IDHandler(groupName, true).generic(true).array(true);
+    }
+
+    private static final class IDHandler {
+        private boolean generic, array;
+        private final String groupName;
+        private final boolean isFullyQualified;
+
+        private IDHandler(String groupName, boolean isFullyQualified) {
+            this.groupName = groupName;
+            this.isFullyQualified = isFullyQualified;
+        }
+
+        public IDHandler generic(boolean generic) {
+            this.generic = generic;
+            return this;
+        }
+
+        public IDHandler array(boolean array) {
+            this.array = array;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            String type = (isFullyQualified ? PackageHandle.JAVA_PACKAGE_PATTERN : PackageHandle.JAVA_IDENTIFIER_PATTERN)
+                    + (generic ? GENERIC : "")
+                    + (array ? ARRAY : "");
+
+            if (groupName == null) return "(?:" + type + ')';
+            return "(?<" + groupName + '>' + type + ')';
+        }
     }
 
     private ClassHandle[] parseTypes(String[] typeNames) {
@@ -146,6 +179,18 @@ public final class ReflectionParser {
             typeName = typeName.substring(0, typeName.indexOf('<'));
         }
 
+        Class<?> clazz = stringToClass(typeName);
+
+        // if (clazz == null) error("Unknown type '" + firstTypeName + "' -> '" + typeName + '\'');
+        if (clazz == null) return new UnknownClassHandle(getOrCreateNamespace(), firstTypeName + " -> " + typeName);
+        if (arrayDimension != 0) {
+            clazz = XReflection.of(clazz).asArray(arrayDimension).unreflect();
+        }
+        return new StaticClassHandle(getOrCreateNamespace(), clazz);
+    }
+
+    @Nullable
+    private Class<?> stringToClass(String typeName) {
         Class<?> clazz = null;
         if (!typeName.contains(".")) {
             // Override predefined types
@@ -158,13 +203,7 @@ public final class ReflectionParser {
             } catch (ClassNotFoundException ignored) {
             }
         }
-
-        // if (clazz == null) error("Unknown type '" + firstTypeName + "' -> '" + typeName + '\'');
-        if (clazz == null) return new UnknownClassHandle(getOrCreateNamespace(), firstTypeName + " -> " + typeName);
-        if (arrayDimension != 0) {
-            clazz = XReflection.of(clazz).asArray(arrayDimension).unreflect();
-        }
-        return new StaticClassHandle(getOrCreateNamespace(), clazz);
+        return clazz;
     }
 
     private ReflectiveNamespace getOrCreateNamespace() {
@@ -191,7 +230,11 @@ public final class ReflectionParser {
             for (PackageHandle pkgHandle : PACKAGE_HANDLES) {
                 String targetPackageName = pkgHandle.packageId().toLowerCase(Locale.ENGLISH);
                 if (packageName.startsWith(targetPackageName)) {
-                    classHandle.inPackage(pkgHandle, packageName.substring(targetPackageName.length() + 1)); // + 1 for the dot
+                    if (packageName.indexOf('.') == -1) {
+                        classHandle.inPackage(pkgHandle);
+                    } else {
+                        classHandle.inPackage(pkgHandle, packageName.substring(targetPackageName.length() + 1)); // + 1 for the dot
+                    }
                     found = true;
                     break;
                 }
@@ -209,9 +252,8 @@ public final class ReflectionParser {
 
     public <T extends ConstructorMemberHandle> T parseConstructor(T ctorHandle) {
         pattern(CONSTRUCTOR, ctorHandle);
-        if (has("className")) {
-            if (!ctorHandle.getClassHandle().getPossibleNames().contains(group("className")))
-                error("Wrong class name associated to constructor, possible names: " + ctorHandle.getClassHandle().getPossibleNames());
+        if (has("className") && !ctorHandle.getClassHandle().getPossibleNames().contains(group("className"))) {
+            error("Wrong class name associated to constructor, possible names: " + ctorHandle.getClassHandle().getPossibleNames());
         }
         if (has("parameters")) ctorHandle.parameters(parseTypes(group("parameters").split(",")));
         return ctorHandle;
@@ -260,11 +302,11 @@ public final class ReflectionParser {
             } else if (hasOneOf(flags, Flag.PRIVATE, Flag.PROTECTED)) {
                 memberHandle.makeAccessible();
             }
-            if (handle instanceof FieldMemberHandle) {
-                if (flags.contains(Flag.FINAL)) ((FieldMemberHandle) handle).asFinal();
+            if (handle instanceof FieldMemberHandle && flags.contains(Flag.FINAL)) {
+                ((FieldMemberHandle) handle).asFinal();
             }
-            if (handle instanceof FlaggedNamedMemberHandle) {
-                if (flags.contains(Flag.STATIC)) ((FlaggedNamedMemberHandle) handle).asStatic();
+            if (handle instanceof FlaggedNamedMemberHandle && flags.contains(Flag.STATIC)) {
+                ((FlaggedNamedMemberHandle) handle).asStatic();
             }
         }
     }
@@ -302,6 +344,12 @@ public final class ReflectionParser {
     }
 
     private void error(String message) {
-        throw new RuntimeException(message + " in: " + declaration + " (RegEx: " + pattern.pattern() + "), (Imports: " + cachedImports + ')');
+        throw new ReflectionParserException(message + " in: " + declaration + " (RegEx: " + pattern.pattern() + "), (Imports: " + cachedImports + ')');
+    }
+
+    public static final class ReflectionParserException extends RuntimeException {
+        public ReflectionParserException(String message) {
+            super(message);
+        }
     }
 }

@@ -97,7 +97,7 @@ public final class PlayerUUIDs {
                 OFFLINE_TO_ONLINE.put(offlineUUID, realUUID);
                 USERNAME_TO_ONLINE.put(username, realUUID);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException("Error while getting real UUID of player: " + username, e);
             }
         }
 
@@ -123,7 +123,7 @@ public final class PlayerUUIDs {
         if (PlayerUUIDs.isOnlineMode()) return uuid;
 
         // OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-        // if (!player.hasPlayedBefore()) throw new RuntimeException("Player with UUID " + uuid + " doesn't exist.");
+        // if (!player.hasPlayedBefore()) throw new IllegalStateException("Player with UUID " + uuid + " doesn't exist.");
 
         UUID realUUID = OFFLINE_TO_ONLINE.get(uuid);
         boolean cached = realUUID != null;
@@ -137,7 +137,7 @@ public final class PlayerUUIDs {
                 OFFLINE_TO_ONLINE.put(uuid, realUUID);
                 USERNAME_TO_ONLINE.put(username, realUUID);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException("Error while getting real UUID of player: " + username + " (" + uuid + ')', e);
             }
         }
 
@@ -150,7 +150,7 @@ public final class PlayerUUIDs {
 
         UUID offlineUUID = getOfflineUUID(username);
         if (!uuid.equals(offlineUUID) && !uuid.equals(realUUID)) {
-            throw new RuntimeException("The provided UUID (" + uuid + ") for '" + username +
+            throw new IllegalArgumentException("The provided UUID (" + uuid + ") for '" + username +
                     "' doesn't match the offline UUID (" + offlineUUID + ") or the real UUID (" + realUUID + ')');
         }
         return realUUID;

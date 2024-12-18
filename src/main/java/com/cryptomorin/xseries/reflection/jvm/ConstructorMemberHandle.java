@@ -77,7 +77,7 @@ public class ConstructorMemberHandle extends MemberHandle {
     }
 
     @Override
-    public ConstructorMemberHandle clone() {
+    public ConstructorMemberHandle copy() {
         ConstructorMemberHandle handle = new ConstructorMemberHandle(clazz);
         handle.parameterTypes = this.parameterTypes;
         handle.isFinal = this.isFinal;

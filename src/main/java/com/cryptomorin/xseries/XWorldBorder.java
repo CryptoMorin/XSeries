@@ -55,7 +55,7 @@ import static com.cryptomorin.xseries.reflection.XReflection.*;
  *
  * @version 1.0.1
  */
-public class XWorldBorder implements Cloneable {
+public class XWorldBorder {
     private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, TRANSITION;
     private static final MethodHandle PACKET_WARNING_DISTANCE, PACKET_WARNING_DELAY, PACKET_LERP_SIZE, PACKET_INIT, PACKET_CENTER, PACKET_SIZE;
     private static final Object INITIALIZE;
@@ -123,9 +123,7 @@ public class XWorldBorder implements Cloneable {
         return WORLD_BORDERS.get(player.getUniqueId());
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public XWorldBorder clone() {
+    public XWorldBorder copy() {
         XWorldBorder wb = new XWorldBorder();
         wb.world = world;
         wb.centerX = centerX;
@@ -243,13 +241,13 @@ public class XWorldBorder implements Cloneable {
     }
 
     public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
-        if (this.size == newSize && sizeLerpTime == duration) return this;
+        if (this.size == newSize && sizeLerpTime.equals(duration)) return this;
         size = newSize;
         sizeLerpTime = duration;
 
         updateBorderBounds();
         update(Component.SIZE);
-        if (Duration.ZERO != duration) update(Component.SIZE_LERP);
+        if (!duration.isZero()) update(Component.SIZE_LERP);
 
         return this;
     }
@@ -306,8 +304,6 @@ public class XWorldBorder implements Cloneable {
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         Object initialize = null;
-        MethodHandle world = null, worldborder = null, worldborderWorld = null,
-                center = null, distance = null, warnTime = null, size = null, transition = null;
 
         MethodHandle packetInit = null, packetWarnDist = null, packetWarnDelay = null,
                 packetLerpSize = null, packetCenter = null, packetSize = null;
@@ -350,18 +346,11 @@ public class XWorldBorder implements Cloneable {
 
         try {
             // Individual packets were added in 1.17
-            Function<String, MethodHandle> getPacket = (packet) ->
-            {
-                try {
-                    return ofMinecraft()
-                            .inPackage(MinecraftPackage.NMS, "network.protocol.game")
-                            .named(packet)
-                            .constructor(wb)
-                            .reflect();
-                } catch (ReflectiveOperationException e) {
-                    throw new RuntimeException(e);
-                }
-            };
+            Function<String, MethodHandle> getPacket = (packet) -> ofMinecraft()
+                    .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named(packet)
+                    .constructor(wb)
+                    .unreflect();
 
             packetWarnDist = getPacket.apply("ClientboundSetBorderWarningDistancePacket");
             packetWarnDelay = getPacket.apply("ClientboundSetBorderWarningDelayPacket");

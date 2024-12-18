@@ -1820,7 +1820,7 @@ public final class Particles {
         y /= length;
         z /= length;
 
-        ParticleDisplay clone = display.clone();
+        ParticleDisplay clone = display.copy();
         clone.withLocation(start);
         for (double i = 0; i < length; i += rate) {
             // Since the rate can be any number it's possible to get a higher number than

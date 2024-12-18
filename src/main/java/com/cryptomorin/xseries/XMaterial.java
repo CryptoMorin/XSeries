@@ -2398,7 +2398,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
                 // noinspection unchecked
                 mapping = (Map<String, Material>) field.get(null);
             } catch (Throwable e) {
-                new RuntimeException("Unable to get Material.BY_NAME field", e).printStackTrace();
+                new IllegalStateException("Unable to get Material.BY_NAME field", e).printStackTrace();
                 mapping = null;
             }
 

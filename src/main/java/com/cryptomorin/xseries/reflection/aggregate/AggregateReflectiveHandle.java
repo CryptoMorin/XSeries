@@ -109,9 +109,8 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
         throw XReflection.throwCheckedException(XReflection.relativizeSuppressedExceptions(errors));
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public AggregateReflectiveHandle<T, H> clone() {
+    public AggregateReflectiveHandle<T, H> copy() {
         AggregateReflectiveHandle<T, H> handle = new AggregateReflectiveHandle<>(new ArrayList<>(handles));
         handle.handleModifier = this.handleModifier;
         return handle;

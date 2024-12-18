@@ -62,5 +62,5 @@ public abstract class NamedMemberHandle extends MemberHandle implements NamedRef
     }
 
     @Override
-    public abstract NamedMemberHandle clone();
+    public abstract NamedMemberHandle copy();
 }

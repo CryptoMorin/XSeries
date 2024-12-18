@@ -24,7 +24,6 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
-import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraintException;
 import com.cryptomorin.xseries.reflection.jvm.*;
@@ -35,7 +34,6 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @see DynamicClassHandle
@@ -62,15 +60,10 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
 
     protected <T extends Class<?>> T checkConstraints(T jvm) {
         for (ReflectiveConstraint constraint : this.constraints.values()) {
-            Optional<Boolean> applyState = constraint.appliesTo(this, jvm);
-
-            if (!applyState.isPresent())
-                throw new ReflectiveConstraintException("The constraint " + constraint + " cannot be applied to " + this);
-
-            if (!applyState.get())
-                throw new ReflectiveConstraintException("Found " + this + " with JVM " + jvm
-                        + ", however it doesn't match the constraint: "
-                        + constraint + " - " + XAccessFlag.toString(jvm.getModifiers()));
+            ReflectiveConstraint.Result result = constraint.appliesTo(this, jvm);
+            if (result != ReflectiveConstraint.Result.MATCHED) {
+                throw ReflectiveConstraintException.create(constraint, result, this, jvm);
+            }
         }
         return jvm;
     }
@@ -163,5 +156,5 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
     }
 
     @Override
-    public abstract ClassHandle clone();
+    public abstract ClassHandle copy();
 }

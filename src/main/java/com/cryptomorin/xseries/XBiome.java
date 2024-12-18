@@ -179,13 +179,13 @@ public final class XBiome extends XModule<XBiome, Biome> {
             // Around v1.16.0
             World.class.getMethod("getMaxHeight");
             maxHeight = true;
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
         }
         try {
             // Around v1.17.0
             World.class.getMethod("getMinHeight");
             maxHeight = true;
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
         }
         World_getMaxHeight$SUPPORTED = maxHeight;
         World_getMinHeight$SUPPORTED = minHeight;
@@ -241,9 +241,8 @@ public final class XBiome extends XModule<XBiome, Biome> {
         Biome biome = get();
         Objects.requireNonNull(biome, () -> "Unsupported biome: " + this.name());
         Objects.requireNonNull(chunk, "Cannot set biome of null chunk");
-        if (!chunk.isLoaded()) {
-            if (!chunk.load(true))
-                throw new IllegalStateException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
+        if (!chunk.isLoaded() && !chunk.load(true)) {
+            throw new IllegalStateException("Could not load chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
         int heightMax = World_getMaxHeight$SUPPORTED ? chunk.getWorld().getMaxHeight() : 1;
         int heightMin = World_getMinHeight$SUPPORTED ? chunk.getWorld().getMinHeight() : 0;
@@ -320,7 +319,7 @@ public final class XBiome extends XModule<XBiome, Biome> {
     }
 
     /**
-     * Use {@link #getValues()} instead.
+     * @deprecated Use {@link #getValues()} instead.
      */
     @Deprecated
     public static XBiome[] values() {

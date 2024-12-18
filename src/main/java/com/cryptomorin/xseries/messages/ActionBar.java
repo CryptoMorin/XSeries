@@ -72,7 +72,13 @@ public final class ActionBar {
      * to use NMS for anything below 1.12
      * We're not going to support Bukkit.
      */
-    private static final boolean USE_SPIGOT_API = XReflection.supports(12);
+    private static final boolean USE_SPIGOT_API = XReflection.of(Player.class)
+            .inner("public static class Spigot {}")
+            .method("public void sendMessage(" +
+                    "net.md_5.bungee.api.ChatMessageType position," +
+                    "net.md_5.bungee.api.chat.BaseComponent component);")
+            .exists();
+
     /**
      * ChatComponentText JSON message builder.
      */
@@ -144,8 +150,7 @@ public final class ActionBar {
         PACKET_PLAY_OUT_CHAT = packet;
     }
 
-    private ActionBar() {
-    }
+    private ActionBar() {}
 
     /**
      * Sends an action bar to a player.
@@ -165,17 +170,15 @@ public final class ActionBar {
      * @since 3.2.0
      */
     public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message) {
-        if (!Strings.isNullOrEmpty(message)) {
-            if (message.charAt(0) == TIME_SPECIFIER_START) {
-                int end = message.indexOf(TIME_SPECIFIER_END);
-                if (end != -1) {
-                    int time = 0;
-                    try {
-                        time = Integer.parseInt(message.substring(1, end)) * 20;
-                    } catch (NumberFormatException ignored) {
-                    }
-                    if (time >= 0) sendActionBar(plugin, player, message.substring(end + 1), time);
+        if (!Strings.isNullOrEmpty(message) && message.charAt(0) == TIME_SPECIFIER_START) {
+            int end = message.indexOf(TIME_SPECIFIER_END);
+            if (end != -1) {
+                int time = 0;
+                try {
+                    time = Integer.parseInt(message.substring(1, end)) * 20;
+                } catch (NumberFormatException ignored) {
                 }
+                if (time >= 0) sendActionBar(plugin, player, message.substring(end + 1), time);
             }
         }
 

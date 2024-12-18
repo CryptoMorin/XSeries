@@ -1,7 +1,33 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2024 Crypto Morin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package com.cryptomorin.xseries.test.server;
+
 import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.test.XSeriesTests;
 import joptsimple.OptionParser;
-import joptsimple.OptionSet;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -9,9 +35,9 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.cryptomorin.xseries.test.util.XLogger.log;
 
 public abstract class DummyAbstractServer {
     private static final OptionParser OPTION_PARSER = new OptionParser() {
@@ -119,15 +145,12 @@ public abstract class DummyAbstractServer {
         }
     };
 
-    protected static void print(String str) {
-        System.out.println(str);
-    }
+    public static final File HERE = new File(System.getProperty("user.dir"));
 
     protected void runServer() {
         try {
-            File here = new File(System.getProperty("user.dir"));
-            Path path = here.toPath();
-            File before = here.getParentFile();
+            Path path = HERE.toPath();
+            File before = HERE.getParentFile();
             Path pathBefore = before.toPath();
             Path testClassesPath = pathBefore.resolve("test-classes");
             Path serverProperties = testClassesPath.resolve("server.properties");
@@ -146,11 +169,11 @@ public abstract class DummyAbstractServer {
                 System.setProperty("IReallyKnowWhatIAmDoingISwear", "true");
                 InvocationHandler implementer = main();
 
-                DummyAbstractServer.print("Implementing dummy server...");
+                log("Implementing dummy server...");
                 // A proxy because we don't want to pollute this class with a bunch of methods we can't implement.
 //                Server instance = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, implementer);
 
-                DummyAbstractServer.print("Starting org.bukkit.craftbukkit.Main...");
+                log("Starting org.bukkit.craftbukkit.Main...");
                 String[] startupArgs = { // https://www.spigotmc.org/wiki/start-up-parameters/
                         "nogui",
                         "noconsole",
@@ -176,53 +199,116 @@ public abstract class DummyAbstractServer {
                 }
                 // Main.main(startupArgs);
 
-//                DummyAbstractServer.print("Initializing server...");
+//                log("Initializing server...");
                 // Bukkit.setServer(instance);
 
-                DummyAbstractServer.print("Done!");
+                log("Done!");
             });
 
             // I'm still not sure how to make this part more reliable.
-            print("Starting thread " + thread + "...");
+            log("Starting thread " + thread + "...");
             thread.start();
-            print("Joining thread " + thread + "...");
+            log("Joining thread " + thread + "...");
             thread.join();
-            print("Joined thread " + thread);
-            Thread.sleep(2000L); // It's still a mystery why this is needed. Why doesn't join() properly block?
+            log("Joined thread " + thread);
+
+            // net.minecraft.server.Main.main() -> MinecraftServer.a() ---[New Thread]--> MinecraftServer.y() ->
+            // DedicatedPlayerList.e() -> new DedicatedPlayerList() ->
+            // new PlayerList() -> new CraftServer() -> Bukkit.setServer(this)
+            // -----------------------------------------------------------------
+            // This is needed because setServer() is set inside a [New Thread]
+            // We can't simply wait until the server is just fully loaded with the scheduler
+            // either, because that also requires the Bukkit object.
+            waitForServer();
 
             if (startException.get() != null) {
-                print("Server startup failed. Not continuing.");
-                throw new RuntimeException(startException.get());
+                log("Server startup failed. Not continuing.");
+                throw new IllegalStateException("Server startup failed", startException.get());
             }
 
-            try {
-                XReflection.of(XRegistry.class)
-                        .field("private static boolean PERFORM_AUTO_ADD;")
-                        .setter().makeAccessible()
-                        .reflect().invoke(false);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            // We can't use reflection to load the plugin manually because JavaPlugin's constructor
+            // will complain when it's not loaded by a PluginClassLoader which is private.
+            // Also, we can't package the test classes as a plugin JAR for the server to load either,
+            // that's because IDEs in general (both IntelliJ and Eclipse) will mess with the class loaders,
+            // causing the same error to occur.
+            Plugin plugin = EmbeddedPlugin.createInstance();
+            Object lock = new Object();
+            AtomicReference<Throwable> error = new AtomicReference<>();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                log("Server fully loaded. Running Tests...");
+                try {
+                    try {
+                        XReflection.of(XRegistry.class)
+                                .field("private static boolean PERFORM_AUTO_ADD;")
+                                .setter().makeAccessible()
+                                .reflect().invoke(false);
+                    } catch (Throwable e) {
+                        throw new IllegalStateException("Failed to disable XRegistry's auto-add system", e);
+                    }
+
+                    XSeriesTests.test();
+                } catch (Throwable ex) {
+                    error.set(ex);
+                } finally {
+                    log("Tests are done! Forcefully shuttingdown the server...");
+                    synchronized (lock) {
+                        log("Synchronize Access Granted");
+                        lock.notify();
+                        log("Synchronize Done");
+                    }
+                }
+            });
+            log("Locking the test thread...");
+            synchronized (lock) {
+                lock.wait();
             }
-            XSeriesTests.test();
-            Executors.newSingleThreadScheduledExecutor(Executors.defaultThreadFactory())
-                    .schedule(() -> {
-                        // It wants to load the world and all that bullshit. Just stop it.
-                        print("Interrupting thread: " + thread + "...");
-                        thread.interrupt();
-                        print("Interrupted thread " + thread);
-                    }, 5, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            synchronized (lock) {
+                log("synchronized lock notification");
+            }
+            // Note: If this is not properly reached, it'll cause the surefire process to hang in the background
+            // in that case, the process will need to be forcefully terminated manually (e.g. by using Task Manager)
+            log("Lock has been released.");
+
+            // Executors.newSingleThreadScheduledExecutor(Executors.defaultThreadFactory())
+            //         .schedule(() -> {
+            //             // It wants to load the world and all that bullshit. Just stop it.
+            //             log("Interrupting thread: " + thread + "...");
+            //             thread.interrupt();
+            //             log("Interrupted thread " + thread);
+            //         }, 5, TimeUnit.SECONDS);
+            if (error.get() != null) throw XReflection.throwCheckedException(error.get());
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Server process has been interrupted", e);
         }
     }
 
-    protected OptionSet parseOptions(String[] args) {
-        try {
-            return OPTION_PARSER.parse(args);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    @SuppressWarnings({"ConstantValue", "BusyWait"})
+    private static void waitForServer() throws InterruptedException {
+        long start = System.currentTimeMillis();
+        while (Bukkit.getServer() == null) {
+            // Since we don't have access to Minecraft's code,
+            // our best solution is just polling...
+            Thread.sleep(50L);
         }
+        long end = System.currentTimeMillis();
+        long diff = end - start;
+
+        // Usually takes ~200ms
+        log("Took ~" + diff + "ms for Bukkit server instance to load");
     }
+
+    private static void loadembeddedPlugin() throws Exception {
+        Class<?> XSeriesPlugin = Class.forName("com.cryptomorin.xseries.test.XSeriesPlugin", true, Bukkit.getServer().getPluginManager().getClass().getClassLoader());
+        // Bukkit.getServer().getPluginManager().enablePlugin(new XSeriesPlugin());
+    }
+
+    // protected OptionSet parseOptions(String[] args) {
+    //     try {
+    //         return OPTION_PARSER.parse(args);
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
     protected abstract InvocationHandler main();
 }

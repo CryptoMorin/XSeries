@@ -52,10 +52,8 @@ public abstract class CacheableProfileable implements Profileable {
             cache = null;
         }
 
-        if (lastError != null) {
-            if (!(lastError instanceof MojangAPIRetryException)) {
-                throw XReflection.throwCheckedException(lastError);
-            }
+        if (lastError != null && !(lastError instanceof MojangAPIRetryException)) {
+            throw XReflection.throwCheckedException(lastError);
         }
 
         if (cache == null) {

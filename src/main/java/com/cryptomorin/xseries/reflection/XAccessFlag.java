@@ -23,11 +23,10 @@
 package com.cryptomorin.xseries.reflection;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -35,47 +34,50 @@ import java.util.*;
  * It also aims to add a few new APIs such as {@link #isSet(int)} and {@link #isSet(int, XAccessFlag...)}
  *
  * @since 12.0.0
+ * @see Class#getModifiers()
+ * @see Member#getModifiers()
  * @see java.lang.reflect.Modifier
  * @see java.lang.reflect.AccessFlag
+ * @see com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint
  */
 @ApiStatus.Experimental
 public enum XAccessFlag {
     /**
      * The access flag {@code ACC_PUBLIC}, corresponding to the source
      * modifier {@link Modifier#PUBLIC public}, with a mask value of
-     * <code>{@value "0x%04x" Modifier#PUBLIC}</code>.
+     * <code>{@code "0x%04x" Modifier#PUBLIC}</code>.
      */
-    PUBLIC(Modifier.PUBLIC, true, Location.CLASS, Location.FIELD, Location.METHOD, Location.INNER_CLASS),
+    PUBLIC(Modifier.PUBLIC, true, JVMLocation.CLASS, JVMLocation.FIELD, JVMLocation.METHOD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_PRIVATE}, corresponding to the
      * source modifier {@link Modifier#PRIVATE private}, with a mask
-     * value of <code>{@value "0x%04x" Modifier#PRIVATE}</code>.
+     * value of <code>{@code "0x%04x" Modifier#PRIVATE}</code>.
      */
-    PRIVATE(Modifier.PRIVATE, true, Location.FIELD, Location.METHOD, Location.INNER_CLASS),
+    PRIVATE(Modifier.PRIVATE, true, JVMLocation.FIELD, JVMLocation.METHOD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_PROTECTED}, corresponding to the
      * source modifier {@link Modifier#PROTECTED protected}, with a mask
-     * value of <code>{@value "0x%04x" Modifier#PROTECTED}</code>.
+     * value of <code>{@code "0x%04x" Modifier#PROTECTED}</code>.
      */
-    PROTECTED(Modifier.PROTECTED, true, Location.FIELD, Location.METHOD, Location.INNER_CLASS),
+    PROTECTED(Modifier.PROTECTED, true, JVMLocation.FIELD, JVMLocation.METHOD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_STATIC}, corresponding to the source
      * modifier {@link Modifier#STATIC static}, with a mask value of
-     * <code>{@value "0x%04x" Modifier#STATIC}</code>.
+     * <code>{@code "0x%04x" Modifier#STATIC}</code>.
      */
-    STATIC(Modifier.STATIC, true, Location.FIELD, Location.METHOD, Location.INNER_CLASS),
+    STATIC(Modifier.STATIC, true, JVMLocation.FIELD, JVMLocation.METHOD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_FINAL}, corresponding to the source
      * modifier {@link Modifier#FINAL final}, with a mask
-     * value of <code>{@value "0x%04x" Modifier#FINAL}</code>.
+     * value of <code>{@code "0x%04x" Modifier#FINAL}</code>.
      */
-    FINAL(Modifier.FINAL, true, Location.CLASS, Location.FIELD, Location.METHOD,
-            Location.INNER_CLASS,     /* added in 1.1 */
-            Location.METHOD_PARAMETER /* added in 8 */
+    FINAL(Modifier.FINAL, true, JVMLocation.CLASS, JVMLocation.FIELD, JVMLocation.METHOD,
+            JVMLocation.INNER_CLASS,     /* added in 1.1 */
+            JVMLocation.METHOD_PARAMETER /* added in 8 */
     ),
 
     /**
@@ -85,14 +87,14 @@ public enum XAccessFlag {
      * In Java SE 8 and above, the JVM treats the {@code ACC_SUPER}
      * flag as set in every class file (JVM Section 4.1).
      */
-    SUPER(0x0000_0020, false, Location.CLASS),
+    SUPER(0x0000_0020, false, JVMLocation.CLASS),
 
     /**
      * The module flag {@code ACC_OPEN} with a mask value of {@code 0x0020}.
      *
      * @see java.lang.module.ModuleDescriptor#isOpen
      */
-    OPEN(0x0000_0020, false, Location.MODULE),
+    OPEN(0x0000_0020, false, JVMLocation.MODULE),
 
     /**
      * The module requires flag {@code ACC_TRANSITIVE} with a mask
@@ -100,14 +102,14 @@ public enum XAccessFlag {
      *
      * @see java.lang.module.ModuleDescriptor.Requires.Modifier#TRANSITIVE
      */
-    TRANSITIVE(0x0000_0020, false, Location.MODULE_REQUIRES),
+    TRANSITIVE(0x0000_0020, false, JVMLocation.MODULE_REQUIRES),
 
     /**
      * The access flag {@code ACC_SYNCHRONIZED}, corresponding to the
      * source modifier {@link Modifier#SYNCHRONIZED synchronized}, with
-     * a mask value of <code>{@value "0x%04x" Modifier#SYNCHRONIZED}</code>.
+     * a mask value of <code>{@code "0x%04x" Modifier#SYNCHRONIZED}</code>.
      */
-    SYNCHRONIZED(Modifier.SYNCHRONIZED, true, Location.METHOD),
+    SYNCHRONIZED(Modifier.SYNCHRONIZED, true, JVMLocation.METHOD),
 
     /**
      * The module requires flag {@code ACC_STATIC_PHASE} with a mask
@@ -115,44 +117,44 @@ public enum XAccessFlag {
      *
      * @see java.lang.module.ModuleDescriptor.Requires.Modifier#STATIC
      */
-    STATIC_PHASE(0x0000_0040, false, Location.MODULE_REQUIRES),
+    STATIC_PHASE(0x0000_0040, false, JVMLocation.MODULE_REQUIRES),
 
     /**
      * The access flag {@code ACC_VOLATILE}, corresponding to the
      * source modifier {@link Modifier#VOLATILE volatile}, with a mask
-     * value of <code>{@value "0x%04x" Modifier#VOLATILE}</code>.
+     * value of <code>{@code "0x%04x" Modifier#VOLATILE}</code>.
      */
-    VOLATILE(Modifier.VOLATILE, true, Location.FIELD),
+    VOLATILE(Modifier.VOLATILE, true, JVMLocation.FIELD),
 
     /**
      * The access flag {@code ACC_BRIDGE} with a mask value of
-     * <code>{@value "0x%04x" Modifier#BRIDGE}</code>
+     * <code>{@code "0x%04x" Modifier#BRIDGE}</code>
      *
      * @see Method#isBridge()
      */
-    BRIDGE(getPrivateMod("BRIDGE"), false, Location.METHOD),
+    BRIDGE(getPrivateMod("BRIDGE"), false, JVMLocation.METHOD),
 
     /**
      * The access flag {@code ACC_TRANSIENT}, corresponding to the
      * source modifier {@link Modifier#TRANSIENT transient}, with a
-     * mask value of <code>{@value "0x%04x" Modifier#TRANSIENT}</code>.
+     * mask value of <code>{@code "0x%04x" Modifier#TRANSIENT}</code>.
      */
-    TRANSIENT(Modifier.TRANSIENT, true, Location.FIELD),
+    TRANSIENT(Modifier.TRANSIENT, true, JVMLocation.FIELD),
 
     /**
      * The access flag {@code ACC_VARARGS} with a mask value of
-     * <code>{@value "0x%04x" Modifier#VARARGS}</code>.
+     * <code>{@code "0x%04x" Modifier#VARARGS}</code>.
      *
      * @see Executable#isVarArgs()
      */
-    VARARGS(getPrivateMod("VARARGS"), false, Location.METHOD),
+    VARARGS(getPrivateMod("VARARGS"), false, JVMLocation.METHOD),
 
     /**
      * The access flag {@code ACC_NATIVE}, corresponding to the source
      * modifier {@link Modifier#NATIVE native}, with a mask value of
-     * <code>{@value "0x%04x" Modifier#NATIVE}</code>.
+     * <code>{@code "0x%04x" Modifier#NATIVE}</code>.
      */
-    NATIVE(Modifier.NATIVE, true, Location.METHOD),
+    NATIVE(Modifier.NATIVE, true, JVMLocation.METHOD),
 
     /**
      * The access flag {@code ACC_INTERFACE} with a mask value of
@@ -160,19 +162,19 @@ public enum XAccessFlag {
      *
      * @see Class#isInterface()
      */
-    INTERFACE(Modifier.INTERFACE, false, Location.CLASS, Location.INNER_CLASS),
+    INTERFACE(Modifier.INTERFACE, false, JVMLocation.CLASS, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_ABSTRACT}, corresponding to the
      * source modifier {@link Modifier#ABSTRACT abstract}, with a mask
-     * value of <code>{@value "0x%04x" Modifier#ABSTRACT}</code>.
+     * value of <code>{@code "0x%04x" Modifier#ABSTRACT}</code>.
      */
-    ABSTRACT(Modifier.ABSTRACT, true, Location.CLASS, Location.METHOD, Location.INNER_CLASS),
+    ABSTRACT(Modifier.ABSTRACT, true, JVMLocation.CLASS, JVMLocation.METHOD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_STRICT}, corresponding to the source
      * modifier {@link Modifier#STRICT strictfp}, with a mask value of
-     * <code>{@value "0x%04x" Modifier#STRICT}</code>.
+     * <code>{@code "0x%04x" Modifier#STRICT}</code>.
      *
      * @apiNote
      * The {@code ACC_STRICT} access flag is defined for class file
@@ -183,59 +185,59 @@ public enum XAccessFlag {
 
     /**
      * The access flag {@code ACC_SYNTHETIC} with a mask value of
-     * <code>{@value "0x%04x" Modifier#SYNTHETIC}</code>.
+     * <code>{@code "0x%04x" Modifier#SYNTHETIC}</code>.
      *
      * @see Class#isSynthetic()
      * @see Executable#isSynthetic()
      * @see java.lang.module.ModuleDescriptor.Modifier#SYNTHETIC
      */
     SYNTHETIC(getPrivateMod("SYNTHETIC"), false,
-            Location.CLASS, Location.FIELD, Location.METHOD,
-            Location.INNER_CLASS,
-            Location.METHOD_PARAMETER, // Added in 8
+            JVMLocation.CLASS, JVMLocation.FIELD, JVMLocation.METHOD,
+            JVMLocation.INNER_CLASS,
+            JVMLocation.METHOD_PARAMETER, // Added in 8
 
             // Module-related items added in 9:
-            Location.MODULE, Location.MODULE_REQUIRES,
-            Location.MODULE_EXPORTS, Location.MODULE_OPENS),
+            JVMLocation.MODULE, JVMLocation.MODULE_REQUIRES,
+            JVMLocation.MODULE_EXPORTS, JVMLocation.MODULE_OPENS),
 
     /**
      * The access flag {@code ACC_ANNOTATION} with a mask value of
-     * <code>{@value "0x%04x" Modifier#ANNOTATION}</code>.
+     * <code>{@code "0x%04x" Modifier#ANNOTATION}</code>.
      *
      * @see Class#isAnnotation()
      */
-    ANNOTATION(getPrivateMod("ANNOTATION"), false, Location.CLASS, Location.INNER_CLASS),
+    ANNOTATION(getPrivateMod("ANNOTATION"), false, JVMLocation.CLASS, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_ENUM} with a mask value of
-     * <code>{@value "0x%04x" Modifier#ENUM}</code>.
+     * <code>{@code "0x%04x" Modifier#ENUM}</code>.
      *
      * @see Class#isEnum()
      */
-    ENUM(getPrivateMod("ENUM"), false, Location.CLASS, Location.FIELD, Location.INNER_CLASS),
+    ENUM(getPrivateMod("ENUM"), false, JVMLocation.CLASS, JVMLocation.FIELD, JVMLocation.INNER_CLASS),
 
     /**
      * The access flag {@code ACC_MANDATED} with a mask value of
-     * <code>{@value "0x%04x" Modifier#MANDATED}</code>.
+     * <code>{@code "0x%04x" Modifier#MANDATED}</code>.
      */
     MANDATED(getPrivateMod("MANDATED"), false,
             // From 8:
-            Location.METHOD_PARAMETER,
+            JVMLocation.METHOD_PARAMETER,
 
             // Starting in 9:
-            Location.MODULE, Location.MODULE_REQUIRES, Location.MODULE_EXPORTS, Location.MODULE_OPENS),
+            JVMLocation.MODULE, JVMLocation.MODULE_REQUIRES, JVMLocation.MODULE_EXPORTS, JVMLocation.MODULE_OPENS),
 
     /**
      * The access flag {@code ACC_MODULE} with a mask value of {@code 0x8000}.
      */
-    MODULE(0x0000_8000, false, Location.CLASS);
+    MODULE(0x0000_8000, false, JVMLocation.CLASS);
 
-    XAccessFlag(int mask, boolean sourceModifier, Location... locations) {
+    XAccessFlag(int mask, boolean sourceModifier, JVMLocation... locations) {
         this.mask = mask;
         this.sourceModifier = sourceModifier;
-        this.locations = locations.length == 0 ?
-                EnumSet.noneOf(Location.class) :
-                EnumSet.copyOf(Arrays.asList(locations));
+        this.locations = Collections.unmodifiableSet(locations.length == 0 ?
+                EnumSet.noneOf(JVMLocation.class) :
+                EnumSet.copyOf(Arrays.asList(locations)));
     }
 
     private static int getPrivateMod(String name) {
@@ -259,8 +261,7 @@ public enum XAccessFlag {
 
     private final int mask;
     private final boolean sourceModifier;
-
-    private final Set<Location> locations;
+    private final Set<JVMLocation> locations;
 
     /**
      * The corresponding integer mask for the access flag.
@@ -281,25 +282,57 @@ public enum XAccessFlag {
      * Kinds of constructs the flag can be applied to in the
      * latest class file format version.
      */
-    public Set<Location> locations() {
+    @NotNull
+    @Unmodifiable
+    public Set<JVMLocation> locations() {
         return locations;
     }
 
+    /**
+     * Checks whether this flag is set using {@link #mask()} on the given modifier flag list.
+     * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
+     * @see #isSet(int, XAccessFlag...)
+     */
     public boolean isSet(int mod) {
         return (mod & this.mask) != 0;
     }
 
-    public static boolean isSet(int mod, XAccessFlag... modifiers) {
-        for (XAccessFlag modifier : modifiers) {
+    /**
+     * Checks whether all the given flags are set using {@link #mask()} on the given modifier flag list.
+     * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
+     * @see #isSet(int)
+     */
+    public static boolean isSet(int mod, XAccessFlag... flags) {
+        for (XAccessFlag modifier : flags) {
             if (!modifier.isSet(mod)) return false;
         }
         return true;
     }
 
-    public static String toString(int mods) {
-        StringJoiner flags = new StringJoiner(" ", "Flags::" + mods + '(', ")");
+    /**
+     * Gets the modifier of a class, field, method or constructor.
+     * @param jvm must be a {@link Class} or {@link Member}.
+     * @return {@link Optional#empty()} if this type doesn't have a modifier.
+     */
+    public static Optional<Integer> getModifiers(Object jvm) {
+        if (jvm instanceof Class) {
+            return Optional.of(((Class<?>) jvm).getModifiers());
+        } else if (jvm instanceof Member) {
+            return Optional.of(((Member) jvm).getModifiers());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Prints a string interpretation of the flags that are contained in the
+     * given modifier flag list in form of {@code Flags::(flag1 flag2 flag3 ...)}
+     * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
+     */
+    public static String toString(int mod) {
+        StringJoiner flags = new StringJoiner(" ", "Flags::" + mod + '(', ")");
         for (XAccessFlag accessFlag : XAccessFlag.values()) {
-            if (accessFlag.isSet(mods)) flags.add(accessFlag.name().toLowerCase(Locale.ENGLISH));
+            if (accessFlag.isSet(mod)) flags.add(accessFlag.name().toLowerCase(Locale.ENGLISH));
         }
         return flags.toString();
     }
@@ -311,7 +344,7 @@ public enum XAccessFlag {
      * rather than language structures many language structures, such
      * as constructors and interfaces, are <em>not</em> present.
      */
-    public enum Location {
+    public enum JVMLocation {
         /**
          * Class location.
          * JVM Section 4.1 The ClassFile Structure

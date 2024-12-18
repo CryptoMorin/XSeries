@@ -20,6 +20,8 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package com.cryptomorin.xseries.test.writer;
+
 import org.intellij.lang.annotations.Language;
 
 import java.io.BufferedWriter;
@@ -143,7 +145,7 @@ public final class ClassConverter {
             writer.newLine();
             writer.write('}');
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed write class conversion for " + enumClass + " -> " + writeTo, e);
         }
     }
 

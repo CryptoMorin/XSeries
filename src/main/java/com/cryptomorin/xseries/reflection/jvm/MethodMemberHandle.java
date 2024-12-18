@@ -139,7 +139,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     @Override
-    public MethodMemberHandle clone() {
+    public MethodMemberHandle copy() {
         MethodMemberHandle handle = new MethodMemberHandle(clazz);
         handle.returnType = this.returnType;
         handle.parameterTypes = this.parameterTypes;

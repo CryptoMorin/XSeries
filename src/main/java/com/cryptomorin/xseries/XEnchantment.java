@@ -84,7 +84,7 @@ public final class XEnchantment extends XModule<XEnchantment, Enchantment> {
                         usesWrapper = true;
                     }
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException("Cannot get enchantment field for " + field, e);
                 }
             }
         }
@@ -211,7 +211,7 @@ public final class XEnchantment extends XModule<XEnchantment, Enchantment> {
                             REGISTRY.bukkitMapping().put(wrapper, mainMapping);
                         }
                     } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
+                        throw new IllegalStateException("Cannot get direct enchantment field for " + field, e);
                     }
                 }
             }

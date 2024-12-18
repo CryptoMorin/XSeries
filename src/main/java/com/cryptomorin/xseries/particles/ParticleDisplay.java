@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
  * @see Particles
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
-public class ParticleDisplay implements Cloneable {
+public class ParticleDisplay {
     /**
      * Checks if spawn methods should use particle data classes such as {@link org.bukkit.Particle.DustOptions}
      * which is only available from 1.13+ (FOOTSTEP was removed in 1.13)
@@ -1084,7 +1084,7 @@ public class ParticleDisplay implements Cloneable {
             try {
                 context.location = locationCaller.call();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException("Failed to calculate location of particle: " + this, e);
             }
         };
         return this;
@@ -1154,7 +1154,7 @@ public class ParticleDisplay implements Cloneable {
      * @param y the y to add to the location.
      * @param z the z to add to the location.
      * @return the cloned location.
-     * @see #clone()
+     * @see #copy()
      * @since 1.0.0
      */
     @Nullable
@@ -1187,12 +1187,12 @@ public class ParticleDisplay implements Cloneable {
      * @param y the y to add.
      * @param z the z to add.
      * @return the cloned ParticleDisplay.
-     * @see #clone()
+     * @see #copy()
      * @since 1.0.0
      */
     @NotNull
     public ParticleDisplay cloneWithLocation(double x, double y, double z) {
-        ParticleDisplay display = clone();
+        ParticleDisplay display = copy();
         if (location == null) return display;
         display.location.add(x, y, z);
         return display;
@@ -1205,10 +1205,8 @@ public class ParticleDisplay implements Cloneable {
      * @see #cloneWithLocation(double, double, double)
      * @see #cloneLocation(double, double, double)
      */
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
     @NotNull
-    public ParticleDisplay clone() {
+    public ParticleDisplay copy() {
         ParticleDisplay display = ParticleDisplay.of(particle)
                 .withDirection(direction)
                 .withCount(count).offset(offset.clone())
@@ -1653,8 +1651,10 @@ public class ParticleDisplay implements Cloneable {
             if (ISFLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
             else loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
-        else for (Player player : players)
-            player.spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
+        else {
+            for (Player player : players)
+                player.spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
+        }
     }
 
     /**
@@ -1715,7 +1715,7 @@ public class ParticleDisplay implements Cloneable {
         }
     }
 
-    public static class Rotation implements Cloneable {
+    public static class Rotation {
         public double angle;
         public Vector axis;
 
@@ -1724,9 +1724,7 @@ public class ParticleDisplay implements Cloneable {
             this.axis = axis;
         }
 
-        @SuppressWarnings("MethodDoesntCallSuperMethod")
-        @Override
-        public Object clone() {
+        public Rotation copy() {
             return new Rotation(angle, axis.clone());
         }
 
@@ -1739,7 +1737,7 @@ public class ParticleDisplay implements Cloneable {
         }
     }
 
-    public static class Quaternion implements Cloneable {
+    public static class Quaternion {
         /**
          * Only change these values directly if you know what you're doing.
          */
@@ -1752,9 +1750,7 @@ public class ParticleDisplay implements Cloneable {
             this.z = z;
         }
 
-        @SuppressWarnings("MethodDoesntCallSuperMethod")
-        @Override
-        public Quaternion clone() {
+        public Quaternion copy() {
             return new Quaternion(w, x, y, z);
         }
 

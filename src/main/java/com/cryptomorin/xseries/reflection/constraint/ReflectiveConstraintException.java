@@ -22,11 +22,46 @@
 
 package com.cryptomorin.xseries.reflection.constraint;
 
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.XAccessFlag;
+
+import java.util.Optional;
+
 /**
+ * Thrown when a {@link ReflectiveConstraint#appliesTo(ReflectiveHandle, Object)}
+ * returns {@link Optional#empty()} or {@code false}.
+ *
  * @since 12.0.0
  */
 public class ReflectiveConstraintException extends RuntimeException {
-    public ReflectiveConstraintException(String message) {
+    private final ReflectiveConstraint constraint;
+    private final ReflectiveConstraint.Result result;
+
+    private ReflectiveConstraintException(ReflectiveConstraint constraint, ReflectiveConstraint.Result result, String message) {
         super(message);
+        this.constraint = constraint;
+        this.result = result;
+    }
+
+    public static ReflectiveConstraintException create(ReflectiveConstraint constraint,
+                                                       ReflectiveConstraint.Result result,
+                                                       ReflectiveHandle<?> handle, Object jvm) {
+        String message;
+        switch (result) {
+            case MATCHED:
+                throw new IllegalArgumentException("Cannot create an exception if results are successful: " + constraint + " -> MATCHED");
+            case INCOMPATIBLE:
+                message = "The constraint " + constraint + " cannot be applied to " + handle;
+                break;
+            case NOT_MATCHED:
+                message = "Found " + handle + " with JVM " + jvm
+                        + ", however it doesn't match the constraint: "
+                        + constraint + " - " + XAccessFlag.getModifiers(jvm).map(XAccessFlag::toString).orElse("[NO MODIFIER]");
+                break;
+            default:
+                throw new AssertionError("Unknown reflective constraint result: " + result);
+        }
+
+        return new ReflectiveConstraintException(constraint, result, message);
     }
 }

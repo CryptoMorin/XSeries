@@ -25,6 +25,7 @@ import com.cryptomorin.xseries.base.XModule;
 import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
+import com.cryptomorin.xseries.base.annotations.XMerge;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import org.bukkit.*;
@@ -371,8 +372,13 @@ public final class XSound extends XModule<XSound, Sound> {
             MUSIC_NETHER_BASALT_DELTAS = std("music.nether.basalt_deltas", "MUSIC_NETHER"),
             UI_BUTTON_CLICK = std("ui.button.click", "CLICK"),
             WEATHER_RAIN = std("weather.rain", "AMBIENCE_RAIN"),
-            AMBIENT_CAVE = std("ambient.cave", "AMBIENCE_CAVE"),
-            ENTITY_EXPERIENCE_ORB_PICKUP = std("entity.experience_orb.pickup", "ORB_PICKUP"),
+            AMBIENT_CAVE = std("ambient.cave", "AMBIENCE_CAVE");
+
+    @XMerge(version = "1.9", name = "ENTITY_EXPERIENCE_ORB_TOUCH")
+    public static final XSound
+            ENTITY_EXPERIENCE_ORB_PICKUP = std("entity.experience_orb.pickup", "ORB_PICKUP");
+
+    public static final XSound
             AMBIENT_BASALT_DELTAS_ADDITIONS = std("ambient.basalt_deltas.additions"),
             AMBIENT_BASALT_DELTAS_LOOP = std("ambient.basalt_deltas.loop"),
             AMBIENT_BASALT_DELTAS_MOOD = std("ambient.basalt_deltas.mood"),
@@ -2142,7 +2148,7 @@ public final class XSound extends XModule<XSound, Sound> {
                         Player.class.getDeclaredMethod("playSound", Location.class, Sound.class, float.class, float.class);
                         level = 1;
                     } catch (Throwable eee) {
-                        throw new RuntimeException("None of sound methods are supported", eee);
+                        throw new UnsupportedOperationException("None of sound methods are supported", eee);
                     }
                 }
             }
@@ -2352,7 +2358,7 @@ public final class XSound extends XModule<XSound, Sound> {
      *
      * @since 3.0.0
      */
-    public static final class Record implements Cloneable {
+    public static final class Record {
         private static final Random RANDOM = new Random();
 
         private Object sound;
@@ -2485,9 +2491,7 @@ public final class XSound extends XModule<XSound, Sound> {
                     '}';
         }
 
-        @SuppressWarnings("MethodDoesntCallSuperMethod")
-        @Override
-        public Record clone() {
+        public Record copy() {
             Record record = new Record();
             record.sound = sound;
             record.volume = volume;

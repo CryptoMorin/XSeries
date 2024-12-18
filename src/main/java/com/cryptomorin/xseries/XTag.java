@@ -2987,7 +2987,7 @@ public final class XTag<T extends XBase<?, ?>> {
                     TAGS.put(field.getName(), (XTag<?>) field.get(null));
                 }
             } catch (IllegalAccessException ex) {
-                new RuntimeException("Failed to get XTag " + field, ex).printStackTrace();
+                new IllegalStateException("Failed to get XTag " + field, ex).printStackTrace();
             }
         }
     }

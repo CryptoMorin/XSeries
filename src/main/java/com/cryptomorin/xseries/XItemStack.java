@@ -1112,7 +1112,8 @@ public final class XItemStack {
             if (attributes != null) {
                 for (String attribute : attributes.getKeys(false)) {
                     Optional<XAttribute> attributeInst = XAttribute.of(attribute);
-                    if (!attributeInst.isPresent()) continue;
+                    if (!attributeInst.isPresent() || !attributeInst.get().isSupported()) continue;
+
                     ConfigurationSection section = attributes.getConfigurationSection(attribute);
                     if (section == null) continue;
 
@@ -1125,7 +1126,6 @@ public final class XItemStack {
                         attrName = UUID.randomUUID().toString().toLowerCase(Locale.ENGLISH);
                     }
 
-                    attributeInst.get();
                     AttributeModifier modifier = XAttribute.createModifier(
                             attrName,
                             section.getDouble("amount"),

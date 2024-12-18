@@ -86,7 +86,7 @@ public class StaticClassHandle extends ClassHandle {
     }
 
     @Override
-    public StaticClassHandle clone() {
+    public StaticClassHandle copy() {
         return new StaticClassHandle(namespace, this.clazz);
     }
 

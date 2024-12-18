@@ -46,19 +46,19 @@ import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.s
  * <p>
  * Titles are text messages that appear in the
  * middle of the players screen: https://minecraft.wiki/w/Commands/title
- * PacketPlayOutTitle: https://wiki.vg/Protocol#Title
+ * PacketPlayOutTitle: https://minecraft.wiki/w/Protocol#Title
  *
  * @author Crypto Morin
  * @version 3.1.0
  * @see XReflection
  */
-public final class Titles implements Cloneable {
+public final class Titles {
     /**
-     * EnumTitleAction
+     * <a href="https://mappings.dev/1.9.4/net/minecraft/server/v1_9_R2/PacketPlayOutTitle$EnumTitleAction.html">EnumTitleAction</a>
      * Used for the fade in, stay and fade out feature of titles.
      * Others: ACTIONBAR, RESET
      */
-    private static final Object TITLE, SUBTITLE, TIMES, CLEAR;
+    private static final Object TITLE_ACTION_TITLE, TITLE_ACTION_SUBTITLE, TITLE_ACTION_TIMES, TITLE_ACTION_CLEAR;
     private static final MethodHandle PACKET_PLAY_OUT_TITLE;
     /**
      * ChatComponentText JSON message builder.
@@ -125,10 +125,10 @@ public final class Titles implements Cloneable {
             }
         }
 
-        TITLE = title;
-        SUBTITLE = subtitle;
-        TIMES = times;
-        CLEAR = clear;
+        TITLE_ACTION_TITLE = title;
+        TITLE_ACTION_SUBTITLE = subtitle;
+        TITLE_ACTION_TIMES = times;
+        TITLE_ACTION_CLEAR = clear;
 
         PACKET_PLAY_OUT_TITLE = packetCtor;
         CHAT_COMPONENT_TEXT = chatComp;
@@ -142,9 +142,7 @@ public final class Titles implements Cloneable {
         this.fadeOut = fadeOut;
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public Titles clone() {
+    public Titles copy() {
         return new Titles(title, subtitle, fadeIn, stay, fadeOut);
     }
 
@@ -175,15 +173,15 @@ public final class Titles implements Cloneable {
         }
 
         try {
-            Object timesPacket = PACKET_PLAY_OUT_TITLE.invoke(TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
+            Object timesPacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
             sendPacket(player, timesPacket);
 
             if (title != null) {
-                Object titlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
+                Object titlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
                 sendPacket(player, titlePacket);
             }
             if (subtitle != null) {
-                Object subtitlePacket = PACKET_PLAY_OUT_TITLE.invoke(SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
+                Object subtitlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
                 sendPacket(player, subtitlePacket);
             }
         } catch (Throwable throwable) {
@@ -288,7 +286,7 @@ public final class Titles implements Cloneable {
 
         Object clearPacket;
         try {
-            clearPacket = PACKET_PLAY_OUT_TITLE.invoke(CLEAR, null, -1, -1, -1);
+            clearPacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_CLEAR, null, -1, -1, -1);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             return;
@@ -343,7 +341,7 @@ public final class Titles implements Cloneable {
 
             for (Player player : players) sendPacket(player, packet);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalStateException("Failed to send tablist: " + header + " - " + footer, ex);
         }
     }
 }

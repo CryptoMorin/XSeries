@@ -95,7 +95,7 @@ public abstract class ProfileContainer<T> implements Profileable {
             try {
                 ProfilesCore.CraftMetaSkull_profile$setter.invoke(meta, PlayerProfiles.wrapProfile(profile));
             } catch (Throwable throwable) {
-                throw new RuntimeException("Unable to set profile " + profile + " to " + meta, throwable);
+                throw new IllegalStateException("Unable to set profile " + profile + " to " + meta, throwable);
             }
         }
 
@@ -109,7 +109,7 @@ public abstract class ProfileContainer<T> implements Profileable {
             try {
                 return PlayerProfiles.unwrapProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta));
             } catch (Throwable throwable) {
-                throw new RuntimeException("Failed to get profile from item meta: " + meta, throwable);
+                throw new IllegalStateException("Failed to get profile from item meta: " + meta, throwable);
             }
         }
     }
@@ -154,7 +154,7 @@ public abstract class ProfileContainer<T> implements Profileable {
             try {
                 ProfilesCore.CraftSkull_profile$setter.invoke(state, PlayerProfiles.wrapProfile(profile));
             } catch (Throwable throwable) {
-                throw new RuntimeException("Unable to set profile " + profile + " to " + state, throwable);
+                throw new IllegalStateException("Unable to set profile " + profile + " to " + state, throwable);
             }
         }
 
@@ -168,7 +168,7 @@ public abstract class ProfileContainer<T> implements Profileable {
             try {
                 return PlayerProfiles.unwrapProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state));
             } catch (Throwable throwable) {
-                throw new RuntimeException("Unable to get profile fr om blockstate: " + state, throwable);
+                throw new IllegalStateException("Unable to get profile fr om blockstate: " + state, throwable);
             }
         }
     }

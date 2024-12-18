@@ -29,9 +29,9 @@ import org.jetbrains.annotations.ApiStatus;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.Optional;
 
 /**
+ * A constraint that controls what a
  * @since 12.0.0
  */
 @ApiStatus.Experimental
@@ -77,7 +77,7 @@ public enum ClassTypeConstraint implements ReflectiveConstraint {
             try {
                 return (boolean) isRecord.invoke(clazz);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException("Cannot use Class#isRecord", e);
             }
         }
     },
@@ -89,14 +89,21 @@ public enum ClassTypeConstraint implements ReflectiveConstraint {
         }
     };
 
+    /**
+     * We won't use {@link XAccessFlag} directly.
+     */
     protected abstract boolean test(Class<?> clazz);
 
+    /**
+     * @param handle the reflective handle of the object.
+     * @param jvm A {@link Class}.
+     */
     @Override
-    public Optional<Boolean> appliesTo(ReflectiveHandle<?> handle, Object jvm) {
+    public ReflectiveConstraint.Result appliesTo(ReflectiveHandle<?> handle, Object jvm) {
         if (jvm instanceof Class) {
-            return Optional.of(test((Class<?>) jvm));
+            return Result.of(test((Class<?>) jvm));
         }
-        return Optional.empty();
+        return Result.INCOMPATIBLE;
     }
 
     @Override
