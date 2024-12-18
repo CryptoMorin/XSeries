@@ -34,6 +34,8 @@ import org.jetbrains.annotations.ApiStatus;
  * <p>
  * All constraints must be incompatible with each other. Menaing that two different
  * constraints from the same class/category should not be able to co-exist.
+ * <p>
+ * This class should not be directly used in most cases.
  *
  * @since 12.0.0
  * @see VisibilityConstraint
@@ -80,6 +82,10 @@ public interface ReflectiveConstraint {
          */
         MATCHED;
 
+        /**
+         * Simple method that should only be used if this constraint is compatible ({@link #INCOMPATIBLE} is not possible).
+         */
+        @ApiStatus.Internal
         public static Result of(boolean test) {
             return test ? Result.MATCHED : Result.NOT_MATCHED;
         }

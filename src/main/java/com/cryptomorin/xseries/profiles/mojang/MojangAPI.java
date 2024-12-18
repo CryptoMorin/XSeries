@@ -196,7 +196,6 @@ public final class MojangAPI {
      *   "errorMessage" : "Method Not Allowed"
      * }
      * }</pre>
-     * <p>
      *
      * @param usernames Case-insensitive list of usernames. Duplicates are ignored and cached names are not requested but returned.
      * @param config    Request configuration.

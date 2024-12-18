@@ -31,7 +31,13 @@ import java.lang.annotation.*;
 @Documented
 @ApiStatus.Internal
 public @interface XInfo {
+    /**
+     * Since what version of Minecraft (SemVer format) did this value exist?
+     */
     String since();
 
+    /**
+     * In what version of Minecraft (SemVer format) was this value removed?
+     */
     String removedSince() default "";
 }

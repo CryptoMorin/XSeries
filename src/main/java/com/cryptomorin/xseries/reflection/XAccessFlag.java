@@ -93,6 +93,7 @@ public enum XAccessFlag {
      * The module flag {@code ACC_OPEN} with a mask value of {@code 0x0020}.
      *
      * @see java.lang.module.ModuleDescriptor#isOpen
+     * @since Java 9
      */
     OPEN(0x0000_0020, false, JVMLocation.MODULE),
 
@@ -131,6 +132,7 @@ public enum XAccessFlag {
      * <code>{@code "0x%04x" Modifier#BRIDGE}</code>
      *
      * @see Method#isBridge()
+     * @since Java 8
      */
     BRIDGE(getPrivateMod("BRIDGE"), false, JVMLocation.METHOD),
 
@@ -146,6 +148,7 @@ public enum XAccessFlag {
      * <code>{@code "0x%04x" Modifier#VARARGS}</code>.
      *
      * @see Executable#isVarArgs()
+     * @since Java 5
      */
     VARARGS(getPrivateMod("VARARGS"), false, JVMLocation.METHOD),
 
@@ -180,6 +183,8 @@ public enum XAccessFlag {
      * The {@code ACC_STRICT} access flag is defined for class file
      * major versions 46 through 60, inclusive (JVM Section 4.6),
      * corresponding to Java SE 1.2 through 16.
+     *
+     * @since Java 1.2
      */
     STRICT(Modifier.STRICT, true),
 
@@ -205,6 +210,7 @@ public enum XAccessFlag {
      * <code>{@code "0x%04x" Modifier#ANNOTATION}</code>.
      *
      * @see Class#isAnnotation()
+     * @since Java 5
      */
     ANNOTATION(getPrivateMod("ANNOTATION"), false, JVMLocation.CLASS, JVMLocation.INNER_CLASS),
 
@@ -213,6 +219,7 @@ public enum XAccessFlag {
      * <code>{@code "0x%04x" Modifier#ENUM}</code>.
      *
      * @see Class#isEnum()
+     * @since Java 5
      */
     ENUM(getPrivateMod("ENUM"), false, JVMLocation.CLASS, JVMLocation.FIELD, JVMLocation.INNER_CLASS),
 
@@ -229,6 +236,7 @@ public enum XAccessFlag {
 
     /**
      * The access flag {@code ACC_MODULE} with a mask value of {@code 0x8000}.
+     * @since Java 9
      */
     MODULE(0x0000_8000, false, JVMLocation.CLASS);
 
@@ -273,6 +281,10 @@ public enum XAccessFlag {
     /**
      * Whether the flag has a directly corresponding
      * modifier in the Java programming language.
+     * <p>
+     * In most cases this'd mean that you can find the
+     * flag name inside {@link Modifier} as well.
+     * An exception to this rule would be {@link Modifier#INTERFACE}
      */
     public boolean sourceModifier() {
         return sourceModifier;
@@ -280,7 +292,7 @@ public enum XAccessFlag {
 
     /**
      * Kinds of constructs the flag can be applied to in the
-     * latest class file format version.
+     * latest class file format version (not the current).
      */
     @NotNull
     @Unmodifiable
@@ -366,6 +378,7 @@ public enum XAccessFlag {
         /**
          * Inner class location.
          * JVM Section 4.7.6 The InnerClasses Attribute
+         * @since Java 1.1
          */
         INNER_CLASS,
 
@@ -378,24 +391,28 @@ public enum XAccessFlag {
         /**
          * Module location
          * JVM Section 4.7.25. The Module Attribute
+         * @since Java 9
          */
         MODULE,
 
         /**
          * Module requires location
          * JVM Section 4.7.25. The Module Attribute
+         * @since Java 9
          */
         MODULE_REQUIRES,
 
         /**
          * Module exports location
          * JVM Section 4.7.25. The Module Attribute
+         * @since Java 9
          */
         MODULE_EXPORTS,
 
         /**
          * Module opens location
          * JVM Section 4.7.25. The Module Attribute
+         * @since Java 9
          */
         MODULE_OPENS;
     }

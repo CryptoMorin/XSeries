@@ -32,7 +32,18 @@ import java.lang.annotation.*;
 @Documented
 @ApiStatus.Internal
 public @interface XMerge {
+    /**
+     * Since what version of Minecraft (SemVer format) did this value exist?
+     */
+    String since() default "";
+
+    /**
+     * The Minecraft version (SemVer format) that this merge happened.
+     */
     String version();
 
+    /**
+     * The name of the merged item.
+     */
     String name();
 }

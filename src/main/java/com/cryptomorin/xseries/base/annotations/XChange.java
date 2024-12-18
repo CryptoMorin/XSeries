@@ -37,9 +37,18 @@ import java.lang.annotation.*;
 @Documented
 @ApiStatus.Internal
 public @interface XChange {
+    /**
+     * In what version of Minecraft (SemVer format) did this change occur?
+     */
     String version();
 
+    /**
+     * The previous name of this element.
+     */
     String from();
 
+    /**
+     * The new name of this element.
+     */
     String to();
 }

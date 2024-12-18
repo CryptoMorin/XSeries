@@ -374,7 +374,7 @@ public final class XSound extends XModule<XSound, Sound> {
             WEATHER_RAIN = std("weather.rain", "AMBIENCE_RAIN"),
             AMBIENT_CAVE = std("ambient.cave", "AMBIENCE_CAVE");
 
-    @XMerge(version = "1.9", name = "ENTITY_EXPERIENCE_ORB_TOUCH")
+    @XMerge(since = "1.9", version = "1.12?", name = "ENTITY_EXPERIENCE_ORB_TOUCH")
     public static final XSound
             ENTITY_EXPERIENCE_ORB_PICKUP = std("entity.experience_orb.pickup", "ORB_PICKUP");
 
