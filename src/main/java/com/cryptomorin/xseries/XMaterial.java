@@ -1932,8 +1932,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     @SuppressWarnings("OptionalAssignedToNull")
     @NotNull
     public static Optional<XMaterial> matchXMaterial(@NotNull String name) {
-        if (name == null || name.isEmpty())
-            throw new IllegalArgumentException("Cannot match a material with null or empty material name");
+        if (name == null)
+            throw new IllegalArgumentException("Cannot match a material with null string");
         Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
         return oldMatch != null ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
     }

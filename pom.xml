@@ -96,7 +96,7 @@
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>
-        <testJava>11</testJava>
+        <testJava>21</testJava>
     </properties>
 
     <dependencies>
@@ -119,10 +119,23 @@
             <version>26.0.1</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.37</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -232,11 +245,25 @@
                     <execution>
                         <id>default-testCompile</id>
                         <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
                         <configuration>
-                            <skip>true</skip>
+                            <encoding>UTF-8</encoding>
+
+                            <source>8</source>
+                            <target>8</target>
+                            <testSource>8</testSource>
+                            <testTarget>8</testTarget>
+
+                            <!-- As of Java 21, annotation processing is disabled by default. -->
+                            <!-- <compilerArgs><arg>-proc:full</arg></compilerArgs> -->
+                            <proc>full</proc>
+
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.openjdk.jmh</groupId>
+                                    <artifactId>jmh-generator-annprocess</artifactId>
+                                    <version>1.37</version>
+                                </path>
+                            </annotationProcessorPaths>
                         </configuration>
                     </execution>
                 </executions>
@@ -275,6 +302,13 @@
                 <configuration>
                     <!-- <executable>IntelliJ\plugins\maven\lib\maven3\bin\mvn.cmd</executable>-->
                     <executable>mvn</executable>
+
+                    <systemProperties>
+                        <systemProperty>
+                            <key>file.encoding</key>
+                            <value>UTF-8</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
 
                 <executions>
@@ -286,8 +320,16 @@
                         </goals>
                         <configuration>
                             <arguments>
-                                <argument>compiler:compile</argument>
-                                <argument>compiler:testCompile</argument>
+                                <!-- <argument>compiler:compile</argument>-->
+                                <!-- <argument>compiler:testCompile</argument>-->
+                                <!--
+                                    You can't just run 'mvn test-compile exec...' because for some reason exec wouldn't be able
+                                    to find the 'mvn' command anymore???
+                                    Also, for some reason, using the two above goals doesn't properly apply the annotation processor
+                                    configured in the main maven-compiler-plugin.
+                                 -->
+                                <argument>test-compile</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -320,6 +362,7 @@
                             <arguments>
                                 <argument>exec:exec@compile</argument>
                                 <argument>exec:exec@test</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -386,34 +429,39 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!--                    Produces empty jacoco.exec reports...-->
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>org.jacoco</groupId>-->
+                    <!--                        <artifactId>jacoco-maven-plugin</artifactId>-->
+                    <!--                        <version>0.8.12</version>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>prepare-agent</id>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>prepare-agent</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>report</id>-->
+                    <!--                                <phase>test</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>report</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                    </plugin>-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.13.0</version>
                         <configuration>
-                            <encoding>UTF-8</encoding>
-                            <proc>none</proc>
-                            <source>1.8</source>
-                            <target>1.8</target>
-                            <testSource>1.8</testSource>
-                            <testTarget>1.8</testTarget>
+                            <!--
+                                Due to dependency change for testing.
+                                We won't completely disable the goal since the classes themselves shouldn't change
+                                in the first place, and if they do, this is a good debugger.
+                            -->
                             <useIncrementalCompilation>false</useIncrementalCompilation>
                         </configuration>
-                        <executions>
-                            <execution>
-                                <id>default-testCompile</id>
-                                <phase>test-compile</phase>
-                                <goals>
-                                    <goal>testCompile</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>false</skip>
-                                    <testIncludes>
-                                        <include>**/*.java</include>
-                                    </testIncludes>
-                                </configuration>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>

@@ -22,14 +22,17 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +43,11 @@ public class ConstructorMemberHandle extends MemberHandle {
 
     public ConstructorMemberHandle(ClassHandle clazz) {
         super(clazz);
+    }
+
+    @ApiStatus.Internal
+    public ClassHandle[] getParameterTypes() {
+        return parameterTypes;
     }
 
     public ConstructorMemberHandle parameters(Class<?>... parameterTypes) {
@@ -54,8 +62,9 @@ public class ConstructorMemberHandle extends MemberHandle {
 
     @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
-        if (isFinal) throw new UnsupportedOperationException("Constructor cannot be final: " + this);
-        if (makeAccessible) {
+        if (accessFlags.contains(XAccessFlag.FINAL))
+            throw new UnsupportedOperationException("Constructor cannot be final: " + this);
+        if (accessFlags.contains(XAccessFlag.PRIVATE)) {
             return clazz.getNamespace().getLookup().unreflectConstructor(reflectJvm());
         } else {
             Class<?>[] parameterTypes = FlaggedNamedMemberHandle.getParameters(this, this.parameterTypes);
@@ -80,15 +89,14 @@ public class ConstructorMemberHandle extends MemberHandle {
     public ConstructorMemberHandle copy() {
         ConstructorMemberHandle handle = new ConstructorMemberHandle(clazz);
         handle.parameterTypes = this.parameterTypes;
-        handle.isFinal = this.isFinal;
-        handle.makeAccessible = this.makeAccessible;
+        handle.accessFlags.addAll(this.accessFlags);
         return handle;
     }
 
     @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
-        if (makeAccessible) str += "protected/private ";
+        accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
         str += clazz.toString() + ' ';
         str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';
         return str + '}';

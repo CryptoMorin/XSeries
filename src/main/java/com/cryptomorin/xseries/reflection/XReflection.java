@@ -24,11 +24,16 @@ package com.cryptomorin.xseries.reflection;
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveSupplier;
 import com.cryptomorin.xseries.reflection.aggregate.VersionHandle;
+import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
+import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
+import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
+import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -68,9 +73,52 @@ import java.util.stream.Collectors;
  *     <li>{@link #stacktrace(CompletableFuture)}: Add stacktrace information to {@link CompletableFuture}s.</li>
  *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
  * </ul>
+ * <h2>XReflection API Stages</h2>
+ * In general, XReflection's API is divided into four stages:
+ * <ul>
+ *     <li>
+ *         <strong>Stage I (Raw Level):</strong> This is the a low-level API which offers the most customizable and performance.
+ *         However, although it's much better in terms of readability compared to Java's raw reflection API,
+ *         it's the least unreadable format of XReflection API. This API is accessed from
+ *         {@link XReflection#of(Class)}, {@link XReflection#classHandle()} and {@link XReflection#ofMinecraft()}.
+ *     </li>
+ *     <li>
+ *         <strong>Stage II (String API):</strong> This API is a lot more readable and offers the same performance
+ *         compared to Stage I API, however it has an extra overhead for caching {@link ReflectiveHandle} for the
+ *         first time. This API is typically accessed from {@link ReflectiveNamespace}'s string methods or the
+ *         signature methods of its related APIs (e.g. {@link MethodMemberHandle#signature(String)}.
+ *     </li>
+ *     <li>
+ *         <strong>Stage III (Proxification):</strong> This API is much more readable for invocation compared
+ *         to the string API because it uses actual interface classes, however, whether its declaration API
+ *         is more readable than the string API is debatable and depends on the use case. The biggest
+ *         disadvantage of this API is its caching and invocation performance due to how its internal
+ *         system is built. The invocation performance is mostly a deal-breaker in most cases.
+ *         It's accessed from {@link XReflection#proxify(Class)}.
+ *     </li>
+ *     <li>
+ *         <strong>Stage IV (ASM Mode):</strong> ???
+ *     </li>
+ * </ul>
+ *
+ * <h2>Performance & Caching</h2>
+ * While the standard {@link XReflection} wrapper around Java's reflection API in general is pretty lightweight and
+ * doesn't add that much of an overhead, you're expected to cache the results of {@link ReflectiveHandle#reflect()}
+ * for optimum performance just like using normal reflection. That's because XReflection offers no form of cache,
+ * even for the same handle. So you <b><u>should not cache {@link ReflectiveHandle}</u></b>, but you should <b>cache the
+ * results (e.g. {@link ReflectiveHandle#reflect()}, {@link ReflectiveHandle#unreflect()}, ...)</b> instead.<br>
+ * This is specially important to do if you're going to be using {@link ReflectionParser}
+ * methods or {@link ReflectiveConstraint} since the former uses heavy
+ * RegEx patterns which sacrifices a lot of performance for readability, which is really worth it; and the latter
+ * adds a bit of extra overhead since it performs checks that the normal reflection API ignores.
+ * <p>
+ * As for {@link ReflectiveProxy}, you should make sure to always cache your result of {@link XReflection#proxify(Class)}.
+ * That way you can invoke static methods and constructors from that one proxy and the subsequently created proxies
+ * (for individual instances) will inherit that. Although these proxies are handled by an internal cache as well,
+ * so it's not that important if you don't cache them.
  *
  * @author Crypto Morin
- * @version 12.0.0
+ * @version 13.0.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
  * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */
@@ -671,5 +719,14 @@ public final class XReflection {
         System.arraycopy(b, 0, c, aLen, bLen);
 
         return c;
+    }
+
+    /**
+     * Returns a cached value if this interface is already proxified, otherwise proxifies and returns it.
+     * @see ReflectiveProxy
+     */
+    @ApiStatus.Experimental
+    public static <T extends ReflectiveProxyObject> ReflectiveProxy<T> proxify(Class<T> proxyInterface) {
+        return ReflectiveProxy.proxify(proxyInterface);
     }
 }

@@ -43,6 +43,14 @@ public class ReflectiveConstraintException extends RuntimeException {
         this.result = result;
     }
 
+    public ReflectiveConstraint getConstraint() {
+        return constraint;
+    }
+
+    public ReflectiveConstraint.Result getResult() {
+        return result;
+    }
+
     public static ReflectiveConstraintException create(ReflectiveConstraint constraint,
                                                        ReflectiveConstraint.Result result,
                                                        ReflectiveHandle<?> handle, Object jvm) {

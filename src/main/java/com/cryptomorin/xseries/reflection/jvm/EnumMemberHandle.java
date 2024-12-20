@@ -94,6 +94,9 @@ public class EnumMemberHandle extends NamedMemberHandle {
         return clazz.getNamespace().getLookup().unreflectGetter(jvm);
     }
 
+    /**
+     * This method should only be used once and cached.
+     */
     @Nullable
     public Object getEnumConstant() {
         try {

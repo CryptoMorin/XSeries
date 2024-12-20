@@ -34,6 +34,8 @@ import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.test.reflection.ReflectionTests;
+import com.cryptomorin.xseries.test.reflection.ReflectiveConstraintTests;
 import com.cryptomorin.xseries.test.server.FakePlayerFactory;
 import com.cryptomorin.xseries.test.util.ResourceHelper;
 import com.cryptomorin.xseries.test.writer.ClassConverter;
@@ -64,22 +66,12 @@ import java.util.function.Consumer;
 import static com.cryptomorin.xseries.test.util.XLogger.log;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("deprecation")
 public final class XSeriesTests {
-    private static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
-    /**
-     * This sends unnecessary requests to Mojang and also delays out work too,
-     * so let's not test when it's not needed.
-     */
-    private static final boolean TEST_MOJANG_API = false;
-
-    private XSeriesTests() {}
-
     // @Test
     public void enumToRegistry() throws URISyntaxException {
         URL resource = XSeriesTests.class.getResource("XEnchantment.java");
         Path path = Paths.get(resource.toURI());
-        ClassConverter.enumToRegistry(path, DESKTOP);
+        ClassConverter.enumToRegistry(path, Constants.DESKTOP);
     }
 
     public static void test() {
@@ -101,7 +93,7 @@ public final class XSeriesTests {
         testXTag();
         testReflection();
 
-        if (TEST_MOJANG_API) testSkulls();
+        if (Constants.TEST_MOJANG_API) testSkulls();
         else {
             try {
                 Class.forName("com.cryptomorin.xseries.profiles.mojang.MojangAPI");
@@ -113,6 +105,10 @@ public final class XSeriesTests {
         log("\n\n\nTest end...");
     }
 
+    /**
+     * Archived
+     */
+    @SuppressWarnings("unused")
     private static void testPlayerDependantTasks() {
         Player player;
         try {
@@ -286,8 +282,17 @@ public final class XSeriesTests {
             // So this would happen: XMaterial.BLACK_DYE -> Material.INK_SACK -> XMaterial.INK_SAC
             Material inkSack = Material.valueOf("INK_SAC");
             Assertions.assertSame(XMaterial.BLACK_DYE.get(), inkSack);
-            Assertions.assertSame(XMaterial.matchXMaterial("BLACK_DYE").get(), XMaterial.BLACK_DYE);
-            Assertions.assertSame(XMaterial.matchXMaterial("INK_SAC").get(), XMaterial.INK_SAC);
+
+            Optional<XMaterial> BLACK_DYE = XMaterial.matchXMaterial("BLACK_DYE");
+            Optional<XMaterial> INK_SAC = XMaterial.matchXMaterial("INK_SAC");
+
+            assertPresent(BLACK_DYE);
+            assertPresent(INK_SAC);
+
+            // noinspection OptionalGetWithoutIsPresent
+            Assertions.assertSame(BLACK_DYE.get(), XMaterial.BLACK_DYE);
+            // noinspection OptionalGetWithoutIsPresent
+            Assertions.assertSame(INK_SAC.get(), XMaterial.INK_SAC);
 
             assertMaterial(XMaterial.INK_SAC, inkSack);
         } else {
@@ -304,11 +309,15 @@ public final class XSeriesTests {
             if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static void assertMaterial(XMaterial original, Material expect) {
-        assertSame(XMaterial.matchXMaterial(original.name()), original);
+        Optional<XMaterial> selfNameMapped = XMaterial.matchXMaterial(original.name());
+
+        assertPresent(selfNameMapped);
+        assertSame(selfNameMapped, original);
         Assertions.assertSame(original.get(), expect);
         Assertions.assertSame(XMaterial.matchXMaterial(original.parseItem()), original);
-        Assertions.assertSame(XMaterial.matchXMaterial(XMaterial.matchXMaterial(original.name()).get().parseItem()), original);
+        Assertions.assertSame(XMaterial.matchXMaterial(selfNameMapped.get().parseItem()), original);
     }
 
     private static void testXItemStack() {
@@ -353,23 +362,25 @@ public final class XSeriesTests {
         items.add(createItem(XMaterial.DIAMOND, "Diamonds", meta -> {
             meta.setLore(Arrays.asList("Line 1", "", "Line 2"));
         }));
-        items.add(createItem(XMaterial.PLAYER_HEAD, "head-notch", meta -> {
-            XSkull.of(meta).profile(
-                    Profileable.username("Notch")
-                            .transform(ProfileTransformer.includeOriginalValue())
-            ).apply();
-        }));
-        items.add(createItem(XMaterial.PLAYER_HEAD, "head-uuid", meta -> {
-            XSkull.of(meta).profile(
-                    Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
-                            .transform(ProfileTransformer.includeOriginalValue())
-            ).apply();
-        }));
-        items.add(createItem(XMaterial.PLAYER_HEAD, "head-username-no-transform", meta -> {
-            XSkull.of(meta).profile(
-                    Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
-            ).apply();
-        }));
+        if (Constants.TEST_MOJANG_API) {
+            items.add(createItem(XMaterial.PLAYER_HEAD, "head-notch", meta -> {
+                XSkull.of(meta).profile(
+                        Profileable.username("Notch")
+                                .transform(ProfileTransformer.includeOriginalValue())
+                ).apply();
+            }));
+            items.add(createItem(XMaterial.PLAYER_HEAD, "head-uuid", meta -> {
+                XSkull.of(meta).profile(
+                        Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
+                                .transform(ProfileTransformer.includeOriginalValue())
+                ).apply();
+            }));
+            items.add(createItem(XMaterial.PLAYER_HEAD, "head-username-no-transform", meta -> {
+                XSkull.of(meta).profile(
+                        Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
+                ).apply();
+            }));
+        }
         items.add(createItem(XMaterial.PLAYER_HEAD, "no-op head", meta -> {}));
 
         YamlConfiguration yaml = new YamlConfiguration();

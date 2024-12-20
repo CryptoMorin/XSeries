@@ -28,6 +28,10 @@ import org.jetbrains.annotations.ApiStatus;
 /**
  * A set of checks performed on a {@link ReflectiveHandle} to determine whether it meets
  * certain requirements based on its JVM signature before we can use it.
+ * Usually these are conditions that the standard Java's reflection API
+ * doesn't care about. For example, {@link Class#forName(String)} doesn't
+ * care whether the class is an {@code enum/interface/abstract}, but you could
+ * add these additional checks using {@link ClassTypeConstraint}.
  * <p>
  * If the check against {@link #appliesTo(ReflectiveHandle, Object)} fails,
  * a {@link ReflectiveConstraintException} should be thrown.

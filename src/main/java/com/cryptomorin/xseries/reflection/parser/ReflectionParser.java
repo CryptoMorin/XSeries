@@ -50,6 +50,19 @@ import java.util.stream.Collectors;
  * This class is designed to be able to parse Java declarations only in a loose way, as it also
  * supports more simplified syntax (for example not requiring semicolons) that doesn't work
  * as nicely if you're using IntelliJ because of the highlighting which is greater advantage.
+ * <h2>Performance & Caching</h2>
+ * All XReflection APIs that use this feature, use heavy RegEx patterns which sacrifices
+ * a lot of performance for readability. Please read {@link XReflection}'s <b>Performance & Caching</b>
+ * section for more information about how to properly cache this.
+ *
+ * @see ReflectiveNamespace#classHandle(String)
+ * @see ReflectiveNamespace#ofMinecraft(String)
+ *
+ * @see ClassHandle#constructor(String)
+ * @see ClassHandle#method(String)
+ * @see ClassHandle#field(String)
+ *
+ * @see MemberHandle#signature(String)
  */
 @ApiStatus.Internal
 public final class ReflectionParser {

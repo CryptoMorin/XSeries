@@ -32,6 +32,7 @@ import org.intellij.lang.annotations.Pattern;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -143,8 +144,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
         MethodMemberHandle handle = new MethodMemberHandle(clazz);
         handle.returnType = this.returnType;
         handle.parameterTypes = this.parameterTypes;
-        handle.isFinal = this.isFinal;
-        handle.makeAccessible = this.makeAccessible;
+        handle.accessFlags.addAll(this.accessFlags);
         handle.names.addAll(this.names);
         return handle;
     }
@@ -152,8 +152,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
-        if (makeAccessible) str += "protected/private ";
-        if (isFinal) str += "final ";
+        accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
         if (returnType != null) str += returnType + " ";
         str += String.join("/", names);
         str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';

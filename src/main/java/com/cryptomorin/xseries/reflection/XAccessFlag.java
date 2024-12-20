@@ -22,6 +22,7 @@
 
 package com.cryptomorin.xseries.reflection;
 
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -240,6 +241,8 @@ public enum XAccessFlag {
      */
     MODULE(0x0000_8000, false, JVMLocation.CLASS);
 
+    private static final XAccessFlag[] VALUES = values();
+
     XAccessFlag(int mask, boolean sourceModifier, JVMLocation... locations) {
         this.mask = mask;
         this.sourceModifier = sourceModifier;
@@ -301,6 +304,22 @@ public enum XAccessFlag {
     }
 
     /**
+     * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
+     * @see ReflectedObject#accessFlags()
+     */
+    public static Set<XAccessFlag> of(int mod) {
+        Set<XAccessFlag> accessFlags = EnumSet.noneOf(XAccessFlag.class);
+        for (XAccessFlag flag : VALUES) {
+            if (flag.isSet(mod)) accessFlags.add(flag);
+        }
+        return accessFlags;
+    }
+
+    public int remove(int mod) {
+        return mod & ~this.mask;
+    }
+
+    /**
      * Checks whether this flag is set using {@link #mask()} on the given modifier flag list.
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see #isSet(int, XAccessFlag...)
@@ -325,6 +344,7 @@ public enum XAccessFlag {
      * Gets the modifier of a class, field, method or constructor.
      * @param jvm must be a {@link Class} or {@link Member}.
      * @return {@link Optional#empty()} if this type doesn't have a modifier.
+     * @see ReflectedObject#getModifiers()
      */
     public static Optional<Integer> getModifiers(Object jvm) {
         if (jvm instanceof Class) {
@@ -343,7 +363,7 @@ public enum XAccessFlag {
      */
     public static String toString(int mod) {
         StringJoiner flags = new StringJoiner(" ", "Flags::" + mod + '(', ")");
-        for (XAccessFlag accessFlag : XAccessFlag.values()) {
+        for (XAccessFlag accessFlag : VALUES) {
             if (accessFlag.isSet(mod)) flags.add(accessFlag.name().toLowerCase(Locale.ENGLISH));
         }
         return flags.toString();

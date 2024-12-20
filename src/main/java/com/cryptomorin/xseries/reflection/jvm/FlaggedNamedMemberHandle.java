@@ -26,9 +26,6 @@ import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 /**
  * This class should not be used directly.
  * <p>
@@ -37,7 +34,6 @@ import java.util.Set;
  */
 public abstract class FlaggedNamedMemberHandle extends NamedMemberHandle {
     protected ClassHandle returnType;
-    protected Set<XAccessFlag> accessFlags = EnumSet.noneOf(XAccessFlag.class);
 
     protected FlaggedNamedMemberHandle(ClassHandle clazz) {
         super(clazz);

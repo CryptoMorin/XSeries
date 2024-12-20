@@ -20,26 +20,33 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.test;
+package com.cryptomorin.xseries.test.reflection;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
+import com.cryptomorin.xseries.test.Constants;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestClass;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestProxified;
+import com.cryptomorin.xseries.test.reflection.proxy.minecraft.BlockPos;
+import com.cryptomorin.xseries.test.reflection.proxy.minecraft.CraftWorld;
+import org.bukkit.World;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import static com.cryptomorin.xseries.test.util.XLogger.log;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("All")
 public final class ReflectionTests {
     private final String test = "A";
+    private static final String STATIC_TEST = "B";
+    private static final ReflectionTests INSTANCE = new ReflectionTests();
 
     private static final class A<T> {
         private static final class B {
@@ -66,6 +73,40 @@ public final class ReflectionTests {
         return new String[]{"lim" + limit, ch + "a", "withDel" + withDelimiters};
     }
 
+    public static void normalProxyTest() {
+        ReflectiveProxy<ProxyTestProxified> factoryProxy = XReflection.proxify(ProxyTestProxified.class);
+
+        assertEquals(ProxyTestClass.finalId, factoryProxy.proxy().finalId());
+        assertEquals(ProxyTestClass.id, factoryProxy.proxy().id());
+        log("[Proxy] doStaticThings() " + factoryProxy.proxy().doStaticThings(10));
+
+        ProxyTestClass instance = factoryProxy.proxy().ProxyTestProxified("OperationTestum", 2025);
+        ProxyTestProxified instanceProxy = factoryProxy.bindTo(instance);
+
+        assertEquals(instanceProxy.operationField(), "OperationTestum");
+        assertEquals(instanceProxy.date(), 2025);
+        assertEquals(instanceProxy.getSomething("12", false), "OperationTestum12false");
+        instance.doSomething("20", true);
+        assertEquals(instanceProxy.operationField(), "OperationTestumdoSomething20true");
+
+        if (XReflection.supports(20)) minecraftProxyTest();
+    }
+
+    public static void minecraftProxyTest() {
+        World bukkitWorld = Constants.getMainWorld();
+        // WorldServer nmsWorld = ((org.bukkit.craftbukkit.v1_21_R3.CraftWorld) bukkitWorld).getHandle();
+        // boolean changed = nmsWorld.a(new BlockPosition(45, 34, 23), true);
+
+        ReflectiveProxy<BlockPos> BlockPos = XReflection.proxify(BlockPos.class);
+        ReflectiveProxy<CraftWorld> CraftWorld = XReflection.proxify(CraftWorld.class);
+
+        CraftWorld craftWorld = CraftWorld.bindTo(bukkitWorld);
+        BlockPos pos = BlockPos.proxy().BlockPos(34, 45, 23);
+
+        boolean changed = craftWorld.getHandle().removeBlock(pos, true);
+        log("[MC-Proxy] Block Changed? " + changed);
+    }
+
     public interface GameProfile {
         String test = "1";
 
@@ -75,18 +116,6 @@ public final class ReflectionTests {
     }
 
     public static void parser() {
-        GameProfile profiler = (GameProfile) Proxy.newProxyInstance(ReflectionParser.class.getClassLoader(), new Class[]{GameProfile.class}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                log("Invoked from proxy: " + proxy.getClass() + " as " + method + " with args " + Arrays.toString(args));
-                return "hey";
-            }
-        });
-
-        log("Before replace: " + profiler.field_getter_test() + profiler.test);
-        profiler.field_setter_test("B");
-        log("After replace: " + profiler.field_getter_test());
-
         Arrays.stream(ReflectionParser.class.getDeclaredFields())
                 .filter(x -> x.getType() == Pattern.class)
                 .filter(x -> Modifier.isStatic(x.getModifiers()))
@@ -98,12 +127,12 @@ public final class ReflectionTests {
                         throw new IllegalStateException("Failed to perform field test", e);
                     }
                 });
-        DynamicClassHandle clazz = new ReflectionParser("package com.cryptomorin.xseries.test; public final class ReflectionTests {}")
+        DynamicClassHandle clazz = new ReflectionParser("package com.cryptomorin.xseries.test.reflection; public final class ReflectionTests {}")
                 .parseClass(XReflection.classHandle());
         try {
             XReflection.of(ReflectionTests.class).constructor("public ReflectionTests(String test, int other);").reflect();
-            XReflection.of(ReflectionTests.class).field("private final String test;").getter().reflect();
-            XReflection.of(ReflectionTests.class).field("private final String test;").getter().reflect();
+            assertSame(XReflection.of(ReflectionTests.class).field("private final String test;").getter().get(INSTANCE), INSTANCE.test);
+            assertSame(XReflection.of(ReflectionTests.class).field("private static final String STATIC_TEST;").getter().getStatic(), STATIC_TEST);
 
             // Inner class test
             MethodHandle innerinnerinnerField = XReflection.namespaced().imports(AtomicInteger.class)
@@ -127,13 +156,16 @@ public final class ReflectionTests {
                     .enums().named("A")
                     .getEnumConstant();
 
-            log("Enum found: " + enumConstant);
+            assertSame(enumConstant, EnumTest.A);
 
-            Object res = new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
-                    .parseMethod(clazz.method()).unreflect().invoke(new ReflectionTests(), ',', 2, true);
-            log("------------------------------------------------ " + res);
-        } catch (Throwable e) {
+            assertDoesNotThrow(() -> {
+                new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
+                        .parseMethod(clazz.method()).unreflect().invoke(new ReflectionTests(), ',', 2, true);
+            }, "Method ReflectionParser and invokation failed");
+        } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("ReflectionParser test failed", e);
         }
+
+        normalProxyTest();
     }
 }

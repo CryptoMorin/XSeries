@@ -38,7 +38,9 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A handle for using reflection for {@link Field}.
@@ -105,7 +107,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     public FieldMemberHandle asFinal() {
-        this.isFinal = true;
+        this.accessFlags.add(XAccessFlag.FINAL);
         return this;
     }
 
@@ -136,8 +138,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
         FieldMemberHandle handle = new FieldMemberHandle(clazz);
         handle.returnType = this.returnType;
         handle.getter = this.getter;
-        handle.isFinal = this.isFinal;
-        handle.makeAccessible = this.makeAccessible;
+        handle.accessFlags.addAll(this.accessFlags);
         handle.names.addAll(this.names);
         return handle;
     }
@@ -185,9 +186,9 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     protected <T extends AccessibleObject & Member> T handleAccessible(T field) throws ReflectiveOperationException {
         field = super.handleAccessible(field);
         if (field == null) return null;
-        if ((getter != null && !getter) && isFinal && accessFlags.contains(XAccessFlag.STATIC)) {
+        if ((getter != null && !getter) && accessFlags.contains(XAccessFlag.FINAL) && accessFlags.contains(XAccessFlag.STATIC)) {
             try {
-                int unfinalModifiers = field.getModifiers() & ~Modifier.FINAL;
+                int unfinalModifiers = XAccessFlag.FINAL.remove(field.getModifiers());
                 if (MODIFIERS_VAR_HANDLE != null) {
                     VAR_HANDLE_SET.invoke(MODIFIERS_VAR_HANDLE, field, unfinalModifiers);
                 } else if (MODIFIERS_FIELD != null) {
@@ -238,7 +239,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
                 if (field.getType() != returnType) {
                     throw new NoSuchFieldException("Field named '" + name + "' was found but the types don't match: " + field + " != " + this);
                 }
-                if (isFinal && !Modifier.isFinal(field.getModifiers())) {
+                if (this.accessFlags.contains(XAccessFlag.FINAL) && !Modifier.isFinal(field.getModifiers())) {
                     throw new NoSuchFieldException("Field named '" + name + "' was found but it's not final: " + field + " != " + this);
                 }
             } catch (NoSuchFieldException ex) {
@@ -255,8 +256,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
-        if (makeAccessible) str += "protected/private ";
-        if (isFinal) str += "final ";
+        accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
         if (returnType != null) str += returnType + " ";
         str += String.join("/", names);
         return str + '}';

@@ -23,13 +23,17 @@
 package com.cryptomorin.xseries.reflection.jvm;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * This class should not be used directly.
@@ -37,10 +41,16 @@ import java.lang.reflect.Modifier;
  * Any object that is a member of a {@link Class}.
  */
 public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
-    protected boolean makeAccessible, isFinal;
+    protected Set<XAccessFlag> accessFlags = EnumSet.noneOf(XAccessFlag.class);
     protected final ClassHandle clazz;
 
     protected MemberHandle(ClassHandle clazz) {this.clazz = clazz;}
+
+
+    @ApiStatus.Internal
+    public Set<XAccessFlag> getAccessFlags() {
+        return accessFlags;
+    }
 
     /**
      * Returns the class associated with this member.
@@ -54,7 +64,7 @@ public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
      * If this member is known to be private or a final field.
      */
     public MemberHandle makeAccessible() {
-        this.makeAccessible = true;
+        this.accessFlags.add(XAccessFlag.PRIVATE);
         return this;
     }
 
@@ -79,7 +89,7 @@ public abstract class MemberHandle implements ReflectiveHandle<MethodHandle> {
      */
     protected <T extends AccessibleObject & Member> T handleAccessible(T accessibleObject) throws ReflectiveOperationException {
         // Package-private classes or private inner classes.
-        if (this.makeAccessible || Modifier.isPrivate(accessibleObject.getDeclaringClass().getModifiers()))
+        if (this.accessFlags.contains(XAccessFlag.PRIVATE) || Modifier.isPrivate(accessibleObject.getDeclaringClass().getModifiers()))
             accessibleObject.setAccessible(true);
         return accessibleObject;
     }

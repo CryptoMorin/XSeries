@@ -40,6 +40,11 @@ public enum VisibilityConstraint implements ReflectiveConstraint {
 
     VisibilityConstraint(XAccessFlag accessFlag) {this.accessFlag = accessFlag;}
 
+    @ApiStatus.Internal
+    public XAccessFlag getAccessFlag() {
+        return accessFlag;
+    }
+
     /**
      * @param handle the reflective handle of the object.
      * @param jvm A {@link Class} or {@link Member}.

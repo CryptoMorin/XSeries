@@ -24,6 +24,8 @@ package com.cryptomorin.xseries.reflection.jvm.classes;
 
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.jvm.NameableReflectiveHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.google.common.base.Strings;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,7 @@ import java.util.Set;
 /**
  * @see StaticClassHandle
  */
-public class DynamicClassHandle extends ClassHandle {
+public class DynamicClassHandle extends ClassHandle implements NameableReflectiveHandle {
     protected ClassHandle parent;
     protected String packageName;
     protected final Set<String> classNames = new HashSet<>(5);
@@ -65,6 +67,11 @@ public class DynamicClassHandle extends ClassHandle {
             throw new IllegalStateException("Cannot change package of an inner class: " + packageHandle + " -> " + packageName);
         this.packageName = packageHandle.getPackage(packageName);
         return this;
+    }
+
+    @Override
+    public DynamicClassHandle map(MinecraftMapping mapping, String name) {
+        return named(name);
     }
 
     public DynamicClassHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) @NotNull String... classNames) {
