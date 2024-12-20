@@ -151,7 +151,6 @@ public abstract class DummyAbstractServer {
 
     protected void runServer() {
         try {
-            Path path = HERE.toPath();
             File before = HERE.getParentFile();
             Path pathBefore = before.toPath();
             Path testClassesPath = pathBefore.resolve("test-classes");

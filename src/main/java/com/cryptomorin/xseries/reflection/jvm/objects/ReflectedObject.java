@@ -24,7 +24,6 @@ package com.cryptomorin.xseries.reflection.jvm.objects;
 
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -113,69 +112,4 @@ public interface ReflectedObject extends AnnotatedElement {
     default Set<XAccessFlag> accessFlags() {
         return XAccessFlag.of(getModifiers());
     }
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotation returned by this method is a
-     * declaration annotation.
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @since 1.5
-     */
-    <A extends Annotation> A getAnnotation(Class<A> annotationClass);
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException {@inheritDoc}
-     * @since 1.5
-     */
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotations returned by this method are
-     * declaration annotations.
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @since 1.8
-     */
-    <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass);
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotations returned by this method are
-     * declaration annotations.
-     *
-     * @since 1.5
-     */
-    Annotation[] getAnnotations();
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotation returned by this method is a
-     * declaration annotation.
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @since 1.8
-     */
-    <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass);
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotations returned by this method are
-     * declaration annotations.
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @since 1.8
-     */
-    <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass);
-
-    /**
-     * {@inheritDoc}
-     * <p>Note that any annotations returned by this method are
-     * declaration annotations.
-     *
-     * @since 1.5
-     */
-    Annotation[] getDeclaredAnnotations();
 }

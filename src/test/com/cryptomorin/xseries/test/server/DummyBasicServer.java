@@ -61,10 +61,9 @@ public class DummyBasicServer extends DummyAbstractServer implements InvocationH
                 return TinyReflection.LOGGER;
             case "getUnsafe":
                 return TinyReflection.getCraftMagicNumberInstance();
-            case "createBlockData":
-                break; // Todo
+            default:
+                // case "createBlockData":
+                throw new UnsupportedOperationException(String.valueOf(method));
         }
-
-        throw new UnsupportedOperationException(String.valueOf(method));
     }
 }

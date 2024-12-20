@@ -96,7 +96,7 @@ public class ConstructorMemberHandle extends MemberHandle {
     @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
-        accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
+        str += accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
         str += clazz.toString() + ' ';
         str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';
         return str + '}';

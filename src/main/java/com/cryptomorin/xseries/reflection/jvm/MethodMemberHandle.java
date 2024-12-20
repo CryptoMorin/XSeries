@@ -152,7 +152,7 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     @Override
     public String toString() {
         String str = this.getClass().getSimpleName() + '{';
-        accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
+        str += accessFlags.stream().map(x -> x.name().toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" "));
         if (returnType != null) str += returnType + " ";
         str += String.join("/", names);
         str += '(' + Arrays.stream(parameterTypes).map(ClassHandle::toString).collect(Collectors.joining(", ")) + ')';

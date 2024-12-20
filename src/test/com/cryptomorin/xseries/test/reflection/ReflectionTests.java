@@ -83,11 +83,11 @@ public final class ReflectionTests {
         ProxyTestClass instance = factoryProxy.proxy().ProxyTestProxified("OperationTestum", 2025);
         ProxyTestProxified instanceProxy = factoryProxy.bindTo(instance);
 
-        assertEquals(instanceProxy.operationField(), "OperationTestum");
-        assertEquals(instanceProxy.date(), 2025);
-        assertEquals(instanceProxy.getSomething("12", false), "OperationTestum12false");
+        assertEquals("OperationTestum", instanceProxy.operationField());
+        assertEquals(2025, instanceProxy.date());
+        assertEquals("OperationTestum12false", instanceProxy.getSomething("12", false));
         instance.doSomething("20", true);
-        assertEquals(instanceProxy.operationField(), "OperationTestumdoSomething20true");
+        assertEquals("OperationTestumdoSomething20true", instanceProxy.operationField());
 
         if (XReflection.supports(20)) minecraftProxyTest();
     }
@@ -156,7 +156,7 @@ public final class ReflectionTests {
                     .enums().named("A")
                     .getEnumConstant();
 
-            assertSame(enumConstant, EnumTest.A);
+            assertSame(EnumTest.A, enumConstant);
 
             assertDoesNotThrow(() -> {
                 new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")
