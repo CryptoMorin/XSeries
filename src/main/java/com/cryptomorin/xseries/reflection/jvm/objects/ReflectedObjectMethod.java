@@ -22,10 +22,10 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
-final class ReflectedObjectMethod implements ReflectedObject {
+final class ReflectedObjectMethod extends AbstractMemberReflectedObject {
     private final Method delegate;
 
     ReflectedObjectMethod(Method delegate) {this.delegate = delegate;}
@@ -36,57 +36,12 @@ final class ReflectedObjectMethod implements ReflectedObject {
     }
 
     @Override
-    public Object unreflect() {
+    public Method unreflect() {
         return delegate;
     }
 
     @Override
-    public String name() {
-        return delegate.getName();
-    }
-
-    @Override
-    public Class<?> getDeclaringClass() {
-        return delegate.getDeclaringClass();
-    }
-
-    @Override
-    public int getModifiers() {
-        return delegate.getModifiers();
-    }
-
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        return delegate.getAnnotation(annotationClass);
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return delegate.isAnnotationPresent(annotationClass);
-    }
-
-    @Override
-    public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
-        return delegate.getAnnotationsByType(annotationClass);
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return delegate.getAnnotations();
-    }
-
-    @Override
-    public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
-        return delegate.getDeclaredAnnotation(annotationClass);
-    }
-
-    @Override
-    public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
-        return delegate.getDeclaredAnnotationsByType(annotationClass);
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return delegate.getDeclaredAnnotations();
+    protected Member member() {
+        return delegate;
     }
 }

@@ -22,26 +22,27 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import java.lang.reflect.Constructor;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 
-final class ReflectedObjectConstructor extends AbstractMemberReflectedObject {
-    private final Constructor<?> delegate;
+abstract class AbstractMemberReflectedObject extends AbstractReflectedObject {
+    @Override
+    public abstract AnnotatedElement unreflect();
 
-    ReflectedObjectConstructor(Constructor<?> delegate) {this.delegate = delegate;}
+    protected abstract Member member();
 
     @Override
-    public Type type() {
-        return Type.CONSTRUCTOR;
+    public final String name() {
+        return member().getName();
     }
 
     @Override
-    public Constructor<?> unreflect() {
-        return delegate;
+    public final Class<?> getDeclaringClass() {
+        return member().getDeclaringClass();
     }
 
     @Override
-    protected Member member() {
-        return delegate;
+    public final int getModifiers() {
+        return member().getModifiers();
     }
 }

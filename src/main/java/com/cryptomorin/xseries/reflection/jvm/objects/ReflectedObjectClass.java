@@ -22,9 +22,7 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import java.lang.annotation.Annotation;
-
-final class ReflectedObjectClass implements ReflectedObject {
+final class ReflectedObjectClass extends AbstractReflectedObject {
     private final Class<?> delegate;
 
     ReflectedObjectClass(Class<?> delegate) {this.delegate = delegate;}
@@ -35,7 +33,7 @@ final class ReflectedObjectClass implements ReflectedObject {
     }
 
     @Override
-    public Object unreflect() {
+    public Class<?> unreflect() {
         return delegate;
     }
 
@@ -52,40 +50,5 @@ final class ReflectedObjectClass implements ReflectedObject {
     @Override
     public int getModifiers() {
         return delegate.getModifiers();
-    }
-
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        return delegate.getAnnotation(annotationClass);
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return delegate.isAnnotationPresent(annotationClass);
-    }
-
-    @Override
-    public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
-        return delegate.getAnnotationsByType(annotationClass);
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return delegate.getAnnotations();
-    }
-
-    @Override
-    public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
-        return delegate.getDeclaredAnnotation(annotationClass);
-    }
-
-    @Override
-    public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
-        return delegate.getDeclaredAnnotationsByType(annotationClass);
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return delegate.getDeclaredAnnotations();
     }
 }
