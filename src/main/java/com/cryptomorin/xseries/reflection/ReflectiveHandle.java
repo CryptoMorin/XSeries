@@ -25,6 +25,7 @@ package com.cryptomorin.xseries.reflection;
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,11 +45,13 @@ public interface ReflectiveHandle<T> {
      * Creates a new handle with the same properties.
      */
     @ApiStatus.Experimental
+    @Contract(value = "-> new", pure = true)
     ReflectiveHandle<T> copy();
 
     /**
      * @return true if this object exists at runtime, otherwise false.
      */
+    @Contract(pure = true)
     default boolean exists() {
         try {
             reflect();
@@ -84,6 +87,7 @@ public interface ReflectiveHandle<T> {
      */
     @SuppressWarnings("JavadocDeclaration")
     @NotNull
+    @Contract(pure = true)
     default T unreflect() {
         try {
             return reflect();
@@ -99,6 +103,7 @@ public interface ReflectiveHandle<T> {
      * @see #unreflect()
      */
     @Nullable
+    @Contract(pure = true)
     default T reflectOrNull() {
         try {
             return reflect();
@@ -116,6 +121,7 @@ public interface ReflectiveHandle<T> {
      * @see #unreflect()
      */
     @NotNull
+    @Contract(pure = true)
     T reflect() throws ReflectiveOperationException;
 
     /**
@@ -132,6 +138,8 @@ public interface ReflectiveHandle<T> {
      * @since 14.0.0
      */
     @NotNull
+    @ApiStatus.Experimental
+    @Contract(pure = true)
     ReflectiveHandle<ReflectedObject> jvm();
 
     /**
@@ -149,6 +157,7 @@ public interface ReflectiveHandle<T> {
      */
     @NotNull
     @ApiStatus.Experimental
+    @Contract(value = "-> new", pure = true)
     default ReflectiveHandle<T> cached() {
         return new CachedReflectiveHandle<>(copy());
     }
@@ -162,6 +171,7 @@ public interface ReflectiveHandle<T> {
      */
     @NotNull
     @ApiStatus.Experimental
+    @Contract(pure = true)
     default ReflectiveHandle<T> unwrap() {
         if (this instanceof CachedReflectiveHandle) return ((CachedReflectiveHandle<T>) this).getDelegate();
         else return this;

@@ -32,6 +32,7 @@ import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -176,7 +177,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     @Override
-    public FieldMemberHandle signature(String declaration) {
+    public FieldMemberHandle signature(@Language(value = "Java", suffix = ";") String declaration) {
         return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseField(this);
     }
 

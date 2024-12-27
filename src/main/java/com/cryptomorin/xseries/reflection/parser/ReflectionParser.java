@@ -48,8 +48,8 @@ import java.util.stream.Collectors;
  * This class should not be used directly.
  * <p>
  * This class is designed to be able to parse Java declarations only in a loose way, as it also
- * supports more simplified syntax (for example not requiring semicolons) that doesn't work
- * as nicely if you're using IntelliJ because of the highlighting which is greater advantage.
+ * supports more simplified syntax (for example not requiring semicolons) which even works
+ * much better if you're using IntelliJ because of the string highlighting.
  * <h2>Performance & Caching</h2>
  * All XReflection APIs that use this feature, use heavy RegEx patterns which sacrifices
  * a lot of performance for readability. Please read {@link XReflection}'s <b>Performance & Caching</b>

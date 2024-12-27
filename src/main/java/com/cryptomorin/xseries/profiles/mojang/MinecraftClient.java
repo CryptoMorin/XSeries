@@ -34,7 +34,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
-import org.intellij.lang.annotations.Pattern;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +86,7 @@ public class MinecraftClient {
         return session;
     }
 
-    public MinecraftClient(@Pattern("GET|POST|PUT|DELETE") String method, String baseURL, RateLimiter rateLimiter) {
+    public MinecraftClient(@MagicConstant(stringValues = {"GET", "POST", "PUT", "DELETE"}) String method, String baseURL, RateLimiter rateLimiter) {
         this.method = method;
         try {
             this.baseURL = new URI(baseURL);

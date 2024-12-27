@@ -36,6 +36,8 @@ import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.test.reflection.ReflectionTests;
 import com.cryptomorin.xseries.test.reflection.ReflectiveConstraintTests;
+import com.cryptomorin.xseries.test.reflection.asm.ASMTests;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
 import com.cryptomorin.xseries.test.server.FakePlayerFactory;
 import com.cryptomorin.xseries.test.util.ResourceHelper;
 import com.cryptomorin.xseries.test.writer.ClassConverter;
@@ -132,7 +134,9 @@ public final class XSeriesTests {
     private static void testReflection() {
         log("Testing reflection...");
         log("Version pack: " + XReflection.getVersionInformation());
-        ReflectionTests.parser();
+        ReflectionTests.test();
+        ProxyTests.test();
+        ASMTests.test();
         ReflectiveConstraintTests.test();
         if (XReflection.supports(12)) initializeReflection();
 
@@ -413,22 +417,27 @@ public final class XSeriesTests {
                 .profile(Profileable.username("F(&$#%Y(@&$(@#$Y_{GFS!"))
                 .lenient().apply();
 
-        log("Testing bulk username to UUID conversion");
-        Map<UUID, String> mapped = MojangAPI.usernamesToUUIDs(Arrays.asList("yourmom1212",
-                "ybe", "Scavage", "Tinchosz", "daerb",
-                "verflow", "Brazzer", "Trillest", "EZix",
-                "Meritocracia", "otpe", "nn_mc", "Hershey",
-                "ElsaPlayzz", "HACKIN0706", "Angelisim", "iFraz",
-                "KolevBG", "thebreadrat", "VIRGlN", "ImPuddles",
-                "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
-                "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"), null);
-        log("Result of bulk requests: " + mapped);
+        // Currently broken. Seems like Mojang disabled this API? Read MojangAPI.usernamesToUUIDs for more info.
+        if (Constants.TEST_MOJANG_API_BULK) {
+            log("Testing bulk username to UUID conversion");
+            Map<UUID, String> mapped = MojangAPI.usernamesToUUIDs(Arrays.asList("yourmom1212",
+                    "ybe", "Scavage", "Tinchosz", "daerb",
+                    "verflow", "Brazzer", "Trillest", "EZix",
+                    "Meritocracia", "otpe", "nn_mc", "Hershey",
+                    "ElsaPlayzz", "HACKIN0706", "Angelisim", "iFraz",
+                    "KolevBG", "thebreadrat", "VIRGlN", "ImPuddles",
+                    "AlphaAce", "ggsophie", "TheDark_00", "yeezydealer",
+                    "HKa1", "Natheyy", "l0ves1ckk", "Bucyrus"), null);
+            log("Result of bulk requests: " + mapped);
+        }
 
         log("Skull value of Notch: " + Profileable.username("Notch").getProfileValue());
         log("Skull value of Base64: " + Profileable.detect("f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990").getProfileValue());
 
-        profilePreparation(); // Takes ~5 seconds (If we ignore the previous requests in this method)
-        profilePreparation(); // Takes less than a second
+        if (Constants.TEST_MOJANG_API_BULK) {
+            profilePreparation(); // Takes ~5 seconds (If we ignore the previous requests in this method)
+            profilePreparation(); // Takes less than a second
+        }
     }
 
     private static void profilePreparation() {

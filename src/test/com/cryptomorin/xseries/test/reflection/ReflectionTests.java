@@ -25,8 +25,6 @@ package com.cryptomorin.xseries.test.reflection;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
-import com.cryptomorin.xseries.test.reflection.asm.ASMTests;
-import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Modifier;
@@ -77,7 +75,7 @@ public final class ReflectionTests {
         String field_getter_test();
     }
 
-    public static void parser() {
+    public static void test() {
         Arrays.stream(ReflectionParser.class.getDeclaredFields())
                 .filter(x -> x.getType() == Pattern.class)
                 .filter(x -> Modifier.isStatic(x.getModifiers()))
@@ -92,29 +90,29 @@ public final class ReflectionTests {
         DynamicClassHandle clazz = new ReflectionParser("package com.cryptomorin.xseries.test.reflection; public final class ReflectionTests {}")
                 .parseClass(XReflection.classHandle());
         try {
-            XReflection.of(ReflectionTests.class).constructor("public ReflectionTests(String test, int other);").reflect();
-            assertSame(XReflection.of(ReflectionTests.class).field("private final String test;").getter().get(INSTANCE), INSTANCE.test);
-            assertSame(XReflection.of(ReflectionTests.class).field("private static final String STATIC_TEST;").getter().getStatic(), STATIC_TEST);
+            XReflection.of(ReflectionTests.class).constructor("public ReflectionTests(String test, int other)").reflect();
+            assertSame(XReflection.of(ReflectionTests.class).field("private final String test").getter().get(INSTANCE), INSTANCE.test);
+            assertSame(XReflection.of(ReflectionTests.class).field("private static final String STATIC_TEST").getter().getStatic(), STATIC_TEST);
 
             // Inner class test
             MethodHandle innerinnerinnerField = XReflection.namespaced().imports(AtomicInteger.class)
                     .of(ReflectionTests.class)
-                    .inner("private static final class A<T> {}")
-                    .inner("private static final class B {}")
-                    .inner("private static final class C {}")
+                    .inner("private static final class A<T>")
+                    .inner("private static final class B")
+                    .inner("private static final class C")
                     .field("public final AtomicInteger atomicField;")
                     .getter().reflect();
             log("inner inner inner field: " + innerinnerinnerField);
 
             XReflection.namespaced()
                     .of(ReflectionTests.class)
-                    .inner("public interface GameProfile {}")
+                    .inner("public interface GameProfile")
                     .method("void field_setter_test(String test);")
                     .reflect();
 
             Object enumConstant = XReflection.namespaced()
                     .of(ReflectionTests.class)
-                    .inner("public enum EnumTest {}")
+                    .inner("public enum EnumTest")
                     .enums().named("A")
                     .getEnumConstant();
 
@@ -127,8 +125,5 @@ public final class ReflectionTests {
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("ReflectionParser test failed", e);
         }
-
-        ProxyTests.test();
-        ASMTests.test();
     }
 }

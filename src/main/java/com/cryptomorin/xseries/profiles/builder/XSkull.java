@@ -34,6 +34,7 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -84,6 +85,7 @@ public final class XSkull {
      * @return A {@link ProfileInstruction} that sets the profile for the generated {@link ItemStack}.
      */
     @NotNull
+    @Contract(pure = true)
     public static ProfileInstruction<ItemStack> createItem() {
         return of(XMaterial.PLAYER_HEAD.parseItem());
     }
@@ -95,6 +97,7 @@ public final class XSkull {
      * @return A {@link ProfileInstruction} that sets the profile for the given {@link ItemStack}.
      */
     @NotNull
+    @Contract(pure = true)
     public static ProfileInstruction<ItemStack> of(@NotNull ItemStack stack) {
         return new ProfileInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
     }
@@ -106,6 +109,7 @@ public final class XSkull {
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link ItemMeta}.
      */
     @NotNull
+    @Contract(pure = true)
     public static ProfileInstruction<ItemMeta> of(@NotNull ItemMeta meta) {
         return new ProfileInstruction<>(new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta));
     }
@@ -117,6 +121,7 @@ public final class XSkull {
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link Block}.
      */
     @NotNull
+    @Contract(pure = true)
     public static ProfileInstruction<Block> of(@NotNull Block block) {
         return new ProfileInstruction<>(new ProfileContainer.BlockProfileContainer(block));
     }
@@ -128,6 +133,7 @@ public final class XSkull {
      * @return An {@link ProfileInstruction} that sets the profile for the given {@link BlockState}.
      */
     @NotNull
+    @Contract(pure = true)
     public static ProfileInstruction<Skull> of(@NotNull BlockState state) {
         return new ProfileInstruction<>(new ProfileContainer.BlockStateProfileContainer((Skull) state));
     }
@@ -150,6 +156,7 @@ public final class XSkull {
      * @return A clone of the default {@link GameProfile}.
      */
     @NotNull
+    @Contract(pure = true)
     protected static Profileable getDefaultProfile() {
         // We copy this just in case something changes the GameProfile properties.
         GameProfile clone = PlayerProfiles.createGameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());

@@ -73,10 +73,10 @@ public final class ActionBar {
      * We're not going to support Bukkit.
      */
     private static final boolean USE_SPIGOT_API = XReflection.of(Player.class)
-            .inner("public static class Spigot {}")
+            .inner("public static class Spigot")
             .method("public void sendMessage(" +
                     "net.md_5.bungee.api.ChatMessageType position," +
-                    "net.md_5.bungee.api.chat.BaseComponent component);")
+                    "net.md_5.bungee.api.chat.BaseComponent component)")
             .exists();
 
     /**

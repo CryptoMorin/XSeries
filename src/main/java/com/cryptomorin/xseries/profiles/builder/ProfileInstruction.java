@@ -36,6 +36,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,12 +80,16 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     /**
      * Removes the profile and skin texture from the item/block.
      */
+    @NotNull
+    @Contract(mutates = "this")
     public T removeProfile() {
         profileContainer.setProfile(null);
         return profileContainer.getObject();
     }
 
     @ApiStatus.Experimental
+    @NotNull
+    @Contract(value = "_ -> this", mutates = "this")
     public ProfileInstruction<T> profileRequestConfiguration(ProfileRequestConfiguration config) {
         this.profileRequestConfiguration = config;
         return this;
@@ -94,6 +99,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * Fails silently if any of the {@link ProfileException} errors occur.
      * Mainly affects {@link Profileable#detect(String)}
      */
+    @NotNull
+    @Contract(value = "-> this", mutates = "this")
     public ProfileInstruction<T> lenient() {
         this.lenient = true;
         return this;
@@ -110,6 +117,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     }
 
     @Override
+    @Contract(pure = true)
     public Profileable getDelegateProfile() {
         return profileContainer;
     }
@@ -118,6 +126,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * Sets the texture profile to be set to the item/block. Use one of the
      * static methods of {@link Profileable} class.
      */
+    @NotNull
+    @Contract(value = "_ -> this", mutates = "this")
     public ProfileInstruction<T> profile(@NotNull Profileable profileable) {
         this.profileable = Objects.requireNonNull(profileable, "Profileable is null");
         return this;
@@ -130,6 +140,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      *
      * @see #apply()
      */
+    @NotNull
+    @Contract(value = "_ -> this", mutates = "this")
     public ProfileInstruction<T> fallback(@NotNull Profileable... fallbacks) {
         Objects.requireNonNull(fallbacks, "fallbacks array is null");
         this.fallbacks.addAll(Arrays.asList(fallbacks));
@@ -142,6 +154,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      *
      * @see #onFallback(Runnable)
      */
+    @NotNull
+    @Contract(value = "_ -> this", mutates = "this")
     public ProfileInstruction<T> onFallback(@Nullable Consumer<ProfileFallback<T>> onFallback) {
         this.onFallback = onFallback;
         return this;
@@ -150,6 +164,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     /**
      * @see #onFallback(Consumer)
      */
+    @NotNull
+    @Contract(value = "_ -> this", mutates = "this")
     public ProfileInstruction<T> onFallback(@NotNull Runnable onFallback) {
         Objects.requireNonNull(onFallback, "onFallback runnable is null");
         this.onFallback = (fallback) -> onFallback.run();
@@ -172,6 +188,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      *                                in form of suppressed exceptions ({@link Exception#getSuppressed()}) in this single exception
      *                                starting from the main profile, followed by the fallback profiles.
      */
+    @NotNull
     public T apply() {
         Objects.requireNonNull(profileable, "No profile was set");
         ProfileChangeException exception = null;
@@ -254,6 +271,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      *
      * @return A {@link CompletableFuture} that will complete asynchronously.
      */
+    @NotNull
     public CompletableFuture<T> applyAsync() {
         return CompletableFuture.supplyAsync(this::apply, PlayerProfileFetcherThread.EXECUTOR);
     }

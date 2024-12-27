@@ -32,6 +32,7 @@ import com.cryptomorin.xseries.reflection.proxy.processors.MappedType;
 import com.cryptomorin.xseries.reflection.proxy.processors.ProxyMethodInfo;
 import com.cryptomorin.xseries.reflection.proxy.processors.ReflectiveAnnotationProcessor;
 import com.google.common.collect.Streams;
+import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -50,16 +51,20 @@ import java.util.stream.Stream;
 import static org.objectweb.asm.commons.Method.getMethod;
 
 /**
- * We could take inspiration from {@code java.lang.invoke.InnerClassLambdaMetafactory}.
+ * This class should not be accessed directly, use {@link com.cryptomorin.xseries.reflection.XReflection#proxify(Class)} instead.
  * <p>
- * https://github.com/hyee/ReflectASM
+ * This is basically similar to <a href="https://github.com/EsotericSoftware/reflectasm">ReflectASM</a>
+ * (with another <a href="https://github.com/hyee/ReflectASM">updated version of it by hyee</a>), except that
+ * instead of relying on the same reflection-based API where members are accessed by their name in forms of strings
+ * and parameters are passed to get the object, we use actual interfaces which increases readability and performance.
  * <p>
- * Also something similar, specifically with Minecraft in mind was created:
- * https://github.com/AngryCarrot789/REghZyASMWrappers/tree/master
+ * Also something similar, specifically with Minecraft in mind was created named
+ * <a href="https://github.com/AngryCarrot789/REghZyASMWrappers/tree/master">REghZyASMWrappers</a>.
  * <p>
- * TODO Replacing loaded classes? Not reliable:
- * https://bukkit.org/threads/tutorial-extreme-beyond-reflection-asm-replacing-loaded-classes.99376/
- * That means we can't really use real constructors,ص fields or static members as it'd require replacing
+ * TODO We could also
+ * <a href="https://bukkit.org/threads/tutorial-extreme-beyond-reflection-asm-replacing-loaded-classes.99376/">replace loaded classes</a>,
+ * but that sounds too unreliable.
+ * That means we can't really use real constructors, fields or static members as it'd require replacing
  * the caller with a method, and replacing classes isn't really something most plugins are willing to setup.
  * But using ASM, we can use non-final abstract/non-interface classes.
  * <p>
@@ -67,12 +72,17 @@ import static org.objectweb.asm.commons.Method.getMethod;
  * optimize some reflection access by generating a proxy for them?
  * <p>
  * You can see the a class that similarly resembles the generated class in the test sources named {@code ASMGeneratedSample}.
+ * We could also take inspiration from {@code java.lang.invoke.InnerClassLambdaMetafactory} which generates something similar.
  * <p>
  * TODO Cleanup this class, it's really crowded in here.
  *
+ * @see ReflectiveProxyObject
+ * @see com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy
+ * @see com.cryptomorin.xseries.reflection.XReflection#proxify(Class)
  * @since 14.0.0
  */
-@ApiStatus.Experimental
+@SuppressWarnings("JavadocLinkAsPlainText")
+@ApiStatus.Internal
 public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVisitor {
     // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.checkcast
     // JVM Operand stack notation meaning:
@@ -124,6 +134,8 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
     private static final String STATIC_BLOCK = "<clinit>";
 
     private static final String INSTANCE_FIELD = "instance";
+
+    private static final String METHOD_HANDLE_PREFIX = "H_";
 
     /**
      * In binary format so relocation can happen
@@ -482,16 +494,6 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         return Type.getArgumentsAndReturnSizes(descriptor) >> 2 + (staticMethod ? -1 : 0);
     }
 
-    private static String getParameterDescriptor(Type[] parameters) {
-        StringBuilder stringBuilder = new StringBuilder(parameters.length * 10);
-
-        for (Type parameter : parameters) {
-            stringBuilder.append(parameter.getDescriptor());
-        }
-
-        return stringBuilder.toString();
-    }
-
     public static Type getType(String className) {
         return Type.getType('L' + className.replace('.', '/') + ';');
     }
@@ -511,12 +513,6 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
             this.adapter = new GeneratorAdapter(mv, access, name, descriptor);
             this.descriptor = descriptor;
             generateCode();
-        }
-
-        private void unwrapParameter(int index) {
-            MappedType paramMappedType = handle.info.pTypes[index];
-            if (!paramMappedType.isDifferent()) {
-            }
         }
 
         private void generateCode() {
@@ -581,7 +577,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
             }
 
             if (handle.isInaccessible()) {
-                adapter.getStatic(generatedClassType, "H_" + handle.methodHandleName, Type.getType(MethodHandle.class));
+                adapter.getStatic(generatedClassType, METHOD_HANDLE_PREFIX + handle.methodHandleName, Type.getType(MethodHandle.class));
             }
 
             // Load the object to call the method on.
@@ -765,7 +761,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
     }
 
     private void writeMethodHandleField(String name) {
-        writePrivateFinalField(true, "H_" + name, MethodHandle.class);
+        writePrivateFinalField(true, METHOD_HANDLE_PREFIX + name, MethodHandle.class);
     }
 
     private void writePrivateFinalField(boolean asStatic, String name, Class<?> type) {
@@ -856,7 +852,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
                 mv.visitFieldInsn(
                         Opcodes.PUTSTATIC,
                         generatedClassType.getInternalName(),
-                        "H_" + overload.methodHandleName,
+                        METHOD_HANDLE_PREFIX + overload.methodHandleName,
                         Type.getDescriptor(MethodHandle.class)
                 );
             }
@@ -1080,7 +1076,9 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.visitEnd();
     }
 
-    private GeneratorAdapter createMethod(int access, String name, String descriptor) {
+    private GeneratorAdapter createMethod(int access,
+                                          @Pattern("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)|(<init>)|(<clinit>)") String name,
+                                          String descriptor) {
         GeneratorAdapter method = new GeneratorAdapter(
                 classWriter.visitMethod(access, name, descriptor, null, null),
                 access, name, descriptor
@@ -1094,9 +1092,8 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         Type StringBuilder = Type.getType(java.lang.StringBuilder.class);
         GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;");
 
-        Label label0 = mv.newLabel();
-        mv.visitLabel(label0);
-        mv.visitLineNumber(37, label0);
+        Label start = mv.newLabel();
+        mv.visitLabel(start);
 
         mv.newInstance(StringBuilder);
         mv.dup();
@@ -1120,42 +1117,16 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.invokeVirtual(StringBuilder, getMethod("String toString()"));
         mv.returnValue();
 
-        Label label1 = new Label();
-        mv.visitLabel(label1);
-        visitThis(mv, label0, label1);
+        Label end = new Label();
+        mv.visitLabel(end);
+        visitThis(mv, start, end);
 
         mv.visitMaxs(2, 1);
         mv.visitEnd();
     }
 
-    private void visitThis(MethodVisitor mv, Label label0, Label label1) {
-        mv.visitLocalVariable("this", generatedClassType.getDescriptor(), null, label0, label1, 0);
-    }
-
-    @SuppressWarnings({"UnnecessaryBoxing", "CachedNumberConstructorCall"})
-    private static Class<?> loadClass(String className, byte[] bytecode) {
-        // Override defineClass (as it is protected) and define the class.
-        Class<?> clazz;
-        try {
-            ClassLoader loader = ClassLoader.getSystemClassLoader();
-            Class<?> cls = Class.forName("java.lang.ClassLoader");
-            java.lang.reflect.Method method =
-                    cls.getDeclaredMethod(
-                            "defineClass",
-                            String.class, byte[].class, int.class, int.class);
-
-            // Protected method invocation.
-            method.setAccessible(true);
-            try {
-                Object[] args = {className, bytecode, new Integer(0), new Integer(bytecode.length)};
-                clazz = (Class<?>) method.invoke(loader, args);
-            } finally {
-                method.setAccessible(false);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to load class " + className + " into the system class loader", e);
-        }
-        return clazz;
+    private void visitThis(MethodVisitor mv, Label start, Label end) {
+        mv.visitLocalVariable("this", generatedClassType.getDescriptor(), null, start, end, 0);
     }
 
     public Class<?> loadClass() {

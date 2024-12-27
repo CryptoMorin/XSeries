@@ -18,6 +18,17 @@ developers can see and perhaps give suggestions about. Anyone is welcome to comp
   with a solution that doesn't involve modifying the startup arguments like Java Agents for replacing classes that
   access ASM generated class fields/constructors.
 
+* **[ReflectiveHandleProxyProcessor]** Finish this class for people who wish to use the XReflection's direct API instead
+  of using the annotations. This is useful for situations where annotations will seem bulky or the data is more complex
+  and must be calculated during runtime.
+
+* **[XTag]** Inline all fields. Using a `static {}` block is unnecessary and makes things really hard to track.
+  Currently, this is not possible using IntelliJ's `Refactor -> Inline Field` feature, because you'll get a
+  `No initializer present for the field` error. Not sure if this is a bug or some sort of tricky feature.
+  Also, the formatting of the builder entries should in a way that the first entry is not in the same line as
+  the builder's method. (No `FIELD = TagBuilder.simple(XMaterial.VALUE,\n`, but `FIELD = TagBuilder.simple(\n`)
+  and each line should contain at least 3 entries, not one entry for each line.
+
 * **[General]** Perhaps define a class named **XSeries** that contain general methods and information about the library
   including the current version and methods to enable/disable certain features that are currently handled by system
   properties? One thing we could do is to add an option to enable debug mode, certain exceptions that are normally
@@ -32,6 +43,8 @@ developers can see and perhaps give suggestions about. Anyone is welcome to comp
 * **[General]** Adding a nice logo/banner to the main GitHub page would be nice, it feels quite empty right now. I will
   have to spend a lot of time to design one.
 
-* **[ReflectiveHandleProxyProcessor]** Finish this class for people who wish to use the XReflection's direct API instead
-  of using the annotations. This is useful for situations where annotations will seem bulky or the data is more complex
-  and must be calculated during runtime.
+* **[Documentation]** While the javadocs are pretty comprehensive for most classes, they're mostly flooded with small
+  and
+  technical details that most developers don't have to be concerned about. We should make a guide on the wiki with
+  screenshots
+  and a general overview of all the features which makes it much easier for developers to get started.

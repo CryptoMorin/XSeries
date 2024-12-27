@@ -25,9 +25,11 @@ package com.cryptomorin.xseries.test.reflection.asm;
 import com.cryptomorin.xseries.reflection.asm.XReflectASM;
 import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestProxified;
 import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
+import com.cryptomorin.xseries.test.util.XLogger;
 
 public final class ASMTests {
     public static void test() {
+        XLogger.log("[ASM] Testing XReflectASM generation...");
         // XReflectASM<ServerLevel> asm = XReflectASM.proxify(ServerLevel.class);
         // asm.verify(false);
         // asm.writeToFile(Constants.DESKTOP);

@@ -65,6 +65,20 @@ abstract class AbstractReflectedObject implements ReflectedObject {
     }
 
     @Override
+    public final boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+
+        if (obj instanceof ReflectedObject) return this.unreflect().equals(((ReflectedObject) obj).unreflect());
+        return this.unreflect().equals(obj);
+    }
+
+    @Override
+    public final int hashCode() {
+        return this.unreflect().hashCode();
+    }
+
+    @Override
     public final String toString() {
         return this.getClass().getSimpleName() + '(' + unreflect() + ')';
     }

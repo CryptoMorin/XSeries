@@ -113,4 +113,30 @@ final class ASMClassLoader extends ClassLoader {
             throw new RuntimeException(e);
         }
     }
+
+    @SuppressWarnings({"UnnecessaryBoxing", "CachedNumberConstructorCall"})
+    private static Class<?> loadClass(String className, byte[] bytecode) {
+        // Override defineClass (as it is protected) and define the class.
+        Class<?> clazz;
+        try {
+            ClassLoader loader = ClassLoader.getSystemClassLoader();
+            Class<?> cls = Class.forName("java.lang.ClassLoader");
+            java.lang.reflect.Method method =
+                    cls.getDeclaredMethod(
+                            "defineClass",
+                            String.class, byte[].class, int.class, int.class);
+
+            // Protected method invocation.
+            method.setAccessible(true);
+            try {
+                Object[] args = {className, bytecode, new Integer(0), new Integer(bytecode.length)};
+                clazz = (Class<?>) method.invoke(loader, args);
+            } finally {
+                method.setAccessible(false);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load class " + className + " into the system class loader", e);
+        }
+        return clazz;
+    }
 }

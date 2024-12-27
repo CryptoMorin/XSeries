@@ -163,7 +163,7 @@ public class ReflectiveNamespace {
      * @see #classHandle()
      * @since 11.0.0
      */
-    public DynamicClassHandle classHandle(@Language("Java") String declaration) {
+    public DynamicClassHandle classHandle(@Language(value = "Java", suffix = "{}") String declaration) {
         DynamicClassHandle classHandle = new DynamicClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }
@@ -185,7 +185,7 @@ public class ReflectiveNamespace {
      * @see #ofMinecraft(String)
      * @since 11.0.0
      */
-    public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
+    public MinecraftClassHandle ofMinecraft(@Language(value = "Java", suffix = "{}") String declaration) {
         MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
         return new ReflectionParser(declaration).imports(this).parseClass(classHandle);
     }

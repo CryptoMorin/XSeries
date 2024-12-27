@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries.base;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,9 +69,11 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
      * Should be used for saving data.
      */
     @NotNull
+    @Contract(pure = true)
     String name();
 
     @ApiStatus.Internal
+    @Contract(pure = true)
     String[] getNames();
 
     /**
@@ -78,6 +81,8 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
      *
      * @return a friendly readable string name.
      */
+    @NotNull
+    @Contract(pure = true)
     default String friendlyName() {
         return Arrays.stream(name().split("_"))
                 .map(t -> t.charAt(0) + t.substring(1).toLowerCase(Locale.ENGLISH))
@@ -85,6 +90,7 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
     }
 
     @Nullable
+    @Contract(pure = true)
     BukkitForm get();
 
     /**
@@ -99,6 +105,7 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
      * @return true if the current version has this sound, otherwise false.
      * @since 1.0.0
      */
+    @Contract(pure = true)
     default boolean isSupported() {
         return get() != null;
     }
@@ -115,6 +122,7 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
      */
     @SuppressWarnings("unchecked")
     @NotNull
+    @Contract(pure = true)
     default XForm or(XForm other) {
         return this.isSupported() ? (XForm) this : other;
     }

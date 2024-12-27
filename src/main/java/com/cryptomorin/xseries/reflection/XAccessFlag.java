@@ -23,7 +23,9 @@
 package com.cryptomorin.xseries.reflection;
 
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -275,6 +277,8 @@ public enum XAccessFlag {
     /**
      * The corresponding integer mask for the access flag.
      */
+    @MagicConstant(flagsFromClass = XAccessFlag.class)
+    @Contract(pure = true)
     public int mask() {
         return mask;
     }
@@ -287,6 +291,7 @@ public enum XAccessFlag {
      * flag name inside {@link Modifier} as well.
      * An exception to this rule would be {@link Modifier#INTERFACE}
      */
+    @Contract(pure = true)
     public boolean sourceModifier() {
         return sourceModifier;
     }
@@ -297,6 +302,7 @@ public enum XAccessFlag {
      */
     @NotNull
     @Unmodifiable
+    @Contract(pure = true)
     public Set<JVMLocation> locations() {
         return locations;
     }
@@ -305,6 +311,7 @@ public enum XAccessFlag {
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see ReflectedObject#accessFlags()
      */
+    @Contract(pure = true)
     public static Set<XAccessFlag> of(int mod) {
         Set<XAccessFlag> accessFlags = EnumSet.noneOf(XAccessFlag.class);
         for (XAccessFlag flag : VALUES) {
@@ -313,10 +320,12 @@ public enum XAccessFlag {
         return accessFlags;
     }
 
+    @Contract(pure = true)
     public int add(int mod) {
         return mod | this.mask;
     }
 
+    @Contract(pure = true)
     public int remove(int mod) {
         return mod & ~this.mask;
     }
@@ -327,6 +336,7 @@ public enum XAccessFlag {
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see #isSet(int, XAccessFlag...)
      */
+    @Contract(pure = true)
     public boolean isSet(int mod) {
         return (mod & this.mask) != 0;
     }
@@ -337,6 +347,7 @@ public enum XAccessFlag {
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see #isSet(int)
      */
+    @Contract(pure = true)
     public static boolean isSet(int mod, XAccessFlag... flags) {
         for (XAccessFlag modifier : flags) {
             if (!modifier.isSet(mod)) return false;
@@ -351,6 +362,7 @@ public enum XAccessFlag {
      * @return {@link Optional#empty()} if this type doesn't have a modifier.
      * @see ReflectedObject#getModifiers()
      */
+    @Contract(pure = true)
     public static Optional<Integer> getModifiers(Object jvm) {
         if (jvm instanceof Class) {
             return Optional.of(((Class<?>) jvm).getModifiers());
@@ -367,6 +379,7 @@ public enum XAccessFlag {
      *
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      */
+    @Contract(pure = true)
     public static String toString(int mod) {
         StringJoiner flags = new StringJoiner(" ", "Flags::" + mod + '(', ")");
         for (XAccessFlag accessFlag : VALUES) {

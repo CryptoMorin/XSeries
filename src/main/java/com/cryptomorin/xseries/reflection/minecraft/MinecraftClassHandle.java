@@ -48,7 +48,7 @@ public class MinecraftClassHandle extends DynamicClassHandle {
     }
 
     @Override
-    public MinecraftClassHandle inner(@Language("Java") String declaration) {
+    public MinecraftClassHandle inner(@Language(value = "Java", suffix = "{}") String declaration) {
         return inner(namespace.ofMinecraft(declaration));
     }
 

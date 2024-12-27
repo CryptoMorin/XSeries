@@ -37,6 +37,7 @@ import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -319,6 +320,8 @@ public final class XReflection {
      *
      * @since 7.0.0
      */
+    @NotNull
+    @Contract(pure = true)
     public static String getVersionInformation() {
         // Bukkit.getServer().getMinecraftVersion() is for Paper
         return "(NMS: " + (NMS_VERSION == null ? "Unknown NMS" : NMS_VERSION) + " | " +
@@ -412,6 +415,8 @@ public final class XReflection {
      * @see VersionHandle#orElse(Object)
      * @since 5.0.0
      */
+    @NotNull
+    @Contract(value = "_, _ -> new", pure = true)
     public static <T> VersionHandle<T> v(int version, T handle) {
         return new VersionHandle<>(version, handle);
     }
@@ -419,14 +424,20 @@ public final class XReflection {
     /**
      * @since 9.5.0
      */
+    @NotNull
+    @Contract(value = "_, _, _ -> new", pure = true)
     public static <T> VersionHandle<T> v(int version, int patch, T handle) {
         return new VersionHandle<>(version, patch, handle);
     }
 
+    @NotNull
+    @Contract(value = "_, _ -> new", pure = true)
     public static <T> VersionHandle<T> v(int version, Callable<T> handle) {
         return new VersionHandle<>(version, handle);
     }
 
+    @NotNull
+    @Contract(value = "_, _, _ -> new", pure = true)
     public static <T> VersionHandle<T> v(int version, int patch, Callable<T> handle) {
         return new VersionHandle<>(version, patch, handle);
     }
@@ -439,6 +450,7 @@ public final class XReflection {
      * @see #MINOR_NUMBER
      * @since 4.0.0
      */
+    @Contract(pure = true)
     public static boolean supports(int minorNumber) {
         return MINOR_NUMBER >= minorNumber;
     }
@@ -446,6 +458,7 @@ public final class XReflection {
     /**
      * A more friendly version of {@link #supports(int, int)} for people with OCD.
      */
+    @Contract(pure = true)
     public static boolean supports(int majorNumber, int minorNumber, int patchNumber) {
         if (majorNumber != 1) throw new IllegalArgumentException("Invalid major number: " + majorNumber);
         return supports(minorNumber, patchNumber);
@@ -461,6 +474,7 @@ public final class XReflection {
      * @see #PATCH_NUMBER
      * @since 7.1.0
      */
+    @Contract(pure = true)
     public static boolean supports(int minorNumber, int patchNumber) {
         return MINOR_NUMBER == minorNumber ? PATCH_NUMBER >= patchNumber : supports(minorNumber);
     }
@@ -475,6 +489,7 @@ public final class XReflection {
      * @deprecated use {@link #supports(int, int)}
      */
     @Deprecated
+    @Contract(pure = true)
     public static boolean supportsPatch(int patchNumber) {
         return PATCH_NUMBER >= patchNumber;
     }
@@ -550,6 +565,7 @@ public final class XReflection {
      * @throws IllegalArgumentException if the class could not be found.
      */
     @NotNull
+    @Contract(pure = true)
     public static Class<?> toArrayClass(Class<?> clazz) {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
@@ -561,6 +577,8 @@ public final class XReflection {
     /**
      * @since v9.0.0
      */
+    @NotNull
+    @Contract(value = "-> new", pure = true)
     public static MinecraftClassHandle ofMinecraft() {
         return new MinecraftClassHandle(new ReflectiveNamespace());
     }
@@ -568,6 +586,8 @@ public final class XReflection {
     /**
      * @since v9.0.0
      */
+    @NotNull
+    @Contract(value = "-> new", pure = true)
     public static DynamicClassHandle classHandle() {
         return new DynamicClassHandle(new ReflectiveNamespace());
     }
@@ -575,6 +595,8 @@ public final class XReflection {
     /**
      * @since v11.0.0
      */
+    @NotNull
+    @Contract(value = "_ -> new", pure = true)
     public static StaticClassHandle of(Class<?> clazz) {
         return new StaticClassHandle(new ReflectiveNamespace(), clazz);
     }
@@ -585,6 +607,8 @@ public final class XReflection {
      *
      * @since v11.0.0
      */
+    @NotNull
+    @Contract(value = "-> new", pure = true)
     public static ReflectiveNamespace namespaced() {
         return new ReflectiveNamespace();
     }
@@ -593,6 +617,8 @@ public final class XReflection {
      * @since v9.0.0
      */
     @SafeVarargs
+    @NotNull
+    @Contract(value = "_ -> new", pure = true)
     public static <T, H extends ReflectiveHandle<T>> AggregateReflectiveHandle<T, H> any(H... handles) {
         return new AggregateReflectiveHandle<>(Arrays.stream(handles).map(x -> (Callable<H>) () -> x).collect(Collectors.toList()));
     }
@@ -601,6 +627,8 @@ public final class XReflection {
      * @since v9.0.0
      */
     @SafeVarargs
+    @NotNull
+    @Contract(value = "_ -> new", pure = true)
     public static <T, H extends ReflectiveHandle<T>> AggregateReflectiveHandle<T, H> anyOf(Callable<H>... handles) {
         return new AggregateReflectiveHandle<>(Arrays.asList(handles));
     }
@@ -609,6 +637,8 @@ public final class XReflection {
      * @since v11.3.0
      */
     @ApiStatus.Experimental
+    @NotNull
+    @Contract(value = "_, _ -> new", pure = true)
     public static <H extends ReflectiveHandle<?>, O> AggregateReflectiveSupplier<H, O> supply(H handle, O object) {
         AggregateReflectiveSupplier<H, O> supplier = new AggregateReflectiveSupplier<>();
         supplier.or(handle, object);
@@ -619,6 +649,8 @@ public final class XReflection {
      * @since v11.3.0
      */
     @ApiStatus.Experimental
+    @NotNull
+    @Contract(value = "_, _ -> new", pure = true)
     public static <H extends ReflectiveHandle<?>, O> AggregateReflectiveSupplier<H, O> supply(H handle, Supplier<O> object) {
         AggregateReflectiveSupplier<H, O> supplier = new AggregateReflectiveSupplier<>();
         supplier.or(handle, object);
@@ -639,7 +671,8 @@ public final class XReflection {
      * @return the same exception.
      */
     @ApiStatus.Experimental
-    public static <T extends Throwable> T relativizeSuppressedExceptions(T ex) {
+    @NotNull
+    public static <T extends Throwable> T relativizeSuppressedExceptions(@NotNull T ex) {
         Objects.requireNonNull(ex, "Cannot relativize null exception");
         final StackTraceElement[] EMPTY_STACK_TRACE_ARRAY = new StackTraceElement[0];
         StackTraceElement[] mainStackTrace = ex.getStackTrace();
@@ -705,7 +738,8 @@ public final class XReflection {
      * @return {@code null}, but it's intended to be thrown, this is a hacky trick to stop the IDE
      * from complaining about non-terminating statements.
      */
-    public static RuntimeException throwCheckedException(Throwable exception) {
+    @Contract(value = "_ -> fail", pure = true)
+    public static RuntimeException throwCheckedException(@NotNull Throwable exception) {
         Objects.requireNonNull(exception, "Cannot throw null exception");
         // The following commented statement is not needed because the exception was created somewhere else and the stacktrace reflects that.
         // exception.setStackTrace(Arrays.stream(exception.getStackTrace()).skip(1).toArray(StackTraceElement[]::new));
@@ -778,6 +812,7 @@ public final class XReflection {
     }
 
     @ApiStatus.Internal
+    @Contract(value = "_, _ -> new", pure = true)
     public static <T> T[] concatenate(T[] a, T[] b) {
         int aLen = a.length;
         int bLen = b.length;
@@ -790,18 +825,20 @@ public final class XReflection {
         return c;
     }
 
-    private static final Map<Class<?>, ReflectiveProxyObject> PROXIFIED_CLASS_LOADER = new IdentityHashMap<>();
+    private static final Map<Class<?>, ReflectiveProxyObject> PROXIFIED_CLASSES = new IdentityHashMap<>();
 
     /**
      * Returns a cached value if this interface is already proxified, otherwise proxifies and returns it.
      *
      * @see ReflectiveProxy
+     * @see XReflectASM
      */
     @ApiStatus.Experimental
-    public static <T extends ReflectiveProxyObject> T proxify(Class<T> interfaceClass) {
+    @NotNull
+    public static <T extends ReflectiveProxyObject> T proxify(@NotNull Class<T> interfaceClass) {
         ReflectiveProxy.checkInterfaceClass(interfaceClass);
 
-        ReflectiveProxyObject loaded = PROXIFIED_CLASS_LOADER.get(interfaceClass);
+        ReflectiveProxyObject loaded = PROXIFIED_CLASSES.get(interfaceClass);
         if (loaded != null) // noinspection unchecked
             return (T) loaded;
 
@@ -812,7 +849,7 @@ public final class XReflection {
             proxified = ReflectiveProxy.proxify(interfaceClass).proxy();
         }
 
-        PROXIFIED_CLASS_LOADER.put(interfaceClass, proxified);
+        PROXIFIED_CLASSES.put(interfaceClass, proxified);
         return proxified;
     }
 }

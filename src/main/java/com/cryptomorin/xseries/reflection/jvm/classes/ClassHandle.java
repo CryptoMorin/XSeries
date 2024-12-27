@@ -79,7 +79,7 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
 
     public abstract boolean isArray();
 
-    public DynamicClassHandle inner(@Language("Java") String declaration) {
+    public DynamicClassHandle inner(@Language(value = "Java", suffix = "{}") String declaration) {
         return inner(namespace.classHandle(declaration));
     }
 
@@ -122,7 +122,7 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
         return new MethodMemberHandle(this);
     }
 
-    public MethodMemberHandle method(@Language("Java") String declaration) {
+    public MethodMemberHandle method(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseMethod(method());
     }
 
@@ -134,11 +134,11 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
         return new FieldMemberHandle(this);
     }
 
-    public FieldMemberHandle field(@Language("Java") String declaration) {
+    public FieldMemberHandle field(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseField(field());
     }
 
-    public ConstructorMemberHandle constructor(@Language("Java") String declaration) {
+    public ConstructorMemberHandle constructor(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseConstructor(constructor());
     }
 

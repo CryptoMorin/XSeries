@@ -81,32 +81,32 @@ public final class ProfilesCore {
                 .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
 
         MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
-                "package nms.server.players; public class GameProfileCache {}"
+                "package nms.server.players; public class GameProfileCache"
         ).map(MinecraftMapping.SPIGOT, "UserCache");
 
         try {
             MinecraftClassHandle CraftMetaSkull = ns.ofMinecraft(
-                    "package cb.inventory; class CraftMetaSkull extends CraftMetaItem implements SkullMeta {}"
+                    "package cb.inventory; class CraftMetaSkull extends CraftMetaItem implements SkullMeta"
             );
 
             // This class has existed since ~v1.20.5, however Bukkit has started using it in their
             // classes since Paper v1.20.1b78, its function is basically similar to our Profileable class.
             MinecraftClassHandle ResolvableProfile =
-                    ns.ofMinecraft("package nms.world.item.component; public class ResolvableProfile {}");
+                    ns.ofMinecraft("package nms.world.item.component; public class ResolvableProfile");
 
             if (ResolvableProfile.exists()) {
-                newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile);").reflect();
-                $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile gameProfile();")
+                newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile)").reflect();
+                $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile gameProfile()")
                         .map(MinecraftMapping.OBFUSCATED, "f")
                         .reflect();
 
-                bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile;").exists();
+                bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile").exists();
             }
 
             // @formatter:off
             profileGetterMeta = XReflection.any(
-                    CraftMetaSkull.field("private ResolvableProfile profile;"),
-                    CraftMetaSkull.field("private GameProfile       profile;")
+                    CraftMetaSkull.field("private ResolvableProfile profile"),
+                    CraftMetaSkull.field("private GameProfile       profile")
             ).modify(FieldMemberHandle::getter).reflect();
             // @formatter:on
 
@@ -114,30 +114,30 @@ public final class ProfilesCore {
             // https://github.com/CryptoMorin/XSeries/issues/169
             // noinspection MethodMayBeStatic
             profileSetterMeta = XReflection.any(
-                    CraftMetaSkull.method("private void setProfile(ResolvableProfile profile);"),
-                    CraftMetaSkull.method("private void setProfile(GameProfile       profile);"),
-                    CraftMetaSkull.field ("private                 GameProfile       profile ;").setter()
+                    CraftMetaSkull.method("private void setProfile(ResolvableProfile profile)"),
+                    CraftMetaSkull.method("private void setProfile(GameProfile       profile)"),
+                    CraftMetaSkull.field ("private                 GameProfile       profile ").setter()
             ).reflect();
             // @formatter:on
 
             MinecraftClassHandle MinecraftServer = ns.ofMinecraft(
-                    "package nms.server; public abstract class MinecraftServer {}"
+                    "package nms.server; public abstract class MinecraftServer"
             );
 
             // Added by Bukkit
-            Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer();").reflect().invoke();
+            Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer()").reflect().invoke();
 
-            minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService();")
+            minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService()")
                     .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
                     .reflect().invoke(minecraftServer);
 
             {
                 FieldMemberHandle insecureProfilesFieldHandle = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
-                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService {}").field().getter();
+                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService").field().getter();
                 if (NULLABILITY_RECORD_UPDATE) {
-                    insecureProfilesFieldHandle.signature("private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles;");
+                    insecureProfilesFieldHandle.signature("private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles");
                 } else {
-                    insecureProfilesFieldHandle.signature("private final LoadingCache<GameProfile, GameProfile> insecureProfiles;");
+                    insecureProfilesFieldHandle.signature("private final LoadingCache<GameProfile, GameProfile> insecureProfiles");
                 }
                 MethodHandle insecureProfilesField = insecureProfilesFieldHandle.reflectOrNull();
                 if (insecureProfilesField != null) {
@@ -145,40 +145,40 @@ public final class ProfilesCore {
                 }
             }
 
-            userCache = MinecraftServer.method("public GameProfileCache getProfileCache();")
+            userCache = MinecraftServer.method("public GameProfileCache getProfileCache()")
                     .named("at", /* 1.21.3 */ "ar", /* 1.18.2 */ "ao", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
                     .map(MinecraftMapping.OBFUSCATED, /* 1.9.4 */ "getUserCache")
                     .reflect().invoke(minecraftServer);
 
             if (!NULLABILITY_RECORD_UPDATE) {
                 fillProfileProperties = ns.of(MinecraftSessionService.class).method(
-                        "public GameProfile fillProfileProperties(GameProfile profile, boolean flag);"
+                        "public GameProfile fillProfileProperties(GameProfile profile, boolean flag)"
                 ).reflect();
             }
 
             // noinspection MethodMayBeStatic
-            UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation();")
+            UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation()")
                     .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).reflectOrNull();
 
             MethodMemberHandle profileByName = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             MethodMemberHandle profileByUUID = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
             // @formatter:off
             getProfileByName = XReflection.anyOf(
-                    () -> profileByName.signature("public          GameProfile  get(String username);"),
-                    () -> profileByName.signature("public Optional<GameProfile> get(String username);")
+                    () -> profileByName.signature("public          GameProfile  get(String username)"),
+                    () -> profileByName.signature("public Optional<GameProfile> get(String username)")
             ).reflect();
             getProfileByUUID = XReflection.anyOf(
-                    () -> profileByUUID.signature("public          GameProfile  get(UUID id);"),
-                    () -> profileByUUID.signature("public Optional<GameProfile> get(UUID id);")
+                    () -> profileByUUID.signature("public          GameProfile  get(UUID id)"),
+                    () -> profileByUUID.signature("public Optional<GameProfile> get(UUID id)")
             ).reflect();
             // @formatter:on
 
-            cacheProfile = GameProfileCache.method("public void add(GameProfile profile);")
+            cacheProfile = GameProfileCache.method("public void add(GameProfile profile)")
                     .map(MinecraftMapping.OBFUSCATED, "a").reflect();
 
             try {
                 // Some versions don't have the public getProxy() method. It's very very inconsistent...
-                proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy;").getter()
+                proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy").getter()
                         .map(MinecraftMapping.OBFUSCATED, v(20, 5, "h").v(20, 3, "i")
                                 .v(19, "j")
                                 .v(18, 2, "n").v(18, "o")
@@ -195,16 +195,16 @@ public final class ProfilesCore {
         }
 
         MinecraftClassHandle CraftSkull = ns.ofMinecraft(
-                "package cb.block; public class CraftSkull extends CraftBlockEntityState implements Skull {}"
+                "package cb.block; public class CraftSkull extends CraftBlockEntityState implements Skull"
         );
 
         FieldMemberHandle CraftSkull_profile = XReflection.any(
-                CraftSkull.field("private ResolvableProfile profile;"),
-                CraftSkull.field("private GameProfile profile;")
+                CraftSkull.field("private ResolvableProfile profile"),
+                CraftSkull.field("private GameProfile profile")
         ).getHandle();
 
         Property_getValue = NULLABILITY_RECORD_UPDATE ? null :
-                ns.of(Property.class).method("public String getValue();").unreflect();
+                ns.of(Property.class).method("public String getValue()").unreflect();
 
         PROXY = proxy;
         USER_CACHE = userCache;
@@ -228,27 +228,27 @@ public final class ProfilesCore {
         ResolvableProfile$bukkitSupports = bukkitUsesResolvableProfile;
 
         MinecraftClassHandle UserCacheEntry = GameProfileCache
-                .inner("private static class GameProfileInfo {}")
+                .inner("private static class GameProfileInfo")
                 .map(MinecraftMapping.SPIGOT, "UserCacheEntry");
 
-        UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile();")
+        UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile()")
                 .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
                 .unreflect();
-        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i);")
+        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i)")
                 .map(MinecraftMapping.OBFUSCATED, "a").reflectOrNull();
 
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
-            UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName;")
+            UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName")
                     .getter().map(MinecraftMapping.OBFUSCATED, v(17, "e").v(16, 2, "c").v(9, "d").orElse("c"))
                     .reflect().invoke(userCache);
             // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
-            UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID;")
+            UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID")
                     .getter().map(MinecraftMapping.OBFUSCATED, v(17, "f").v(16, 2, "d").v(9, "e").orElse("d"))
                     .reflect().invoke(userCache);
 
             // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16
-            // MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f;")
+            // MethodHandle deque = GameProfileCache.field("private final Deque<GameProfile> f")
             //         .getter().reflectOrNull();
         } catch (Throwable e) {
             throw new IllegalStateException("Failed to initialize ProfilesCore", e);

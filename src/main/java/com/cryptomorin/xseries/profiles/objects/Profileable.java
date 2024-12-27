@@ -45,10 +45,7 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -132,6 +129,7 @@ public interface Profileable {
      * @param transformers a list of transformers to apply in order once {@link #getProfile()} is called.
      */
     @NotNull
+    @Contract(value = "_ -> new", pure = true)
     default Profileable transform(@NotNull ProfileTransformer... transformers) {
         return new TransformableProfile(this, Arrays.asList(transformers));
     }
@@ -219,6 +217,7 @@ public interface Profileable {
      * Sets the skull texture based on the specified player UUID (whether it's an offline or online UUID).
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable username(@NotNull String username) {
         return new UsernameProfileable(username);
     }
@@ -227,6 +226,7 @@ public interface Profileable {
      * Sets the skull texture based on the specified player UUID (whether it's an offline or online UUID).
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull UUID uuid) {
         return new UUIDProfileable(uuid);
     }
@@ -239,6 +239,7 @@ public interface Profileable {
      * @param profile The profile to be used in the profile setting operation.
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull GameProfile profile) {
         return new GameProfileProfileable(profile);
     }
@@ -250,26 +251,31 @@ public interface Profileable {
      * @param offlinePlayer The offline player to generate the {@link GameProfile}.
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull OfflinePlayer offlinePlayer) {
         return new PlayerProfileable(offlinePlayer);
     }
 
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull BlockState blockState) {
         return new ProfileContainer.BlockStateProfileContainer((Skull) blockState);
     }
 
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull Block block) {
         return new ProfileContainer.BlockProfileContainer(block);
     }
 
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull ItemStack item) {
         return new ProfileContainer.ItemStackProfileContainer(item);
     }
 
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull ItemMeta meta) {
         return new ProfileContainer.ItemMetaProfileContainer((SkullMeta) meta);
     }
@@ -287,6 +293,7 @@ public interface Profileable {
      * @param input The input value used to retrieve the {@link GameProfile}. For more information check {@link ProfileInputType}
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable detect(@NotNull String input) {
         return new StringProfileable(input, null);
     }
@@ -298,6 +305,7 @@ public interface Profileable {
      * @param input The input value to generate the {@link GameProfile}.
      */
     @NotNull
+    @Contract(pure = true)
     static Profileable of(@NotNull ProfileInputType type, @NotNull String input) {
         Objects.requireNonNull(type, () -> "Cannot profile from a null input type: " + input);
         Objects.requireNonNull(input, () -> "Cannot profile from a null input: " + type);

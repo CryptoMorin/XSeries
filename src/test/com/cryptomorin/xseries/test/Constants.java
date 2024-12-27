@@ -39,7 +39,9 @@ public final class Constants {
      * This sends unnecessary requests to Mojang and also delays out work too,
      * so let's not test when it's not needed.
      */
-    public static final boolean TEST_MOJANG_API = false;
+    public static final boolean TEST_MOJANG_API = true;
+
+    public static final boolean TEST_MOJANG_API_BULK = false;
 
     public static final boolean TEST = true;
 

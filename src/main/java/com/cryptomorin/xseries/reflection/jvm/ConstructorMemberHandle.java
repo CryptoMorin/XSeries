@@ -29,6 +29,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,7 +79,7 @@ public class ConstructorMemberHandle extends MemberHandle {
     }
 
     @Override
-    public ConstructorMemberHandle signature(String declaration) {
+    public ConstructorMemberHandle signature(@Language(value = "Java", suffix = ";") String declaration) {
         return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseConstructor(this);
     }
 

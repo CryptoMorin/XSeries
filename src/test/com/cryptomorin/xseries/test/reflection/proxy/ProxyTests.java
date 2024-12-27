@@ -28,6 +28,7 @@ import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.reflection.proxy.minecraft.BlockPos;
 import com.cryptomorin.xseries.test.reflection.proxy.minecraft.CraftWorld;
+import com.cryptomorin.xseries.test.util.XLogger;
 import org.bukkit.World;
 
 import java.lang.invoke.*;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public final class ProxyTests {
     public static void test() {
+        XLogger.log("[Proxy] Testing ReflectiveProxy generation...");
         normalProxyTest(XReflection.proxify(ProxyTestProxified.class));
         if (XReflection.supports(20)) minecraftProxyTest((x) -> ReflectiveProxy.proxify(x).proxy());
 

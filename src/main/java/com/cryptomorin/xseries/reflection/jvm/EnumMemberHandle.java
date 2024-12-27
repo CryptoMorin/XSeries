@@ -29,6 +29,7 @@ import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
+import org.intellij.lang.annotations.Language;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,7 @@ public class EnumMemberHandle extends NamedMemberHandle {
      */
     @Override
     @ApiStatus.Obsolete
-    public MemberHandle signature(String declaration) {
+    public MemberHandle signature(@Language(value = "Java", suffix = ";") String declaration) {
         throw new UnsupportedOperationException();
     }
 

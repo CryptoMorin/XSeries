@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
  * type of interface since they're not functional interfaces.
  *
  * @see ReflectiveProxyObject
+ * @see com.cryptomorin.xseries.reflection.asm.XReflectASM
  * @see XReflection#proxify(Class)
  * @since 13.0.0
  */
