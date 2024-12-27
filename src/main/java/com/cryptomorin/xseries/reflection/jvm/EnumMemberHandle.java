@@ -22,9 +22,12 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
@@ -78,6 +81,16 @@ public class EnumMemberHandle extends NamedMemberHandle {
     @ApiStatus.Obsolete
     public @Nullable MethodHandle reflectOrNull() {
         return super.reflectOrNull();
+    }
+
+
+    /**
+     * Use {@link #getEnumConstant()} instead.
+     */
+    @Override
+    @ApiStatus.Obsolete
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return new ReflectedObjectHandle(() -> ReflectedObject.of(reflectJvm()));
     }
 
     /**

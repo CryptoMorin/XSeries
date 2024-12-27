@@ -32,7 +32,7 @@ abstract class AbstractMemberReflectedObject extends AbstractReflectedObject {
     protected abstract Member member();
 
     @Override
-    public final String name() {
+    public String name() {
         return member().getName();
     }
 

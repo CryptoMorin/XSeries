@@ -27,9 +27,12 @@ import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraintException;
 import com.cryptomorin.xseries.reflection.jvm.*;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -157,4 +160,9 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
 
     @Override
     public abstract ClassHandle copy();
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return new ReflectedObjectHandle(() -> ReflectedObject.of(reflect()));
+    }
 }

@@ -32,6 +32,7 @@ import java.lang.invoke.MethodType;
 
 /**
  * A constraint that controls what a
+ *
  * @since 12.0.0
  */
 @ApiStatus.Experimental
@@ -96,7 +97,7 @@ public enum ClassTypeConstraint implements ReflectiveConstraint {
 
     /**
      * @param handle the reflective handle of the object.
-     * @param jvm A {@link Class}.
+     * @param jvm    A {@link Class}.
      */
     @Override
     public ReflectiveConstraint.Result appliesTo(ReflectiveHandle<?> handle, Object jvm) {

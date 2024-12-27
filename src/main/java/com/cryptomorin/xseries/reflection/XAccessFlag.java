@@ -34,12 +34,12 @@ import java.util.*;
  * This class is similar to Oracle's {@link java.lang.reflect.AccessFlag} default implementation which only exists on Java 20+
  * It also aims to add a few new APIs such as {@link #isSet(int)} and {@link #isSet(int, XAccessFlag...)}
  *
- * @since 12.0.0
  * @see Class#getModifiers()
  * @see Member#getModifiers()
  * @see java.lang.reflect.Modifier
  * @see java.lang.reflect.AccessFlag
  * @see com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint
+ * @since 12.0.0
  */
 @ApiStatus.Experimental
 public enum XAccessFlag {
@@ -84,8 +84,7 @@ public enum XAccessFlag {
     /**
      * The access flag {@code ACC_SUPER} with a mask value of {@code 0x0020}.
      *
-     * @apiNote
-     * In Java SE 8 and above, the JVM treats the {@code ACC_SUPER}
+     * @apiNote In Java SE 8 and above, the JVM treats the {@code ACC_SUPER}
      * flag as set in every class file (JVM Section 4.1).
      */
     SUPER(0x0000_0020, false, JVMLocation.CLASS),
@@ -180,11 +179,9 @@ public enum XAccessFlag {
      * modifier {@link Modifier#STRICT strictfp}, with a mask value of
      * <code>{@code "0x%04x" Modifier#STRICT}</code>.
      *
-     * @apiNote
-     * The {@code ACC_STRICT} access flag is defined for class file
+     * @apiNote The {@code ACC_STRICT} access flag is defined for class file
      * major versions 46 through 60, inclusive (JVM Section 4.6),
      * corresponding to Java SE 1.2 through 16.
-     *
      * @since Java 1.2
      */
     STRICT(Modifier.STRICT, true),
@@ -237,6 +234,7 @@ public enum XAccessFlag {
 
     /**
      * The access flag {@code ACC_MODULE} with a mask value of {@code 0x8000}.
+     *
      * @since Java 9
      */
     MODULE(0x0000_8000, false, JVMLocation.CLASS);
@@ -315,12 +313,17 @@ public enum XAccessFlag {
         return accessFlags;
     }
 
+    public int add(int mod) {
+        return mod | this.mask;
+    }
+
     public int remove(int mod) {
         return mod & ~this.mask;
     }
 
     /**
      * Checks whether this flag is set using {@link #mask()} on the given modifier flag list.
+     *
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see #isSet(int, XAccessFlag...)
      */
@@ -330,6 +333,7 @@ public enum XAccessFlag {
 
     /**
      * Checks whether all the given flags are set using {@link #mask()} on the given modifier flag list.
+     *
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      * @see #isSet(int)
      */
@@ -342,6 +346,7 @@ public enum XAccessFlag {
 
     /**
      * Gets the modifier of a class, field, method or constructor.
+     *
      * @param jvm must be a {@link Class} or {@link Member}.
      * @return {@link Optional#empty()} if this type doesn't have a modifier.
      * @see ReflectedObject#getModifiers()
@@ -359,6 +364,7 @@ public enum XAccessFlag {
     /**
      * Prints a string interpretation of the flags that are contained in the
      * given modifier flag list in form of {@code Flags::(flag1 flag2 flag3 ...)}
+     *
      * @param mod Can be {@link Class#getModifiers()} or {@link Member#getModifiers()}.
      */
     public static String toString(int mod) {
@@ -398,6 +404,7 @@ public enum XAccessFlag {
         /**
          * Inner class location.
          * JVM Section 4.7.6 The InnerClasses Attribute
+         *
          * @since Java 1.1
          */
         INNER_CLASS,
@@ -411,6 +418,7 @@ public enum XAccessFlag {
         /**
          * Module location
          * JVM Section 4.7.25. The Module Attribute
+         *
          * @since Java 9
          */
         MODULE,
@@ -418,6 +426,7 @@ public enum XAccessFlag {
         /**
          * Module requires location
          * JVM Section 4.7.25. The Module Attribute
+         *
          * @since Java 9
          */
         MODULE_REQUIRES,
@@ -425,6 +434,7 @@ public enum XAccessFlag {
         /**
          * Module exports location
          * JVM Section 4.7.25. The Module Attribute
+         *
          * @since Java 9
          */
         MODULE_EXPORTS,
@@ -432,6 +442,7 @@ public enum XAccessFlag {
         /**
          * Module opens location
          * JVM Section 4.7.25. The Module Attribute
+         *
          * @since Java 9
          */
         MODULE_OPENS;

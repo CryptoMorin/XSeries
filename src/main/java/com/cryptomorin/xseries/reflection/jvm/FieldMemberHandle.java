@@ -22,14 +22,18 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Pattern;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
@@ -94,6 +98,10 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
 
     public FieldMemberHandle(ClassHandle clazz) {
         super(clazz);
+    }
+
+    public Boolean isGetter() {
+        return getter;
     }
 
     public FieldMemberHandle getter() {
@@ -219,6 +227,11 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
         } catch (ReflectiveOperationException ex) {
             throw XReflection.throwCheckedException(ex);
         }
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return new ReflectedObjectHandle(() -> ReflectedObject.of(reflectJvm()));
     }
 
     @SuppressWarnings("unchecked")

@@ -23,6 +23,7 @@
 package com.cryptomorin.xseries.reflection;
 
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,4 +117,53 @@ public interface ReflectiveHandle<T> {
      */
     @NotNull
     T reflect() throws ReflectiveOperationException;
+
+    /**
+     * Usually {@link ReflectiveHandle}s return {@link java.lang.invoke.MethodHandle} when possible, however this method returns
+     * the raw object using the traditional Java reflection API which can be:
+     * <ul>
+     *     <li>{@link java.lang.reflect.Field Field}</li>
+     *     <li>{@link java.lang.reflect.Method Method}</li>
+     *     <li>{@link java.lang.reflect.Constructor Constructor}</li>
+     *     <li>{@link Class Class (same as its normal ReflectiveHandle)}</li>
+     * </ul>
+     *
+     * @see ReflectedObject
+     * @since 14.0.0
+     */
+    @NotNull
+    ReflectiveHandle<ReflectedObject> jvm();
+
+    /**
+     * A {@link ReflectiveHandle} that caches {@link ReflectiveHandle#reflect()} and {@link ReflectiveHandle#jvm()}.
+     * Using this is not recommended. Please read {@link com.cryptomorin.xseries.reflection.XReflection}
+     * <b>Performance & Caching</b> section for more information.
+     * <p>
+     * Note that this cache is not immediate and instead, a {@link #copy()} of the handle is created which cannot
+     * be modified.
+     * <p>
+     * This method should only be overridden for generic type adjustment.
+     *
+     * @see #unwrap()
+     * @since 14.0.0
+     */
+    @NotNull
+    @ApiStatus.Experimental
+    default ReflectiveHandle<T> cached() {
+        return new CachedReflectiveHandle<>(copy());
+    }
+
+    /**
+     * If this handle is {@link #cached()}, then unwraps the real handle and returns it, otherwise it returns the same object.
+     * This is useful when you want to access some properties of the handle.
+     *
+     * @see #cached()
+     * @since 14.0.0
+     */
+    @NotNull
+    @ApiStatus.Experimental
+    default ReflectiveHandle<T> unwrap() {
+        if (this instanceof CachedReflectiveHandle) return ((CachedReflectiveHandle<T>) this).getDelegate();
+        else return this;
+    }
 }

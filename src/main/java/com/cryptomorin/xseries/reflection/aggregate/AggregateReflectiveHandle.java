@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.reflection.aggregate;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,6 +115,11 @@ public class AggregateReflectiveHandle<T, H extends ReflectiveHandle<T>> impleme
         AggregateReflectiveHandle<T, H> handle = new AggregateReflectiveHandle<>(new ArrayList<>(handles));
         handle.handleModifier = this.handleModifier;
         return handle;
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return getHandle().jvm();
     }
 
     @Override

@@ -148,8 +148,8 @@ public class ReflectiveNamespace {
     /**
      * Same as {@link XReflection#of(Class)}
      *
-     * @since 11.0.0
      * @see #classHandle(String)
+     * @since 11.0.0
      */
     public StaticClassHandle of(Class<?> clazz) {
         imports(clazz);
@@ -159,9 +159,9 @@ public class ReflectiveNamespace {
     /**
      * Similar to {@link XReflection#classHandle()}
      *
-     * @since 11.0.0
      * @see #ofMinecraft(String)
      * @see #classHandle()
+     * @since 11.0.0
      */
     public DynamicClassHandle classHandle(@Language("Java") String declaration) {
         DynamicClassHandle classHandle = new DynamicClassHandle(this);
@@ -171,9 +171,9 @@ public class ReflectiveNamespace {
     /**
      * Similar to {@link XReflection#classHandle()}
      *
-     * @since 12.0.0
      * @see #ofMinecraft(String)
      * @see #classHandle(String)
+     * @since 12.0.0
      */
     public DynamicClassHandle classHandle() {
         return new DynamicClassHandle(this);
@@ -182,8 +182,8 @@ public class ReflectiveNamespace {
     /**
      * Similar to {@link XReflection#ofMinecraft()}
      *
-     * @since 11.0.0
      * @see #ofMinecraft(String)
+     * @since 11.0.0
      */
     public MinecraftClassHandle ofMinecraft(@Language("Java") String declaration) {
         MinecraftClassHandle classHandle = new MinecraftClassHandle(this);
@@ -193,8 +193,8 @@ public class ReflectiveNamespace {
     /**
      * Similar to {@link XReflection#ofMinecraft()}
      *
-     * @since 12.0.0
      * @see #ofMinecraft(String)
+     * @since 12.0.0
      */
     public MinecraftClassHandle ofMinecraft() {
         return new MinecraftClassHandle(this);

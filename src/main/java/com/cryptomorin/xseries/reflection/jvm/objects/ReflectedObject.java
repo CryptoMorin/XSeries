@@ -35,6 +35,7 @@ import java.util.Set;
  * The main purpose of this class is to create an abstraction layer for common methods
  * such as the annotation methods ({@link AnnotatedElement}), {@link #getModifiers()}, {@link #accessFlags()}, {@link #name()} and {@link #getDeclaringClass()}.
  * A proper instance can be created using the {@code of()} method.
+ *
  * @since 13.0.0
  */
 public interface ReflectedObject extends AnnotatedElement {
@@ -95,7 +96,7 @@ public interface ReflectedObject extends AnnotatedElement {
      * of <cite>The Java Virtual Machine Specification</cite>.
      *
      * @return the {@code int} representing the modifiers for this class
-     * @see     java.lang.reflect.Modifier
+     * @see java.lang.reflect.Modifier
      * @see <a
      * href="{@docRoot}/java.base/java/lang/reflect/package-summary.html#LanguageJvmModel">Java
      * programming language and JVM modeling in core reflection</a>

@@ -22,11 +22,15 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
@@ -76,6 +80,11 @@ public class ConstructorMemberHandle extends MemberHandle {
     @Override
     public ConstructorMemberHandle signature(String declaration) {
         return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseConstructor(this);
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return new ReflectedObjectHandle(() -> ReflectedObject.of(reflectJvm()));
     }
 
     @SuppressWarnings("unchecked")

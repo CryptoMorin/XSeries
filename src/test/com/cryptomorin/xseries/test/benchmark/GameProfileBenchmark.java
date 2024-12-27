@@ -40,14 +40,17 @@ import java.util.concurrent.TimeUnit;
  */
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
+@Warmup(iterations = 3)
+@Measurement(iterations = 4)
 @Threads(1)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
+@Fork(0)
 public class GameProfileBenchmark {
     private static final UUID id = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5");
 
     @State(Scope.Benchmark)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    @Threads(1)
+    @Fork(0)
     public static class DetectTest {
         private static final String[] VALUES = {"SomeRandomName", "Invalid String 4825uh89Y(&$#Y#Q(&$T(", ""};
         String detectValues;

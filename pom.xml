@@ -121,6 +121,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>9.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.11.4</version>
@@ -273,6 +286,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
                 <configuration>
+                    <!-- <forkCount>0</forkCount> -->
                     <!--<failIfNoTests>true</failIfNoTests>-->
                     <!-- <skipTests>true</skipTests>-->
                     <trimStackTrace>false</trimStackTrace>

@@ -27,6 +27,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Mark a method in a {@link com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject} interface
+ * as a constructor. The name of the method is irrelevant, but you should name it the same as the
+ * proxy interface class or the target class, just like how normal constructors are named.
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Constructor {}

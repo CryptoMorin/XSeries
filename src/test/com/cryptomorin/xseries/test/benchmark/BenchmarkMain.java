@@ -23,8 +23,6 @@
 package com.cryptomorin.xseries.test.benchmark;
 
 import com.cryptomorin.xseries.test.Constants;
-import com.cryptomorin.xseries.test.benchmark.reflection.ReflectionBenchmark;
-import com.cryptomorin.xseries.test.benchmark.reflection.ReflectionBenchmarkExecution;
 import com.cryptomorin.xseries.test.util.XLogger;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.runner.Runner;
@@ -45,13 +43,14 @@ public class BenchmarkMain extends Thread implements Thread.UncaughtExceptionHan
 
     @Override
     public void run() {
+        // Note it appears that the configured settings here cannot be
+        // overridden by JMH annotations.
         Options opt = new OptionsBuilder()
                 .include(RegistryBenchmark.class.getSimpleName())
-                .include(ReflectionBenchmark.class.getSimpleName())
-                .include(ReflectionBenchmarkExecution.class.getSimpleName())
-                .include(GameProfileBenchmark.class.getSimpleName())
-                .forks(0) // Terrible, but we need the server state...
-                .threads(1)
+                // .include(ReflectionBenchmarkSetup.class.getSimpleName())
+                // .include(ReflectionBenchmarkExecution.class.getSimpleName())
+                // .include(GameProfileBenchmark.class.getSimpleName())
+                // .forks(0) // Terrible, but we need the server state...
                 .shouldFailOnError(true)
                 .mode(Mode.AverageTime)
                 .build();

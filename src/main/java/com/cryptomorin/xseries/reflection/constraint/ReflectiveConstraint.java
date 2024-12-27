@@ -41,9 +41,9 @@ import org.jetbrains.annotations.ApiStatus;
  * <p>
  * This class should not be directly used in most cases.
  *
- * @since 12.0.0
  * @see VisibilityConstraint
  * @see ClassTypeConstraint
+ * @since 12.0.0
  */
 @ApiStatus.Experimental
 public interface ReflectiveConstraint {
@@ -64,7 +64,7 @@ public interface ReflectiveConstraint {
      * either {@link Result#INCOMPATIBLE} or {@link Result#NOT_MATCHED}.
      *
      * @param handle the reflective handle of the object.
-     * @param jvm the corresponding JVM object (not {@link java.lang.invoke.MethodHandle}) of the handle.
+     * @param jvm    the corresponding JVM object (not {@link java.lang.invoke.MethodHandle}) of the handle.
      * @return Refer to {@link Result} for details.
      */
     Result appliesTo(ReflectiveHandle<?> handle, Object jvm);

@@ -25,13 +25,8 @@ package com.cryptomorin.xseries.test.reflection;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
-import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
-import com.cryptomorin.xseries.test.Constants;
-import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestClass;
-import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestProxified;
-import com.cryptomorin.xseries.test.reflection.proxy.minecraft.BlockPos;
-import com.cryptomorin.xseries.test.reflection.proxy.minecraft.CraftWorld;
-import org.bukkit.World;
+import com.cryptomorin.xseries.test.reflection.asm.ASMTests;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Modifier;
@@ -40,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import static com.cryptomorin.xseries.test.util.XLogger.log;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 @SuppressWarnings("All")
 public final class ReflectionTests {
@@ -71,40 +67,6 @@ public final class ReflectionTests {
 
     private String[] split(char ch, int limit, boolean withDelimiters) {
         return new String[]{"lim" + limit, ch + "a", "withDel" + withDelimiters};
-    }
-
-    public static void normalProxyTest() {
-        ReflectiveProxy<ProxyTestProxified> factoryProxy = XReflection.proxify(ProxyTestProxified.class);
-
-        assertEquals(ProxyTestClass.finalId, factoryProxy.proxy().finalId());
-        assertEquals(ProxyTestClass.id, factoryProxy.proxy().id());
-        log("[Proxy] doStaticThings() " + factoryProxy.proxy().doStaticThings(10));
-
-        ProxyTestClass instance = factoryProxy.proxy().ProxyTestProxified("OperationTestum", 2025);
-        ProxyTestProxified instanceProxy = factoryProxy.bindTo(instance);
-
-        assertEquals("OperationTestum", instanceProxy.operationField());
-        assertEquals(2025, instanceProxy.date());
-        assertEquals("OperationTestum12false", instanceProxy.getSomething("12", false));
-        instance.doSomething("20", true);
-        assertEquals("OperationTestumdoSomething20true", instanceProxy.operationField());
-
-        if (XReflection.supports(20)) minecraftProxyTest();
-    }
-
-    public static void minecraftProxyTest() {
-        World bukkitWorld = Constants.getMainWorld();
-        // WorldServer nmsWorld = ((org.bukkit.craftbukkit.v1_21_R3.CraftWorld) bukkitWorld).getHandle();
-        // boolean changed = nmsWorld.a(new BlockPosition(45, 34, 23), true);
-
-        ReflectiveProxy<BlockPos> BlockPos = XReflection.proxify(BlockPos.class);
-        ReflectiveProxy<CraftWorld> CraftWorld = XReflection.proxify(CraftWorld.class);
-
-        CraftWorld craftWorld = CraftWorld.bindTo(bukkitWorld);
-        BlockPos pos = BlockPos.proxy().BlockPos(34, 45, 23);
-
-        boolean changed = craftWorld.getHandle().removeBlock(pos, true);
-        log("[MC-Proxy] Block Changed? " + changed);
     }
 
     public interface GameProfile {
@@ -166,6 +128,7 @@ public final class ReflectionTests {
             throw new IllegalStateException("ReflectionParser test failed", e);
         }
 
-        normalProxyTest();
+        ProxyTests.test();
+        ASMTests.test();
     }
 }

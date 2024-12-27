@@ -24,12 +24,21 @@ package com.cryptomorin.xseries.test.benchmark.reflection;
 
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import com.cryptomorin.xseries.reflection.proxy.annotations.Class;
+import com.cryptomorin.xseries.reflection.proxy.annotations.Private;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectName;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 @Class(packageName = "com.cryptomorin.xseries.test.benchmark.reflection", ignoreCurrentName = true)
 @ReflectName("ReflectionBenchmarkTargetMethod")
 public interface ReflectionBenchmarkTargetMethodProxy extends ReflectiveProxyObject {
+    @Private
+    Optional<String> helloPrivate(String firstArg, int secondArg, boolean thirdArg);
+
     Optional<String> hello(String firstArg, int secondArg, boolean thirdArg);
+
+    @Override
+    @NotNull
+    ReflectionBenchmarkTargetMethodProxy bindTo(@NotNull Object instance);
 }

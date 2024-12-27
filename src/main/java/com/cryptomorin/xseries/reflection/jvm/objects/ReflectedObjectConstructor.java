@@ -35,6 +35,14 @@ final class ReflectedObjectConstructor extends AbstractMemberReflectedObject {
         return Type.CONSTRUCTOR;
     }
 
+    /**
+     * By default, {@link Constructor#getName()} returns the class name.
+     */
+    @Override
+    public String name() {
+        return "<init>";
+    }
+
     @Override
     public Constructor<?> unreflect() {
         return delegate;

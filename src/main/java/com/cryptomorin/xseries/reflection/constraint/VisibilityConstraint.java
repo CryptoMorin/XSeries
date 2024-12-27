@@ -30,6 +30,7 @@ import java.lang.reflect.Member;
 
 /**
  * A constraint that controls the {@code public, protected, private} state of a {@link Class} or {@link Member}.
+ *
  * @since 12.0.0
  */
 @ApiStatus.Experimental
@@ -47,7 +48,7 @@ public enum VisibilityConstraint implements ReflectiveConstraint {
 
     /**
      * @param handle the reflective handle of the object.
-     * @param jvm A {@link Class} or {@link Member}.
+     * @param jvm    A {@link Class} or {@link Member}.
      */
     @Override
     public Result appliesTo(ReflectiveHandle<?> handle, Object jvm) {

@@ -22,15 +22,18 @@
 
 package com.cryptomorin.xseries.test;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Constants {
+public final class Constants {
+    private Constants() {}
+
     public static final Object LOCK = new Object();
-    static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
+    public static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
 
     /**
      * This sends unnecessary requests to Mojang and also delays out work too,
@@ -38,7 +41,13 @@ public class Constants {
      */
     public static final boolean TEST_MOJANG_API = false;
 
+    public static final boolean TEST = true;
+
     public static final boolean BENCHMARK = false;
+
+    public static void disableXReflectionMinecraft() {
+        System.setProperty(XReflection.DISABLE_MINECRAFT_CAPABILITIES_PROPERTY, "");
+    }
 
     public static World getMainWorld() {
         return Bukkit.getWorlds().get(0);

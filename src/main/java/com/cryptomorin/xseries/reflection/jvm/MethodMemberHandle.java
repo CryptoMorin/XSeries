@@ -22,14 +22,20 @@
 
 package com.cryptomorin.xseries.reflection.jvm;
 
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.PackageHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Pattern;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.invoke.MethodHandle;
+import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
@@ -75,11 +81,6 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     }
 
     @Override
-    public MethodHandle reflect() throws ReflectiveOperationException {
-        return clazz.getNamespace().getLookup().unreflect(reflectJvm());
-    }
-
-    @Override
     public MethodMemberHandle signature(String declaration) {
         return new ReflectionParser(declaration).imports(clazz.getNamespace()).parseMethod(this);
     }
@@ -92,6 +93,58 @@ public class MethodMemberHandle extends FlaggedNamedMemberHandle {
     public MethodMemberHandle named(@Pattern(PackageHandle.JAVA_IDENTIFIER_PATTERN) String... names) {
         super.named(names);
         return this;
+    }
+
+    /**
+     * @since 14.0.0
+     */
+    public MethodType getMethodType() {
+        return MethodType.methodType(
+                getReturnType(),
+                FlaggedNamedMemberHandle.getParameters(this, this.parameterTypes)
+        );
+    }
+
+    /**
+     * Uses {@link LambdaMetafactory} to create runtime-generated ASM classes.
+     *
+     * @param proxy           the interface used to implement this method.
+     * @param interfaceMethod the name of the method inside {@code proxy} interface to implement.
+     * @return A callable object with no instance attached.
+     * @throws ReflectiveOperationException if {@link #reflect()} fails.
+     * @throws LambdaConversionException    read {@link LambdaMetafactory#metafactory(MethodHandles.Lookup, String, MethodType, MethodType, MethodHandle, MethodType)} for more info.
+     * @since 14.0.0
+     */
+    @ApiStatus.Experimental
+    public CallSite toLambda(Class<?> proxy, String interfaceMethod) throws ReflectiveOperationException, LambdaConversionException {
+        MethodType factoryType = getMethodType();
+        MethodType implType;
+
+        if (accessFlags.contains(XAccessFlag.STATIC)) {
+            implType = MethodType.methodType(proxy);
+        } else {
+            implType = MethodType.methodType(
+                    proxy, // the interface to implement
+                    clazz.reflect() // captured parameters/variables
+            );
+        }
+
+        return LambdaMetafactory.metafactory(clazz.getNamespace().getLookup(),
+                interfaceMethod,
+                implType,
+                factoryType, // Signature and return type of method to be implemented by the function object.
+                reflect(), // MethodHandle
+                factoryType); // Enforced signature (same as normal signature most of the time) helpful when dealing with generics
+    }
+
+    @Override
+    public MethodHandle reflect() throws ReflectiveOperationException {
+        return clazz.getNamespace().getLookup().unreflect(reflectJvm());
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return new ReflectedObjectHandle(() -> ReflectedObject.of(reflectJvm()));
     }
 
     @SuppressWarnings("unchecked")

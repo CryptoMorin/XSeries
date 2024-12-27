@@ -28,6 +28,7 @@ import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import com.cryptomorin.xseries.reflection.proxy.annotations.MappedMinecraftName;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectMinecraftPackage;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectName;
+import org.jetbrains.annotations.NotNull;
 
 @ReflectMinecraftPackage(type = MinecraftPackage.NMS, packageName = "server.level")
 @MappedMinecraftName(mapping = MinecraftMapping.MOJANG, names = @ReflectName("ServerLevel"))
@@ -36,4 +37,8 @@ public interface ServerLevel extends ReflectiveProxyObject {
     @MappedMinecraftName(mapping = MinecraftMapping.MOJANG, names = @ReflectName("removeBlock"))
     @MappedMinecraftName(mapping = MinecraftMapping.SPIGOT, names = @ReflectName("a"))
     boolean removeBlock(BlockPos blockPos, boolean flag);
+
+    @Override
+    @NotNull
+    ServerLevel bindTo(@NotNull Object instance);
 }

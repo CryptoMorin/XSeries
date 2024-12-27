@@ -220,12 +220,13 @@ public abstract class DummyAbstractServer {
             // This is needed because setServer() is set inside a [New Thread]
             // We can't simply wait until the server is just fully loaded with the scheduler
             // either, because that also requires the Bukkit object.
-            waitForServer();
 
             if (startException.get() != null) {
                 log("Server startup failed. Not continuing.");
                 throw new IllegalStateException("Server startup failed", startException.get());
             }
+
+            waitForServer();
 
             // We can't use reflection to load the plugin manually because JavaPlugin's constructor
             // will complain when it's not loaded by a PluginClassLoader which is private.
@@ -248,7 +249,7 @@ public abstract class DummyAbstractServer {
                             throw new IllegalStateException("Failed to disable XRegistry's auto-add system", e);
                         }
 
-                        XSeriesTests.test();
+                        if (Constants.TEST) XSeriesTests.test();
                     } catch (Throwable ex) {
                         error.set(ex);
                     }

@@ -25,7 +25,14 @@ package com.cryptomorin.xseries.test.benchmark.reflection;
 import java.util.Optional;
 
 public class ReflectionBenchmarkTargetMethod {
+    public String someField = "test";
+
+    @SuppressWarnings("unused")
+    private Optional<String> helloPrivate(String firstArg, int secondArg, boolean thirdArg) {
+        return Optional.of(secondArg + firstArg + thirdArg + someField);
+    }
+
     public Optional<String> hello(String firstArg, int secondArg, boolean thirdArg) {
-        return Optional.of(firstArg + secondArg + thirdArg);
+        return Optional.of(firstArg + secondArg + thirdArg + someField);
     }
 }

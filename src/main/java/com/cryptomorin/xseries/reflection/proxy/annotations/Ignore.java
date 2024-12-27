@@ -24,6 +24,9 @@ package com.cryptomorin.xseries.reflection.proxy.annotations;
 
 import java.lang.annotation.*;
 
+/**
+ * Ignores this method when proxifying the interface.
+ */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

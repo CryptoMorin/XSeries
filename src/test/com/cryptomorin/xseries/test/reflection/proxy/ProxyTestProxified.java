@@ -25,9 +25,9 @@ package com.cryptomorin.xseries.test.reflection.proxy;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import com.cryptomorin.xseries.reflection.proxy.annotations.Class;
 import com.cryptomorin.xseries.reflection.proxy.annotations.*;
+import org.jetbrains.annotations.NotNull;
 
-@Class(packageName = "com.cryptomorin.xseries.test.reflection.proxy", ignoreCurrentName = true)
-@ReflectName("ProxyTestClass")
+@Class(target = ProxyTestClass.class)
 public interface ProxyTestProxified extends ReflectiveProxyObject {
     // Fields
     @Static
@@ -54,9 +54,32 @@ public interface ProxyTestProxified extends ReflectiveProxyObject {
     @Constructor
     ProxyTestClass ProxyTestProxified(String operationField, int date);
 
-    // Methods
-    // @ReflectName(names = "doSomething")
-    void doSomething(String add, boolean add2);
+    @SuppressWarnings("MethodNameSameAsClassName")
+    @Constructor
+    ProxyTestProxified ProxyTestProxified(String operationField);
 
+    @SuppressWarnings("MethodNameSameAsClassName")
+    @Private
+    @Constructor
+    ProxyTestProxified ProxyTestProxified(int date);
+
+    @Private
+    StringBuilder doSomethingPrivate(int length);
+
+    // Methods
+    @ReflectName("doSomething")
+    void iForgotTheName(String add, boolean add2);
+
+    // Overload test
     String getSomething(String add, boolean add2);
+
+    String getSomething(String add, short add2);
+
+    String getSomething(String add);
+
+    int getSomething(String add, int add2);
+
+    @Override
+    @NotNull
+    ProxyTestProxified bindTo(@NotNull Object instance);
 }

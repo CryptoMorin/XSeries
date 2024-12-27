@@ -30,7 +30,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Class {
-    String packageName();
+    java.lang.Class<?> target() default void.class;
+
+    String packageName() default "";
 
     boolean ignoreCurrentName() default false;
 }

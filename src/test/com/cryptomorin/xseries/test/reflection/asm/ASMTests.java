@@ -20,13 +20,22 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy.annotations;
+package com.cryptomorin.xseries.test.reflection.asm;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.cryptomorin.xseries.reflection.asm.XReflectASM;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestProxified;
+import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
 
-@Target({ElementType.METHOD, ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Private {}
+public final class ASMTests {
+    public static void test() {
+        // XReflectASM<ServerLevel> asm = XReflectASM.proxify(ServerLevel.class);
+        // asm.verify(false);
+        // asm.writeToFile(Constants.DESKTOP);
+
+        XReflectASM<ProxyTestProxified> asm = XReflectASM.proxify(ProxyTestProxified.class);
+        ProxyTestProxified factoryInstance = asm.create();
+        ProxyTests.normalProxyTest(factoryInstance);
+
+        ProxyTests.minecraftProxyTest((clazz) -> XReflectASM.proxify(clazz).create());
+    }
+}

@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.reflection;
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveHandle;
 import com.cryptomorin.xseries.reflection.aggregate.AggregateReflectiveSupplier;
 import com.cryptomorin.xseries.reflection.aggregate.VersionHandle;
+import com.cryptomorin.xseries.reflection.asm.XReflectASM;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
@@ -74,7 +75,7 @@ import java.util.stream.Collectors;
  *     <li>{@link #relativizeSuppressedExceptions(Throwable)}: Relativize the stacktrace of exceptions that are thrown from the same location.</li>
  * </ul>
  * <h2>XReflection API Stages</h2>
- * In general, XReflection's API is divided into four stages:
+ * In general, XReflection's API is divided into five stages:
  * <ul>
  *     <li>
  *         <strong>Stage I (Raw Level):</strong> This is the a low-level API which offers the most customizable and performance.
@@ -97,7 +98,14 @@ import java.util.stream.Collectors;
  *         It's accessed from {@link XReflection#proxify(Class)}.
  *     </li>
  *     <li>
- *         <strong>Stage IV (ASM Mode):</strong> ???
+ *         <strong>Stage IV (ASM Mode):</strong> This is simply Stage III API, however instead of relying on
+ *         Java's proxy system, an ASM-assisted code generation occurs in a new class loader, which makes this
+ *         almost as fast as direct calls, even for inaccessible private methods due to the use of
+ *         {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} with polymorphic signature.
+ *         This system is only used if at least ASM9 is detected during runtime (supports shading as well)
+ *     </li>
+ *     <li>
+ *         <strong>Stage V (Magic ASM Mode):</strong> ???
  *     </li>
  * </ul>
  *
@@ -116,9 +124,14 @@ import java.util.stream.Collectors;
  * That way you can invoke static methods and constructors from that one proxy and the subsequently created proxies
  * (for individual instances) will inherit that. Although these proxies are handled by an internal cache as well,
  * so it's not that important if you don't cache them.
+ * <p>
+ * The results of XReflection creation & execution phases are compared in {@code ReflectionBenchmarkSetup} and {@code ReflectionBenchmarkExecution}
+ * respectively, and the results of the creation phase is only a nanosecond longer for Stage I API and expectedly, a few nanoseconds longer for
+ * Stage II API, However there is no difference for the execution phase (maybe 1 or 2 nanoseconds which is the result of data error) but this can't
+ * be said for Stage III Proxy API as one might expect, it's almost 4-20 times slower depending on how you're using the code.
  *
  * @author Crypto Morin
- * @version 13.0.0
+ * @version 14.0.0
  * @see com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection
  * @see com.cryptomorin.xseries.reflection.minecraft.NMSExtras
  */
@@ -147,7 +160,41 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "12.1.0";
+    public static final String XSERIES_VERSION = "13.0.0";
+
+    /**
+     * System property ({@link System#getProperty(String)}) used to disable Minecraft capabilities
+     * of this class. This is useful when working with Unit Tests that don't run a server or needing
+     * to run forked processes (e.g. using JMH default forked mode for benchmarking.)
+     * <p>
+     * It's simply enough for the property to be present, but you can also specify a Minecraft version
+     * for the class to use for {@link #supports(int)} and other similar version checking methods.
+     */
+    @ApiStatus.Internal
+    public static final String DISABLE_MINECRAFT_CAPABILITIES_PROPERTY = "xseries.xreflection.disable.minecraft";
+
+    /**
+     * Whether the internal systems can take advantage of ASM-powered systems
+     * for maximizing performance for reflection access when possible.
+     */
+    @ApiStatus.Internal
+    public static final boolean SUPPORTS_ASM;
+
+    static {
+        boolean supportsASM;
+        try {
+            // Should be handled by shading/relocation systems.
+            Class.forName("org.objectweb.asm.ClassWriter");
+            Class.forName("org.objectweb.asm.MethodVisitor");
+            Class.forName("org.objectweb.asm.FieldVisitor");
+            Class.forName("org.objectweb.asm.Constants");
+            Class.forName("org.objectweb.asm.Opcodes");
+            supportsASM = true;
+        } catch (ClassNotFoundException e) {
+            supportsASM = false;
+        }
+        SUPPORTS_ASM = supportsASM;
+    }
 
     @Nullable
     @ApiStatus.Internal
@@ -228,10 +275,20 @@ public final class XReflection {
         // NMS_VERSION               = v1_20_R3
         // Bukkit.getBukkitVersion() = 1.20.4-R0.1-SNAPSHOT
         // Bukkit.getVersion()       = git-Paper-364 (MC: 1.20.4)
+
+        String verProp = isMinecraftDisabled();
+        if (verProp != null) {
+            System.out.println("[XSeries/XReflection] Testing with hardcoded server version: "
+                    + (verProp.isEmpty() ? "Disabled Minecraft Capabilities" : verProp));
+            if (verProp.isEmpty() || verProp.equals("true")) {
+                verProp = "1.21.4-R0.1-SNAPSHOT";
+            }
+        }
+
         Matcher bukkitVer = Pattern
                 // <patch> is optional for first releases like "1.8-R0.1-SNAPSHOT"
                 .compile("^(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?")
-                .matcher(Bukkit.getBukkitVersion());
+                .matcher(verProp != null ? verProp : Bukkit.getBukkitVersion());
         if (bukkitVer.find()) { // matches() won't work, we just want to match the start using "^"
             try {
                 // group(0) gives the whole matched string, we just want the captured group.
@@ -244,6 +301,14 @@ public final class XReflection {
             }
         } else {
             throw new IllegalStateException("Cannot parse server version: \"" + Bukkit.getBukkitVersion() + '"');
+        }
+    }
+
+    private static String isMinecraftDisabled() {
+        try {
+            return System.getProperty(DISABLE_MINECRAFT_CAPABILITIES_PROPERTY);
+        } catch (SecurityException ignored) {
+            return null;
         }
     }
 
@@ -311,7 +376,7 @@ public final class XReflection {
      */
     @ApiStatus.Internal
     public static final String
-            CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName(),
+            CRAFTBUKKIT_PACKAGE = isMinecraftDisabled() != null ? null : Bukkit.getServer().getClass().getPackage().getName(),
             NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
 
     @ApiStatus.Internal
@@ -319,18 +384,22 @@ public final class XReflection {
     public static final Set<MinecraftMapping> SUPPORTED_MAPPINGS;
 
     static {
-        SUPPORTED_MAPPINGS =
-                supply(
-                        ofMinecraft()
-                                .inPackage(MinecraftPackage.NMS, "server.level")
-                                .map(MinecraftMapping.MOJANG, "ServerPlayer"),
-                        () -> EnumSet.of(MinecraftMapping.MOJANG)
-                ).or(
-                        ofMinecraft()
-                                .inPackage(MinecraftPackage.NMS, "server.level")
-                                .map(MinecraftMapping.MOJANG, "EntityPlayer"),
-                        () -> EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED)
-                ).get();
+        if (isMinecraftDisabled() != null) {
+            SUPPORTED_MAPPINGS = EnumSet.noneOf(MinecraftMapping.class);
+        } else {
+            SUPPORTED_MAPPINGS =
+                    supply(
+                            ofMinecraft()
+                                    .inPackage(MinecraftPackage.NMS, "server.level")
+                                    .map(MinecraftMapping.MOJANG, "ServerPlayer"),
+                            () -> EnumSet.of(MinecraftMapping.MOJANG)
+                    ).or(
+                            ofMinecraft()
+                                    .inPackage(MinecraftPackage.NMS, "server.level")
+                                    .map(MinecraftMapping.MOJANG, "EntityPlayer"),
+                            () -> EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED)
+                    ).get();
+        }
     }
 
     private XReflection() {}
@@ -721,12 +790,29 @@ public final class XReflection {
         return c;
     }
 
+    private static final Map<Class<?>, ReflectiveProxyObject> PROXIFIED_CLASS_LOADER = new IdentityHashMap<>();
+
     /**
      * Returns a cached value if this interface is already proxified, otherwise proxifies and returns it.
+     *
      * @see ReflectiveProxy
      */
     @ApiStatus.Experimental
-    public static <T extends ReflectiveProxyObject> ReflectiveProxy<T> proxify(Class<T> proxyInterface) {
-        return ReflectiveProxy.proxify(proxyInterface);
+    public static <T extends ReflectiveProxyObject> T proxify(Class<T> interfaceClass) {
+        ReflectiveProxy.checkInterfaceClass(interfaceClass);
+
+        ReflectiveProxyObject loaded = PROXIFIED_CLASS_LOADER.get(interfaceClass);
+        if (loaded != null) // noinspection unchecked
+            return (T) loaded;
+
+        T proxified;
+        if (SUPPORTS_ASM) {
+            proxified = XReflectASM.proxify(interfaceClass).create();
+        } else {
+            proxified = ReflectiveProxy.proxify(interfaceClass).proxy();
+        }
+
+        PROXIFIED_CLASS_LOADER.put(interfaceClass, proxified);
+        return proxified;
     }
 }

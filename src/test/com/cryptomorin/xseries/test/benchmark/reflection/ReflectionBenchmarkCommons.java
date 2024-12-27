@@ -24,11 +24,10 @@ package com.cryptomorin.xseries.test.benchmark.reflection;
 
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.asm.XReflectASM;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
+import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -63,11 +62,28 @@ public final class ReflectionBenchmarkCommons {
                 .reflectJvm();
     }
 
-    public static ReflectiveProxy<ReflectionBenchmarkTargetMethodProxy> XReflection_III_Proxy() {
-        return XReflection.proxify(ReflectionBenchmarkTargetMethodProxy.class);
+    public static ReflectionBenchmarkTargetMethodProxy XReflection_III_Proxy() {
+        return ReflectiveProxy.proxify(ReflectionBenchmarkTargetMethodProxy.class).proxy();
     }
 
-    public static Void XReflection_Stage_IV() {
-        return null;
+    public static ReflectionBenchmarkTargetMethodProxy XReflection_IV_Proxy() {
+        return XReflectASM.proxify(ReflectionBenchmarkTargetMethodProxy.class).create();
+    }
+
+    public static CallSite callSite() throws ReflectiveOperationException, LambdaConversionException {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodType factoryType = MethodType.methodType(Optional.class, String.class, int.class, boolean.class);
+
+        Class<?> clazz = Class.forName("com.cryptomorin.xseries.test.benchmark.reflection.ReflectionBenchmarkTargetMethod");
+
+        return LambdaMetafactory.metafactory(lookup,
+                "hello",
+                MethodType.methodType(
+                        ReflectionBenchmarkTargetMethodProxy.class,
+                        clazz
+                ),
+                factoryType,
+                lookup.findVirtual(clazz, "hello", factoryType),
+                factoryType);
     }
 }

@@ -41,11 +41,14 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 3)
 @Measurement(iterations = 3)
 @Threads(3)
+@Fork(0)
 public class RegistryBenchmark {
     @State(Scope.Benchmark)
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @Warmup(iterations = 3)
     @Measurement(iterations = 3)
+    @Threads(3)
+    @Fork(0)
     public static class SoundNames {
         private String soundName;
         private static final String[] VALUES =
@@ -66,6 +69,8 @@ public class RegistryBenchmark {
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     @Warmup(iterations = 3)
     @Measurement(iterations = 3)
+    @Threads(3)
+    @Fork(0)
     public static class MaterialNames {
         public String materialName;
 

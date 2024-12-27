@@ -56,6 +56,7 @@ import java.util.*;
 public final class XBlock {
     /**
      * This list contains both block and item version of the same material.
+     *
      * @deprecated Use {@link XTag#CROPS} instead.
      */
     @Deprecated

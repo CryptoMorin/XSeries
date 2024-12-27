@@ -25,8 +25,13 @@ package com.cryptomorin.xseries.test.reflection.proxy.minecraft;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectMinecraftPackage;
+import org.jetbrains.annotations.NotNull;
 
 @ReflectMinecraftPackage(type = MinecraftPackage.CB)
 public interface CraftWorld extends ReflectiveProxyObject {
     ServerLevel getHandle();
+
+    @Override
+    @NotNull
+    CraftWorld bindTo(@NotNull Object instance);
 }

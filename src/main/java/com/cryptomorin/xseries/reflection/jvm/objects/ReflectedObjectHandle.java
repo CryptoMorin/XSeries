@@ -20,13 +20,33 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy.annotations;
+package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import org.jetbrains.annotations.NotNull;
 
-@Target({ElementType.METHOD, ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Private {}
+public final class ReflectedObjectHandle implements ReflectiveHandle<ReflectedObject> {
+    private final ReflectiveOperation jvmGetter;
+
+    public ReflectedObjectHandle(ReflectiveOperation jvmGetter) {this.jvmGetter = jvmGetter;}
+
+    @FunctionalInterface
+    public interface ReflectiveOperation {
+        ReflectedObject get() throws ReflectiveOperationException;
+    }
+
+    @Override
+    public ReflectiveHandle<ReflectedObject> copy() {
+        return new ReflectedObjectHandle(jvmGetter);
+    }
+
+    @Override
+    public @NotNull ReflectedObject reflect() throws ReflectiveOperationException {
+        return jvmGetter.get();
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return this;
+    }
+}

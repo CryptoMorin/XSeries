@@ -57,11 +57,9 @@ import java.util.stream.Collectors;
  *
  * @see ReflectiveNamespace#classHandle(String)
  * @see ReflectiveNamespace#ofMinecraft(String)
- *
  * @see ClassHandle#constructor(String)
  * @see ClassHandle#method(String)
  * @see ClassHandle#field(String)
- *
  * @see MemberHandle#signature(String)
  */
 @ApiStatus.Internal

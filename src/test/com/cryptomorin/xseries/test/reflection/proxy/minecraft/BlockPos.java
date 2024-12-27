@@ -29,6 +29,7 @@ import com.cryptomorin.xseries.reflection.proxy.annotations.Constructor;
 import com.cryptomorin.xseries.reflection.proxy.annotations.MappedMinecraftName;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectMinecraftPackage;
 import com.cryptomorin.xseries.reflection.proxy.annotations.ReflectName;
+import org.jetbrains.annotations.NotNull;
 
 @ReflectMinecraftPackage(type = MinecraftPackage.NMS, packageName = "core")
 @MappedMinecraftName(mapping = MinecraftMapping.MOJANG, names = @ReflectName("BlockPos"))
@@ -37,4 +38,8 @@ public interface BlockPos extends ReflectiveProxyObject {
     @SuppressWarnings("MethodNameSameAsClassName")
     @Constructor
     BlockPos BlockPos(int x, int y, int z);
+
+    @Override
+    @NotNull
+    BlockPos bindTo(@NotNull Object instance);
 }

@@ -44,7 +44,8 @@ import java.util.stream.Collectors;
 /**
  * A registry similar to Bukkit's {@link Registry}. It holds values as a form of {@link XBase} and
  * allows cross-version name mappings and also direct bukkit-to-xform mappings as well.
- * @param <XForm> The type used within this library.
+ *
+ * @param <XForm>      The type used within this library.
  * @param <BukkitForm> The corresponding Bukkit type of the {@link XForm}.
  * @see XBase
  * @see XModule

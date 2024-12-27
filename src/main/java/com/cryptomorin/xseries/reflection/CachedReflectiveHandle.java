@@ -20,38 +20,45 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy;
+package com.cryptomorin.xseries.reflection;
 
-import com.cryptomorin.xseries.reflection.proxy.annotations.Ignore;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * All interfaces used for {@link com.cryptomorin.xseries.reflection.XReflection#proxify(Class)} must
- * extend this interface. Instances of this class can be thought as a dynamic {@link Class} object that
- * contains methods, fields and constructors, whether final or static, but all in forms of public methods.
- * <p>
- * The first instance of this class should be used for only calling constructors, static methods and fields,
- * and {@link #bindTo(Object)} method. However, it's possible to create two separate classes for constructors
- * and static members and one for non-static members without constructors.
+ * A {@link ReflectiveHandle} that caches {@link ReflectiveHandle#reflect()} and {@link ReflectiveHandle#jvm()}.
+ * Using this is not recommended. Please read {@link com.cryptomorin.xseries.reflection.XReflection}
+ * <b>Performance & Caching</b> section for more information.
  *
- * @see ReflectiveProxy
- * @since 13.0.0
+ * @since 14.0.0
  */
-@ApiStatus.Experimental
-public interface ReflectiveProxyObject {
-    @Nullable
-    @Ignore
-    Object instance();
+@ApiStatus.Internal
+class CachedReflectiveHandle<T> implements ReflectiveHandle<T> {
+    private final ReflectiveHandle<T> delegate;
+    private T cache;
+    private CachedReflectiveHandle<ReflectedObject> jvm;
 
-    /**
-     * Returns a new {@link ReflectiveProxyObject} that's linked to a new {@link ReflectiveProxy} with the given instance.
-     *
-     * @param instance the instance to bind.
-     */
-    @NotNull
-    @ApiStatus.OverrideOnly
-    @Ignore
-    ReflectiveProxyObject bindTo(@NotNull Object instance);
+    CachedReflectiveHandle(ReflectiveHandle<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    public ReflectiveHandle<T> getDelegate() {
+        return delegate;
+    }
+
+    @Override
+    public ReflectiveHandle<T> copy() {
+        return delegate.copy();
+    }
+
+    @Override
+    public @NotNull T reflect() throws ReflectiveOperationException {
+        return cache == null ? (cache = delegate.reflect()) : cache;
+    }
+
+    @Override
+    public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
+        return jvm == null ? (jvm = new CachedReflectiveHandle<>(delegate.jvm())) : jvm;
+    }
 }
