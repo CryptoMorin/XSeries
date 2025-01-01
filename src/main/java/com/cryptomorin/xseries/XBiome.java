@@ -184,7 +184,7 @@ public final class XBiome extends XModule<XBiome, Biome> {
         try {
             // Around v1.17.0
             World.class.getMethod("getMinHeight");
-            maxHeight = true;
+            minHeight = true;
         } catch (Exception ignored) {
         }
         World_getMaxHeight$SUPPORTED = maxHeight;
