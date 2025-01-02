@@ -28,8 +28,8 @@ import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.particles.XParticle;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
+import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.util.XLogger;
-import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -62,7 +62,7 @@ public final class DifferenceHelper {
      * Writes the material and sound differences to files in the server's root folder for updating purposes.
      */
     public static void versionDifference() {
-        Path serverFolder = Bukkit.getWorldContainer().toPath();
+        Path serverFolder = Constants.getTestPath();
         XLogger.log("Server container: " + serverFolder.toAbsolutePath());
 
         Path materials = serverFolder.resolve("XMaterial.txt"),

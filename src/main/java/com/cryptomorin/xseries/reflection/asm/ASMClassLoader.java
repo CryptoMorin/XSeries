@@ -37,6 +37,8 @@ import java.lang.reflect.Method;
  */
 @SuppressWarnings("unused")
 final class ASMClassLoader extends ClassLoader {
+    private static final String DEFINE_CLASS = "defineClass";
+
     protected ASMClassLoader() {}
 
     protected Class<?> defineClass(String name, byte[] bytes) {
@@ -53,7 +55,7 @@ final class ASMClassLoader extends ClassLoader {
              *
              * Lookup lookup = MethodHandles.lookup();
              * MethodType type = MethodType.methodType(Class.class, new Class[] {String.class, byte[].class, int.class, int.class});
-             * MethodHandle method = lookup.findVirtual(original.getClass(), "defineClass", type);
+             * MethodHandle method = lookup.findVirtual(original.getClass(), DEFINE_CLASS, type);
              * shadowClassLoaderClass = (Class) method.invokeWithArguments(original, "lombok.launch.ShadowClassLoader", bytes, new Integer(0), new Integer(len)})
              */
             Class<?> methodHandles = Class.forName("java.lang.invoke.MethodHandles");
@@ -74,9 +76,9 @@ final class ASMClassLoader extends ClassLoader {
             // 	at java.base/java.lang.invoke.MethodHandles$Lookup.resolveOrFail(MethodHandles.java:3747)
             // 	at java.base/java.lang.invoke.MethodHandles$Lookup.findVirtual(MethodHandles.java:2767)
             // 	... 15 more
-            Object method = findVirtualMethod.invoke(lookup, classLoader.getClass(), "defineClass", type);
+            Object method = findVirtualMethod.invoke(lookup, classLoader.getClass(), DEFINE_CLASS, type);
             return (Class<?>) invokeMethod.invoke(method, new Object[]
-                    {new Object[]{classLoader, classLoader, bytecode, 0, bytecode.length}});
+                    {new Object[]{classLoader, className, bytecode, 0, bytecode.length}});
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
                  InvocationTargetException e) {
             // Ignore, old Java
@@ -89,11 +91,11 @@ final class ASMClassLoader extends ClassLoader {
             // DelegatingClassLoader
             //   static Class<?> defineClass(String name, byte[] bytes, int off, int len, ClassLoader parentClassLoader)
             Class<?> ClassDefiner = Class.forName("jdk.internal.reflect.ClassDefiner");
-            Method meth = ClassDefiner.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class, ClassLoader.class);
+            Method meth = ClassDefiner.getDeclaredMethod(DEFINE_CLASS, String.class, byte[].class, int.class, int.class, ClassLoader.class);
             return (Class<?>) meth.invoke(null, generatedClassName, bytecode, 0, bytecode.length, XReflectASM.class.getClassLoader());
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
                  InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -105,12 +107,12 @@ final class ASMClassLoader extends ClassLoader {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         try {
             // Java 9+
-            MethodHandle defineClass = lookup.findVirtual(MethodHandles.Lookup.class, "defineClass",
+            MethodHandle defineClass = lookup.findVirtual(MethodHandles.Lookup.class, DEFINE_CLASS,
                     MethodType.methodType(Class.class, byte[].class));
 
             return (Class<?>) defineClass.invoke(lookup, bytecode);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -123,7 +125,7 @@ final class ASMClassLoader extends ClassLoader {
             Class<?> cls = Class.forName("java.lang.ClassLoader");
             java.lang.reflect.Method method =
                     cls.getDeclaredMethod(
-                            "defineClass",
+                            DEFINE_CLASS,
                             String.class, byte[].class, int.class, int.class);
 
             // Protected method invocation.

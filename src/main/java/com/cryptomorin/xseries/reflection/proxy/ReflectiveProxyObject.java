@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.reflection.proxy;
 
 import com.cryptomorin.xseries.reflection.proxy.annotations.Ignore;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,17 +42,50 @@ import org.jetbrains.annotations.Nullable;
  */
 @ApiStatus.Experimental
 public interface ReflectiveProxyObject {
-    @Nullable
+    /**
+     * Gets the instance that the methods are delegating to.
+     * Throw an exception if used on the factory object.
+     */
     @Ignore
+    @NotNull
+    @ApiStatus.NonExtendable
+    @Contract(pure = true)
     Object instance();
+
+    /**
+     * Get the real class object that this proxy object is referencing.
+     *
+     * @since 14.0.0
+     */
+    @Ignore
+    @NotNull
+    @ApiStatus.NonExtendable
+    @Contract(pure = true)
+    Class<?> getTargetClass();
+
+    /**
+     * Equivalent to the code:
+     * <pre>{@code object instanceof TargetClass}</pre>
+     * This results in more performance in generated code instead of doing:
+     * <pre>{@code getTargetClass().isInstance(object.getClass())}</pre>
+     * So do note that this will never return true if you pass a {@link ReflectiveProxyObject} to it.
+     *
+     * @since 14.0.0
+     */
+    @Ignore
+    @NotNull
+    @ApiStatus.NonExtendable
+    @Contract(pure = true)
+    boolean isInstance(@Nullable Object object);
 
     /**
      * Returns a new {@link ReflectiveProxyObject} that's linked to a new {@link ReflectiveProxy} with the given instance.
      *
      * @param instance the instance to bind.
      */
+    @Ignore
     @NotNull
     @ApiStatus.OverrideOnly
-    @Ignore
+    @Contract(value = "_ -> new", pure = true)
     ReflectiveProxyObject bindTo(@NotNull Object instance);
 }

@@ -20,19 +20,25 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy.annotations;
+package com.cryptomorin.xseries.test.reflection.proxy;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 
-@Target(ElementType.TYPE)
+import java.lang.annotation.*;
+
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.PACKAGE, ElementType.PARAMETER, ElementType.TYPE_PARAMETER, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Class {
-    java.lang.Class<?> target() default void.class;
+@Repeatable(TestAnnotationList.class)
+public @interface TestAnnotation {
+    String name() default "";
 
-    String packageName() default "";
+    int index() default -1;
 
-    boolean ignoreCurrentName() default false;
+    boolean filter() default false;
+
+    Class<?> reference() default void.class;
+
+    ReflectedObject.Type type() default ReflectedObject.Type.CONSTRUCTOR;
+
+    TestAnnotation2[] values() default {};
 }

@@ -91,7 +91,7 @@ public abstract class OverloadedMethod<T> {
             Map<String, T> descriptors = descriptorMap.computeIfAbsent(name, k -> new HashMap<>(3));
             String descriptor = descritporProcessor.apply(method);
             if (descriptors.put(descriptor, method) != null) {
-                throw new IllegalArgumentException("Method named '" + name + "' with descriptor '" + descriptors + "' was already added: " + descriptorMap);
+                throw new IllegalArgumentException("Method named '" + name + "' with descriptor '" + descriptor + "' was already added: " + descriptors);
             }
         }
 

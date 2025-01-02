@@ -23,6 +23,8 @@
 package com.cryptomorin.xseries.test.reflection.asm;
 
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -69,6 +71,16 @@ public class ASMGeneratedSample implements ReflectiveProxyObject {
     @Override
     public ASMGeneratedSample instance() {
         return (ASMGeneratedSample) instance;
+    }
+
+    @Override
+    public @NotNull Class<?> getTargetClass() {
+        return null;
+    }
+
+    @Override
+    public @NotNull boolean isInstance(@Nullable Object object) {
+        return false;
     }
 
     private Object doubleCtor() {

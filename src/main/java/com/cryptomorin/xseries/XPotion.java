@@ -333,8 +333,8 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
      * Format: <b>Potion, Duration (in seconds), Amplifier (level) [%chance]</b>
      * <pre>
      *     WEAKNESS, 30, 1
-     *     SLOWNESS 200 10
-     *     1, 10000, 100 %50
+     *     SLOWNESS, 200, 10
+     *     1, 10000, 100, %50
      * </pre>
      * The last argument can also include a chance (written in percent) which if not met, returns null.
      *

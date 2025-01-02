@@ -27,6 +27,7 @@ import com.cryptomorin.xseries.reflection.aggregate.VersionHandle;
 import com.cryptomorin.xseries.reflection.asm.XReflectASM;
 import com.cryptomorin.xseries.reflection.constraint.ReflectiveConstraint;
 import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
+import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.StaticClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
@@ -36,10 +37,7 @@ import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -99,14 +97,14 @@ import java.util.stream.Collectors;
  *         It's accessed from {@link XReflection#proxify(Class)}.
  *     </li>
  *     <li>
- *         <strong>Stage IV (ASM Mode):</strong> This is simply Stage III API, however instead of relying on
+ *         <strong>Stage IV (ASMification):</strong> This is simply Stage III API, however instead of relying on
  *         Java's proxy system, an ASM-assisted code generation occurs in a new class loader, which makes this
  *         almost as fast as direct calls, even for inaccessible private methods due to the use of
  *         {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} with polymorphic signature.
  *         This system is only used if at least ASM9 is detected during runtime (supports shading as well)
  *     </li>
  *     <li>
- *         <strong>Stage V (Magic ASM Mode):</strong> ???
+ *         <strong>Stage V (Compile-Time Remapper):</strong> ???
  *     </li>
  * </ul>
  *
@@ -171,7 +169,7 @@ public final class XReflection {
      * It's simply enough for the property to be present, but you can also specify a Minecraft version
      * for the class to use for {@link #supports(int)} and other similar version checking methods.
      */
-    @ApiStatus.Internal
+    @TestOnly
     public static final String DISABLE_MINECRAFT_CAPABILITIES_PROPERTY = "xseries.xreflection.disable.minecraft";
 
     /**
@@ -340,6 +338,7 @@ public final class XReflection {
      * @since 7.0.0
      */
     @Nullable
+    @Contract(pure = true)
     public static Integer getLatestPatchNumberOf(int minorVersion) {
         if (minorVersion <= 0) throw new IllegalArgumentException("Minor version must be positive: " + minorVersion);
 
@@ -384,13 +383,14 @@ public final class XReflection {
 
     @ApiStatus.Internal
     @ApiStatus.Experimental
+    @Unmodifiable
     public static final Set<MinecraftMapping> SUPPORTED_MAPPINGS;
 
     static {
         if (isMinecraftDisabled() != null) {
-            SUPPORTED_MAPPINGS = EnumSet.noneOf(MinecraftMapping.class);
+            SUPPORTED_MAPPINGS = Collections.unmodifiableSet(EnumSet.noneOf(MinecraftMapping.class));
         } else {
-            SUPPORTED_MAPPINGS =
+            SUPPORTED_MAPPINGS = Collections.unmodifiableSet(
                     supply(
                             ofMinecraft()
                                     .inPackage(MinecraftPackage.NMS, "server.level")
@@ -401,7 +401,8 @@ public final class XReflection {
                                     .inPackage(MinecraftPackage.NMS, "server.level")
                                     .map(MinecraftMapping.MOJANG, "EntityPlayer"),
                             () -> EnumSet.of(MinecraftMapping.SPIGOT, MinecraftMapping.OBFUSCATED)
-                    ).get();
+                    ).get()
+            );
         }
     }
 
@@ -563,10 +564,12 @@ public final class XReflection {
      *
      * @param clazz the class to get the array version of. You could use for multi-dimensions arrays too.
      * @throws IllegalArgumentException if the class could not be found.
+     * @see ClassHandle#asArray()
      */
     @NotNull
     @Contract(pure = true)
-    public static Class<?> toArrayClass(Class<?> clazz) {
+    public static Class<?> toArrayClass(@NotNull Class<?> clazz) {
+        Objects.requireNonNull(clazz, "Class is null");
         try {
             return Class.forName("[L" + clazz.getName() + ';');
         } catch (ClassNotFoundException ex) {
@@ -672,6 +675,7 @@ public final class XReflection {
      */
     @ApiStatus.Experimental
     @NotNull
+    @Contract(value = "_ -> param1", mutates = "param1")
     public static <T extends Throwable> T relativizeSuppressedExceptions(@NotNull T ex) {
         Objects.requireNonNull(ex, "Cannot relativize null exception");
         final StackTraceElement[] EMPTY_STACK_TRACE_ARRAY = new StackTraceElement[0];
@@ -706,6 +710,7 @@ public final class XReflection {
     }
 
     @SuppressWarnings("unchecked")
+    @Contract(value = "_ -> fail", pure = true)
     private static <T extends Throwable> void throwException(Throwable exception) throws T {
         throw (T) exception;
     }
@@ -751,6 +756,7 @@ public final class XReflection {
      * Adds the stacktrace of the current thread in case an error occurs in the given Future.
      */
     @ApiStatus.Experimental
+    @Contract(value = "_ -> new", mutates = "param1")
     public static <T> CompletableFuture<T> stacktrace(@NotNull CompletableFuture<T> completableFuture) {
         StackTraceElement[] currentStacktrace = Thread.currentThread().getStackTrace();
         return completableFuture.whenComplete((value, ex) -> { // Gets called even when it's completed.

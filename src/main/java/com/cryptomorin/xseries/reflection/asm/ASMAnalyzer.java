@@ -49,6 +49,8 @@ final class ASMAnalyzer {
     // static void printAnalyzerResult(MethodNode method, Analyzer<BasicValue> analyzer, PrintWriter printWriter)
     private static final MethodHandle CheckClassAdapter_printAnalyzerResult;
 
+    private ASMAnalyzer() {}
+
     static {
         MethodHandle printAnalyzerResult;
         MethodHandles.Lookup lookup = MethodHandles.lookup();

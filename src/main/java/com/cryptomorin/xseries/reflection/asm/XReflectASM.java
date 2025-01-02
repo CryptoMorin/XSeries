@@ -34,8 +34,10 @@ import com.cryptomorin.xseries.reflection.proxy.processors.ReflectiveAnnotationP
 import com.google.common.collect.Streams;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -284,6 +286,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         return asm;
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
     public T create() {
         Class<?> proxified = loadClass();
@@ -402,7 +405,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         classWriter.visit(
                 /* version    */ JAVA_VERSION,
-                /* access     */ Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER,
+                /* access     */ Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER | Opcodes.ACC_FINAL,
                 /* name       */ generatedClassType.getInternalName(),
                 /* signature  */ null,
                 /* supername  */ SUPER_CLASS,
@@ -431,6 +434,8 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
 
     @Override
     public void visitEnd() {
+        generateGetTargetClass();
+        generateIsInstance();
         generateInstance();
         generateBindTo();
 
@@ -634,14 +639,15 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
             // We also use invokeExact instead of invoke, we will do all needed conversions ourselves.
             // Since we're generating a bytecode ourselves, we don't need to generate a try-catch for
             // the MethodHandle invoke methods either, the class verifier allows that.
+            String invokeExact = "invokeExact";
             switch (type) {
                 case METHOD:
                     if (handle.isInaccessible()) {
                         adapter.invokeVirtual(Type.getType(MethodHandle.class),
-                                new org.objectweb.asm.commons.Method("invokeExact",
+                                new org.objectweb.asm.commons.Method(invokeExact,
                                         Type.getType(handle.info.rType.real),
                                         Streams.concat(
-                                                Stream.of(targetClassType),
+                                                isStatic ? Stream.of() : Stream.of(targetClassType),
                                                 Arrays.stream(handle.info.pTypes).map(x -> Type.getType(x.real))
                                         ).toArray(Type[]::new)));
                     } else {
@@ -655,13 +661,27 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
                     }
                     break;
                 case FIELD:
+                    boolean isSetter = argumentTypes.length != 0;
+                    Type fieldDescriptor;
+                    if (argumentTypes.length != 0) {
+                        fieldDescriptor = adapter.getArgumentTypes()[0];
+                    } else {
+                        fieldDescriptor = adapter.getReturnType();
+                    }
+
                     if (handle.isInaccessible()) {
+                        List<Type> parameters = new ArrayList<>(3);
+                        if (!isStatic) parameters.add(targetClassType);
+                        if (isSetter) parameters.add(Type.getType(handle.info.pTypes[0].real));
+
                         adapter.invokeVirtual(Type.getType(MethodHandle.class),
-                                new org.objectweb.asm.commons.Method("invokeExact", Type.getType(handle.info.rType.real),
-                                        new Type[]{targetClassType}));
+                                new org.objectweb.asm.commons.Method(invokeExact,
+                                        Type.getType(handle.info.rType.real),
+                                        parameters.toArray(new Type[0])
+                                ));
                     } else {
                         int fieldCode;
-                        if (argumentTypes.length != 0) {
+                        if (isSetter) {
                             if (isStatic) fieldCode = Opcodes.PUTSTATIC;
                             else fieldCode = Opcodes.PUTFIELD;
                         } else {
@@ -669,13 +689,18 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
                             else fieldCode = Opcodes.GETFIELD;
                         }
 
-                        adapter.visitFieldInsn(fieldCode, targetClassType.getInternalName(), name, adapter.getReturnType().getDescriptor());
+                        adapter.visitFieldInsn(
+                                /* opcode     */ fieldCode,
+                                /* owner      */ targetClassType.getInternalName(),
+                                /* name       */ name,
+                                /* descriptor */ fieldDescriptor.getDescriptor()
+                        );
                     }
                     break;
                 case CONSTRUCTOR:
                     if (handle.isInaccessible()) {
                         adapter.invokeVirtual(Type.getType(MethodHandle.class),
-                                new org.objectweb.asm.commons.Method("invokeExact", targetClassType, convert(handle.info.pTypes)));
+                                new org.objectweb.asm.commons.Method(invokeExact, targetClassType, convert(handle.info.pTypes)));
                     } else {
                         adapter.visitMethodInsn(
                                 Opcodes.INVOKESPECIAL,
@@ -709,7 +734,9 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         }
 
         @Override
-        public void visitCode() {}
+        public void visitCode() {
+            // Don't retain any of the existing code, we will generate our own.
+        }
 
         @Override
         public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
@@ -869,17 +896,18 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.visitLabel(label6);
         mv.visitTypeInsn(Opcodes.NEW, "java/lang/RuntimeException");
         mv.visitInsn(Opcodes.DUP);
-        mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder");
+        String StringBuilder = "java/lang/StringBuilder";
+        mv.visitTypeInsn(Opcodes.NEW, StringBuilder);
         mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, StringBuilder, CONSTRUCTOR_NAME, "()V", false);
         mv.visitLdcInsn("Failed to get inaccessible members for ");
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, StringBuilder, "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
         mv.visitLdcInsn(generatedClassType);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getName", "()Ljava/lang/String;", false);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, StringBuilder, "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, StringBuilder, "toString", "()Ljava/lang/String;", false);
         mv.loadLocal(ex);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/String;Ljava/lang/Throwable;)V", false);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/RuntimeException", CONSTRUCTOR_NAME, "(Ljava/lang/String;Ljava/lang/Throwable;)V", false);
         mv.visitInsn(Opcodes.ATHROW);
 
         mv.visitLabel(noExceptionThrown);
@@ -896,7 +924,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
     private void generateInstance() {
         // If we use the target class as a return type, then we'd also have to create a synthetic method as well
         // classWriter.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_BRIDGE | Opcodes.ACC_SYNTHETIC, "instance", "()Ljava/lang/Object;", null, null);
-        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "instance", Type.getMethodDescriptor(Type.getType(Object.class)));
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, INSTANCE_FIELD, Type.getMethodDescriptor(Type.getType(Object.class)));
 
         Label label0 = new Label();
         mv.visitLabel(label0);
@@ -950,7 +978,7 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         Label label3 = new Label();
         mv.visitLabel(label3);
         visitThis(mv, label0, label3);
-        mv.visitLocalVariable("instance", targetClassType.getDescriptor(), null, label0, label3, 1);
+        mv.visitLocalVariable(INSTANCE_FIELD, targetClassType.getDescriptor(), null, label0, label3, 1);
 
         mv.visitMaxs(3, 2);
         mv.visitEnd();
@@ -1076,21 +1104,29 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.visitEnd();
     }
 
-    private GeneratorAdapter createMethod(int access,
-                                          @Pattern("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)|(<init>)|(<clinit>)") String name,
-                                          String descriptor) {
-        GeneratorAdapter method = new GeneratorAdapter(
-                classWriter.visitMethod(access, name, descriptor, null, null),
-                access, name, descriptor
-        );
-        method.visitCode();
-        return method;
+    private void generateGetTargetClass() {
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "Class getTargetClass()");
+        mv.push(targetClassType);
+        mv.returnValue();
+
+        mv.visitMaxs(1, 0);
+        mv.visitEnd();
+    }
+
+    private void generateIsInstance() {
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "boolean isInstance(Object)");
+        mv.loadArg(0);
+        mv.instanceOf(targetClassType);
+        mv.returnValue();
+
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
     }
 
     private void generateToString() {
         // return this.getClass().getSimpleName() + "(instance=" + this.instance + ')';
         Type StringBuilder = Type.getType(java.lang.StringBuilder.class);
-        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;");
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "String toString()");
 
         Label start = mv.newLabel();
         mv.visitLabel(start);
@@ -1125,10 +1161,27 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.visitEnd();
     }
 
+    private GeneratorAdapter createMethod(int access, String descriptor) {
+        Method desc = getMethod(descriptor);
+        return createMethod(access, desc.getName(), desc.getDescriptor());
+    }
+
+    private GeneratorAdapter createMethod(int access,
+                                          @Pattern("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)|(<init>)|(<clinit>)") String name,
+                                          String descriptor) {
+        GeneratorAdapter method = new GeneratorAdapter(
+                classWriter.visitMethod(access, name, descriptor, null, null),
+                access, name, descriptor
+        );
+        method.visitCode();
+        return method;
+    }
+
     private void visitThis(MethodVisitor mv, Label start, Label end) {
         mv.visitLocalVariable("this", generatedClassType.getDescriptor(), null, start, end, 0);
     }
 
+    @NotNull
     public Class<?> loadClass() {
         if (this.loaded != null) return this.loaded;
 

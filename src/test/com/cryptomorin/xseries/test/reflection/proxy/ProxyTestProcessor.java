@@ -20,29 +20,18 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy.processors;
+package com.cryptomorin.xseries.test.reflection.proxy;
 
-import com.cryptomorin.xseries.reflection.ReflectiveHandle;
-import org.jetbrains.annotations.ApiStatus;
+public abstract class ProxyTestProcessor<I extends Number, O extends Double> {
+    private int processorCount = 4;
 
-import java.lang.reflect.Method;
+    public abstract O process(I first, I second);
 
-@ApiStatus.Internal
-public class ProxyMethodInfo {
-    public final ReflectiveHandle<?> handle;
-    public final Method interfaceMethod;
-    public final MappedType rType;
-    public final MappedType[] pTypes;
-
-    public ProxyMethodInfo(ReflectiveHandle<?> handle, Method interfaceMethod, MappedType rType, MappedType[] pTypes) {
-        this.handle = handle;
-        this.interfaceMethod = interfaceMethod;
-        this.rType = rType;
-        this.pTypes = pTypes;
+    public int getProcessorCount() {
+        return processorCount;
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + '(' + interfaceMethod + ')';
+    public void setProcessorCount(int processorCount) {
+        this.processorCount = processorCount;
     }
 }

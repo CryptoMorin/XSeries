@@ -40,7 +40,6 @@ import com.cryptomorin.xseries.reflection.proxy.annotations.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.Class;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AnnotatedElement;
@@ -52,7 +51,6 @@ import java.util.function.Function;
 public final class ReflectiveAnnotationProcessor {
     private final Class<? extends ReflectiveProxyObject> interfaceClass;
     private ClassOverloadedMethods<ProxyMethodInfo> mapped;
-    private Function<ProxyMethodInfo, String> descriptorProcessor;
 
     private Class<?> targetClass;
 
@@ -104,7 +102,6 @@ public final class ReflectiveAnnotationProcessor {
     }
 
     public void process(Function<ProxyMethodInfo, String> descriptorProcessor) {
-        this.descriptorProcessor = descriptorProcessor;
         ClassHandle classHandle = processTargetClass();
         Method[] interfaceMethods = interfaceClass.getMethods(); // It's an interface, all are public
         OverloadedMethod.Builder<ProxyMethodInfo> mappedHandles = new OverloadedMethod.Builder<>(descriptorProcessor);
@@ -139,10 +136,10 @@ public final class ReflectiveAnnotationProcessor {
                         error("Field setter method must have only one parameter: " + method);
                     }
 
-                    Class<?> parameterType = method.getParameterTypes()[0];
-                    rType = unwrap(parameterType);
-
-                    field.returns(rType.real);
+                    MappedType fieldType = unwrap(method.getParameterTypes()[0]);
+                    rType = new MappedType(void.class, void.class);
+                    pTypes = new MappedType[]{fieldType};
+                    field.returns(fieldType.real);
                 } else {
                     field.getter();
                     if (method.getParameterCount() != 0) {
@@ -191,6 +188,7 @@ public final class ReflectiveAnnotationProcessor {
                 error("Failed to map " + method, e);
             }
 
+            System.out.println("Adding method of type " + method.getName() + ": " + rType + " - " + Arrays.toString(pTypes));
             ProxyMethodInfo methodInfo = new ProxyMethodInfo(cached, method, rType, pTypes);
             mappedHandles.add(methodInfo, method.getName());
         }
@@ -199,8 +197,8 @@ public final class ReflectiveAnnotationProcessor {
     }
 
     public @NotNull ClassHandle processTargetClass() {
-        com.cryptomorin.xseries.reflection.proxy.annotations.Class reflectClass =
-                interfaceClass.getAnnotation(com.cryptomorin.xseries.reflection.proxy.annotations.Class.class);
+        Proxify reflectClass =
+                interfaceClass.getAnnotation(Proxify.class);
         ReflectMinecraftPackage mcClass = interfaceClass.getAnnotation(ReflectMinecraftPackage.class);
 
         if (reflectClass == null && mcClass == null) {

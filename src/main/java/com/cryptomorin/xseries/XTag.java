@@ -2436,8 +2436,10 @@ public final class XTag<T extends XBase<?, ?>> {
                 )
                 .inheritFrom(
                         AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS,
-                        WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS, DEAD_CORAL_WALL_FANS, WALL_HEADS,
-                        CANDLE_CAKES, WALL_BANNERS, FLOWER_POTS.without(XMaterial.FLOWER_POT), CROPS.without(XMaterial.WHEAT)
+                        WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS,
+                        DEAD_CORAL_WALL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS,
+                        FLOWER_POTS.without(XMaterial.FLOWER_POT),
+                        CROPS.without(XMaterial.WHEAT_SEEDS, XMaterial.WHEAT)
                 ).build();
     }
 

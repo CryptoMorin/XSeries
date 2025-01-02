@@ -101,7 +101,9 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
         super(clazz);
     }
 
-    public Boolean isGetter() {
+    public boolean isGetter() {
+        if (getter == null)
+            throw new IllegalStateException("Not specified whether the field handle is a getter or setter");
         return getter;
     }
 
@@ -154,7 +156,7 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
 
     @Override
     public MethodHandle reflect() throws ReflectiveOperationException {
-        Objects.requireNonNull(getter, "Not specified whether the method is a getter or setter");
+        Objects.requireNonNull(getter, "Not specified whether the field handle is a getter or setter");
         Field jvm = reflectJvm();
 
         if (getter) {

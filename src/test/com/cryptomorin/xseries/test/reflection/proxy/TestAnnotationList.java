@@ -20,29 +20,15 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.reflection.proxy.processors;
+package com.cryptomorin.xseries.test.reflection.proxy;
 
-import com.cryptomorin.xseries.reflection.ReflectiveHandle;
-import org.jetbrains.annotations.ApiStatus;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.reflect.Method;
-
-@ApiStatus.Internal
-public class ProxyMethodInfo {
-    public final ReflectiveHandle<?> handle;
-    public final Method interfaceMethod;
-    public final MappedType rType;
-    public final MappedType[] pTypes;
-
-    public ProxyMethodInfo(ReflectiveHandle<?> handle, Method interfaceMethod, MappedType rType, MappedType[] pTypes) {
-        this.handle = handle;
-        this.interfaceMethod = interfaceMethod;
-        this.rType = rType;
-        this.pTypes = pTypes;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + '(' + interfaceMethod + ')';
-    }
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.PACKAGE, ElementType.PARAMETER, ElementType.TYPE_PARAMETER, ElementType.CONSTRUCTOR})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestAnnotationList {
+    TestAnnotation[] value();
 }

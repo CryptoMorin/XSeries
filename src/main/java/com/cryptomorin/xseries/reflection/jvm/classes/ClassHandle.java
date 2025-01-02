@@ -32,7 +32,9 @@ import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObjectHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -46,7 +48,7 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
     protected final ReflectiveNamespace namespace;
     private final Map<Class<ReflectiveConstraint>, ReflectiveConstraint> constraints = new IdentityHashMap<>();
 
-    protected ClassHandle(ReflectiveNamespace namespace) {
+    protected ClassHandle(@NotNull ReflectiveNamespace namespace) {
         this.namespace = namespace;
         namespace.link(this);
     }
@@ -56,7 +58,8 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
      */
     @SuppressWarnings("unchecked")
     @ApiStatus.Experimental
-    public ClassHandle constraint(ReflectiveConstraint constraint) {
+    @Contract(value = "_ -> this", mutates = "this")
+    public ClassHandle constraint(@NotNull ReflectiveConstraint constraint) {
         this.constraints.put((Class<ReflectiveConstraint>) constraint.getClass(), constraint);
         return this;
     }
@@ -71,14 +74,21 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
         return jvm;
     }
 
-    public abstract ClassHandle asArray(int dimensions);
+    @NotNull
+    @Contract("_ -> new")
+    public abstract ClassHandle asArray(@Range(from = 1, to = Integer.MAX_VALUE) int dimensions);
 
+    @NotNull
+    @Contract("-> new")
     public final ClassHandle asArray() {
         return asArray(1);
     }
 
+    @Contract(pure = true)
     public abstract boolean isArray();
 
+    @NotNull
+    @Contract("_ -> new")
     public DynamicClassHandle inner(@Language(value = "Java", suffix = "{}") String declaration) {
         return inner(namespace.classHandle(declaration));
     }
@@ -88,7 +98,9 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
      * @param <T>    the type of the class handle.
      * @return the same object as the one provided in the parameter.
      */
-    public <T extends DynamicClassHandle> T inner(T handle) {
+    @NotNull
+    @Contract("_ -> param1")
+    public <T extends DynamicClassHandle> T inner(@NotNull T handle) {
         Objects.requireNonNull(handle, "Inner handle is null");
         if (this == handle) throw new IllegalArgumentException("Same instance: " + this);
         handle.parent = this;
@@ -101,6 +113,7 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
      *
      * @return -1 if this class cannot be found, 0 if not an array, otherwise a positive number.
      */
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public int getDimensionCount() {
         int count = -1;
         Class<?> clazz = reflectOrNull();
@@ -114,46 +127,57 @@ public abstract class ClassHandle implements ReflectiveHandle<Class<?>>, NamedRe
         return count;
     }
 
+    @Contract(pure = true)
     public ReflectiveNamespace getNamespace() {
         return namespace;
     }
 
+    @Contract(value = "-> new", pure = true)
     public MethodMemberHandle method() {
         return new MethodMemberHandle(this);
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public MethodMemberHandle method(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseMethod(method());
     }
 
+    @Contract(value = "-> new", pure = true)
     public EnumMemberHandle enums() {
         return new EnumMemberHandle(this);
     }
 
+    @Contract(value = "-> new", pure = true)
     public FieldMemberHandle field() {
         return new FieldMemberHandle(this);
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public FieldMemberHandle field(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseField(field());
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public ConstructorMemberHandle constructor(@Language(value = "Java", suffix = ";") String declaration) {
         return createParser(declaration).parseConstructor(constructor());
     }
 
+    @Contract(value = "-> new", pure = true)
     public ConstructorMemberHandle constructor() {
         return new ConstructorMemberHandle(this);
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public ConstructorMemberHandle constructor(Class<?>... parameters) {
         return constructor().parameters(parameters);
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public ConstructorMemberHandle constructor(ClassHandle... parameters) {
         return constructor().parameters(parameters);
     }
 
+    @Contract(value = "_ -> new", pure = true)
     private ReflectionParser createParser(@Language("Java") String declaration) {
         return new ReflectionParser(declaration).imports(this.namespace);
     }

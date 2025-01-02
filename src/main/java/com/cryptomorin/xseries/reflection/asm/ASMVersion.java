@@ -78,6 +78,7 @@ final class ASMVersion {
                 System.out.println("[XSeries/XReflection] Using custom ASM Java target version: " + usedJavaVersion);
             }
         } catch (SecurityException ignored) {
+            // If we don't have access to system properties, don't care.
         }
 
         USED_ASM_OPCODE_VERSION = usedAsmVersion;

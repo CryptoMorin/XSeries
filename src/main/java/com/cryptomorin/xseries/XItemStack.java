@@ -42,10 +42,7 @@ import org.bukkit.entity.Axolotl;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
@@ -55,8 +52,10 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -77,7 +76,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemStack.html">ItemStack</a>
  *
  * @author Crypto Morin
- * @version 7.5.1
+ * @version 7.5.2
  * @see XMaterial
  * @see XPotion
  * @see XSkull
@@ -1236,6 +1235,7 @@ public final class XItemStack {
      * @since 2.0.1
      */
     @NotNull
+    @Contract(mutates = "param1")
     public static List<ItemStack> giveOrDrop(@NotNull Player player, @Nullable ItemStack... items) {
         return giveOrDrop(player, false, items);
     }
@@ -1250,6 +1250,7 @@ public final class XItemStack {
      * @since 2.0.1
      */
     @NotNull
+    @Contract(mutates = "param1")
     public static List<ItemStack> giveOrDrop(@NotNull Player player, boolean split, @Nullable ItemStack... items) {
         if (items == null || items.length == 0) return new ArrayList<>();
         List<ItemStack> leftOvers = addItems(player.getInventory(), split, items);
@@ -1260,6 +1261,7 @@ public final class XItemStack {
         return leftOvers;
     }
 
+    @Contract(mutates = "param1")
     public static List<ItemStack> addItems(@NotNull Inventory inventory, boolean split, @NotNull ItemStack... items) {
         return addItems(inventory, split, null, items);
     }
@@ -1277,7 +1279,9 @@ public final class XItemStack {
      * @return items that didn't fit in the inventory.
      * @since 4.0.0
      */
+
     @NotNull
+    @Contract(mutates = "param1")
     public static List<ItemStack> addItems(@NotNull Inventory inventory, boolean split,
                                            @Nullable Predicate<Integer> modifiableSlots, @NotNull ItemStack... items) {
         Objects.requireNonNull(inventory, "Cannot add items to null inventory");
@@ -1344,6 +1348,9 @@ public final class XItemStack {
         return leftOvers;
     }
 
+    @NotNull
+    @Contract(pure = true)
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public static int firstPartial(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         return firstPartial(inventory, item, beginIndex, null);
     }
@@ -1361,6 +1368,9 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
+    @NotNull
+    @Contract(pure = true)
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public static int firstPartial(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         if (item != null) {
             ItemStack[] items = getStorageContents(inventory);
@@ -1378,6 +1388,8 @@ public final class XItemStack {
         return -1;
     }
 
+    @NotNull
+    @Contract(pure = true)
     public static List<ItemStack> stack(@NotNull Collection<ItemStack> items) {
         return stack(items, ItemStack::isSimilar);
     }
@@ -1396,6 +1408,7 @@ public final class XItemStack {
      * @since 4.0.0
      */
     @NotNull
+    @Contract(pure = true)
     public static List<ItemStack> stack(@NotNull Collection<ItemStack> items, @NotNull BiPredicate<ItemStack, ItemStack> similarity) {
         Objects.requireNonNull(items, "Cannot stack null items");
         Objects.requireNonNull(similarity, "Similarity check cannot be null");
@@ -1418,6 +1431,8 @@ public final class XItemStack {
         return stacked;
     }
 
+    @Contract(pure = true)
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public static int firstEmpty(@NotNull Inventory inventory, int beginIndex) {
         return firstEmpty(inventory, beginIndex, null);
     }
@@ -1434,6 +1449,8 @@ public final class XItemStack {
      * @throws IndexOutOfBoundsException if the beginning index is less than 0 or greater than the inventory storage size.
      * @since 4.0.0
      */
+    @Contract(pure = true)
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public static int firstEmpty(@NotNull Inventory inventory, int beginIndex, @Nullable Predicate<Integer> modifiableSlots) {
         ItemStack[] items = getStorageContents(inventory);
         int invSize = items.length;
@@ -1458,6 +1475,8 @@ public final class XItemStack {
      * @see #firstPartial(Inventory, ItemStack, int)
      * @since 4.2.0
      */
+    @Contract(pure = true)
+    @Range(from = -1, to = Integer.MAX_VALUE)
     public static int firstPartialOrEmpty(@NotNull Inventory inventory, @Nullable ItemStack item, int beginIndex) {
         if (item != null) {
             ItemStack[] items = getStorageContents(inventory);
@@ -1474,6 +1493,10 @@ public final class XItemStack {
         return -1;
     }
 
+    /**
+     * Cross-version compatible version of {@link Inventory#getStorageContents()}.
+     */
+    @Contract(pure = true)
     public static ItemStack[] getStorageContents(Inventory inventory) {
         // Mojang divides player inventory like this:
         //     public final ItemStack[] items = new ItemStack[36];
@@ -1487,6 +1510,31 @@ public final class XItemStack {
             // 36 -> boots, 37 -> leggings, 38 -> chestplate, 39 - helmet, 40 -> offhand
             return Arrays.copyOfRange(inventory.getContents(), 0, 36);
         }
+    }
+
+    /**
+     * @see #isEmpty(ItemStack)
+     * @since 7.5.2
+     */
+    @Contract(pure = true)
+    public static boolean notEmpty(@Nullable ItemStack item) {
+        return !isEmpty(item);
+    }
+
+    /**
+     * Checks if this item is {@code null} or {@link Material#AIR}.
+     * The latter can only happen in the following situations:
+     * <ul>
+     *     <li>{@link PlayerInventory#getItemInMainHand()}</li>
+     *     <li>{@link PlayerInventory#getItemInOffHand()}</li>
+     * </ul>
+     *
+     * @see #notEmpty(ItemStack)
+     * @since 7.5.2
+     */
+    @Contract(pure = true)
+    public static boolean isEmpty(@Nullable ItemStack item) {
+        return item == null || item.getType() == Material.AIR;
     }
 
     public static class MaterialCondition extends RuntimeException {

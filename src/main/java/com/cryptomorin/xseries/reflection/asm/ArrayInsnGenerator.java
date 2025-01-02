@@ -28,13 +28,13 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 
 /**
  * A simple class that generates Java bytecode instructions for creating arrays.
+ * Doesn't properly work with multidimensional arrays.
  * It's kind of weird that ASM doesn't have a helper class for this.
  *
  * @since 14.0.0
  */
 final class ArrayInsnGenerator {
     private final GeneratorAdapter mv;
-    private final Type type;
     private final int length;
     private int index = 0;
     private final int storeInsn;
@@ -51,13 +51,16 @@ final class ArrayInsnGenerator {
 
         this.mv = mv;
         this.length = length;
-        this.type = Type.getType(type);
-        this.storeInsn = type == Object.class ? -1 : this.type.getOpcode(Opcodes.IASTORE);
+        Type asmType = Type.getType(type);
+        this.storeInsn = type == Object.class ? -1 : asmType.getOpcode(Opcodes.IASTORE);
 
         mv.push(length);
-        mv.newArray(this.type);
+        mv.newArray(asmType);
     }
 
+    /**
+     * Used for {@code Object[]} arrays.
+     */
     private boolean isDynamicStoreInsn() {
         return storeInsn == -1;
     }
@@ -75,7 +78,7 @@ final class ArrayInsnGenerator {
 
     private void add(Runnable instruction, int storeInsn) {
         if (index >= length) {
-            throw new IllegalStateException("Array is already full at index " + index);
+            throw new IllegalStateException("Array is already full, at index " + index);
         }
 
         // store instruction:

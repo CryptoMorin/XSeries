@@ -24,6 +24,8 @@ package com.cryptomorin.xseries.reflection.constraint;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A set of checks performed on a {@link ReflectiveHandle} to determine whether it meets
@@ -50,11 +52,13 @@ public interface ReflectiveConstraint {
     /**
      * The category name of this constraint.
      */
+    @Contract(pure = true)
     String category();
 
     /**
      * The name of this constraint.
      */
+    @Contract(pure = true)
     String name();
 
     /**
@@ -67,7 +71,9 @@ public interface ReflectiveConstraint {
      * @param jvm    the corresponding JVM object (not {@link java.lang.invoke.MethodHandle}) of the handle.
      * @return Refer to {@link Result} for details.
      */
-    Result appliesTo(ReflectiveHandle<?> handle, Object jvm);
+    @NotNull
+    @Contract(pure = true)
+    Result appliesTo(@NotNull ReflectiveHandle<?> handle, @NotNull Object jvm);
 
     enum Result {
         /**

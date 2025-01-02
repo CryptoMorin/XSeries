@@ -27,6 +27,7 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import com.cryptomorin.xseries.reflection.proxy.annotations.Constructor;
 import com.cryptomorin.xseries.reflection.proxy.annotations.Field;
+import com.cryptomorin.xseries.reflection.proxy.annotations.Proxify;
 import com.cryptomorin.xseries.reflection.proxy.processors.MappedType;
 import com.cryptomorin.xseries.reflection.proxy.processors.ProxyMethodInfo;
 import com.cryptomorin.xseries.reflection.proxy.processors.ReflectiveAnnotationProcessor;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -43,7 +45,7 @@ import java.util.stream.Collectors;
 
 /**
  * The basis of this class is that you create an {@code interface} class and annotate it using
- * {@link com.cryptomorin.xseries.reflection.proxy.annotations.Class Class}, {@link Field}, {@link Constructor}, etc... annotations to mark how
+ * {@link Proxify Class}, {@link Field}, {@link Constructor}, etc... annotations to mark how
  * these methods are resolved for different versions. Everything is accessed through methods,
  * even constructors and fields are accessed in forms of methods.
  * <p>
@@ -94,8 +96,12 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
             for (ProxyMethodInfo overload : mapping.getValue().getOverloads()) {
                 ReflectedObject jvm = overload.handle.jvm().unreflect();
 
+                MethodHandle methodHandle = (MethodHandle) overload.handle.unreflect();
+
+                methodHandle = createDynamicProxy(null, methodHandle);
+
                 ProxifiedObject proxifiedObj = new ProxifiedObject(
-                        (MethodHandle) overload.handle.unreflect(),
+                        methodHandle,
                         overload,
                         jvm.accessFlags().contains(XAccessFlag.STATIC),
                         jvm.type() == ReflectedObject.Type.CONSTRUCTOR,
@@ -134,6 +140,22 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
         }
 
         return proxy;
+    }
+
+    private static MethodHandle createDynamicProxy(@Nullable Object bindInstance, MethodHandle methodHandle) {
+        int parameterCount = methodHandle.type().parameterCount();
+        int requireArgs = bindInstance != null ? 1 : 0;
+
+        // bind the only parameter left and remove it.
+        if (bindInstance != null) methodHandle = methodHandle.bindTo(bindInstance);
+
+        if (parameterCount == requireArgs) {
+            return methodHandle.asType(MethodType.methodType(Object.class));
+        } else {
+            return methodHandle
+                    .asSpreader(Object[].class, parameterCount - requireArgs)
+                    .asType(MethodType.methodType(Object.class, Object[].class));
+        }
     }
 
     private static String descriptorProcessor(ProxifiedObject obj) {
@@ -243,7 +265,15 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
                     } else {
                         try {
                             // insert = MethodHandles.insertArguments(unbound.handle, 0, instance);
-                            insert = unbound.handle.bindTo(instance);
+                            // This is cached, no worries.
+                            insert = (MethodHandle) unbound.proxyMethodInfo.handle.unreflect();
+
+                            // We already checked for static and constructor members, all these handles are for instance members now.
+                            if (insert.type().parameterCount() == 0) {
+                                throw new IllegalStateException("Non-static, non-constructor with 0 arguments found: " + insert);
+                            } else {
+                                insert = createDynamicProxy(instance, insert);
+                            }
                         } catch (Exception e) {
                             throw new IllegalStateException("Failed to bind " + instance + " to " + entry.getKey() + " -> " + unbound.handle + " (static=" + unbound.isStatic + ", constructor=" + unbound.isConstructor + ')', e);
                         }
@@ -281,7 +311,7 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, @Nullable Object[] args) throws Throwable {
         { // ReflectiveProxyObject & Object methods
             int paramCount = method.getParameterCount();
             String name = method.getName();
@@ -306,14 +336,15 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
                         if (instance == null) proxyClass.wait();
                         else instance.wait();
                         return null;
-                    case "getClass": // Does this actually get called?
-                        if (instance == null) return proxyClass;
-                        else return instance.getClass();
+                    case "getTargetClass":
+                        return targetClass;
                 }
             } else if (paramCount == 1) {
                 switch (name) {
                     case "bindTo":
                         return bindTo(args[0]);
+                    case "isInstance":
+                        return targetClass.isInstance(args[0]);
                     case "equals":
                         return instance == null ? proxyClass == args[0] : instance.equals(args[0]);
                     case "wait":
@@ -354,7 +385,7 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
 
         Object result;
 
-        if (reflectedHandle.pTypes != null) {
+        if (reflectedHandle.pTypes != null && args != null) {
             for (int i = 0; i < args.length; i++) {
                 Object arg = args[i];
                 if (arg instanceof ReflectiveProxyObject) {
@@ -367,8 +398,14 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
             // MethodHandle#invoke is a special case due to its @PolymorphicSignature nature.
             // The signature of the method is simply a placeholder which is replaced by JVM.
             // We use invokeWithArguments which accepts working with Object.class
-            if (args == null) result = reflectedHandle.handle.invoke();
-            else result = reflectedHandle.handle.invokeWithArguments(args);
+            // But we already changed the method signature to (Object[])Object so we can safely
+            // use invokeExact()
+            if (args == null) {
+                result = reflectedHandle.handle.invokeExact();
+            } else {
+                // result = reflectedHandle.handle.invokeWithArguments(args);
+                result = reflectedHandle.handle.invoke(args);
+            }
         } catch (Throwable ex) {
             throw new IllegalStateException("Failed to execute " + method + " -> "
                     + reflectedHandle.handle + " with args "

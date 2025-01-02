@@ -23,11 +23,10 @@
 package com.cryptomorin.xseries.test.reflection.proxy;
 
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
-import com.cryptomorin.xseries.reflection.proxy.annotations.Class;
 import com.cryptomorin.xseries.reflection.proxy.annotations.*;
 import org.jetbrains.annotations.NotNull;
 
-@Class(target = ProxyTestClass.class)
+@Proxify(target = ProxyTestClass.class)
 public interface ProxyTestProxified extends ReflectiveProxyObject {
     // Fields
     @Static
@@ -39,12 +38,24 @@ public interface ProxyTestProxified extends ReflectiveProxyObject {
     @Field
     int id();
 
+    @Static
+    @Field
+    void id(int newValue);
+
+    @Protected
+    @Static
+    boolean isBeyond555();
+
     @Field
     int date();
 
     @Private
     @Field
     String operationField();
+
+    @Private
+    @Field
+    void operationField(String value);
 
     @Static
     StringBuilder doStaticThings(int times);
@@ -75,7 +86,7 @@ public interface ProxyTestProxified extends ReflectiveProxyObject {
 
     String getSomething(String add, short add2);
 
-    String getSomething(String add);
+    String getSomething(String add) throws IllegalArgumentException, IllegalStateException;
 
     int getSomething(String add, int add2);
 

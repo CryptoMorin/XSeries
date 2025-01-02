@@ -22,7 +22,9 @@
 
 package com.cryptomorin.xseries.test.reflection.asm;
 
+import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.asm.XReflectASM;
+import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.reflection.proxy.ProxyTestProxified;
 import com.cryptomorin.xseries.test.reflection.proxy.ProxyTests;
 import com.cryptomorin.xseries.test.util.XLogger;
@@ -30,14 +32,13 @@ import com.cryptomorin.xseries.test.util.XLogger;
 public final class ASMTests {
     public static void test() {
         XLogger.log("[ASM] Testing XReflectASM generation...");
-        // XReflectASM<ServerLevel> asm = XReflectASM.proxify(ServerLevel.class);
-        // asm.verify(false);
-        // asm.writeToFile(Constants.DESKTOP);
 
         XReflectASM<ProxyTestProxified> asm = XReflectASM.proxify(ProxyTestProxified.class);
+        asm.writeToFile(Constants.getTestPath());
         ProxyTestProxified factoryInstance = asm.create();
         ProxyTests.normalProxyTest(factoryInstance);
 
-        ProxyTests.minecraftProxyTest((clazz) -> XReflectASM.proxify(clazz).create());
+        if (XReflection.supports(20))
+            ProxyTests.minecraftProxyTest((clazz) -> XReflectASM.proxify(clazz).create());
     }
 }

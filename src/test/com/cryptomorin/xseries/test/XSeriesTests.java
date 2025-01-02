@@ -73,7 +73,7 @@ public final class XSeriesTests {
     public void enumToRegistry() throws URISyntaxException {
         URL resource = XSeriesTests.class.getResource("XEnchantment.java");
         Path path = Paths.get(resource.toURI());
-        ClassConverter.enumToRegistry(path, Constants.DESKTOP);
+        ClassConverter.enumToRegistry(path, Constants.getTestPath());
     }
 
     public static void test() {
@@ -225,6 +225,17 @@ public final class XSeriesTests {
             assertNotNull(XPotion.of(potionType), () -> "null for (Bukkit -> XForm): " + potionType);
             assertPresent(XPotion.of(bukkitName), "null for (String -> XForm): " + bukkitName);
         }
+
+        assertPotionEffect(XPotion.parseEffect("STRENGTH, 10, 3"), XPotion.STRENGTH, 10, 3);
+        assertPotionEffect(XPotion.parseEffect("BLINDNESS, 30, 1"), XPotion.BLINDNESS, 30, 1);
+        assertPotionEffect(XPotion.parseEffect("SLOWNESS, 200, 10, %75"), XPotion.SLOWNESS, 200, 10);
+    }
+
+    private static void assertPotionEffect(XPotion.Effect effect, XPotion type, int duration, int amplifier) {
+        assertNotNull(effect, "Effect could not be parsed");
+        assertEquals(type, effect.getXPotion(), "Potion effect types don't match");
+        assertEquals(amplifier - 1, effect.getEffect().getAmplifier(), "Potion effect amplifiers don't match");
+        assertEquals(duration * 20, effect.getEffect().getDuration(), "Potion effect durations don't match");
     }
 
     private static void testXEnchantment() {

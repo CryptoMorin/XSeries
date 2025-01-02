@@ -22,9 +22,14 @@
 
 package com.cryptomorin.xseries.test.reflection.proxy;
 
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
+import org.jetbrains.annotations.NotNull;
+
+@TestAnnotation(reference = String.class, filter = true, type = ReflectedObject.Type.FIELD)
+@TestAnnotation2({100, 200})
 public class ProxyTestClass {
     public static final int finalId = 555;
-    public static int id = 555;
+    public static int id = 500;
     public int date;
     private String operationField;
 
@@ -37,11 +42,20 @@ public class ProxyTestClass {
         this.date = date;
     }
 
-    private ProxyTestClass(int date) {
+    protected static boolean isBeyond555() {
+        return id > 555;
+    }
+
+    @Deprecated
+    @TestAnnotation(values = {@TestAnnotation2(3), @TestAnnotation2({4, 10})})
+    @TestAnnotation(index = 1)
+    @TestAnnotation(name = "toaster")
+    @TestAnnotation(reference = String.class, filter = true, type = ReflectedObject.Type.FIELD)
+    private ProxyTestClass(@TestAnnotation(index = 3) int date) {
         this("OperationPrimus", 2027);
     }
 
-    public int compareTo(ProxyTestClass other) {
+    public int compareTo(@Deprecated @NotNull ProxyTestClass other) {
         return Integer.compare(this.date, other.date);
     }
 
@@ -55,7 +69,7 @@ public class ProxyTestClass {
 
     @SuppressWarnings("MethodMayBeStatic")
     private StringBuilder doSomethingPrivate(int length) {
-        return new StringBuilder(length);
+        return new StringBuilder(length).append(operationField).append(finalId);
     }
 
     public void doSomething(String add, boolean add2) {
@@ -70,7 +84,10 @@ public class ProxyTestClass {
         return add + add2;
     }
 
-    public String getSomething(String add) {
+    public String getSomething(String add) throws IllegalArgumentException, IllegalStateException {
+        if ("!".equals(add)) throw new IllegalArgumentException("Invalid argument: " + add);
+        if (operationField == null) throw new IllegalStateException("Operation is not set: " + add);
+
         return add + add;
     }
 

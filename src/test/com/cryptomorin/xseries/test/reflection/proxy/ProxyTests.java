@@ -25,6 +25,7 @@ package com.cryptomorin.xseries.test.reflection.proxy;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
+import com.cryptomorin.xseries.reflection.proxy.generator.XProxifier;
 import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.reflection.proxy.minecraft.BlockPos;
 import com.cryptomorin.xseries.test.reflection.proxy.minecraft.CraftWorld;
@@ -40,33 +41,66 @@ import static org.junit.jupiter.api.Assertions.*;
 public final class ProxyTests {
     public static void test() {
         XLogger.log("[Proxy] Testing ReflectiveProxy generation...");
-        normalProxyTest(XReflection.proxify(ProxyTestProxified.class));
+        normalProxyTest(ReflectiveProxy.proxify(ProxyTestProxified.class).proxy());
         if (XReflection.supports(20)) minecraftProxyTest((x) -> ReflectiveProxy.proxify(x).proxy());
+
+        new XProxifier(ProxyTestClass.class).writeTo(Constants.getTestPath());
+        // new XProxifier(
+        //         XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "server.level")
+        //                 .map(MinecraftMapping.MOJANG, "ServerPlayer")
+        //                 .map(MinecraftMapping.SPIGOT, "EntityPlayer")
+        //                 .map(MinecraftMapping.OBFUSCATED, "are")
+        //                 .unreflect()
+        // ).writeTo(Constants.getTestPath());
 
         testCreateLambda();
         testCreateXReflectionLambda();
     }
 
     public static void normalProxyTest(ProxyTestProxified factoryProxy) {
+        assertSame(factoryProxy.getTargetClass(), ProxyTestClass.class);
+
+        // Final member tests.
+        int initialValue = ProxyTestClass.id;
         assertEquals(ProxyTestClass.finalId, factoryProxy.finalId());
         assertEquals(ProxyTestClass.finalId, factoryProxy.finalId());
         assertEquals(ProxyTestClass.finalId, factoryProxy.finalId());
         assertEquals(ProxyTestClass.id, factoryProxy.id());
+        assertFalse(factoryProxy.isBeyond555());
+        factoryProxy.id(777);
+        assertEquals(777, factoryProxy.id());
+        assertTrue(factoryProxy.isBeyond555());
+        factoryProxy.id(initialValue); // We don't want other tests to fail
         assertEquals("0123456789", factoryProxy.doStaticThings(10).toString());
 
         ProxyTestClass instance = factoryProxy.ProxyTestProxified("OperationTestum", 2025);
         ProxyTestProxified unusInstance = factoryProxy.bindTo(instance);
 
+        // isInstance() test
+        assertTrue(factoryProxy.isInstance(instance));
+        assertTrue(factoryProxy.isInstance(unusInstance.instance()));
+        assertFalse(factoryProxy.isInstance(unusInstance));
+
+        // First instance member tests
         assertEquals("OperationTestum", unusInstance.operationField());
         assertEquals(2025, unusInstance.date());
         assertEquals("OperationTestum12false", unusInstance.getSomething("12", false));
         unusInstance.iForgotTheName("20", true);
         assertEquals("OperationTestumdoSomething20true", unusInstance.operationField());
+        // noinspection StringBufferReplaceableByString
+        assertEquals(
+                new StringBuilder(10).append(unusInstance.operationField()).append(factoryProxy.finalId()).toString(),
+                unusInstance.doSomethingPrivate(10).toString()
+        );
+        unusInstance.operationField("SomeValue");
+        assertEquals("SomeValue", unusInstance.operationField());
 
         // Cannot invoke constructor twice
         assertThrows(Exception.class, () -> unusInstance.ProxyTestProxified("OperationDuoTestum"));
 
+        // Second instance member tests
         ProxyTestProxified duoInstance = factoryProxy.ProxyTestProxified("OperationDuoTestum");
+        assertTrue(factoryProxy.isInstance(duoInstance.instance()));
         assertEquals("0123456789", factoryProxy.doStaticThings(10).toString());
         assertEquals("OperationDuoTestum", duoInstance.operationField());
         assertEquals("soosoo", duoInstance.getSomething("soo"));

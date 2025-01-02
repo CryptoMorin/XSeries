@@ -23,6 +23,7 @@
 package com.cryptomorin.xseries.test;
 
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.test.util.XLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -33,13 +34,23 @@ public final class Constants {
     private Constants() {}
 
     public static final Object LOCK = new Object();
-    public static final Path DESKTOP = Paths.get(System.getProperty("user.home") + "/Desktop/");
+
+    @SuppressWarnings("ConstantValue")
+    public static Path getTestPath() {
+        // It's inside "XSeries\target\tests" folder.
+        XLogger.log("System test path is " + System.getProperty("user.dir"));
+        if (Bukkit.getServer() == null) {
+            return Paths.get(System.getProperty("user.dir"));
+        } else {
+            return Bukkit.getWorldContainer().toPath();
+        }
+    }
 
     /**
      * This sends unnecessary requests to Mojang and also delays out work too,
      * so let's not test when it's not needed.
      */
-    public static final boolean TEST_MOJANG_API = true;
+    public static final boolean TEST_MOJANG_API = false;
 
     public static final boolean TEST_MOJANG_API_BULK = false;
 
