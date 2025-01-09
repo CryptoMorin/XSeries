@@ -150,6 +150,20 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     }
 
     /**
+     * Gets the class of the bukkit form.
+     */
+    public Class<BukkitForm> getBukkitFormClass() {
+        return bukkitFormClass;
+    }
+
+    /**
+     * Gets the class of the xform.
+     */
+    public Class<XForm> getXFormClass() {
+        return xFormClass;
+    }
+
+    /**
      * Gets the name of the registry, which is usually the bukkit form's simple class name.
      */
     public String getName() {
