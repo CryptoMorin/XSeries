@@ -187,35 +187,60 @@ public final class XBlock {
     }
 
     public static boolean isCake(@Nullable Material material) {
-        return material == Material.CAKE || material == BlockMaterial.CAKE_BLOCK.material;
+        if (!XMaterial.supports(13)) {
+            return material == BlockMaterial.CAKE_BLOCK.material;
+        }
+        return material == Material.CAKE;
     }
 
     public static boolean isWheat(@Nullable Material material) {
-        return material == Material.WHEAT || material == BlockMaterial.CROPS.material;
+        if (!XMaterial.supports(13)) {
+            return material == BlockMaterial.CROPS.material;
+        }
+        return material == Material.WHEAT;
     }
 
     public static boolean isSugarCane(@Nullable Material material) {
-        return material == Material.SUGAR_CANE || material == BlockMaterial.SUGAR_CANE_BLOCK.material;
+        if (!XMaterial.supports(13)) {
+            return material == BlockMaterial.SUGAR_CANE_BLOCK.material;
+        }
+        return material == Material.SUGAR_CANE;
     }
 
     public static boolean isBeetroot(@Nullable Material material) {
-        return material == Material.BEETROOT || material == Material.BEETROOTS || material == BlockMaterial.BEETROOT_BLOCK.material;
+        if (!XMaterial.supports(13)) {
+            // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
+            return material != null && material == BlockMaterial.BEETROOT_BLOCK.material;
+        }
+        return material == Material.BEETROOTS;
     }
 
     public static boolean isNetherWart(@Nullable Material material) {
-        return material == Material.NETHER_WART || material == BlockMaterial.NETHER_WARTS.material;
+        if (!XMaterial.supports(13)) {
+            return material == BlockMaterial.NETHER_WARTS.material;
+        }
+        return material == Material.NETHER_WART;
     }
 
     public static boolean isCarrot(@Nullable Material material) {
-        return material == Material.CARROT || material == Material.CARROTS;
+        if (!XMaterial.supports(13)) {
+            return material == Material.CARROT;
+        }
+        return material == Material.CARROTS;
     }
 
     public static boolean isMelon(@Nullable Material material) {
-        return material == Material.MELON || material == Material.MELON_SLICE || material == BlockMaterial.MELON_BLOCK.material;
+        if (!XMaterial.supports(13)) {
+            return material == BlockMaterial.MELON_BLOCK.material;
+        }
+        return material == Material.MELON;
     }
 
     public static boolean isPotato(@Nullable Material material) {
-        return material == Material.POTATO || material == Material.POTATOES;
+        if (!XMaterial.supports(13)) {
+            return material == Material.POTATO;
+        }
+        return material == Material.POTATOES;
     }
 
     public static BlockFace getDirection(Block block) {
