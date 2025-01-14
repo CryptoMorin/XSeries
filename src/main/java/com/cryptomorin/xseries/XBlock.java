@@ -187,28 +187,28 @@ public final class XBlock {
     }
 
     public static boolean isCake(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == BlockMaterial.CAKE_BLOCK.material;
         }
         return material == Material.CAKE;
     }
 
     public static boolean isWheat(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == BlockMaterial.CROPS.material;
         }
         return material == Material.WHEAT;
     }
 
     public static boolean isSugarCane(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == BlockMaterial.SUGAR_CANE_BLOCK.material;
         }
         return material == Material.SUGAR_CANE;
     }
 
     public static boolean isBeetroot(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
             return material != null && material == BlockMaterial.BEETROOT_BLOCK.material;
         }
@@ -216,28 +216,28 @@ public final class XBlock {
     }
 
     public static boolean isNetherWart(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == BlockMaterial.NETHER_WARTS.material;
         }
         return material == Material.NETHER_WART;
     }
 
     public static boolean isCarrot(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == Material.CARROT;
         }
         return material == Material.CARROTS;
     }
 
     public static boolean isMelon(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == BlockMaterial.MELON_BLOCK.material;
         }
         return material == Material.MELON;
     }
 
     public static boolean isPotato(@Nullable Material material) {
-        if (!XMaterial.supports(13)) {
+        if (!ISFLAT) {
             return material == Material.POTATO;
         }
         return material == Material.POTATOES;
