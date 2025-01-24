@@ -97,6 +97,7 @@
         <testVer/>
         <testJavaPath/>
         <testJava>21</testJava>
+        <asm>9.7.1</asm>
     </properties>
 
     <dependencies>
@@ -123,14 +124,20 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.7.1</version>
+            <version>${asm}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>${asm}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
-            <version>9.7.1</version>
-            <scope>provided</scope>
+            <version>${asm}</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

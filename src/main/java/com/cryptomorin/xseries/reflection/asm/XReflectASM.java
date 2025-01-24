@@ -436,6 +436,8 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
     public void visitEnd() {
         generateGetTargetClass();
         generateIsInstance();
+        generateNewArraySingleDim();
+        generateNewArrayMultiDim();
         generateInstance();
         generateBindTo();
 
@@ -1120,6 +1122,89 @@ public final class XReflectASM<T extends ReflectiveProxyObject> extends ClassVis
         mv.returnValue();
 
         mv.visitMaxs(1, 1);
+        mv.visitEnd();
+    }
+
+    private void generateNewArraySingleDim() {
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC, "Object[] newArray(int)");
+
+        Label startLabel = new Label();
+        mv.visitLabel(startLabel);
+        mv.loadArg(0);
+        mv.newArray(targetClassType);
+        mv.visitInsn(Opcodes.ARETURN);
+
+        Label endLabel = new Label();
+        mv.visitLabel(endLabel);
+        visitThis(mv, startLabel, endLabel);
+        mv.visitLocalVariable("length", "I", null, startLabel, endLabel, 1);
+
+        mv.visitMaxs(1, 2);
+        mv.visitEnd();
+    }
+
+    private void generateNewArrayMultiDim() {
+        GeneratorAdapter mv = createMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_VARARGS, "Object[] newArray(int[])");
+
+        Label label0 = new Label();
+        mv.visitLabel(label0);
+        mv.loadArg(0);
+        mv.arrayLength();
+
+        // switch (dimensions.length) { }
+        Label case1 = new Label();
+        Label case2 = new Label();
+        Label case3 = new Label();
+        Label defaultCase = new Label();
+        mv.visitTableSwitchInsn(1, 3, defaultCase, case1, case2, case3);
+
+        // case 1: return new TargetClass[dimensions[0]];
+        mv.visitLabel(case1);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.newArray(targetClassType);
+        mv.visitInsn(Opcodes.ARETURN);
+
+        // case 2: return new TargetClass[dimensions[0]][dimensions[1]];
+        mv.visitLabel(case2);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.visitMultiANewArrayInsn("[[" + targetClassType.getDescriptor(), 2);
+        mv.visitInsn(Opcodes.ARETURN);
+
+        // case 3: return new TargetClass[dimensions[0]][dimensions[1]][dimensions[2]];
+        mv.visitLabel(case3);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.loadArg(0);
+        mv.visitInsn(Opcodes.ICONST_2);
+        mv.visitInsn(Opcodes.IALOAD);
+        mv.visitMultiANewArrayInsn("[[[" + targetClassType.getDescriptor(), 3);
+        mv.visitInsn(Opcodes.ARETURN);
+
+        // default:
+        mv.visitLabel(defaultCase);
+        mv.push(targetClassType);
+        mv.loadArg(0);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;", false);
+        mv.checkCast(Type.getType(Object[].class));
+        mv.visitInsn(Opcodes.ARETURN);
+
+        Label endLabel = new Label();
+        mv.visitLabel(endLabel);
+        visitThis(mv, label0, endLabel);
+        mv.visitLocalVariable("dimensions", "[I", null, label0, endLabel, 1);
+
+        mv.visitMaxs(4, 2);
         mv.visitEnd();
     }
 

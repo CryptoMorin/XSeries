@@ -25,6 +25,7 @@ package com.cryptomorin.xseries.test.reflection;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.cryptomorin.xseries.reflection.parser.ReflectionParser;
+import com.cryptomorin.xseries.test.util.XLogger;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Modifier;
@@ -48,6 +49,11 @@ public final class ReflectionTests {
                 public final AtomicInteger atomicField = new AtomicInteger();
             }
         }
+    }
+
+    public static EnumTest privateLookupIn(Class<?> targetClass, EnumTest caller) throws IllegalAccessException {
+        XLogger.log("privateLookupIn!");
+        return EnumTest.C;
     }
 
     public enum EnumTest {
@@ -117,6 +123,13 @@ public final class ReflectionTests {
                     .getEnumConstant();
 
             assertSame(EnumTest.A, enumConstant);
+
+            assertDoesNotThrow(() -> {
+                // TODO we need to somehow add support for "ReflectionTests.EnumTest" type in strings.
+                XReflection.of(ReflectionTests.class)
+                        .method("public static EnumTest privateLookupIn(Class<?> targetClass, EnumTest caller) throws IllegalAccessException")
+                        .reflect();
+            }, "Couldn't parse inner-classed throwable method of privateLookupIn");
 
             assertDoesNotThrow(() -> {
                 new ReflectionParser("private String[] split(char ch, int limit, boolean withDelimiters);")

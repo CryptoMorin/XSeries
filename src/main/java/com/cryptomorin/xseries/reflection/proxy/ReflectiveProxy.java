@@ -97,7 +97,6 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
                 ReflectedObject jvm = overload.handle.jvm().unreflect();
 
                 MethodHandle methodHandle = (MethodHandle) overload.handle.unreflect();
-
                 methodHandle = createDynamicProxy(null, methodHandle);
 
                 ProxifiedObject proxifiedObj = new ProxifiedObject(

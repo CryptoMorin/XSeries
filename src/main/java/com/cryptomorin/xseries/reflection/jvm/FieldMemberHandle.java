@@ -42,7 +42,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -255,9 +254,10 @@ public class FieldMemberHandle extends FlaggedNamedMemberHandle {
                 if (field.getType() != returnType) {
                     throw new NoSuchFieldException("Field named '" + name + "' was found but the types don't match: " + field + " != " + this);
                 }
-                if (this.accessFlags.contains(XAccessFlag.FINAL) && !Modifier.isFinal(field.getModifiers())) {
-                    throw new NoSuchFieldException("Field named '" + name + "' was found but it's not final: " + field + " != " + this);
-                }
+                // This might be a bit too strict?
+                // if (this.accessFlags.contains(XAccessFlag.FINAL) && !Modifier.isFinal(field.getModifiers())) {
+                //     throw new NoSuchFieldException("Field named '" + name + "' was found but it's not final: " + field + " != " + this);
+                // }
             } catch (NoSuchFieldException ex) {
                 field = null;
                 if (errors == null) errors = new NoSuchFieldException("None of the fields were found for " + this);

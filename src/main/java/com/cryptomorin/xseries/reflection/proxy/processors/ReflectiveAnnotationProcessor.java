@@ -23,6 +23,7 @@
 package com.cryptomorin.xseries.reflection.proxy.processors;
 
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
+import com.cryptomorin.xseries.reflection.StaticReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.aggregate.VersionHandle;
@@ -32,6 +33,7 @@ import com.cryptomorin.xseries.reflection.jvm.MethodMemberHandle;
 import com.cryptomorin.xseries.reflection.jvm.NameableReflectiveHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.ClassHandle;
 import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
+import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
 import com.cryptomorin.xseries.reflection.proxy.ClassOverloadedMethods;
 import com.cryptomorin.xseries.reflection.proxy.OverloadedMethod;
 import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxy;
@@ -42,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -51,6 +55,7 @@ import java.util.function.Function;
 public final class ReflectiveAnnotationProcessor {
     private final Class<? extends ReflectiveProxyObject> interfaceClass;
     private ClassOverloadedMethods<ProxyMethodInfo> mapped;
+    private OverloadedMethod.Builder<ProxyMethodInfo> mappedHandles;
 
     private Class<?> targetClass;
 
@@ -104,7 +109,9 @@ public final class ReflectiveAnnotationProcessor {
     public void process(Function<ProxyMethodInfo, String> descriptorProcessor) {
         ClassHandle classHandle = processTargetClass();
         Method[] interfaceMethods = interfaceClass.getMethods(); // It's an interface, all are public
-        OverloadedMethod.Builder<ProxyMethodInfo> mappedHandles = new OverloadedMethod.Builder<>(descriptorProcessor);
+        mappedHandles = new OverloadedMethod.Builder<>(descriptorProcessor);
+
+        // reflectDefaults();
 
         for (Method method : interfaceMethods) {
             // Java doesn't inherit annotations for interfaces...
@@ -188,7 +195,6 @@ public final class ReflectiveAnnotationProcessor {
                 error("Failed to map " + method, e);
             }
 
-            System.out.println("Adding method of type " + method.getName() + ": " + rType + " - " + Arrays.toString(pTypes));
             ProxyMethodInfo methodInfo = new ProxyMethodInfo(cached, method, rType, pTypes);
             mappedHandles.add(methodInfo, method.getName());
         }
@@ -265,6 +271,55 @@ public final class ReflectiveAnnotationProcessor {
         reflectNames0(handle, rawNames);
     }
 
+    private void reflectDefaults() {
+        try {
+            MethodHandle privateLookupIn = XReflection.of(MethodHandles.class)
+                    .method("public static Lookup privateLookupIn(Class<?> targetClass, Lookup caller) throws IllegalAccessException")
+                    .reflectOrNull();
+
+            // Java 8
+            if (privateLookupIn == null) {
+                final java.lang.reflect.Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class
+                        .getDeclaredConstructor(Class.class);
+                constructor.setAccessible(true);
+                MethodHandles.Lookup lookup = constructor.newInstance(interfaceClass).in(interfaceClass);
+
+                for (Method method : interfaceClass.getMethods()) {
+                    if (method.isDefault()) {
+                        handleDefaultMethod(method, lookup.unreflectSpecial(method, interfaceClass));
+                    }
+                }
+            }
+
+            // Java 9+
+            MethodHandles.Lookup lookup = ((MethodHandles.Lookup) privateLookupIn.invokeExact(interfaceClass, MethodHandles.lookup()));
+            for (Method method : interfaceClass.getMethods()) {
+                if (method.isDefault()) { // Why is this true for bindTo()?
+                    MethodHandle meth = lookup.findSpecial(
+                            interfaceClass,
+                            method.getName(),
+                            MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+                            interfaceClass
+                    );
+                    handleDefaultMethod(method, meth);
+                }
+            }
+
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void handleDefaultMethod(Method method, MethodHandle defaultHandle) {
+        // System.out.println("Handling default " + interfaceClass.getSimpleName() + " --> " + method);
+        mappedHandles.add(new ProxyMethodInfo(
+                new StaticReflectiveHandle<>(defaultHandle, ReflectedObject.of(method)),
+                method,
+                unwrap(method.getReturnType()),
+                unwrap(method.getParameterTypes())
+        ), method.getName());
+    }
+
     private void reflectNames0(NameableReflectiveHandle handle, ReflectName[] reflectedNames) {
         if (reflectedNames.length == 0) return;
         VersionHandle<String[]> versionControl = null;
@@ -317,7 +372,7 @@ public final class ReflectiveAnnotationProcessor {
 
     @SuppressWarnings("unchecked")
     private MappedType unwrap(Class<?> clazz) {
-        if (clazz == interfaceClass) {
+        if (clazz == interfaceClass || clazz == ReflectiveProxyObject.class) {
             // Commonly used for constructors, so we treat it specially.
             return new MappedType(interfaceClass, targetClass);
         }

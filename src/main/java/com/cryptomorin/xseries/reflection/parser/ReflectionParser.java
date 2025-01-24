@@ -33,9 +33,11 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,6 +56,8 @@ import java.util.stream.Collectors;
  * All XReflection APIs that use this feature, use heavy RegEx patterns which sacrifices
  * a lot of performance for readability. Please read {@link XReflection}'s <b>Performance & Caching</b>
  * section for more information about how to properly cache this.
+ * <p>
+ * TODO Add better support for inner classes. Read {@link #includeInnerClassOf} for more info.
  *
  * @see ReflectiveNamespace#classHandle(String)
  * @see ReflectiveNamespace#ofMinecraft(String)
@@ -64,16 +68,24 @@ import java.util.stream.Collectors;
  */
 @ApiStatus.Internal
 public final class ReflectionParser {
+    private static final String[] DEFAULT_CHECKED_PACKAGES = {"java.util", "java.util.function", "java.lang", "java.io"};
+
     private final String declaration;
     private Pattern pattern;
     private Matcher matcher;
     private ReflectiveNamespace namespace;
     private Map<String, Class<?>> cachedImports;
+    private String[] checkedPackages = DEFAULT_CHECKED_PACKAGES;
     private final Set<Flag> flags = EnumSet.noneOf(Flag.class);
     private static final PackageHandle[] PACKAGE_HANDLES = MinecraftPackage.values();
 
     public ReflectionParser(@Language("Java") String declaration) {
         this.declaration = declaration;
+    }
+
+    public ReflectionParser checkedPackages(@org.intellij.lang.annotations.Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) String... checkedPackages) {
+        this.checkedPackages = checkedPackages;
+        return this;
     }
 
     private enum Flag {
@@ -94,7 +106,8 @@ public final class ReflectionParser {
             ARRAY = "(?:(?:\\[])*)",
             PACKAGE_REGEX = "(?:package\\s+(?<package>" + PackageHandle.JAVA_PACKAGE_PATTERN + ")\\s*;\\s*)?",
             CLASS_TYPES = "(?<classType>class|interface|enum|record)",
-            PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,. ]+)?\\s*\\)",
+            PARAMETERS = "\\s*\\(\\s*(?<parameters>[\\w$_,.<?>\\[\\] ]+)?\\s*\\)",
+            THROWS = "(?:\\s*throws\\s+(?<throws>(?:" + type(null).array(false) + ")(?:\\s*,\\s*" + type(null).array(false) + ")*))?",
             END_DECL = "\\s*;?\\s*";
 
     @SuppressWarnings("RegExpUnnecessaryNonCapturingGroup")
@@ -105,7 +118,7 @@ public final class ReflectionParser {
             "(?:\\s+implements\\s+(?<interfaces>(?:" + type(null).array(false) + ")(?:\\s*,\\s*" + type(null).array(false) + ")*))?" +
             "(?:\\s*\\{\\s*})?\\s*");
     private static final Pattern METHOD = Pattern.compile(Flag.FLAGS_REGEX + type("methodReturnType") + "\\s+"
-            + id("methodName") + PARAMETERS + END_DECL);
+            + id("methodName") + PARAMETERS + THROWS + END_DECL);
     private static final Pattern CONSTRUCTOR = Pattern.compile(Flag.FLAGS_REGEX + "\\s+"
             + id("className") + PARAMETERS + END_DECL);
     private static final Pattern FIELD = Pattern.compile(Flag.FLAGS_REGEX + type("fieldType") + "\\s+"
@@ -164,12 +177,28 @@ public final class ReflectionParser {
 
     static {
         Arrays.asList(
+                // Primitives
                 byte.class, short.class, int.class, long.class, float.class, double.class, boolean.class, char.class, void.class,
+
+                // Primitives (Boxxed)
+                // This is included in java.lang yes, but we still put them here.
                 Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class, Character.class, Void.class,
+
+                // java.lang
                 Object.class, String.class, CharSequence.class, StringBuilder.class, StringBuffer.class, UUID.class, Optional.class,
-                Map.class, HashMap.class, ConcurrentHashMap.class, LinkedHashMap.class, WeakHashMap.class,
-                List.class, ArrayList.class, Set.class, HashSet.class, Deque.class, Queue.class, LinkedList.class,
-                Date.class, Calendar.class, Duration.class
+                Map.class, HashMap.class,
+
+                // Time API (java.util + java.time)
+                Date.class, Calendar.class, Duration.class, TimeUnit.class,
+
+                // java.nio.file
+                Path.class, Files.class,
+
+                // java.util.concurrent
+                ConcurrentHashMap.class, Callable.class, Future.class, CompletableFuture.class,
+
+                // Exceptions
+                Throwable.class, Error.class, Exception.class, IllegalArgumentException.class, IllegalStateException.class
         ).forEach(x -> PREDEFINED_TYPES.put(x.getSimpleName(), x));
     }
 
@@ -207,14 +236,26 @@ public final class ReflectionParser {
             // Override predefined types
             if (cachedImports != null) clazz = this.cachedImports.get(typeName);
             if (clazz == null) clazz = PREDEFINED_TYPES.get(typeName);
-        }
-        if (clazz == null) {
-            try {
-                clazz = Class.forName(typeName);
-            } catch (ClassNotFoundException ignored) {
+            // if (clazz == null) {
+            if (clazz == null && checkedPackages != null) {
+                for (String checkedPackage : checkedPackages) {
+                    boolean inner = checkedPackage.endsWith("$");
+                    clazz = classNamed(checkedPackage + (inner ? "" : '.') + typeName);
+                    if (clazz != null) break;
+                }
             }
         }
+
+        if (clazz == null) clazz = classNamed(typeName);
         return clazz;
+    }
+
+    private static Class<?> classNamed(String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException ignored) {
+            return null;
+        }
     }
 
     private ReflectiveNamespace getOrCreateNamespace() {
@@ -261,8 +302,27 @@ public final class ReflectionParser {
         return classHandle;
     }
 
+    private void includeInnerClassOf(MemberHandle handle) {
+        Class<?> clazz = handle.getClassHandle().reflectOrNull();
+        if (clazz == null) return;
+
+        int len = DEFAULT_CHECKED_PACKAGES.length + 2;
+        this.checkedPackages = Arrays.copyOf(DEFAULT_CHECKED_PACKAGES, len);
+        this.checkedPackages[len - 1] = clazz.getName() + '$';
+        this.checkedPackages[len - 2] = clazz.getPackage().getName();
+
+        // The second one is also useful in case the name of the class is only relatively qualified.
+        // As in using "MethodHandles.Lookup" instead of just "Lookup", however this is currently not
+        // reliable as inner classes must be separated with $ instead of . for Class.forName() to work
+        // and we don't know where the package ends and where the class names begin. We can't just assume there'll be only inner
+        // classes to replace the dots, fully qualified inner classes (e.g. java.lang.invoke.MethodHandles.Lookup)
+        // may be used as well, and we cannot test every combination of dots and dollar signs to see which one matches.
+    }
+
     public <T extends ConstructorMemberHandle> T parseConstructor(T ctorHandle) {
+        includeInnerClassOf(ctorHandle);
         pattern(CONSTRUCTOR, ctorHandle);
+
         if (has("className") && !ctorHandle.getClassHandle().getPossibleNames().contains(group("className"))) {
             error("Wrong class name associated to constructor, possible names: " + ctorHandle.getClassHandle().getPossibleNames());
         }
@@ -271,6 +331,7 @@ public final class ReflectionParser {
     }
 
     public <T extends MethodMemberHandle> T parseMethod(T methodHandle) {
+        includeInnerClassOf(methodHandle);
         pattern(METHOD, methodHandle);
 
         // String classGeneric = parser.group("generic");
@@ -282,6 +343,7 @@ public final class ReflectionParser {
     }
 
     public <T extends FieldMemberHandle> T parseField(T fieldHandle) {
+        includeInnerClassOf(fieldHandle);
         pattern(FIELD, fieldHandle);
 
         // String classGeneric = parser.group("generic");

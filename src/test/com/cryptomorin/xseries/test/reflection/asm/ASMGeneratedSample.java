@@ -68,6 +68,21 @@ public class ASMGeneratedSample implements ReflectiveProxyObject {
         return this.instance.hashCode();
     }
 
+    public Object[] newArray(int length) {
+        return new ASMGeneratedSample[length];
+    }
+
+    public Object[] newArray(int... dimensions) {
+        // @formatter:off
+        switch (dimensions.length) {
+            case 1: return new ASMGeneratedSample[dimensions[0]];
+            case 2: return new ASMGeneratedSample[dimensions[0]][dimensions[1]];
+            case 3: return new ASMGeneratedSample[dimensions[0]][dimensions[1]][dimensions[2]];
+            default: return (Object[]) java.lang.reflect.Array.newInstance(getTargetClass(), dimensions);
+        }
+        // @formatter:on
+    }
+
     @Override
     public ASMGeneratedSample instance() {
         return (ASMGeneratedSample) instance;

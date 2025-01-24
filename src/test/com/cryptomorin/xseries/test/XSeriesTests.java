@@ -276,6 +276,16 @@ public final class XSeriesTests {
         assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
         assertMaterial("MELON", "MELON");
 
+        assertMaterial("COMMAND_BLOCK", XMaterial.COMMAND_BLOCK);
+        assertMaterial("STEP:1", XMaterial.SANDSTONE_SLAB);
+        assertMaterial("WOOD_BUTTON", XMaterial.OAK_BUTTON);
+        assertMaterial("TRAP_DOOR", XMaterial.OAK_TRAPDOOR);
+        assertMaterial("WOOD_PLATE", XMaterial.OAK_PRESSURE_PLATE);
+        assertMaterial("STONE_SLAB2", XMaterial.RED_SANDSTONE_SLAB);
+        assertMaterial("SIGN", XMaterial.OAK_SIGN);
+        assertMaterial("INK_SACK:3", XMaterial.COCOA_BEANS);
+        assertMaterial("INK_SACK:4", XMaterial.LAPIS_LAZULI);
+
         if (XMaterial.supports(14)) {
             assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
             assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
@@ -322,6 +332,13 @@ public final class XSeriesTests {
         // commonRegistryTest(XMaterial.REGISTRY, Arrays.asList(Material.values()));
         for (Material material : Material.values())
             if (!material.name().startsWith("LEGACY")) XMaterial.matchXMaterial(material);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private static void assertMaterial(String parse, XMaterial expect) {
+        Optional<XMaterial> parsed = XMaterial.matchXMaterial(parse);
+        assertPresent(parsed);
+        Assertions.assertSame(parsed.get(), expect);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

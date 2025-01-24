@@ -23,10 +23,7 @@
 package com.cryptomorin.xseries.reflection.proxy;
 
 import com.cryptomorin.xseries.reflection.proxy.annotations.Ignore;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 /**
  * All interfaces used for {@link com.cryptomorin.xseries.reflection.XReflection#proxify(Class)} must
@@ -76,7 +73,43 @@ public interface ReflectiveProxyObject {
     @NotNull
     @ApiStatus.NonExtendable
     @Contract(pure = true)
-    boolean isInstance(@Nullable Object object);
+    default boolean isInstance(@Nullable Object object) {
+        return getTargetClass().isInstance(object.getClass());
+    }
+
+    /**
+     * Equivalent to the code:
+     * <pre>{@code new TargetClass[length]}</pre>
+     * This results in a slight performance improvement in generated code instead of doing:
+     * <pre>{@code Array.newInstance(getTargetClass(), length)}</pre>
+     * So do note that this will never return true if you pass a {@link ReflectiveProxyObject} to it.
+     *
+     * @since 14.1.0
+     */
+    @Ignore
+    @NotNull
+    @ApiStatus.NonExtendable
+    @Contract(pure = true)
+    default Object[] newArray(@Range(from = 0, to = Integer.MAX_VALUE) int length) {
+        return (Object[]) java.lang.reflect.Array.newInstance(getTargetClass(), length);
+    }
+
+    /**
+     * Equivalent to the code:
+     * <pre>{@code new TargetClass[length0][length1][...]}</pre>
+     * This results in a slight performance improvement in generated code instead of doing:
+     * <pre>{@code Array.newInstance(getTargetClass(), length)}</pre>
+     * So do note that this will never return true if you pass a {@link ReflectiveProxyObject} to it.
+     *
+     * @since 14.1.0
+     */
+    @Ignore
+    @NotNull
+    @ApiStatus.NonExtendable
+    @Contract(pure = true)
+    default Object[] newArray(@Range(from = 0, to = Integer.MAX_VALUE) int... dimensions) {
+        return (Object[]) java.lang.reflect.Array.newInstance(getTargetClass(), dimensions);
+    }
 
     /**
      * Returns a new {@link ReflectiveProxyObject} that's linked to a new {@link ReflectiveProxy} with the given instance.

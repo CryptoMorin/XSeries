@@ -23,50 +23,40 @@
 package com.cryptomorin.xseries.reflection;
 
 import com.cryptomorin.xseries.reflection.jvm.objects.ReflectedObject;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A {@link ReflectiveHandle} that caches {@link ReflectiveHandle#reflect()} and {@link ReflectiveHandle#jvm()}.
- * Using this is not recommended. Please read {@link com.cryptomorin.xseries.reflection.XReflection}
- * <b>Performance & Caching</b> section for more information.
+ * A {@link ReflectiveHandle} with a fixed value.
  *
- * @since 14.0.0
+ * @since 14.1.0
  */
-@ApiStatus.Internal
-class CachedReflectiveHandle<T> implements ReflectiveHandle<T> {
-    private final ReflectiveHandle<T> delegate;
-    private T cache;
-    private CachedReflectiveHandle<ReflectedObject> jvm;
+public class StaticReflectiveHandle<T> implements ReflectiveHandle<T> {
+    private final T reflected;
+    private final ReflectiveHandle<ReflectedObject> jvm;
 
-    CachedReflectiveHandle(ReflectiveHandle<T> delegate) {
-        this.delegate = delegate;
+    public StaticReflectiveHandle(T reflected, ReflectedObject jvm) {
+        this.reflected = reflected;
+        this.jvm = new StaticReflectiveHandle<>(jvm);
     }
 
-    public ReflectiveHandle<T> getDelegate() {
-        return delegate;
+    private StaticReflectiveHandle(T reflected) {
+        this.reflected = reflected;
+        this.jvm = null;
     }
 
     @Override
     public ReflectiveHandle<T> copy() {
-        return delegate.copy();
+        return this;
     }
 
     @Override
     public @NotNull T reflect() throws ReflectiveOperationException {
-        if (cache == null) {
-            cache = delegate.reflect();
-            return cache;
-        }
-        return cache;
+        return reflected;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public @NotNull ReflectiveHandle<ReflectedObject> jvm() {
-        if (jvm == null) {
-            jvm = new CachedReflectiveHandle<>(delegate.jvm());
-            return jvm;
-        }
-        return jvm;
+        return jvm == null ? (ReflectiveHandle<ReflectedObject>) this : jvm;
     }
 }

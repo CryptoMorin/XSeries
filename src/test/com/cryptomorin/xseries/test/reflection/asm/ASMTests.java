@@ -32,6 +32,12 @@ import com.cryptomorin.xseries.test.util.XLogger;
 public final class ASMTests {
     public static void test() {
         XLogger.log("[ASM] Testing XReflectASM generation...");
+        try {
+            XLogger.log("[ASM] asm exists? " + Class.forName("org.objectweb.asm.Opcodes"));
+            XLogger.log("[ASM] asm exists2? " + Class.forName("org.objectweb.asm.ClassWriter"));
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("ASM is not running!", e);
+        }
 
         XReflectASM<ProxyTestProxified> asm = XReflectASM.proxify(ProxyTestProxified.class);
         asm.writeToFile(Constants.getTestPath());
