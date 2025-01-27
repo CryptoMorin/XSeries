@@ -43,6 +43,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -68,8 +69,21 @@ public final class XEntity {
      * @since 2.0.0
      */
     public static final Set<EntityType> UNDEAD;
+    private static final boolean SUPPORTS_DELAYED_SPAWN;
     private static final Object REGISTRY_CAT_VARIANT = supportsRegistry("CAT_VARIANT");
     private static Object REGISTRY_DEFAULT_CAT_VARIANT;
+
+    static {
+        boolean delayed;
+        try {
+            World.class.getMethod("spawn", Location.class, Class.class, boolean.class, Consumer.class);
+            delayed = true;
+        } catch (NoSuchMethodException ex) {
+            delayed = false;
+        }
+
+        SUPPORTS_DELAYED_SPAWN = delayed;
+    }
 
     private static final Map<Class<?>, BiConsumer<Entity, ConfigurationSection>> MAPPING = new HashMap<>(20);
 
@@ -248,8 +262,17 @@ public final class XEntity {
         String typeStr = config.getString("type");
         if (typeStr == null) return null;
 
-        EntityType type = Enums.getIfPresent(EntityType.class, typeStr.toUpperCase(Locale.ENGLISH)).or(EntityType.ZOMBIE);
-        return edit(location.getWorld().spawnEntity(location, type), config);
+        Optional<XEntityType> type = XEntityType.of(typeStr);
+        if (!type.isPresent()) return null;
+
+        XEntityType finalType = type.get().or(XEntityType.ZOMBIE);
+        if (!finalType.isSupported()) return null;
+
+        if (SUPPORTS_DELAYED_SPAWN) {
+            return location.getWorld().spawn(location, finalType.get().getEntityClass(), false, entity -> edit(entity, config));
+        } else {
+            return edit(location.getWorld().spawnEntity(location, finalType.get()), config);
+        }
     }
 
     private static void map(Class<?> target, Entity entity, ConfigurationSection config) {
