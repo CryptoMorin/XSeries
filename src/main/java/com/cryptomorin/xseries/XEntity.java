@@ -35,7 +35,6 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.loot.Lootable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -293,17 +292,16 @@ public final class XEntity {
         // We don't need damage cause.
 
         if (XReflection.supports(13)) {
-            if (entity instanceof Lootable) {
-                Lootable lootable = (Lootable) entity;
-                long seed = config.getLong("seed");
-                if (seed != 0) lootable.setSeed(seed);
-
-                // Needs to be implemented.
-//            ConfigurationSection lootTable = config.getConfigurationSection("loot-table");
-//            if (lootTable != null) {
-//                LootTable table = lootable.getLootTable();
-//            }
-            }
+            // TODO Needs to be implemented.
+            // This might not work properly as the loot table class needs to be
+            // present every time the server starts or it won't work.
+            // ConfigurationSection lootTable = config.getConfigurationSection("loot-table");
+            // if (lootTable != null && entity instanceof Lootable) {
+            //     Lootable lootable = (Lootable) entity;
+            //     long seed = lootTable.getLong("seed");
+            //     if (seed != 0) lootable.setSeed(seed);
+            //
+            // }
 
             if (entity instanceof Boss) {
                 Boss boss = (Boss) entity;

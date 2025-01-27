@@ -676,6 +676,10 @@ public final class XItemStack {
             }
 
             material.setType(item);
+        } else {
+            // Shortcut for more compact configs.
+            String skull = config.getString("skull");
+            if (skull != null) XMaterial.PLAYER_HEAD.setType(item);
         }
 
         // Amount
