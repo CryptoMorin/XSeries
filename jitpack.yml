@@ -3,3 +3,4 @@ jdk:
 before_install:
   - sdk install maven
   - sdk default maven
+  - mvn clean install -DskipTests -Dtoolchain.skip=true
