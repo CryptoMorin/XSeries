@@ -1,16 +1,46 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2025 Crypto Morin
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in
+  ~ all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+  ~ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+  ~ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+  ~ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ~ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.cryptomorin</groupId>
-    <artifactId>XSeries</artifactId>
-    <version>13.0.0</version>
+    <artifactId>parent</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
 
     <name>XSeries</name>
     <description>A set of utilities for Minecraft plugins</description>
     <url>https://www.spigotmc.org/threads/378136/</url>
+
+    <modules>
+        <module>commons</module>
+        <module>old-bukkit</module>
+        <module>new-bukkit</module>
+        <module>core</module>
+    </modules>
 
     <issueManagement>
         <system>GitHub Issues</system>
@@ -70,29 +100,15 @@
     </repositories>
 
     <properties>
-        <!-- Latest version -->
-        <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
-        <!-- 1.8.8-R0.1-SNAPSHOT -->
-        <!-- 1.9.4-R0.1-SNAPSHOT -->
-        <!-- 1.10.2-R0.1-SNAPSHOT -->
-        <!-- 1.11.2-R0.1-SNAPSHOT -->
-        <!-- 1.12.2-R0.1-SNAPSHOT -->
-        <!-- 1.13.2-R0.1-SNAPSHOT -->
-        <!-- 1.14.4-R0.1-SNAPSHOT -->
-        <!-- 1.15.2-R0.1-SNAPSHOT -->
-        <!-- 1.16.5-R0.1-SNAPSHOT -->
-        <!-- 1.17.1-R0.1-SNAPSHOT -->
-        <!-- 1.18.2-R0.1-SNAPSHOT -->
-        <!-- 1.19.4-R0.1-SNAPSHOT -->
-        <!-- 1.20.6-R0.1-SNAPSHOT -->
-        <!-- 1.21.1-R0.1-SNAPSHOT -->
-        <!-- 1.21.3-R0.1-SNAPSHOT -->
-        <!-- 1.21.4-R0.1-SNAPSHOT -->
-        <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
-        <!-- <spigotVersion>1.21.4-R0.1-EXPR</spigotVersion> -->
-        <spigotVersion>1.21.4-R0.1-SNAPSHOT</spigotVersion>
+        <revision>13.1.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
+
+        <!--##### Latest Versions #####-->
+        <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
+        <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
+        <spigotVersion>1.21.4-R0.1-SNAPSHOT</spigotVersion>
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>
@@ -100,305 +116,308 @@
         <asm>9.7.1</asm>
     </properties>
 
-    <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>com.mojang</groupId>-->
-        <!--            <artifactId>authlib</artifactId>-->
-        <!--            <version>6.0.55</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>${spigotVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>26.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>${asm}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>${asm}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-util</artifactId>
-            <version>${asm}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.11.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.37</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.37</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-toolchains-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>toolchain</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <toolchains>
-                        <jdk>
+        <!-- We use pluginManagement tag because: -->
+        <!-- https://stackoverflow.com/questions/3459928/running-a-specific-maven-plugin-goal-from-the-command-line-in-a-sub-module-of-a -->
+        <!-- Note: If you use shade:shade in the mvn cmd, -am will also use the shade plugin all subprojects even if the shade plugin isn't
+                   specified for those subprojects. This is because apparently -am will just copy the command line you used for the -pl projects.
+        -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-toolchains-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <execution>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>toolchain</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <toolchains>
+                            <jdk>
+                                <version>[${testJava}]</version>
+                            </jdk>
+                        </toolchains>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <!-- We use this to collect submodules -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <shadeTestJar>false</shadeTestJar>
+                        <createDependencyReducedPom>true</createDependencyReducedPom>
+                        <shadedArtifactAttached>false</shadedArtifactAttached>
+                        <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                        <!--                        <shadedClassifierName> </shadedClassifierName>-->
+                        <!--                        <finalName>${project.artifactId}-${project.version}</finalName>-->
+                        <!--                        <outputFile>${output.directory}\${project.artifactId}-${project.version}.jar</outputFile>-->
+                        <!--                        <artifactSet>-->
+                        <!--                            <includes>-->
+                        <!--                                <include>com.cryptomorin.xseries:*</include>-->
+                        <!--                            </includes>-->
+                        <!--                        </artifactSet>-->
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.3.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.11.2</version>
+                    <configuration>
+                        <!--all,-missing-->
+                        <doclint>none</doclint>
+                        <release>21</release>
+                        <excludePackageNames>com.cryptomorin.xseries.unused:com.cryptomorin.xseries.particles
+                        </excludePackageNames>
+                        <!-- Apparently this is needed because it's a bug with maven JavaDoc plugin not being able to find the exe by itself. -->
+                        <!-- <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>-->
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.2.7</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.7.0</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.0</version>
+                    <configuration>
+                        <encoding>UTF-8</encoding>
+                        <proc>none</proc>
+                        <source>8</source>
+                        <target>8</target>
+
+                        <compilerArgs>
+                            <!-- Fails to build the JAR if one of the excluded classes are being used inside an included class. -->
+                            <arg>-sourcepath</arg>
+                            <arg>doesnotexist</arg>
+                            <arg>-Xlint:-options
+                            </arg> <!-- We compile using Java 8 which will be removed in later JDKs. This disables the warning. -->
+                        </compilerArgs>
+                        <excludes>
+                            <exclude>com/cryptomorin/xseries/unused/</exclude>
+                            <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>default-testCompile</id>
+                            <phase>test-compile</phase>
+                            <configuration>
+                                <encoding>UTF-8</encoding>
+
+                                <source>8</source>
+                                <target>8</target>
+                                <testSource>8</testSource>
+                                <testTarget>8</testTarget>
+
+                                <!-- As of Java 21, annotation processing is disabled by default. -->
+                                <!-- <compilerArgs><arg>-proc:full</arg></compilerArgs> -->
+                                <proc>full</proc>
+
+                                <annotationProcessorPaths>
+                                    <path>
+                                        <groupId>org.openjdk.jmh</groupId>
+                                        <artifactId>jmh-generator-annprocess</artifactId>
+                                        <version>1.37</version>
+                                    </path>
+                                </annotationProcessorPaths>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.2</version>
+                    <configuration>
+                        <!-- <forkCount>0</forkCount> -->
+                        <!--<failIfNoTests>true</failIfNoTests>-->
+                        <!-- <skipTests>true</skipTests>-->
+                        <trimStackTrace>false</trimStackTrace>
+                        <workingDirectory>${basedir}/target/tests</workingDirectory>
+                        <!--                    <dependenciesToScan>-->
+                        <!--                        <dependency>*:spigot:*:*:1.16.5-R0.1-SNAPSHOT</dependency>-->
+                        <!--                    </dependenciesToScan>-->
+                        <includes>
+                            <include>**/*.java</include>
+                        </includes>
+                        <!-- Any way to do this without exposing the path and without using a toolchain? -->
+                        <!-- https://maven.apache.org/surefire/maven-surefire-plugin/examples/toolchains.html -->
+                        <!-- <jvm>${testJavaPath}</jvm>-->
+                        <!-- You can also use the following argument from the cmd line: -->
+                        <!-- <dash><dash>toolchains "\.m2\toolchains.xml" -->
+                        <jdkToolchain>
                             <version>[${testJava}]</version>
-                        </jdk>
-                    </toolchains>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <!--all,-missing-->
-                    <doclint>none</doclint>
-                    <release>8</release>
-                    <excludePackageNames>com.cryptomorin.xseries.unused:com.cryptomorin.xseries.particles
-                    </excludePackageNames>
-                    <!-- Apparently this is needed because it's a bug with maven JavaDoc plugin not being able to find the exe by itself. -->
-                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.7.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <proc>none</proc>
-                    <source>8</source>
-                    <target>8</target>
-                    <compilerArgs>
-                        <!-- Fails to build the JAR if one of the excluded classes are being used inside an included class. -->
-                        <arg>-sourcepath</arg>
-                        <arg>doesnotexist</arg>
-                    </compilerArgs>
-                    <excludes>
-                        <exclude>com/cryptomorin/xseries/unused/</exclude>
-                        <exclude>com/cryptomorin/xseries/SkullCacheListener.java</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <configuration>
-                            <encoding>UTF-8</encoding>
+                        </jdkToolchain>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <!-- mvn exec:exec@compile exec:exec@test -->
+                    <!-- Doesn't work... Failed to execute goal org.codehaus.mojo:exec-maven-plugin:3.5.0:exec (default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified(default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.5.0</version>
+                    <configuration>
+                        <!-- <executable>IntelliJ\plugins\maven\lib\maven3\bin\mvn.cmd</executable>-->
+                        <executable>mvn</executable>
 
-                            <source>8</source>
-                            <target>8</target>
-                            <testSource>8</testSource>
-                            <testTarget>8</testTarget>
+                        <systemProperties>
+                            <systemProperty>
+                                <key>file.encoding</key>
+                                <value>UTF-8</value>
+                            </systemProperty>
+                        </systemProperties>
+                    </configuration>
 
-                            <!-- As of Java 21, annotation processing is disabled by default. -->
-                            <!-- <compilerArgs><arg>-proc:full</arg></compilerArgs> -->
-                            <proc>full</proc>
+                    <executions>
+                        <execution>
+                            <id>compile</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                            <configuration>
+                                <arguments>
+                                    <!-- <argument>compiler:compile</argument>-->
+                                    <!-- <argument>compiler:testCompile</argument>-->
+                                    <!--
+                                        You can't just run 'mvn test-compile exec...' because for some reason exec wouldn't be able
+                                        to find the 'mvn' command anymore???
+                                        Also, for some reason, using the two above goals doesn't properly apply the annotation processor
+                                        configured in the main maven-compiler-plugin.
+                                     -->
+                                    <argument>test-compile</argument>
+                                    <argument>-Dfile.encoding=UTF-8</argument>
+                                </arguments>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>test</id>
+                            <phase>none</phase>
+                            <!-- Configuring the correct phase here, which would be 'test' causes this to get run twice. -->
+                            <!-- https://stackoverflow.com/questions/4253700/maven-phase-executing-twice -->
 
-                            <annotationProcessorPaths>
-                                <path>
-                                    <groupId>org.openjdk.jmh</groupId>
-                                    <artifactId>jmh-generator-annprocess</artifactId>
-                                    <version>1.37</version>
-                                </path>
-                            </annotationProcessorPaths>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
-                <configuration>
-                    <!-- <forkCount>0</forkCount> -->
-                    <!--<failIfNoTests>true</failIfNoTests>-->
-                    <!-- <skipTests>true</skipTests>-->
-                    <trimStackTrace>false</trimStackTrace>
-                    <workingDirectory>${basedir}/target/tests</workingDirectory>
-                    <!--                    <dependenciesToScan>-->
-                    <!--                        <dependency>*:spigot:*:*:1.16.5-R0.1-SNAPSHOT</dependency>-->
-                    <!--                    </dependenciesToScan>-->
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
-                    <!-- Any way to do this without exposing the path and without using a toolchain? -->
-                    <!-- https://maven.apache.org/surefire/maven-surefire-plugin/examples/toolchains.html -->
-                    <!-- <jvm>${testJavaPath}</jvm>-->
-                    <!-- You can also use the following argument from the cmd line: -->
-                    <!-- <dash><dash>toolchains "\.m2\toolchains.xml" -->
-                    <jdkToolchain>
-                        <version>[${testJava}]</version>
-                    </jdkToolchain>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!-- mvn exec:exec@compile exec:exec@test -->
-                <!-- Doesn't work... Failed to execute goal org.codehaus.mojo:exec-maven-plugin:3.5.0:exec (default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified(default-cli) on project XSeries: Command execution failed.: Cannot run program "mvn" (in directory): CreateProcess error=2, The system cannot find the file specified -->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <!-- <executable>IntelliJ\plugins\maven\lib\maven3\bin\mvn.cmd</executable>-->
-                    <executable>mvn</executable>
-
-                    <systemProperties>
-                        <systemProperty>
-                            <key>file.encoding</key>
-                            <value>UTF-8</value>
-                        </systemProperty>
-                    </systemProperties>
-                </configuration>
-
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>none</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>
-                                <!-- <argument>compiler:compile</argument>-->
-                                <!-- <argument>compiler:testCompile</argument>-->
-                                <!--
-                                    You can't just run 'mvn test-compile exec...' because for some reason exec wouldn't be able
-                                    to find the 'mvn' command anymore???
-                                    Also, for some reason, using the two above goals doesn't properly apply the annotation processor
-                                    configured in the main maven-compiler-plugin.
-                                 -->
-                                <argument>test-compile</argument>
-                                <argument>-Dfile.encoding=UTF-8</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>test</id>
-                        <phase>none</phase>
-                        <!-- Configuring the correct phase here, which would be 'test' causes this to get run twice. -->
-                        <!-- https://stackoverflow.com/questions/4253700/maven-phase-executing-twice -->
-
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>
-                                <!-- <argument>jar:test-jar</argument> -->
-                                <argument>test</argument>
-                                <argument>-Ptester,${testVer}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <!-- This won't properly set the propery for some reason: -->
-                        <!-- mvn exec:exec@everything -DtestVer=8 -->
-                        <id>everything</id>
-                        <phase>none</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>
-                                <argument>exec:exec@compile</argument>
-                                <argument>exec:exec@test</argument>
-                                <argument>-Dfile.encoding=UTF-8</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
-        <testSourceDirectory>src/test</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                            <configuration>
+                                <arguments>
+                                    <!-- <argument>jar:test-jar</argument> -->
+                                    <argument>test</argument>
+                                    <argument>-Ptester,${testVer}</argument>
+                                </arguments>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <!-- This won't properly set the propery for some reason: -->
+                            <!-- mvn exec:exec@everything -DtestVer=8 -->
+                            <id>everything</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                            <configuration>
+                                <arguments>
+                                    <argument>exec:exec@compile</argument>
+                                    <argument>exec:exec@test</argument>
+                                    <argument>-Dfile.encoding=UTF-8</argument>
+                                </arguments>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.7.0</version>
+                    <configuration>
+                        <keepCommentsInPom>false</keepCommentsInPom>
+                        <flattenMode>oss</flattenMode>
+                    </configuration>
+                    <executions>
+                        <!-- enable flattening -->
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <!-- ensure proper cleanup -->
+                        <execution>
+                            <id>flatten.clean</id>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
 
     <profiles>
         <profile>
@@ -411,6 +430,7 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+
             <build>
                 <plugins>
                     <!--                    <plugin>-->
@@ -438,7 +458,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.4.2</version>
                         <configuration>
                             <outputDirectory>${project.build.directory}/tests/plugins</outputDirectory>
                         </configuration>
@@ -474,7 +493,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.13.0</version>
                         <configuration>
                             <!--
                                 Due to dependency change for testing.

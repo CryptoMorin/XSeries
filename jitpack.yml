@@ -1,5 +1,6 @@
 jdk:
-  - openjdk17
+  - openjdk21
+
 before_install:
   - sdk install maven
   - sdk default maven
