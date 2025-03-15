@@ -395,6 +395,7 @@
                     <configuration>
                         <keepCommentsInPom>false</keepCommentsInPom>
                         <flattenMode>oss</flattenMode>
+                        <flattenDependencyMode>inherited</flattenDependencyMode>
                     </configuration>
                     <executions>
                         <!-- enable flattening -->

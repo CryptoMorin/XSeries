@@ -31,6 +31,9 @@
         <version>${revision}</version>
     </parent>
 
+    <!-- Maven Flatten Plugin doesn't inherit this tag specifically. -->
+    <!-- https://github.com/mojohaus/flatten-maven-plugin/issues/76 -->
+    <name>XSeries</name>
     <artifactId>XSeries</artifactId>
 
     <properties>

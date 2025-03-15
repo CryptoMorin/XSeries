@@ -83,6 +83,7 @@ developers can see and perhaps give suggestions about. Anyone is welcome to comp
   and technical details that most developers don't have to be concerned about. We should make a guide on the wiki with
   screenshots and a general overview of all the features which makes it much easier for developers to get started.
 
-* **[Mavne]** `[ERROR] MavenInvocationException: Error when invoking Maven, consult the invoker log file ...` when
-  building the project. The log file simply says the dependencies couldn't be resolved? Seems to be related to Javadoc goal.
-  Also `[ERROR] Error fetching link: XSeries/<project>/target/apidocs. Ignored it.` might be related to the previous error.
+* **[Maven]** `[ERROR] MavenInvocationException: Error when invoking Maven, consult the invoker log file ...` when
+  building the project. The log file simply says the dependencies couldn't be resolved? Seems to be related to Javadoc
+  goal. Also, `[ERROR] Error fetching link: XSeries/<project>/target/apidocs. Ignored it.` might be related to  
+  the previous error.
