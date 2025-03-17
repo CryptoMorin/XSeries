@@ -1842,6 +1842,10 @@ public enum XMaterial implements XBase<XMaterial, Material> {
             }
         }
 
+        if (Data.getExactMaterial(name()) != null) {
+            mat = Data.getExactMaterial(name());
+        }
+
         this.material = mat;
     }
 
@@ -1850,7 +1854,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     }
 
     /**
-     * Gets the XMaterial with this name similar to {@link #valueOf(String)}
+     * Gets the XMaterial with this name similar to
      * without throwing an exception.
      *
      * @param name the name of the material.

@@ -130,19 +130,8 @@
                     <artifactId>maven-toolchains-plugin</artifactId>
                     <version>3.2.0</version>
                     <executions>
-                        <execution>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>toolchain</goal>
-                            </goals>
-                        </execution>
                     </executions>
                     <configuration>
-                        <toolchains>
-                            <jdk>
-                                <version>[${testJava}]</version>
-                            </jdk>
-                        </toolchains>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -209,20 +198,6 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>3.2.7</version>
-                    <executions>
-                        <execution>
-                            <id>sign-artifacts</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>sign</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>1.7.0</version>
@@ -269,7 +244,7 @@
 
                                 <!-- As of Java 21, annotation processing is disabled by default. -->
                                 <!-- <compilerArgs><arg>-proc:full</arg></compilerArgs> -->
-                                <proc>full</proc>
+<!--                                <proc>full</proc>-->
 
                                 <annotationProcessorPaths>
                                     <path>
@@ -303,9 +278,6 @@
                         <!-- <jvm>${testJavaPath}</jvm>-->
                         <!-- You can also use the following argument from the cmd line: -->
                         <!-- <dash><dash>toolchains "\.m2\toolchains.xml" -->
-                        <jdkToolchain>
-                            <version>[${testJava}]</version>
-                        </jdkToolchain>
                     </configuration>
                 </plugin>
                 <plugin>
