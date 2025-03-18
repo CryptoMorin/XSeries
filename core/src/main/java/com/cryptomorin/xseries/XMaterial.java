@@ -1836,7 +1836,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
 
         Material mat = Data.getExactMaterial(name());
         if (mat == null) {
-            if ((!Data.ISFLAT && this.isDuplicated()) || (mat = Data.getExactMaterial(this.name())) == null) {
+            if ((!Data.ISFLAT && this.isDuplicated())) {
                 for (int i = legacy.length - 1; i >= 0; i--) { // Backwards checkup
                     mat = Data.getExactMaterial(legacy[i]);
                     if (mat != null) break;
