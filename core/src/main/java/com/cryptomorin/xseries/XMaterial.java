@@ -22,6 +22,7 @@
 package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XBase;
+import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
@@ -1316,11 +1317,11 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     RED_CARPET(14, "CARPET"),
     RED_CONCRETE(14, "CONCRETE"),
     RED_CONCRETE_POWDER(14, "CONCRETE_POWDER"),
-    /**
-     * 1.13 renamed to ROSE_RED
-     * 1.14 renamed to RED_DYE
-     */
+
+    @XChange(version = "1.14", from = "ROSE_RED", to = "RED_DYE")
+    @XChange(version = "1.13", from = "INK_SACK", to = "ROSE_RED")
     RED_DYE(1, "INK_SACK", "ROSE_RED"),
+
     RED_GLAZED_TERRACOTTA,
     RED_MUSHROOM,
     RED_MUSHROOM_BLOCK("RED_MUSHROOM", "HUGE_MUSHROOM_2"),

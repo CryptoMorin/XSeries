@@ -21,7 +21,7 @@ In IntelliJ, you can press `Ctrl` twice for the command window to popup.
 To compile the library into `target` folder, you can use this Maven command:
 
 ```maven
-mvn clean package -pl core -am
+mvn clean package -pl core -am -DskipTests=true -Dmaven.test.skip=true
 ```
 
 > [!NOTE]
@@ -52,7 +52,9 @@ mvn clean test -Ptester,latest -pl core -am
   This is no longer the case because of Minecraft's new registry system. It's going to make a lot of boilerplate code
   if we decide to stick to this principle.
 * Only Java 8 should be used. All the functions in the latest version of Java 8 can be used.
-* Make sure the utility works on different Minecraft server versions.
+* Make sure the utility works on different Minecraft server versions. Usually outdated patches should not be supported.
+  For example, in the `1.21` series, only `1.21.5` should be supported not `1.21.4` or `1.21.1` there are of course some
+  exceptions to this rule like enum values.
 * Use method and variable names that make sense and are related to the context.
 * Don't use Optional everywhere that can return null.
 * Using Google's Guava is a plus, but not always. Make sure what you're using is supported in

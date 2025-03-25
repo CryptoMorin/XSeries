@@ -88,6 +88,7 @@ public final class XSeriesTests {
         log("Writing enum differences...");
         DifferenceHelper.versionDifference();
 
+        testRegistry();
         testXMaterial();
         testXSound();
         testXPotion();
@@ -125,6 +126,13 @@ public final class XSeriesTests {
         Location center = new Location(c.getWorld(), c.getX() << 4, 64, c.getZ() << 4).add(8, 0, 8);
         center.setY(center.getWorld().getHighestBlockYAt(center) + 1);
         return center;
+    }
+
+    private static void testRegistry() {
+        assertNotNull(XRegistry.registryOf(XSound.class));
+        assertNotNull(XRegistry.unsafeRegistryOf(XSound.class));
+        assertNotNull(XRegistry.registryOf(XAttribute.class));
+        assertNotNull(XRegistry.unsafeRegistryOf(XAttribute.class));
     }
 
     private static void wrapperTest() {
@@ -316,6 +324,7 @@ public final class XSeriesTests {
         assertMaterial("INK_SACK:4", XMaterial.LAPIS_LAZULI);
 
         if (XMaterial.supports(14)) {
+            log("RED_DYE is " + XMaterial.RED_DYE.parseItem());
             assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
             assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
             assertMaterial(XMaterial.BLACK_DYE, Material.BLACK_DYE);

@@ -21,7 +21,9 @@
  */
 package com.cryptomorin.xseries.base;
 
+import com.cryptomorin.xseries.*;
 import com.cryptomorin.xseries.base.annotations.XMerge;
+import com.cryptomorin.xseries.particles.XParticle;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -71,6 +73,58 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         }
 
         KEYED_EXISTS = keyedExists;
+    }
+
+    private static final Map<Class<? extends XBase<?, ?>>, XRegistry<?, ?>> REGISTRIES = new IdentityHashMap<>();
+    private static boolean ensureLoaded = false;
+
+    /**
+     * This method forces the static initialization of {@link XBase} classes
+     * that have a {@link Registry}.
+     * <p>
+     * This practically should not be needed, but we include it anyway just
+     * to make sure it works for unexpected cases.
+     */
+    private static void ensureLoadedRegistries() {
+        if (ensureLoaded) return;
+
+        // XMaterial.REGISTRY.getClass();
+        XAttribute.REGISTRY.getClass();
+        XSound.REGISTRY.getClass();
+        XBiome.REGISTRY.getClass();
+        XItemFlag.REGISTRY.getClass();
+        XPotion.REGISTRY.getClass();
+        XEntityType.REGISTRY.getClass();
+        XEnchantment.REGISTRY.getClass();
+        XParticle.REGISTRY.getClass();
+        ensureLoaded = true;
+    }
+
+    /**
+     * Gets the registry associated to a {@link XBase} class.
+     *
+     * @see #registryOf(Class)
+     */
+    @Nullable
+    public static XRegistry<?, ?> unsafeRegistryOf(Class<?> clazz) {
+        ensureLoadedRegistries();
+        return REGISTRIES.get(clazz);
+    }
+
+    /**
+     * Gets the registry associated to a {@link XBase} class.
+     *
+     * @see #unsafeRegistryOf(Class)
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <XForm extends XBase<XForm, BukkitForm>, BukkitForm> XRegistry<XForm, BukkitForm> registryOf(Class<? extends XForm> clazz) {
+        ensureLoadedRegistries();
+        return (XRegistry<XForm, BukkitForm>) REGISTRIES.get(clazz);
+    }
+
+    protected static <XForm extends XBase<XForm, BukkitForm>, BukkitForm> void registerModule(XRegistry<XForm, BukkitForm> registry, Class<? extends XForm> clazz) {
+        REGISTRIES.put(clazz, registry);
     }
 
     /**
@@ -126,6 +180,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         if (!supportsRegistry && bukkitClassType == null) {
             throw new IllegalStateException("Bukkit form is not an enum, abstraction or a registry " + bukkitFormClass);
         }
+
+        registerModule(this, xFormClass);
     }
 
     private enum ClassType {
