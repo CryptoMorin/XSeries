@@ -79,8 +79,9 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     private static boolean ensureLoaded = false;
 
     /**
-     * This method forces the static initialization of {@link XBase} classes
-     * that have a {@link Registry}.
+     * Forces the static initialization of {@link XBase} classes
+     * that have a {@link Registry} so that their registry get registered
+     * by the {@link #registerModule(XRegistry, Class)} in the constructor.
      * <p>
      * This practically should not be needed, but we include it anyway just
      * to make sure it works for unexpected cases.
@@ -97,16 +98,20 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         XEntityType.REGISTRY.getClass();
         XEnchantment.REGISTRY.getClass();
         XParticle.REGISTRY.getClass();
+
         ensureLoaded = true;
     }
 
     /**
      * Gets the registry associated to a {@link XBase} class.
+     * Usually this method is used for serialization purposes
+     * since the generic information of the class isn't always known.
      *
      * @see #registryOf(Class)
      */
     @Nullable
-    public static XRegistry<?, ?> unsafeRegistryOf(Class<?> clazz) {
+    @ApiStatus.Experimental
+    public static XRegistry<?, ?> rawRegistryOf(Class<?> clazz) {
         ensureLoadedRegistries();
         return REGISTRIES.get(clazz);
     }
@@ -114,10 +119,11 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     /**
      * Gets the registry associated to a {@link XBase} class.
      *
-     * @see #unsafeRegistryOf(Class)
+     * @see #rawRegistryOf(Class)
      */
     @SuppressWarnings("unchecked")
     @Nullable
+    @ApiStatus.Experimental
     public static <XForm extends XBase<XForm, BukkitForm>, BukkitForm> XRegistry<XForm, BukkitForm> registryOf(Class<? extends XForm> clazz) {
         ensureLoadedRegistries();
         return (XRegistry<XForm, BukkitForm>) REGISTRIES.get(clazz);

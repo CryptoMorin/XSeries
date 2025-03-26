@@ -53,7 +53,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ColorableArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.junit.jupiter.api.Assertions;
@@ -130,9 +134,9 @@ public final class XSeriesTests {
 
     private static void testRegistry() {
         assertNotNull(XRegistry.registryOf(XSound.class));
-        assertNotNull(XRegistry.unsafeRegistryOf(XSound.class));
+        assertNotNull(XRegistry.rawRegistryOf(XSound.class));
         assertNotNull(XRegistry.registryOf(XAttribute.class));
-        assertNotNull(XRegistry.unsafeRegistryOf(XAttribute.class));
+        assertNotNull(XRegistry.rawRegistryOf(XAttribute.class));
     }
 
     private static void wrapperTest() {
@@ -390,76 +394,131 @@ public final class XSeriesTests {
         Assertions.assertSame(XMaterial.matchXMaterial(selfNameMapped.get().parseItem()), original);
     }
 
+    private static final class ItemSerialDual {
+        private ItemStack serialized, deserialized;
+    }
+
     private static void testXItemStack() {
+        Map<String, ItemSerialDual> map = new HashMap<>();
+        YamlConfiguration serializeConfig;
         log("Testing XItemStack...");
+
         try {
-            serializeItemStack();
-            deserializeItemStack();
+            serializeConfig = serializeItemStack(map);
+            deserializeItemStack(map);
         } catch (IOException | InvalidConfigurationException e) {
             throw new AssertionFailedError("Failed to serialize/deserialize items", e);
         }
+
+        for (Map.Entry<String, ItemSerialDual> entry : map.entrySet()) {
+            ItemSerialDual dual = entry.getValue();
+            if (dual.serialized == null || dual.deserialized == null) {
+                log("Either serialized and deserialized doesn't exist for: " + entry.getKey());
+            } else {
+                assertTrue(dual.serialized.isSimilar(dual.deserialized),
+                        () -> "Items for '" + entry.getKey() + "' are not similar:\n\nSerialized:   "
+                                + dual.serialized + "\n\nDeserialized: " + dual.deserialized + '\n');
+
+                ConfigurationSection serializeRedeserialized = serializeConfig.getConfigurationSection(entry.getKey());
+                ItemStack redeserializedItem = XItemStack.deserialize(serializeRedeserialized);
+
+                assertTrue(dual.serialized.isSimilar(redeserializedItem),
+                        () -> "Items for redeserialized '" + entry.getKey() + "' are not similar:\n\nSerialized:   "
+                                + dual.serialized + "\n\nDeserialized: " + redeserializedItem + '\n');
+            }
+        }
     }
 
-    private static void deserializeItemStack() throws IOException, InvalidConfigurationException {
+    private static void deserializeItemStack(Map<String, ItemSerialDual> map) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.load(ResourceHelper.getResourceAsFile("itemstack.yml"));
 
         for (String section : yaml.getKeys(false)) {
             ConfigurationSection itemSection = yaml.getConfigurationSection(section);
             ItemStack item = XItemStack.deserialize(itemSection);
-            log("[Item] " + section + ": " + item);
+
+            map.compute(section, (k, v) -> {
+                if (v == null) v = new ItemSerialDual();
+                v.deserialized = item;
+                return v;
+            });
+            log("[Deserialized Item] " + section + ": " + item);
         }
     }
 
-    private static ItemStack createItem(XMaterial material, String name, Consumer<ItemMeta> metaConsumer) {
+    private static ItemStack createItem(XMaterial material, Consumer<ItemMeta> metaConsumer) {
         ItemStack item = material.parseItem();
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name);
         metaConsumer.accept(meta);
         item.setItemMeta(meta);
         return item;
     }
 
+    private static boolean metaExists(String className) {
+        try {
+            Class.forName("org.bukkit.inventory.meta." + className);
+            return true;
+        } catch (ClassNotFoundException ignored) {
+            return false;
+        }
+    }
+
     @SuppressWarnings("CodeBlock2Expr")
-    private static void serializeItemStack() throws IOException {
+    private static YamlConfiguration serializeItemStack(Map<String, ItemSerialDual> map) throws IOException {
         File file = new File(Bukkit.getWorldContainer(), "serialized.yml");
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             file.createNewFile();
         }
 
-        List<ItemStack> items = new ArrayList<>();
-        items.add(createItem(XMaterial.DIAMOND, "Diamonds", meta -> {
-            meta.setLore(Arrays.asList("Line 1", "", "Line 2"));
+        Map<String, ItemStack> items = new HashMap<>();
+
+        items.put("sword", createItem(XMaterial.DIAMOND_SWORD, meta -> {
+            meta.setDisplayName("&3Yay");
+            meta.setLore(Arrays.asList("Line 1", "Line 2", " ", "Line 4"));
         }));
+        if (metaExists("ColorableArmorMeta")) {
+            items.put("leather-colored-armor-trim", createItem(XMaterial.LEATHER_CHESTPLATE, meta -> {
+                ColorableArmorMeta leather = (ColorableArmorMeta) meta;
+                leather.setColor(Color.fromRGB(255, 155, 155));
+                leather.setTrim(new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.SNOUT));
+            }));
+        }
         if (Constants.TEST_MOJANG_API) {
-            items.add(createItem(XMaterial.PLAYER_HEAD, "head-notch", meta -> {
+            items.put("head-notch", createItem(XMaterial.PLAYER_HEAD, meta -> {
                 XSkull.of(meta).profile(
                         Profileable.username("Notch")
                                 .transform(ProfileTransformer.includeOriginalValue())
                 ).apply();
             }));
-            items.add(createItem(XMaterial.PLAYER_HEAD, "head-uuid", meta -> {
+            items.put("head-uuid", createItem(XMaterial.PLAYER_HEAD, meta -> {
                 XSkull.of(meta).profile(
                         Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
                                 .transform(ProfileTransformer.includeOriginalValue())
                 ).apply();
             }));
-            items.add(createItem(XMaterial.PLAYER_HEAD, "head-username-no-transform", meta -> {
+            items.put("head-username-no-transform", createItem(XMaterial.PLAYER_HEAD, meta -> {
                 XSkull.of(meta).profile(
                         Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
                 ).apply();
             }));
         }
-        items.add(createItem(XMaterial.PLAYER_HEAD, "no-op head", meta -> {}));
+        items.put("head-no-op", createItem(XMaterial.PLAYER_HEAD, meta -> {}));
 
         YamlConfiguration yaml = new YamlConfiguration();
-        for (ItemStack item : items) {
-            ItemMeta meta = item.getItemMeta();
-            ConfigurationSection section = yaml.createSection(meta.getDisplayName());
-            XItemStack.serialize(item, section);
+        for (Map.Entry<String, ItemStack> item : items.entrySet()) {
+            String sectionName = item.getKey();
+            ConfigurationSection section = yaml.createSection(sectionName);
+
+            XItemStack.serialize(item.getValue(), section);
+            map.compute(sectionName, (k, v) -> {
+                if (v == null) v = new ItemSerialDual();
+                v.serialized = item.getValue();
+                return v;
+            });
         }
         yaml.save(file);
+        return yaml;
     }
 
     private static void testSkulls() {

@@ -181,12 +181,19 @@ public final class XItemStack {
                                                                      List<Function<T, MetaHandler<ItemMeta>>> collectedHandlers) {
         Optional<Function<T, MetaHandler<ItemMeta>>> handler = map.get(metaClass);
         if (handler != null) {
-            if (handler.isPresent()) handler.get().apply(serialObject).handle(meta);
+            if (handler.isPresent()) {
+                if (collectedHandlers != null) collectedHandlers.add(handler.get());
+                handler.get().apply(serialObject).handle(meta);
+            }
+
             return;
         }
 
-        // This rarely happens. For example:
+        // This rarely happens for the interface classes themselves For example:
         // ColorableArmorMeta extends ArmorMeta, LeatherArmorMeta
+        // But practically, this will always happen for every metadata, since this
+        // will be the Craft class that implements the metadata.
+
         List<Function<T, MetaHandler<ItemMeta>>> subCollectedHandlers = new ArrayList<>();
         Class<?> superclass = metaClass.getSuperclass();
         if (superclass != null) recursiveMetaHandle(serialObject, superclass, meta, map, subCollectedHandlers);
@@ -195,16 +202,17 @@ public final class XItemStack {
         }
 
         if (subCollectedHandlers.isEmpty()) {
-            DESERIALIZE_META_HANDLERS.put((Class<? extends ItemMeta>) metaClass, Optional.empty());
+            map.put((Class<? extends ItemMeta>) metaClass, Optional.empty());
         } else {
-            DESERIALIZE_META_HANDLERS.put((Class<? extends ItemMeta>) metaClass, Optional.of(inst -> subMeta -> { // Cool syntax!
+            map.put((Class<? extends ItemMeta>) metaClass, Optional.of(inst -> subMeta -> { // Cool syntax!
                 T castedInst = cast(inst);
                 for (Function<T, MetaHandler<ItemMeta>> subCollectedHandler : subCollectedHandlers) {
                     subCollectedHandler.apply(castedInst).handle(subMeta);
                 }
             }));
 
-            collectedHandlers.addAll(subCollectedHandlers);
+            if (collectedHandlers != null)
+                collectedHandlers.addAll(subCollectedHandlers);
         }
     }
 
@@ -443,7 +451,7 @@ public final class XItemStack {
             handleAttributes(meta);
             legacySpawnEgg();
 
-            recursiveMetaHandle(this, meta.getClass(), meta, SERIALIZE_META_HANDLERS, Collections.emptyList());
+            recursiveMetaHandle(this, meta.getClass(), meta, SERIALIZE_META_HANDLERS, null);
         }
 
         @SuppressWarnings("deprecation")
@@ -724,7 +732,7 @@ public final class XItemStack {
         public ItemStack parse() {
             handleMaterial();
             handleDamage();
-            createMeta();
+            getOrCreateMeta();
             handleDurability();
             displayName();
             unbreakable();
@@ -735,7 +743,7 @@ public final class XItemStack {
             attributes();
             legacySpawnEgg();
 
-            recursiveMetaHandle(this, meta.getClass(), meta, DESERIALIZE_META_HANDLERS, Collections.emptyList());
+            recursiveMetaHandle(this, meta.getClass(), meta, DESERIALIZE_META_HANDLERS, null);
 
             item.setItemMeta(meta);
             return item;
@@ -868,44 +876,50 @@ public final class XItemStack {
             }
         }
 
-        private void lore() {
-            if (config.isSet("lore")) {
-                List<String> translatedLore;
-                List<String> lores = config.getStringList("lore");
-                if (!lores.isEmpty()) {
-                    translatedLore = new ArrayList<>(lores.size());
+        /**
+         * In older versions, an empty string for a lore line was completely
+         * ignored, so at least a space " " was needed to get empty lore lines.
+         */
+        private static final boolean SPACE_EMPTY_LORE_LINES = !supports(15);
 
-                    for (String lore : lores) {
-                        if (lore.isEmpty()) {
+        private void lore() {
+            if (!config.isSet("lore")) return;
+
+            List<String> translatedLore;
+            List<String> lores = config.getStringList("lore");
+            if (!lores.isEmpty()) {
+                translatedLore = new ArrayList<>(lores.size());
+
+                for (String lore : lores) {
+                    if (SPACE_EMPTY_LORE_LINES && lore.isEmpty()) {
+                        translatedLore.add(" ");
+                        continue;
+                    }
+
+                    for (String singleLore : splitNewLine(lore)) {
+                        if (SPACE_EMPTY_LORE_LINES && singleLore.isEmpty()) {
                             translatedLore.add(" ");
                             continue;
                         }
-
-                        for (String singleLore : splitNewLine(lore)) {
-                            if (singleLore.isEmpty()) {
-                                translatedLore.add(" ");
-                                continue;
-                            }
-                            translatedLore.add(translator.apply(singleLore));
-                        }
-                    }
-                } else {
-                    String lore = config.getString("lore");
-                    translatedLore = new ArrayList<>(10);
-
-                    if (!Strings.isNullOrEmpty(lore)) {
-                        for (String singleLore : splitNewLine(lore)) {
-                            if (singleLore.isEmpty()) {
-                                translatedLore.add(" ");
-                                continue;
-                            }
-                            translatedLore.add(translator.apply(singleLore));
-                        }
+                        translatedLore.add(translator.apply(singleLore));
                     }
                 }
+            } else {
+                String lore = config.getString("lore");
+                translatedLore = new ArrayList<>(10);
 
-                meta.setLore(translatedLore);
+                if (!Strings.isNullOrEmpty(lore)) {
+                    for (String singleLore : splitNewLine(lore)) {
+                        if (SPACE_EMPTY_LORE_LINES && singleLore.isEmpty()) {
+                            translatedLore.add(" ");
+                            continue;
+                        }
+                        translatedLore.add(translator.apply(singleLore));
+                    }
+                }
             }
+
+            meta.setLore(translatedLore);
         }
 
         @SuppressWarnings("deprecation")
@@ -967,8 +981,8 @@ public final class XItemStack {
 
         @SuppressWarnings("UnstableApiUsage")
         private void handleArmorMeta(ArmorMeta armor) {
-            if (config.isSet("trim")) {
-                ConfigurationSection trim = config.getConfigurationSection("trim");
+            ConfigurationSection trim = config.getConfigurationSection("trim");
+            if (trim != null) {
                 TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.fromString(trim.getString("material")));
                 TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(trim.getString("pattern")));
                 armor.setTrim(new ArmorTrim(trimMaterial, trimPattern));
@@ -1205,14 +1219,12 @@ public final class XItemStack {
             if (amount > 1) item.setAmount(amount);
         }
 
-        private void createMeta() {
-            ItemMeta tempMeta = item.getItemMeta();
-            if (tempMeta == null) {
+        private void getOrCreateMeta() {
+            meta = item.getItemMeta();
+            if (meta == null) {
                 // When AIR is null. Useful for when you just want to use the meta to save data and
                 // set the type later. A simple CraftMetaItem.
                 meta = Bukkit.getItemFactory().getItemMeta(XMaterial.STONE.get());
-            } else {
-                meta = tempMeta;
             }
         }
 
