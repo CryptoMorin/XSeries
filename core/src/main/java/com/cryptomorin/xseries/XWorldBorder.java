@@ -37,7 +37,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,224 +54,42 @@ import static com.cryptomorin.xseries.reflection.XReflection.*;
  *
  * @version 1.0.1
  */
-public class XWorldBorder {
-    private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, TRANSITION;
-    private static final MethodHandle PACKET_WARNING_DISTANCE, PACKET_WARNING_DELAY, PACKET_LERP_SIZE, PACKET_INIT, PACKET_CENTER, PACKET_SIZE;
-    private static final Object INITIALIZE;
+public abstract class XWorldBorder {
+    public static final int ABSOLUTE_MAX_SIZE = 29999984;
     public static final double MAX_SIZE = 5.9999968E7D;
     public static final double MAX_CENTER_COORDINATE = 2.9999984E7D;
-    private static final boolean SUPPORTS_SEPARATE_PACKETS;
-    private static final Map<UUID, XWorldBorder> WORLD_BORDERS = new HashMap<>();
 
-    private Object handle;
-    public int absoluteMaxSize = 29999984;
-    private double damagePerBlock = 0.2D;
-    private double damageSafeZone = 5.0D;
-    private double size = 100;
-    private double sizeLerpTarget = 0;
-    private BorderBounds borderBounds;
-    private Duration warningTime = Duration.ofSeconds(15);
-    private Duration sizeLerpTime = Duration.ZERO;
-    private int warningBlocks = 5;
-    private World world;
-    private double centerX, centerZ;
-    private final Set<Component> updateRequired = EnumSet.noneOf(Component.class);
-    private UUID player;
-    private boolean init = true;
+    private static final boolean SUPPORTS_NATIVE_WORLDBORDERS = XReflection.of(Player.class)
+            .method().named("setWorldBorder").returns(void.class).parameters(WorldBorder.class)
+            .exists();
 
-    private XWorldBorder() {
-    }
+    protected BorderBounds borderBounds;
 
-    @SuppressWarnings("unused")
-    public static final class Events implements Listener {
-        @EventHandler
-        public void onJoin(PlayerMoveEvent event) {
-            XWorldBorder wb = get(event.getPlayer());
-            if (wb == null) return;
-            Player p = event.getPlayer();
-            Vector loc = p.getLocation().toVector();
-            if (wb.isWithinBorder(loc)) return;
+    // @formatter:off
+    public abstract double getDamageBuffer();
+    public abstract double getSizeLerpTarget();
+    public abstract double getSize();
+    public abstract boolean isWithinBorder(Location location);
+    public abstract int getWarningDistance();
+    public abstract Duration getWarningTime();
+    public abstract Location getCenter();
+    public abstract void setFor(Player player, boolean forceInit);
+    public final BorderBounds getBorderBounds() {return borderBounds;}
 
-            double distance = wb.getDistanceToBorder(loc);
-            if (distance < wb.damageSafeZone) return;
-            p.damage(wb.damagePerBlock * distance); // Should be per second.
-        }
+    public abstract XWorldBorder copy();
+    public abstract XWorldBorder setDamageBuffer(double blocks);
+    public abstract XWorldBorder setWarningTime(Duration time);
+    public abstract XWorldBorder setWarningDistance(int blocks);
+    public abstract XWorldBorder setSize(double newSize, @NotNull Duration duration);
+    public abstract XWorldBorder setCenter(double x, double z);
+    public abstract XWorldBorder setSizeLerpTarget(double sizeLerpTarget);
+    // @formatter:on
 
-        @EventHandler
-        public void onJoin(PlayerJoinEvent event) {
-            XWorldBorder wb = get(event.getPlayer());
-            if (wb == null) return;
-            wb.send(true);
-        }
-
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-        public void onWorldChange(PlayerChangedWorldEvent event) {
-            XWorldBorder wb = get(event.getPlayer());
-            if (wb == null) return;
-            wb.send(true);
-        }
-    }
-
-    public static XWorldBorder getOrCreate(Player player) {
-        XWorldBorder wb = get(player);
-        if (wb != null) return wb;
-        return XWorldBorder.of(player.getLocation()).setPlayer(player);
-    }
-
-    public static XWorldBorder get(Player player) {
-        return WORLD_BORDERS.get(player.getUniqueId());
-    }
-
-    public XWorldBorder copy() {
-        XWorldBorder wb = new XWorldBorder();
-        wb.world = world;
-        wb.centerX = centerX;
-        wb.centerZ = centerZ;
-        wb.size = size;
-        wb.sizeLerpTime = sizeLerpTime;
-        wb.damagePerBlock = damagePerBlock;
-        wb.damageSafeZone = damageSafeZone;
-        wb.warningTime = warningTime;
-        wb.warningBlocks = warningBlocks;
-        wb.handle = wb.createHandle();
-        wb.player = player;
-        return wb;
-    }
-
-    public static XWorldBorder from(WorldBorder bukkitWb) {
-        XWorldBorder wb = new XWorldBorder();
-        wb.world = bukkitWb.getCenter().getWorld(); // Don't use WorldBorder#getWorld() not supported in pre-1.17
-        wb.centerX = bukkitWb.getCenter().getX();
-        wb.centerZ = bukkitWb.getCenter().getZ();
-        wb.size = bukkitWb.getSize();
-        wb.sizeLerpTime = Duration.ZERO;
-        wb.damagePerBlock = bukkitWb.getDamageAmount();
-        wb.damageSafeZone = bukkitWb.getDamageBuffer();
-        wb.warningTime = Duration.ofSeconds(bukkitWb.getWarningTime());
-        wb.warningBlocks = bukkitWb.getWarningDistance();
-        wb.handle = wb.createHandle();
-        return wb;
-    }
-
-    @Nullable
-    public UUID getPlayerId() {
-        return player;
-    }
-
-    @Nullable
-    public Player getPlayer() {
-        return Bukkit.getPlayer(Objects.requireNonNull(player, "No player provided"));
-    }
-
-    public static XWorldBorder of(Location center) {
-        XWorldBorder wb = new XWorldBorder();
-        wb.world = Objects.requireNonNull(center.getWorld());
-        wb.centerX = center.getX();
-        wb.centerZ = center.getZ();
-        wb.handle = wb.createHandle();
-        wb.update(Component.CENTER);
-        return wb;
-    }
-
-    public XWorldBorder setDamageAmount(double damage) {
-        damagePerBlock = damage;
-        return this;
-    }
-
-    public double getDamageAmount() {
-        return damagePerBlock;
-    }
-
-    public XWorldBorder setDamageBuffer(double blocks) {
-        damageSafeZone = blocks;
-        return this;
-    }
-
-    public double getDamageBuffer() {
-        return damageSafeZone;
-    }
-
-    public XWorldBorder setWarningTime(Duration time) {
-        if (this.warningTime == time) return this;
-        warningTime = time;
-        update(Component.WARNING_DELAY);
-        return this;
-    }
-
-    public Duration getWarningTime() {
-        return warningTime;
-    }
-
-    public XWorldBorder setWarningDistance(int blocks) {
-        if (warningBlocks == blocks) return this;
-        warningBlocks = blocks;
-        update(Component.WARNING_DISTANCE);
-        return this;
-    }
-
-    public double getSizeLerpTarget() {
-        return sizeLerpTarget;
-    }
-
-    public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {
-        if (this.sizeLerpTarget == sizeLerpTarget) return this;
-        this.sizeLerpTarget = sizeLerpTarget;
-        update(Component.SIZE_LERP);
-        return this;
-    }
-
-    public int getWarningDistance() {
-        return warningBlocks;
-    }
-
-    public XWorldBorder setCenter(double x, double z) {
-        if (centerX == x && centerZ == z) return this;
-        centerX = x;
-        centerZ = z;
-
-        updateBorderBounds();
-        update(Component.CENTER);
-
-        return this;
-    }
-
-    public Vector getCenter() {
-        return new Vector(centerX, 0, centerZ);
-    }
-
-    public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
-        if (this.size == newSize && sizeLerpTime.equals(duration)) return this;
-        size = newSize;
-        sizeLerpTime = duration;
-
-        updateBorderBounds();
-        update(Component.SIZE);
-        if (!duration.isZero()) update(Component.SIZE_LERP);
-
-        return this;
-    }
-
-    private void updateBorderBounds() {
-        if (size <= 0) this.borderBounds = null;
-        else this.borderBounds = new BorderBounds();
-    }
-
-    private void update(Component comp) {
-        if (SUPPORTS_SEPARATE_PACKETS) updateRequired.add(comp);
-    }
-
-    public boolean isWithinBorder(Vector location) {
-        if (this.borderBounds == null) return false;
-        return (location.getX() + 1) > borderBounds.minX &&
-                location.getX() < borderBounds.maxX &&
-                (location.getZ() + 1) > borderBounds.minZ &&
-                location.getZ() < borderBounds.maxZ;
-    }
-
-    public double getDistanceToBorder(Vector location) {
+    public final double getDistanceToBorder(Location location) {
         if (this.borderBounds == null) {
             return getCenter().distanceSquared(location);
         }
+
         double x = location.getX();
         double z = location.getZ();
 
@@ -286,258 +103,505 @@ public class XWorldBorder {
         return Math.min(d6, d3);
     }
 
-    private final class BorderBounds {
+    protected void updateBorderBounds() {
+        Location center = getCenter();
+        this.borderBounds = new BorderBounds(center.getWorld(), center.getX(), center.getZ(), getSize());
+    }
+
+    public static final class BorderBounds {
+        protected final World lastCenterWorld;
+        protected final double lastCenterX, lastCenterZ;
         public final double minX, minZ, maxX, maxZ;
 
-        private double clamp(double var0, double var2, double var4) {
+        private static double clamp(double var0, double var2, double var4) {
             return var0 < var2 ? var2 : Math.min(var0, var4);
         }
 
-        public BorderBounds() {
-            this.minX = clamp(centerX - size / 2.0D, -absoluteMaxSize, absoluteMaxSize);
-            this.minZ = clamp(centerZ - size / 2.0D, -absoluteMaxSize, absoluteMaxSize);
-            this.maxX = clamp(centerX + size / 2.0D, -absoluteMaxSize, absoluteMaxSize);
-            this.maxZ = clamp(centerZ + size / 2.0D, -absoluteMaxSize, absoluteMaxSize);
+        public boolean isCenterSame(World world, double centerX, double centerZ) {
+            return this.lastCenterWorld == world && this.lastCenterX == centerX && this.lastCenterZ == centerZ;
+        }
+
+        public BorderBounds(World centerWorld, double centerX, double centerZ, double size) {
+            this.lastCenterWorld = centerWorld;
+            this.lastCenterX = centerX;
+            this.lastCenterZ = centerZ;
+
+            this.minX = clamp(centerX - size / 2.0D, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE);
+            this.minZ = clamp(centerZ - size / 2.0D, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE);
+            this.maxX = clamp(centerX + size / 2.0D, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE);
+            this.maxZ = clamp(centerZ + size / 2.0D, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE);
         }
     }
 
-    static {
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        Object initialize = null;
+    private static final class NMSWorldBorder extends XWorldBorder {
+        private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, TRANSITION;
+        private static final MethodHandle PACKET_WARNING_DISTANCE, PACKET_WARNING_DELAY, PACKET_LERP_SIZE, PACKET_INIT, PACKET_CENTER, PACKET_SIZE;
+        private static final Object INITIALIZE;
+        private static final boolean SUPPORTS_SEPARATE_PACKETS;
+        private static final Map<UUID, XWorldBorder> WORLD_BORDERS = new HashMap<>();
 
-        MethodHandle packetInit = null, packetWarnDist = null, packetWarnDelay = null,
-                packetLerpSize = null, packetCenter = null, packetSize = null;
+        private Object handle;
+        private double damagePerBlock = 0.2D;
+        private double damageSafeZone = 5.0D;
+        private double size = 100;
+        private double sizeLerpTarget = 0;
+        private Duration warningTime = Duration.ofSeconds(15);
+        private Duration sizeLerpTime = Duration.ZERO;
+        private int warningBlocks = 5;
+        private World world;
+        private double centerX, centerZ;
+        private final Set<Component> updateRequired = EnumSet.noneOf(Component.class);
+        private boolean init = true;
 
-        boolean supportsSeperatePackets;
+        @Override
+        public NMSWorldBorder copy() {
+            NMSWorldBorder wb = new NMSWorldBorder();
+            wb.world = world;
+            wb.centerX = centerX;
+            wb.centerZ = centerZ;
+            wb.size = size;
+            wb.sizeLerpTime = sizeLerpTime;
+            wb.damagePerBlock = damagePerBlock;
+            wb.damageSafeZone = damageSafeZone;
+            wb.warningTime = warningTime;
+            wb.warningBlocks = warningBlocks;
+            wb.handle = wb.createHandle();
+            return wb;
+        }
 
-        MinecraftClassHandle wb = ofMinecraft()
-                .inPackage(MinecraftPackage.NMS, "world.level.border")
-                .named("WorldBorder"); // Same mapping
-        MinecraftClassHandle worldServer = ofMinecraft()
-                .inPackage(MinecraftPackage.NMS, "server.level")
-                .map(MinecraftMapping.MOJANG, "ServerLevel")
-                .map(MinecraftMapping.SPIGOT, "WorldServer");
-        MinecraftClassHandle craftWorld = ofMinecraft().inPackage(MinecraftPackage.CB).named("CraftWorld");
+        public XWorldBorder setDamageAmount(double damage) {
+            damagePerBlock = damage;
+            return this;
+        }
 
-        try {
-            if (!supports(17)) {
-                Class<?> wbType;
+        public double getSize() {
+            return size;
+        }
+
+        public double getDamageAmount() {
+            return damagePerBlock;
+        }
+
+        public XWorldBorder setDamageBuffer(double blocks) {
+            damageSafeZone = blocks;
+            return this;
+        }
+
+        public double getDamageBuffer() {
+            return damageSafeZone;
+        }
+
+        public XWorldBorder setWarningTime(Duration time) {
+            if (this.warningTime == time) return this;
+            warningTime = time;
+            update(Component.WARNING_DELAY);
+            return this;
+        }
+
+        public Duration getWarningTime() {
+            return warningTime;
+        }
+
+        public XWorldBorder setWarningDistance(int blocks) {
+            if (warningBlocks == blocks) return this;
+            warningBlocks = blocks;
+            update(Component.WARNING_DISTANCE);
+            return this;
+        }
+
+        public double getSizeLerpTarget() {
+            return sizeLerpTarget;
+        }
+
+        public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {
+            if (this.sizeLerpTarget == sizeLerpTarget) return this;
+            this.sizeLerpTarget = sizeLerpTarget;
+            update(Component.SIZE_LERP);
+            return this;
+        }
+
+        public int getWarningDistance() {
+            return warningBlocks;
+        }
+
+        public XWorldBorder setCenter(double x, double z) {
+            if (centerX == x && centerZ == z) return this;
+            centerX = x;
+            centerZ = z;
+
+            updateBorderBounds();
+            update(Component.CENTER);
+
+            return this;
+        }
+
+        public Location getCenter() {
+            return new Location(world, centerX, 0, centerZ);
+        }
+
+        public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
+            if (this.size == newSize && sizeLerpTime.equals(duration)) return this;
+            size = newSize;
+            sizeLerpTime = duration;
+
+            updateBorderBounds();
+            update(Component.SIZE);
+            if (!duration.isZero()) update(Component.SIZE_LERP);
+
+            return this;
+        }
+
+        private void update(Component comp) {
+            if (SUPPORTS_SEPARATE_PACKETS) updateRequired.add(comp);
+        }
+
+        public boolean isWithinBorder(Location location) {
+            if (this.borderBounds == null) return false;
+            if (this.world != location.getWorld()) return false;
+
+            return (location.getX() + 1) > borderBounds.minX &&
+                    location.getX() < borderBounds.maxX &&
+                    (location.getZ() + 1) > borderBounds.minZ &&
+                    location.getZ() < borderBounds.maxZ;
+        }
+
+        static {
+            if (!SUPPORTS_NATIVE_WORLDBORDERS) {
+                Object initialize = null;
+
+                MethodHandle packetInit = null, packetWarnDist = null, packetWarnDelay = null,
+                        packetLerpSize = null, packetCenter = null, packetSize = null;
+
+                boolean supportsSeperatePackets;
+
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+                MinecraftClassHandle wb = ofMinecraft()
+                        .inPackage(MinecraftPackage.NMS, "world.level.border")
+                        .named("WorldBorder"); // Same mapping
+                MinecraftClassHandle worldServer = ofMinecraft()
+                        .inPackage(MinecraftPackage.NMS, "server.level")
+                        .map(MinecraftMapping.MOJANG, "ServerLevel")
+                        .map(MinecraftMapping.SPIGOT, "WorldServer");
+                MinecraftClassHandle craftWorld = ofMinecraft().inPackage(MinecraftPackage.CB).named("CraftWorld");
+
                 try {
-                    wbType = Class.forName("EnumWorldBorderAction");
-                } catch (ClassNotFoundException e) {
-                    wbType = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
-                            .named("PacketPlayOutWorldBorder$EnumWorldBorderAction").unreflect();
-                }
+                    if (!supports(17)) {
+                        Class<?> wbType;
+                        try {
+                            wbType = Class.forName("EnumWorldBorderAction");
+                        } catch (ClassNotFoundException e) {
+                            wbType = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
+                                    .named("PacketPlayOutWorldBorder$EnumWorldBorderAction").unreflect();
+                        }
 
-                packetInit = lookup.findConstructor(XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
-                                .named("PacketPlayOutWorldBorder").unreflect(),
-                        MethodType.methodType(void.class, wb.reflect(), wbType));
+                        packetInit = lookup.findConstructor(XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS)
+                                        .named("PacketPlayOutWorldBorder").unreflect(),
+                                MethodType.methodType(void.class, wb.reflect(), wbType));
 
-                for (Object type : wbType.getEnumConstants()) {
-                    if (type.toString().equals("INITIALIZE")) {
-                        initialize = type;
-                        break;
+                        for (Object type : wbType.getEnumConstants()) {
+                            if (type.toString().equals("INITIALIZE")) {
+                                initialize = type;
+                                break;
+                            }
+                        }
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
 
-        try {
-            // Individual packets were added in 1.17
-            Function<String, MethodHandle> getPacket = (packet) -> ofMinecraft()
-                    .inPackage(MinecraftPackage.NMS, "network.protocol.game")
-                    .named(packet)
-                    .constructor(wb)
-                    .unreflect();
+                try {
+                    // Individual packets were added in 1.17
+                    Function<String, MethodHandle> getPacket = (packet) -> ofMinecraft()
+                            .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                            .named(packet)
+                            .constructor(wb)
+                            .unreflect();
 
-            packetWarnDist = getPacket.apply("ClientboundSetBorderWarningDistancePacket");
-            packetWarnDelay = getPacket.apply("ClientboundSetBorderWarningDelayPacket");
-            packetLerpSize = getPacket.apply("ClientboundSetBorderLerpSizePacket");
-            packetInit = getPacket.apply("ClientboundInitializeBorderPacket");
-            packetCenter = getPacket.apply("ClientboundSetBorderCenterPacket");
-            packetSize = getPacket.apply("ClientboundSetBorderSizePacket");
-            supportsSeperatePackets = true;
-        } catch (Throwable ignored) {
-            supportsSeperatePackets = false;
-        }
-
-        PACKET_INIT = packetInit;
-        PACKET_SIZE = packetSize;
-        PACKET_CENTER = packetCenter;
-        PACKET_LERP_SIZE = packetLerpSize;
-        PACKET_WARNING_DELAY = packetWarnDelay;
-        PACKET_WARNING_DISTANCE = packetWarnDist;
-
-        SUPPORTS_SEPARATE_PACKETS = supportsSeperatePackets;
-
-        WORLD_HANDLE = craftWorld.method().named("getHandle").returns(worldServer).unreflect();
-        INITIALIZE = initialize;
-        WORLDBORDER = wb.constructor().unreflect();
-        WORLDBORDER_WORLD = wb.field().setter().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
-
-        CENTER = wb.method()
-                .named(v(18, "c").orElse("setCenter"))
-                .returns(void.class).parameters(double.class, double.class)
-                .unreflect();
-        SIZE = wb.method()
-                .named(v(18, "a").orElse("setSize"))
-                .returns(void.class).parameters(double.class)
-                .unreflect();
-        WARNING_TIME = wb.method()
-                .named(v(18, "b").orElse("setWarningTime"))
-                .returns(void.class).parameters(int.class)
-                .unreflect();
-        WARNING_DISTANCE = wb.method() // or setWarningBlocks
-                .named(v(20, "c").v(18, "b").orElse("setWarningDistance"))
-                .returns(void.class).parameters(int.class)
-                .unreflect();
-        // Renamed to lerpSizeBetween(double d0, double d1, long i)
-        TRANSITION = wb.method()
-                .named(v(18, "a").orElse("transitionSizeBetween"))
-                .returns(void.class).parameters(double.class, double.class, long.class)
-                .unreflect();
-    }
-
-    /**
-     * Remove the world border.
-     *
-     * @since 1.0.0
-     */
-    public void remove() {
-        WORLD_BORDERS.remove(player);
-
-        Player player = getPlayer();
-        if (player == null) return;
-
-        WorldBorder wb = player.getWorld().getWorldBorder();
-        XWorldBorder.from(wb).setPlayer(player).send(true);
-    }
-
-    public static void remove(Player player) {
-        XWorldBorder wb = get(player);
-        if (wb == null) return;
-        wb.remove();
-    }
-
-    public XWorldBorder setPlayer(Player player) {
-        if (player.getUniqueId().equals(this.player)) return this;
-
-        WORLD_BORDERS.remove(this.player, this);
-        WORLD_BORDERS.put(player.getUniqueId(), this);
-
-        this.player = player.getUniqueId();
-        this.init = true;
-        return this;
-    }
-
-    public XWorldBorder send() {
-        return send(false);
-    }
-
-    public XWorldBorder send(boolean forceInit) {
-        Player player = Objects.requireNonNull(getPlayer(), "No player set for world border");
-        boolean init = forceInit || this.init;
-        this.init = false;
-
-        try {
-            if (SUPPORTS_SEPARATE_PACKETS && !init) {
-                Object[] packets = new Object[updateRequired.size()];
-                int i = 0;
-                for (Component component : updateRequired) {
-                    component.setHandle(this);
-                    packets[i++] = component.createPacket(this);
+                    packetWarnDist = getPacket.apply("ClientboundSetBorderWarningDistancePacket");
+                    packetWarnDelay = getPacket.apply("ClientboundSetBorderWarningDelayPacket");
+                    packetLerpSize = getPacket.apply("ClientboundSetBorderLerpSizePacket");
+                    packetInit = getPacket.apply("ClientboundInitializeBorderPacket");
+                    packetCenter = getPacket.apply("ClientboundSetBorderCenterPacket");
+                    packetSize = getPacket.apply("ClientboundSetBorderSizePacket");
+                    supportsSeperatePackets = true;
+                } catch (Throwable ignored) {
+                    supportsSeperatePackets = false;
                 }
-                MinecraftConnection.sendPacket(player, packets);
+
+                PACKET_INIT = packetInit;
+                PACKET_SIZE = packetSize;
+                PACKET_CENTER = packetCenter;
+                PACKET_LERP_SIZE = packetLerpSize;
+                PACKET_WARNING_DELAY = packetWarnDelay;
+                PACKET_WARNING_DISTANCE = packetWarnDist;
+
+                SUPPORTS_SEPARATE_PACKETS = supportsSeperatePackets;
+
+                WORLD_HANDLE = craftWorld.method().named("getHandle").returns(worldServer).unreflect();
+                INITIALIZE = initialize;
+                WORLDBORDER = wb.constructor().unreflect();
+                WORLDBORDER_WORLD = wb.field().setter().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
+
+                CENTER = wb.method()
+                        .named(v(18, "c").orElse("setCenter"))
+                        .returns(void.class).parameters(double.class, double.class)
+                        .unreflect();
+                SIZE = wb.method()
+                        .named(v(18, "a").orElse("setSize"))
+                        .returns(void.class).parameters(double.class)
+                        .unreflect();
+                WARNING_TIME = wb.method()
+                        .named(v(18, "b").orElse("setWarningTime"))
+                        .returns(void.class).parameters(int.class)
+                        .unreflect();
+                WARNING_DISTANCE = wb.method() // or setWarningBlocks
+                        .named(v(20, "c").v(18, "b").orElse("setWarningDistance"))
+                        .returns(void.class).parameters(int.class)
+                        .unreflect();
+                // Renamed to lerpSizeBetween(double d0, double d1, long i)
+                TRANSITION = wb.method()
+                        .named(v(18, "a").orElse("transitionSizeBetween"))
+                        .returns(void.class).parameters(double.class, double.class, long.class)
+                        .unreflect();
             } else {
-                for (Component component : updateRequired) {
-                    component.setHandle(this);
+                WORLD_HANDLE = WORLDBORDER = WORLDBORDER_WORLD = CENTER = WARNING_DISTANCE = WARNING_TIME =
+                        SIZE = TRANSITION = PACKET_WARNING_DISTANCE = PACKET_WARNING_DELAY = PACKET_LERP_SIZE =
+                                PACKET_INIT = PACKET_CENTER = PACKET_SIZE = null;
+                INITIALIZE = null;
+                SUPPORTS_SEPARATE_PACKETS = true;
+            }
+        }
+
+        public void setFor(Player player, boolean forceInit) {
+            boolean init = forceInit || this.init;
+            this.init = false;
+
+            try {
+                if (SUPPORTS_SEPARATE_PACKETS && !init) {
+                    Object[] packets = new Object[updateRequired.size()];
+                    int i = 0;
+                    for (Component component : updateRequired) {
+                        component.setHandle(this);
+                        packets[i++] = component.createPacket(this);
+                    }
+                    MinecraftConnection.sendPacket(player, packets);
+                } else {
+                    for (Component component : updateRequired) {
+                        component.setHandle(this);
+                    }
+                    Object packet = supports(17) ?
+                            PACKET_INIT.invoke(handle) :
+                            PACKET_INIT.invoke(handle, INITIALIZE);
+                    MinecraftConnection.sendPacket(player, packet);
                 }
-                Object packet = supports(17) ?
-                        PACKET_INIT.invoke(handle) :
-                        PACKET_INIT.invoke(handle, INITIALIZE);
-                MinecraftConnection.sendPacket(player, packet);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            } finally {
+                updateRequired.clear();
             }
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        } finally {
-            updateRequired.clear();
         }
-        return this;
+
+        /**
+         * Create a new world border object, set its world and center location to the player.
+         */
+        private Object createHandle() {
+            Objects.requireNonNull(world, "No world specified");
+            try {
+                Object worldBorder = WORLDBORDER.invoke();
+                Object world = WORLD_HANDLE.invoke(this.world);
+                WORLDBORDER_WORLD.invoke(worldBorder, world);
+                return worldBorder;
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                return null;
+            }
+        }
+
+        private enum Component {
+            SIZE {
+                @Override
+                protected void setHandle(NMSWorldBorder wb) throws Throwable {
+                    NMSWorldBorder.SIZE.invoke(wb.handle, wb.size);
+                }
+
+                @Override
+                protected Object createPacket(NMSWorldBorder wb) throws Throwable {
+                    return PACKET_SIZE.invoke(wb.handle);
+                }
+            }, SIZE_LERP {
+                @Override
+                protected void setHandle(NMSWorldBorder wb) throws Throwable {
+                    NMSWorldBorder.TRANSITION.invoke(wb.handle, wb.sizeLerpTarget, wb.size, wb.sizeLerpTime.toMillis());
+                }
+
+                @Override
+                protected Object createPacket(NMSWorldBorder wb) throws Throwable {
+                    return PACKET_LERP_SIZE.invoke(wb.handle);
+                }
+            }, WARNING_DISTANCE {
+                @Override
+                protected void setHandle(NMSWorldBorder wb) throws Throwable {
+                    NMSWorldBorder.WARNING_DISTANCE.invoke(wb.handle, wb.warningBlocks);
+                }
+
+                @Override
+                protected Object createPacket(NMSWorldBorder wb) throws Throwable {
+                    return PACKET_WARNING_DISTANCE.invoke(wb.handle);
+                }
+            }, WARNING_DELAY {
+                @Override
+                protected void setHandle(NMSWorldBorder wb) throws Throwable {
+                    NMSWorldBorder.WARNING_TIME.invoke(wb.handle, wb.warningBlocks);
+                }
+
+                @Override
+                protected Object createPacket(NMSWorldBorder wb) throws Throwable {
+                    return PACKET_WARNING_DELAY.invoke(wb.handle);
+                }
+            }, CENTER {
+                @Override
+                protected void setHandle(NMSWorldBorder wb) throws Throwable {
+                    NMSWorldBorder.CENTER.invoke(wb.handle, wb.centerX, wb.centerZ);
+                }
+
+                @Override
+                protected Object createPacket(NMSWorldBorder wb) throws Throwable {
+                    return PACKET_CENTER.invoke(wb.handle);
+                }
+            };
+
+            protected abstract void setHandle(NMSWorldBorder wb) throws Throwable;
+
+            protected abstract Object createPacket(NMSWorldBorder wb) throws Throwable;
+        }
     }
 
-    /**
-     * Create a new world border object, set its world and center location to the player.
-     */
-    private Object createHandle() {
-        Objects.requireNonNull(world, "No world specified");
-        try {
-            Object worldBorder = WORLDBORDER.invoke();
-            Object world = WORLD_HANDLE.invoke(this.world);
-            WORLDBORDER_WORLD.invoke(worldBorder, world);
-            return worldBorder;
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            return null;
+    private static final class BukkitWorldBorder extends XWorldBorder {
+        private final WorldBorder worldBorder;
+
+        private BukkitWorldBorder(WorldBorder worldBorder) {this.worldBorder = worldBorder;}
+
+        // @formatter:off
+        public double getDamageBuffer() {return worldBorder.getDamageBuffer();}
+        public double getSizeLerpTarget() {return 0; }
+        public double getSize() {return worldBorder.getSize();}
+        public int getWarningDistance() {return worldBorder.getWarningDistance();}
+        public Duration getWarningTime() {return Duration.ofSeconds(worldBorder.getWarningTime());}
+        public void setFor(Player player, boolean forceInit) {player.setWorldBorder(this.worldBorder);}
+
+
+        public XWorldBorder setDamageBuffer(double blocks) { worldBorder.setDamageBuffer(blocks); return this; }
+        public XWorldBorder setWarningDistance(int blocks) {worldBorder.setWarningDistance(blocks); return this;}
+        public XWorldBorder setWarningTime(Duration time) {worldBorder.setWarningTime((int) time.getSeconds()); return this;}
+        public XWorldBorder setSize(double newSize, @NotNull Duration duration) {worldBorder.setSize(newSize); return this;}
+        public XWorldBorder setCenter(double x, double z) {worldBorder.setCenter(x, z); return this;}
+        public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {return this;}
+        // @formatter:on
+
+
+        @Override
+        public Location getCenter() {
+            Location center = worldBorder.getCenter();
+            if (borderBounds == null || borderBounds.isCenterSame(center.getWorld(), center.getX(), center.getZ())) {
+                updateBorderBounds();
+            }
+            return center;
+        }
+
+        @Override
+        public boolean isWithinBorder(Location location) {
+            return worldBorder.isInside(location);
+        }
+
+        public XWorldBorder copy() {
+            WorldBorder border = Bukkit.createWorldBorder();
+            border.setCenter(worldBorder.getCenter());
+            border.setSize(worldBorder.getSize());
+            border.setDamageBuffer(worldBorder.getDamageBuffer());
+            border.setDamageAmount(worldBorder.getDamageAmount());
+            border.setWarningDistance(worldBorder.getWarningDistance());
+            border.setWarningTime(worldBorder.getWarningTime());
+            return new BukkitWorldBorder(border);
         }
     }
 
-    private enum Component {
-        SIZE {
-            @Override
-            protected void setHandle(XWorldBorder wb) throws Throwable {
-                XWorldBorder.SIZE.invoke(wb.handle, wb.size);
-            }
+    @SuppressWarnings("unused")
+    public static final class Events implements Listener {
+        @EventHandler
+        public void onJoin(PlayerMoveEvent event) {
+            XWorldBorder wb = get(event.getPlayer());
+            if (wb == null) return;
+            Player p = event.getPlayer();
+            Location loc = p.getLocation();
+            if (wb.isWithinBorder(loc)) return;
 
-            @Override
-            protected Object createPacket(XWorldBorder wb) throws Throwable {
-                return PACKET_SIZE.invoke(wb.handle);
-            }
-        }, SIZE_LERP {
-            @Override
-            protected void setHandle(XWorldBorder wb) throws Throwable {
-                XWorldBorder.TRANSITION.invoke(wb.handle, wb.sizeLerpTarget, wb.size, wb.sizeLerpTime.toMillis());
-            }
+            double distance = wb.getDistanceToBorder(loc);
+            if (distance < wb.getDamageBuffer()) return;
+            p.damage(wb.getDamageBuffer() * distance); // Should be per second.
+        }
 
-            @Override
-            protected Object createPacket(XWorldBorder wb) throws Throwable {
-                return PACKET_LERP_SIZE.invoke(wb.handle);
-            }
-        }, WARNING_DISTANCE {
-            @Override
-            protected void setHandle(XWorldBorder wb) throws Throwable {
-                XWorldBorder.WARNING_DISTANCE.invoke(wb.handle, wb.warningBlocks);
-            }
+        @EventHandler
+        public void onJoin(PlayerJoinEvent event) {
+            Player player = event.getPlayer();
+            XWorldBorder wb = get(player);
+            if (wb == null) return;
+            wb.setFor(player, true);
+        }
 
-            @Override
-            protected Object createPacket(XWorldBorder wb) throws Throwable {
-                return PACKET_WARNING_DISTANCE.invoke(wb.handle);
-            }
-        }, WARNING_DELAY {
-            @Override
-            protected void setHandle(XWorldBorder wb) throws Throwable {
-                XWorldBorder.WARNING_TIME.invoke(wb.handle, wb.warningBlocks);
-            }
+        @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+        public void onWorldChange(PlayerChangedWorldEvent event) {
+            Player player = event.getPlayer();
+            XWorldBorder wb = get(player);
+            if (wb == null) return;
+            wb.setFor(player, true);
+        }
+    }
 
-            @Override
-            protected Object createPacket(XWorldBorder wb) throws Throwable {
-                return PACKET_WARNING_DELAY.invoke(wb.handle);
-            }
-        }, CENTER {
-            @Override
-            protected void setHandle(XWorldBorder wb) throws Throwable {
-                XWorldBorder.CENTER.invoke(wb.handle, wb.centerX, wb.centerZ);
-            }
+    public static XWorldBorder create() {
+        if (SUPPORTS_NATIVE_WORLDBORDERS) return new BukkitWorldBorder(Bukkit.createWorldBorder());
+        else return new NMSWorldBorder();
+    }
 
-            @Override
-            protected Object createPacket(XWorldBorder wb) throws Throwable {
-                return PACKET_CENTER.invoke(wb.handle);
-            }
-        };
+    public static XWorldBorder getOrCreate(Player player) {
+        XWorldBorder wb = get(player);
+        if (wb != null) return wb;
 
-        protected abstract void setHandle(XWorldBorder wb) throws Throwable;
+        wb = create();
+        wb.setFor(player, true);
 
-        protected abstract Object createPacket(XWorldBorder wb) throws Throwable;
+        if (!SUPPORTS_NATIVE_WORLDBORDERS) {
+            NMSWorldBorder.WORLD_BORDERS.put(player.getUniqueId(), wb);
+        }
+
+        return wb;
+    }
+
+    @Nullable
+    public static XWorldBorder get(Player player) {
+        if (SUPPORTS_NATIVE_WORLDBORDERS) {
+            WorldBorder worldBorder = player.getWorldBorder();
+            return worldBorder == null ? null : new BukkitWorldBorder(worldBorder);
+        } else {
+            return NMSWorldBorder.WORLD_BORDERS.get(player.getUniqueId());
+        }
+    }
+
+    public static XWorldBorder from(WorldBorder bukkitWb) {
+        if (SUPPORTS_NATIVE_WORLDBORDERS) {
+            return new BukkitWorldBorder(bukkitWb).copy();
+        } else {
+            NMSWorldBorder wb = new NMSWorldBorder();
+            wb.world = bukkitWb.getCenter().getWorld(); // Don't use WorldBorder#getWorld() not supported in pre-1.17
+            wb.centerX = bukkitWb.getCenter().getX();
+            wb.centerZ = bukkitWb.getCenter().getZ();
+            wb.size = bukkitWb.getSize();
+            wb.sizeLerpTime = Duration.ZERO;
+            wb.damagePerBlock = bukkitWb.getDamageAmount();
+            wb.damageSafeZone = bukkitWb.getDamageBuffer();
+            wb.warningTime = Duration.ofSeconds(bukkitWb.getWarningTime());
+            wb.warningBlocks = bukkitWb.getWarningDistance();
+            wb.handle = wb.createHandle();
+            return wb;
+        }
     }
 }

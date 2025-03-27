@@ -52,6 +52,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ColorableArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -181,7 +182,7 @@ public final class XSeriesTests {
 
         log("Testing XWorldBorder...");
         Iterator<World> worldIter = Bukkit.getWorlds().iterator();
-        if (worldIter.hasNext()) XWorldBorder.of(worldIter.next().getSpawnLocation());
+        if (worldIter.hasNext()) XWorldBorder.create();
         else {
             // noinspection unused
             double init = XWorldBorder.MAX_SIZE;
@@ -328,7 +329,6 @@ public final class XSeriesTests {
         assertMaterial("INK_SACK:4", XMaterial.LAPIS_LAZULI);
 
         if (XMaterial.supports(14)) {
-            log("RED_DYE is " + XMaterial.RED_DYE.parseItem());
             assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
             assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
             assertMaterial(XMaterial.BLACK_DYE, Material.BLACK_DYE);
@@ -413,7 +413,9 @@ public final class XSeriesTests {
         for (Map.Entry<String, ItemSerialDual> entry : map.entrySet()) {
             ItemSerialDual dual = entry.getValue();
             if (dual.serialized == null || dual.deserialized == null) {
-                log("Either serialized and deserialized doesn't exist for: " + entry.getKey());
+                log((dual.serialized == null ? "Serialized" : "")
+                        + (dual.deserialized == null ? "Deserialized" : "")
+                        + " item doesn't exist for: " + entry.getKey());
             } else {
                 assertTrue(dual.serialized.isSimilar(dual.deserialized),
                         () -> "Items for '" + entry.getKey() + "' are not similar:\n\nSerialized:   "
@@ -491,7 +493,7 @@ public final class XSeriesTests {
                                 .transform(ProfileTransformer.includeOriginalValue())
                 ).apply();
             }));
-            items.put("head-uuid", createItem(XMaterial.PLAYER_HEAD, meta -> {
+            items.put("head-uuid-include-original", createItem(XMaterial.PLAYER_HEAD, meta -> {
                 XSkull.of(meta).profile(
                         Profileable.of(UUID.fromString("45d3f688-0765-4725-b5dd-dbc28fdfc9ab"))
                                 .transform(ProfileTransformer.includeOriginalValue())

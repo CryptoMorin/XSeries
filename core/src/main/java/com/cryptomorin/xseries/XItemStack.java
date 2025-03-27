@@ -840,7 +840,7 @@ public final class XItemStack {
                 for (String flag : flags) {
                     flag = flag.toUpperCase(Locale.ENGLISH);
                     if (flag.equals("ALL")) {
-                        XItemFlag.hideEverything(meta);
+                        XItemFlag.decorationOnly(meta);
                         break;
                     }
 
@@ -849,7 +849,7 @@ public final class XItemStack {
             } else {
                 String allFlags = config.getString("flags");
                 if (!Strings.isNullOrEmpty(allFlags) && allFlags.equalsIgnoreCase("ALL"))
-                    XItemFlag.hideEverything(meta);
+                    XItemFlag.decorationOnly(meta);
             }
         }
 
@@ -877,10 +877,12 @@ public final class XItemStack {
         }
 
         /**
-         * In older versions, an empty string for a lore line was completely
-         * ignored, so at least a space " " was needed to get empty lore lines.
+         * In some versions, an empty string for a lore line is completely
+         * ignored, so at least a space " " is needed to get empty lore lines.
+         * <p>
+         * This seems to be inconsistent between versions, so it's always enabled.
          */
-        private static final boolean SPACE_EMPTY_LORE_LINES = !supports(15);
+        private static final boolean SPACE_EMPTY_LORE_LINES = true;
 
         private void lore() {
             if (!config.isSet("lore")) return;

@@ -22,6 +22,8 @@
 package com.cryptomorin.xseries.base;
 
 import com.cryptomorin.xseries.*;
+import com.cryptomorin.xseries.base.annotations.XChange;
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.cryptomorin.xseries.base.annotations.XMerge;
 import com.cryptomorin.xseries.particles.XParticle;
 import org.bukkit.Keyed;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.lang.annotation.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -60,7 +63,16 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
      * by reflection.
      */
     @SuppressWarnings("FieldMayBeFinal")
+    @ApiStatus.Internal
     private static boolean PERFORM_AUTO_ADD = true;
+
+    /**
+     * Used for {@code DifferenceHelper}.
+     * Called by {@link #discardMetadata()}.
+     */
+    @SuppressWarnings("FieldMayBeFinal")
+    @ApiStatus.Internal
+    private static boolean DISCARD_METADATA = true;
 
     private static final boolean KEYED_EXISTS;
 
@@ -139,6 +151,8 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
      */
     private final Map<String, XForm> nameMappings = new HashMap<>(20);
     private final Map<BukkitForm, XForm> bukkitToX = new IdentityHashMap<>(20);
+    private Map<XForm, XModuleMetadata> metadata;
+    private Map<XForm, Field> backingFields;
 
     private final Class<BukkitForm> bukkitFormClass;
     private final Class<XForm> xFormClass;
@@ -151,6 +165,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     private final boolean supportsRegistry;
     private final ClassType bukkitClassType;
     private boolean pulled = false;
+    private boolean alreadyDiscardedMetadata = false;
 
     @ApiStatus.Internal
     public XRegistry(Class<BukkitForm> bukkitFormClass, Class<XForm> xFormClass,
@@ -351,6 +366,16 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
             if (bukkitForm != null) return bukkitForm;
         }
         return null;
+    }
+
+    /**
+     * Saves memory.
+     */
+    @ApiStatus.Internal
+    public void discardMetadata() {
+        if (!DISCARD_METADATA) return;
+        this.backingFields = null;
+        this.metadata = null;
     }
 
     /**
@@ -555,17 +580,83 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
     }
 
     private BukkitForm registerMerged(XForm xForm) {
-        Field formField;
+        return registerMerged(xForm, getBackingField(xForm));
+    }
+
+    @NotNull
+    @ApiStatus.Internal
+    public Field getBackingField(XForm xForm) {
         try {
-            formField = xForm.getClass().getDeclaredField(xForm.name());
+            return xForm.getClass().getDeclaredField(xForm.name());
         } catch (NoSuchFieldException e) {
-            throw new IllegalStateException("Cannot find field for XForm: " + xForm, e);
+            try {
+                if (backingFields == null) cacheBackingFields();
+                Field field = backingFields.get(xForm);
+                if (field != null) return field;
+            } catch (Throwable ex) {
+                IllegalStateException newEx = new IllegalStateException("Cannot find field for XForm: " + xForm + " - " + xForm.getClass(), ex);
+                newEx.addSuppressed(e);
+                throw newEx;
+            }
+            throw new IllegalStateException("Cannot find field for XForm: " + xForm + " - " + xForm.getClass(), e);
         }
-        return registerMerged(xForm, formField);
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @Documented
+    @ApiStatus.Internal
+    public @interface Ignore {}
+
+    private void cacheBackingFields() {
+        if (backingFields != null) throw new IllegalStateException("Backing fields are already cached");
+        if (alreadyDiscardedMetadata) throw new IllegalStateException("Metadata have already been used and discarded");
+
+        backingFields = new IdentityHashMap<>();
+        alreadyDiscardedMetadata = true;
+
+        for (Field field : xFormClass.getDeclaredFields()) {
+            int mods = field.getModifiers();
+            if (!Modifier.isPublic(mods)) continue;
+            if (!Modifier.isStatic(mods)) continue;
+            if (!Modifier.isFinal(mods)) continue;
+            if (field.getType() != xFormClass) continue;
+            if (field.isAnnotationPresent(Ignore.class)) continue;
+
+            try {
+                Object xform = Objects.requireNonNull(field.get(null),
+                        () -> "XForm backing field returned null: " + field + " for registry of " + this.xFormClass);
+
+                @SuppressWarnings("unchecked") XForm castForm = (XForm) xform;
+                backingFields.put(castForm, field);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @ApiStatus.Internal
+    @SuppressWarnings("ReflectionForUnavailableAnnotation")
+    public XModuleMetadata getOrRegisterMetadata(XForm form, Field formField, boolean peekOnly) {
+        XModuleMetadata meta = metadata == null ? null : metadata.get(form);
+        if (meta != null) return meta;
+
+        meta = new XModuleMetadata(
+                formField.isAnnotationPresent(Deprecated.class),
+                formField.getAnnotationsByType(XChange.class),
+                formField.getAnnotationsByType(XMerge.class),
+                formField.getAnnotation(XInfo.class)
+        );
+
+        if (!peekOnly) {
+            if (metadata == null) metadata = new IdentityHashMap<>(10);
+            metadata.put(form, meta);
+        }
+        return meta;
     }
 
     private BukkitForm registerMerged(XForm xForm, Field formField) {
-        XMerge[] merges = formField.getAnnotationsByType(XMerge.class);
+        XMerge[] merges = getOrRegisterMetadata(xForm, formField, true).getMerges();
         BukkitForm mergedBukkit = null;
         for (XMerge merge : merges) { // Will be an empty array if null.
             mergedBukkit = getBukkit(new String[]{merge.name()});

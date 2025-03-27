@@ -89,6 +89,9 @@ public final class XPatternType extends XModule<XPatternType, PatternType> {
             FLOW = std("flow"),
             GUSTER = std("guster");
 
+    static {
+        REGISTRY.discardMetadata();
+    }
 
     private XPatternType(PatternType patternType, String[] names) {
         super(patternType, names);

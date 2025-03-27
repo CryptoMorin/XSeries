@@ -218,6 +218,10 @@ public final class XEnchantment extends XModule<XEnchantment, Enchantment> {
         }
     }
 
+    static {
+        REGISTRY.discardMetadata();
+    }
+
     private XEnchantment(Enchantment enchantment, String[] names) {
         super(enchantment, names);
     }

@@ -101,6 +101,10 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
         super(attribute, names);
     }
 
+    static {
+        REGISTRY.discardMetadata();
+    }
+
     /**
      * Creates a new {@link AttributeModifier}.
      *

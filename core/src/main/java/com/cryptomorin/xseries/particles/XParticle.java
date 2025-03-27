@@ -65,16 +65,18 @@ public enum XParticle implements XBase<XParticle, Particle> {
     BUBBLE("WATER_BUBBLE"),
 
     BUBBLE_COLUMN_UP,
+
     BUBBLE_POP,
+
     CAMPFIRE_COSY_SMOKE,
     CAMPFIRE_SIGNAL_SMOKE,
-
     @XMerge(version = "1.20", name = "FALLING_CHERRY_LEAVES")
     @XMerge(version = "1.20", name = "LANDING_CHERRY_LEAVES")
     CHERRY_LEAVES("DRIPPING_CHERRY_LEAVES"),
-
     CLOUD,
+
     COMPOSTER,
+
     CRIMSON_SPORE,
     CRIT,
     CURRENT_DOWN,
@@ -84,10 +86,8 @@ public enum XParticle implements XBase<XParticle, Particle> {
     DRIPPING_DRIPSTONE_LAVA,
     DRIPPING_DRIPSTONE_WATER,
     DRIPPING_HONEY,
-
     @XChange(version = "v1.20.5", from = "DRIP_LAVA", to = "DRIPPING_LAVA")
     DRIPPING_LAVA("DRIP_LAVA"),
-
     DRIPPING_OBSIDIAN_TEAR,
 
     @XChange(version = "v1.20.5", from = "DRIP_WATER", to = "DRIPPING_WATER")
@@ -97,12 +97,12 @@ public enum XParticle implements XBase<XParticle, Particle> {
     DUST("REDSTONE"),
 
     DUST_COLOR_TRANSITION,
-    DUST_PILLAR,
-    DUST_PLUME,
 
+    DUST_PILLAR,
+
+    DUST_PLUME,
     @XChange(version = "v1.20.5", from = "SPELL", to = "EFFECT")
     EFFECT("SPELL"),
-
     EGG_CRACK,
 
     @XChange(version = "v1.20.5", from = "MOB_APPEARANCE", to = "ELDER_GUARDIAN")
@@ -127,6 +127,35 @@ public enum XParticle implements XBase<XParticle, Particle> {
     @XMerge(version = "1.20.5", name = "SPELL_MOB_AMBIENT")
     ENTITY_EFFECT("SPELL_MOB"),
 
+    @XChange(version = "v1.20.5", from = "EXPLOSION_LARGE", to = "EXPLOSION")
+    EXPLOSION("EXPLOSION_LARGE"),
+
+    @XChange(version = "v1.20.5", from = "EXPLOSION_HUGE", to = "EXPLOSION_EMITTER")
+    EXPLOSION_EMITTER("EXPLOSION_HUGE"),
+
+    FALLING_DRIPSTONE_LAVA,
+
+    FALLING_DRIPSTONE_WATER,
+
+    FALLING_DUST,
+
+    FALLING_HONEY,
+
+    FALLING_LAVA,
+    FALLING_NECTAR,
+    FALLING_OBSIDIAN_TEAR,
+    FALLING_SPORE_BLOSSOM,
+    FALLING_WATER,
+    @XInfo(since = "1.21.5")
+    FIREFLY,
+    @XChange(version = "v1.20.5", from = "FIREWORKS_SPARK", to = "FIREWORK")
+    FIREWORK("FIREWORKS_SPARK"),
+    @XChange(version = "v1.20.5", from = "WATER_WAKE", to = "FISHING")
+    FISHING("WATER_WAKE"),
+    FLAME,
+
+    FLASH,
+
     /**
      * It was just removed...
      * https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/diff/src/main/java/org/bukkit/Particle.java?until=f8b2086d60942eb2cd7ac25a2a1408cb790c222c
@@ -135,52 +164,19 @@ public enum XParticle implements XBase<XParticle, Particle> {
     @Deprecated
     FOOTSTEP,
 
-    /**
-     * @see #FOOTSTEP same fate.
-     */
-    @XInfo(since = "1.0.0", removedSince = "1.13")
-    @Deprecated
-    ITEM_TAKE,
-
-    @XChange(version = "v1.20.5", from = "EXPLOSION_LARGE", to = "EXPLOSION")
-    EXPLOSION("EXPLOSION_LARGE"),
-
-    @XChange(version = "v1.20.5", from = "EXPLOSION_HUGE", to = "EXPLOSION_EMITTER")
-    EXPLOSION_EMITTER("EXPLOSION_HUGE"),
-
-    FALLING_DRIPSTONE_LAVA,
-    FALLING_DRIPSTONE_WATER,
-    FALLING_DUST,
-    FALLING_HONEY,
-    FALLING_LAVA,
-    FALLING_NECTAR,
-    FALLING_OBSIDIAN_TEAR,
-    FALLING_SPORE_BLOSSOM,
-    FALLING_WATER,
-
-    @XChange(version = "v1.20.5", from = "FIREWORKS_SPARK", to = "FIREWORK")
-    FIREWORK("FIREWORKS_SPARK"),
-
-    @XChange(version = "v1.20.5", from = "WATER_WAKE", to = "FISHING")
-    FISHING("WATER_WAKE"),
-
-    FLAME,
-    FLASH,
     GLOW,
     GLOW_SQUID_INK,
     GUST,
     GUST_EMITTER_LARGE,
     GUST_EMITTER_SMALL,
-
     @XChange(version = "v1.20.5", from = "VILLAGER_HAPPY", to = "HAPPY_VILLAGER")
     HAPPY_VILLAGER("VILLAGER_HAPPY"),
-
     HEART,
+
     INFESTED,
 
     @XChange(version = "v1.20.5", from = "SPELL_INSTANT", to = "INSTANT_EFFECT")
     INSTANT_EFFECT("SPELL_INSTANT"),
-
     @XChange(version = "v1.20.5", from = "ITEM_CRACK", to = "ITEM")
     ITEM("ITEM_CRACK"),
 
@@ -195,10 +191,17 @@ public enum XParticle implements XBase<XParticle, Particle> {
     @XMerge(version = "1.20.5", name = "SNOW_SHOVEL")
     ITEM_SNOWBALL("SNOWBALL"),
 
+    /**
+     * @see #FOOTSTEP same fate.
+     */
+    @XInfo(since = "1.0.0", removedSince = "1.13")
+    @Deprecated
+    ITEM_TAKE,
+
     LANDING_HONEY,
+
     LANDING_LAVA,
     LANDING_OBSIDIAN_TEAR,
-
     @XChange(version = "v1.20.5", from = "SMOKE_LARGE", to = "LARGE_SMOKE")
     LARGE_SMOKE("SMOKE_LARGE"),
 
@@ -208,20 +211,21 @@ public enum XParticle implements XBase<XParticle, Particle> {
     MYCELIUM("TOWN_AURA"),
 
     NAUTILUS,
+
     NOTE,
     OMINOUS_SPAWNING,
     PALE_OAK_LEAVES,
-
     @XChange(version = "1.20.5", from = "EXPLOSION_NORMAL", to = "POOF")
     POOF("EXPLOSION_NORMAL"),
 
     PORTAL,
-    RAID_OMEN,
 
+    RAID_OMEN,
     @XChange(version = "1.20.5", from = "WATER_DROP", to = "RAIN")
     RAIN("WATER_DROP"),
 
     REVERSE_PORTAL,
+
     SCRAPE,
     SCULK_CHARGE,
     SCULK_CHARGE_POP,
@@ -229,23 +233,25 @@ public enum XParticle implements XBase<XParticle, Particle> {
     SHRIEK,
     SMALL_FLAME,
     SMALL_GUST,
-
     @XChange(version = "v1.20.5", from = "SMOKE_NORMAL", to = "SMOKE")
     SMOKE("SMOKE_NORMAL"),
 
     SNEEZE,
+
     SNOWFLAKE,
     SONIC_BOOM,
     SOUL,
     SOUL_FIRE_FLAME,
     SPIT,
-
     @XChange(version = "v1.20.5", from = "WATER_SPLASH", to = "SPLASH")
     SPLASH("WATER_SPLASH"),
 
     SPORE_BLOSSOM_AIR,
+
     SQUID_INK,
     SWEEP_ATTACK,
+    @XInfo(since = "1.21.5")
+    TINTED_LEAVES,
 
     @XChange(version = "v1.20.5", from = "TOTEM", to = "TOTEM_OF_UNDYING")
     TOTEM_OF_UNDYING("TOTEM"),
@@ -288,6 +294,10 @@ public enum XParticle implements XBase<XParticle, Particle> {
 
     XParticle(String... names) {
         this.particle = Data.REGISTRY.stdEnum(this, names);
+    }
+
+    static {
+        REGISTRY.discardMetadata();
     }
 
     @Override

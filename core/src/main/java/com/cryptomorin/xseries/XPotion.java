@@ -189,6 +189,10 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
         }
     }
 
+    static {
+        REGISTRY.discardMetadata();
+    }
+
     private static final class Data {
         private static final Map<PotionType, XPotion> POTION_TYPE_MAPPING = new EnumMap<>(PotionType.class);
         private static final XRegistry<XPotion, PotionEffectType> REGISTRY =

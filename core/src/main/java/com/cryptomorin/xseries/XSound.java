@@ -1748,6 +1748,65 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_PARROT_IMITATE_PANDA = std("ENTITY_PARROT_IMITATE_PANDA"),
             ENTITY_PARROT_IMITATE_ENDERMAN = std("ENTITY_PARROT_IMITATE_ENDERMAN");
 
+    @XInfo(since = "1.21.5")
+    public static final XSound
+            BLOCK_CACTUS_FLOWER_BREAK = std("block.cactus_flower.break"),
+            BLOCK_CACTUS_FLOWER_PLACE = std("block.cactus_flower.place"),
+            BLOCK_DEADBUSH_IDLE = std("block.deadbush.idle"),
+            BLOCK_FIREFLY_BUSH_IDLE = std("block.firefly_bush.idle"),
+            BLOCK_IRON_BREAK = std("block.iron.break"),
+            BLOCK_IRON_FALL = std("block.iron.fall"),
+            BLOCK_IRON_HIT = std("block.iron.hit"),
+            BLOCK_IRON_PLACE = std("block.iron.place"),
+            BLOCK_IRON_STEP = std("block.iron.step"),
+            BLOCK_LEAF_LITTER_BREAK = std("block.leaf_litter.break"),
+            BLOCK_LEAF_LITTER_STEP = std("block.leaf_litter.step"),
+            BLOCK_LEAF_LITTER_PLACE = std("block.leaf_litter.place"),
+            BLOCK_LEAF_LITTER_HIT = std("block.leaf_litter.hit"),
+            BLOCK_LEAF_LITTER_FALL = std("block.leaf_litter.fall"),
+            BLOCK_SAND_IDLE = std("block.sand.idle"),
+            BLOCK_SAND_WIND = std("block.sand.wind"),
+            ENTITY_WOLF_ANGRY_AMBIENT = std("entity.wolf_angry.ambient"),
+            ENTITY_WOLF_ANGRY_DEATH = std("entity.wolf_angry.death"),
+            ENTITY_WOLF_ANGRY_GROWL = std("entity.wolf_angry.growl"),
+            ENTITY_WOLF_ANGRY_HURT = std("entity.wolf_angry.hurt"),
+            ENTITY_WOLF_ANGRY_PANT = std("entity.wolf_angry.pant"),
+            ENTITY_WOLF_ANGRY_WHINE = std("entity.wolf_angry.whine"),
+            ENTITY_WOLF_BIG_AMBIENT = std("entity.wolf_big.ambient"),
+            ENTITY_WOLF_BIG_DEATH = std("entity.wolf_big.death"),
+            ENTITY_WOLF_BIG_GROWL = std("entity.wolf_big.growl"),
+            ENTITY_WOLF_BIG_HURT = std("entity.wolf_big.hurt"),
+            ENTITY_WOLF_BIG_PANT = std("entity.wolf_big.pant"),
+            ENTITY_WOLF_BIG_WHINE = std("entity.wolf_big.whine"),
+            ENTITY_WOLF_CUTE_AMBIENT = std("entity.wolf_cute.ambient"),
+            ENTITY_WOLF_CUTE_DEATH = std("entity.wolf_cute.death"),
+            ENTITY_WOLF_CUTE_GROWL = std("entity.wolf_cute.growl"),
+            ENTITY_WOLF_CUTE_HURT = std("entity.wolf_cute.hurt"),
+            ENTITY_WOLF_CUTE_PANT = std("entity.wolf_cute.pant"),
+            ENTITY_WOLF_CUTE_WHINE = std("entity.wolf_cute.whine"),
+            ENTITY_WOLF_GRUMPY_AMBIENT = std("entity.wolf_grumpy.ambient"),
+            ENTITY_WOLF_GRUMPY_DEATH = std("entity.wolf_grumpy.death"),
+            ENTITY_WOLF_GRUMPY_GROWL = std("entity.wolf_grumpy.growl"),
+            ENTITY_WOLF_GRUMPY_HURT = std("entity.wolf_grumpy.hurt"),
+            ENTITY_WOLF_GRUMPY_PANT = std("entity.wolf_grumpy.pant"),
+            ENTITY_WOLF_GRUMPY_WHINE = std("entity.wolf_grumpy.whine"),
+            ENTITY_WOLF_PUGLIN_AMBIENT = std("entity.wolf_puglin.ambient"),
+            ENTITY_WOLF_PUGLIN_DEATH = std("entity.wolf_puglin.death"),
+            ENTITY_WOLF_PUGLIN_GROWL = std("entity.wolf_puglin.growl"),
+            ENTITY_WOLF_PUGLIN_HURT = std("entity.wolf_puglin.hurt"),
+            ENTITY_WOLF_PUGLIN_PANT = std("entity.wolf_puglin.pant"),
+            ENTITY_WOLF_PUGLIN_WHINE = std("entity.wolf_puglin.whine"),
+            ENTITY_WOLF_SAD_AMBIENT = std("entity.wolf_sad.ambient"),
+            ENTITY_WOLF_SAD_DEATH = std("entity.wolf_sad.death"),
+            ENTITY_WOLF_SAD_GROWL = std("entity.wolf_sad.growl"),
+            ENTITY_WOLF_SAD_HURT = std("entity.wolf_sad.hurt"),
+            ENTITY_WOLF_SAD_PANT = std("entity.wolf_sad.pant"),
+            ENTITY_WOLF_SAD_WHINE = std("entity.wolf_sad.whine");
+
+    static {
+        REGISTRY.discardMetadata();
+    }
+
     /**
      * A list of sounds that are labelled as <a href="https://minecraft.fandom.com/wiki/Music">"music"</a> (usually longer than 30 seconds)
      *

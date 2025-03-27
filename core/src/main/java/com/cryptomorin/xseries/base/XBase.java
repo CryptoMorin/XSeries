@@ -126,4 +126,13 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
     default XForm or(XForm other) {
         return this.isSupported() ? (XForm) this : other;
     }
+
+    /**
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.Internal
+    default XModuleMetadata getMetadata() {
+        XRegistry<XForm, BukkitForm> registry = XRegistry.registryOf((Class<? extends XForm>) this.getClass());
+        return registry.getOrRegisterMetadata((XForm) this, registry.getBackingField((XForm) this), false);
+    }
 }

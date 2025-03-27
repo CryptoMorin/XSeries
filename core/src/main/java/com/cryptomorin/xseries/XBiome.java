@@ -203,6 +203,10 @@ public final class XBiome extends XModule<XBiome, Biome> {
         this(null, biome, names);
     }
 
+    static {
+        REGISTRY.discardMetadata();
+    }
+
     /**
      * Gets the environment (world type) which this biome originally belongs to.
      * If the biome is non-standard (registered by another program) this will return {@link Optional#empty()}.

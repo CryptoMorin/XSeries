@@ -227,6 +227,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     BLUE_CONCRETE(11, "CONCRETE"),
     BLUE_CONCRETE_POWDER(11, "CONCRETE_POWDER"),
     @XInfo(since = "1.14") BLUE_DYE,
+    @XInfo(since = "1.21.5")
+    BLUE_EGG,
     BLUE_GLAZED_TERRACOTTA,
     BLUE_ICE,
     BLUE_ORCHID(1, "RED_ROSE"),
@@ -269,6 +271,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     BROWN_CONCRETE(12, "CONCRETE"),
     BROWN_CONCRETE_POWDER(12, "CONCRETE_POWDER"),
     @XInfo(since = "1.14") BROWN_DYE,
+    @XInfo(since = "1.21.5")
+    BROWN_EGG,
     BROWN_GLAZED_TERRACOTTA,
     BROWN_MUSHROOM,
     BROWN_MUSHROOM_BLOCK("BROWN_MUSHROOM", "HUGE_MUSHROOM_1"),
@@ -288,7 +292,11 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     BUDDING_AMETHYST,
     BUNDLE,
     BURN_POTTERY_SHERD,
+    @XInfo(since = "1.21.5")
+    BUSH,
     CACTUS,
+    @XInfo(since = "1.21.5")
+    CACTUS_FLOWER,
     CAKE("CAKE_BLOCK"),
     CALCITE,
     CALIBRATED_SCULK_SENSOR,
@@ -623,6 +631,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
      */
     FILLED_MAP("MAP"),
     FIRE,
+    @XInfo(since = "1.21.5")
+    FIREFLY_BUSH,
     FIREWORK_ROCKET("FIREWORK"),
     FIREWORK_STAR("FIREWORK_CHARGE"),
     FIRE_CHARGE("FIREBALL"),
@@ -823,6 +833,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     LAVA_BUCKET,
     LAVA_CAULDRON,
     LEAD("LEASH"),
+    @XInfo(since = "1.21.5")
+    LEAF_LITTER,
     LEATHER,
     LEATHER_BOOTS,
     LEATHER_CHESTPLATE,
@@ -1222,9 +1234,13 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     POTTED_WARPED_ROOTS,
     POTTED_WHITE_TULIP(6, "FLOWER_POT"),
     POTTED_WITHER_ROSE,
+    @Deprecated
     POTTERY_SHARD_ARCHER,
+    @Deprecated
     POTTERY_SHARD_ARMS_UP,
+    @Deprecated
     POTTERY_SHARD_PRIZE,
+    @Deprecated
     POTTERY_SHARD_SKULL,
     POWDER_SNOW,
     POWDER_SNOW_BUCKET,
@@ -1311,17 +1327,16 @@ public enum XMaterial implements XBase<XMaterial, Material> {
      * Data value 14 or 0
      */
     RED_BED(supports(12) ? 14 : 0, "BED_BLOCK", "BED"),
+
     RED_BUNDLE,
     RED_CANDLE,
     RED_CANDLE_CAKE,
     RED_CARPET(14, "CARPET"),
     RED_CONCRETE(14, "CONCRETE"),
     RED_CONCRETE_POWDER(14, "CONCRETE_POWDER"),
-
     @XChange(version = "1.14", from = "ROSE_RED", to = "RED_DYE")
     @XChange(version = "1.13", from = "INK_SACK", to = "ROSE_RED")
     RED_DYE(1, "INK_SACK", "ROSE_RED"),
-
     RED_GLAZED_TERRACOTTA,
     RED_MUSHROOM,
     RED_MUSHROOM_BLOCK("RED_MUSHROOM", "HUGE_MUSHROOM_2"),
@@ -1372,6 +1387,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     SCULK_SENSOR,
     SCULK_SHRIEKER,
     SCULK_VEIN,
+    @Deprecated
     SCUTE,
     SEAGRASS,
     SEA_LANTERN,
@@ -1383,6 +1399,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     SHEEP_SPAWN_EGG(91, "MONSTER_EGG"),
     SHELTER_POTTERY_SHERD,
     SHIELD,
+    @XInfo(since = "1.21.5")
+    SHORT_DRY_GRASS,
     /**
      * 1.13.0: LONG_GRASS:1
      * 1.20.4: GRASS -> SHORT_GRASS
@@ -1526,10 +1544,16 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     SWEET_BERRY_BUSH,
     TADPOLE_BUCKET,
     TADPOLE_SPAWN_EGG,
+    @XInfo(since = "1.21.5")
+    TALL_DRY_GRASS,
     TALL_GRASS(2, "DOUBLE_PLANT"),
     TALL_SEAGRASS,
     TARGET,
     TERRACOTTA("HARD_CLAY"),
+    @XInfo(since = "1.21.5")
+    TEST_BLOCK,
+    @XInfo(since = "1.21.5")
+    TEST_INSTANCE_BLOCK,
     TIDE_ARMOR_TRIM_SMITHING_TEMPLATE,
     TINTED_GLASS,
     TIPPED_ARROW,
@@ -1685,6 +1709,8 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     WHITE_TULIP(6, "RED_ROSE"),
     WHITE_WALL_BANNER(15, "WALL_BANNER"),
     WHITE_WOOL("WOOL"),
+    @XInfo(since = "1.21.5")
+    WILDFLOWERS,
     WILD_ARMOR_TRIM_SMITHING_TEMPLATE,
     WIND_CHARGE,
     WITCH_SPAWN_EGG(66, "MONSTER_EGG"),

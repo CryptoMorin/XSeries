@@ -40,12 +40,12 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffectType;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -76,21 +76,19 @@ public final class DifferenceHelper {
                 biomes = serverFolder.resolve("XBiome.txt");
 
         // TODO - Right now the difference writer doesn't properly consider the version that is being tested
-        //        and it also doesn't stop reporting about entries that are known to be removed but are only
-        //        kept for cross-compatibility purposes.
-        writeDifference(materials, org.bukkit.Material.class, XMaterial.class, mat -> mat.startsWith("LEGACY_"));
-        writeDifference(sounds, Sound.class, XSound.REGISTRY, null);
-        writeDifference(biomes, Biome.class, XBiome.REGISTRY, null);
-        writeDifference(entityType, getEnumLikeFields(EntityType.class), XEntityType.class, null);
-        writeDifference(itemFlag, getEnumLikeFields(ItemFlag.class), XItemFlag.class, null);
-        writeDifference(potion, getEnumLikeFields(PotionEffectType.class), XPotion.class, null);
-        writeDifference(enchantment, Enchantment.class, XEnchantment.REGISTRY, null);
+        new DiffWriter(materials).ignore(mat -> mat.startsWith("LEGACY_")).writeDifference(org.bukkit.Material.class, XMaterial.class);
+        new DiffWriter(sounds).writeDifference(Sound.class, XSound.REGISTRY);
+        new DiffWriter(biomes).writeDifference(Biome.class, XBiome.REGISTRY);
+        new DiffWriter(entityType).writeDifference(getEnumLikeFields(EntityType.class), XEntityType.class);
+        new DiffWriter(itemFlag).writeDifference(getEnumLikeFields(ItemFlag.class), XItemFlag.class);
+        new DiffWriter(potion).writeDifference(getEnumLikeFields(PotionEffectType.class), XPotion.class);
+        new DiffWriter(enchantment).writeDifference(Enchantment.class, XEnchantment.REGISTRY);
 
         if (XReflection.supports(9))
-            writeDifference(particle, getEnumLikeFields(Particle.class), XParticle.class, null);
+            new DiffWriter(particle).writeDifference(getEnumLikeFields(Particle.class), XParticle.class);
 
         if (XReflection.supports(13))
-            writeDifference(patternType, PatternType.class, XPatternType.REGISTRY, null);
+            new DiffWriter(patternType).writeDifference(PatternType.class, XPatternType.REGISTRY);
 
         // printRegistryNames(Sound.class);
     }
@@ -141,28 +139,6 @@ public final class DifferenceHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Writes the difference between two enums.
-     * For other differences check:
-     * <pre>
-     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
-     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Sound.java
-     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/potion/PotionEffectType.java
-     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/enchantments/Enchantment.java
-     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Particle.java
-     * </pre>
-     *
-     * @param path   the file path to write the difference to.
-     * @param system the original enum.
-     * @param custom the custom enum that is most likely a version behind the original enum.
-     * @param ignore Used soley for legacy materials.
-     */
-    public static <S extends Enum<S>, E extends Enum<E>>
-    void writeDifference(Path path, Class<S> system, Class<E> custom, java.util.function.Predicate<String> ignore) {
-        List<String> enumNames = Arrays.stream(system.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
-        writeDifference(path, enumNames, custom, ignore);
-    }
-
     private static final class EnumLike<T> {
         private final String name;
         private final T value;
@@ -174,14 +150,81 @@ public final class DifferenceHelper {
         }
     }
 
-    public static <X extends XModule<X, Bukkit>, Bukkit>
-    void writeDifference(Path path, Class<Bukkit> systemRegistryClass, XRegistry<X, Bukkit> xRegistry, java.util.function.Predicate<String> ignore) {
-        List<EnumLike<Bukkit>> systemRegistry = getEnumLikePairFields(systemRegistryClass);
+    /**
+     * Writes the difference between two enums.
+     * For other differences check:
+     * <pre>
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Sound.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/potion/PotionEffectType.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/enchantments/Enchantment.java
+     *     https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Particle.java
+     * </pre>
+     */
+    private static final class DiffWriter {
+        private final Path path;
+        @SuppressWarnings("StringBufferField")
+        private final StringBuilder writer = new StringBuilder(100);
+        private java.util.function.Predicate<String> ignore;
 
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            writer.write("------------------- Added -------------------");
-            writer.newLine();
+        private DiffWriter(Path path) {this.path = path;}
+
+        /**
+         * Used soley for legacy materials.
+         */
+        public DiffWriter ignore(java.util.function.Predicate<String> ignore) {
+            this.ignore = ignore;
+            return this;
+        }
+
+        private void newLine() {
+            writer.append('\n');
+        }
+
+        private void writeAdded() {
+            writer.append("----------------------------------------------------------------------------");
+            newLine();
+            writer.append("---------------------------------- Added -----------------------------------");
+            newLine();
+            writer.append("----------------------------------------------------------------------------");
+            newLine();
+            newLine();
+        }
+
+        private void writeRemoved() {
+            newLine();
+            newLine();
+            writer.append("----------------------------------------------------------------------------");
+            newLine();
+            writer.append("---------------------------------- Removed ---------------------------------");
+            newLine();
+            writer.append("----------------------------------------------------------------------------");
+            newLine();
+            newLine();
+        }
+
+        private void writeToFile() {
+            if (writer.length() == 0) return;
+            try {
+                List<String> lines = Arrays.stream(writer.toString().split("\n")).collect(Collectors.toList());
+                OpenOption[] openOptions = {StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING};
+                Files.write(path, lines, StandardCharsets.UTF_8, openOptions);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public <S extends Enum<S>, E extends Enum<E>>
+        void writeDifference(Class<S> system, Class<E> custom) {
+            List<String> enumNames = Arrays.stream(system.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
+            writeDifference(enumNames, custom);
+        }
+
+        public <X extends XModule<X, Bukkit>, Bukkit> void writeDifference(
+                Class<Bukkit> systemRegistryClass, XRegistry<X, Bukkit> xRegistry
+        ) {
+            List<EnumLike<Bukkit>> systemRegistry = getEnumLikePairFields(systemRegistryClass);
+            boolean hasEntries = false;
 
             for (EnumLike<Bukkit> systemConst : systemRegistry) {
                 boolean changed = false;
@@ -194,6 +237,7 @@ public final class DifferenceHelper {
 
                 if (ns != null && !byNsName.isPresent()) {
                     changed = true;
+                    if (ns.startsWith("minecraft:")) ns = ns.substring("minecraft:".length());
                     altNames.add(ns);
                 }
                 if (!byFieldName.isPresent()) {
@@ -206,34 +250,37 @@ public final class DifferenceHelper {
                 if (x != null && changed) altNames.addAll(Arrays.asList(x.getNames()));
 
                 if (changed) {
+                    if (!hasEntries) {
+                        hasEntries = true;
+                        writeAdded();
+                    }
+
                     String otherNames = altNames.stream().map(j -> '"' + j + '"').collect(Collectors.joining(", "));
-                    writer.write(systemConst.name + " = std(" + otherNames + "),");
-                    writer.newLine();
+                    writer.append(systemConst.name).append(" = std(").append(otherNames).append("),");
+                    newLine();
                 }
             }
 
-            writer.newLine();
-            writer.write("------------------ Removed ------------------");
-            writer.newLine();
-
+            hasEntries = false;
             for (X customConst : xRegistry) {
+                if (customConst.getMetadata().wasRemoved()) continue;
+
                 boolean exists = customConst.isSupported();
                 if (!exists) {
-                    writer.write(customConst.name());
-                    writer.newLine();
+                    if (!hasEntries) {
+                        hasEntries = true;
+                        writeRemoved();
+                    }
+                    writer.append(customConst.name());
+                    newLine();
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static <E extends Enum<E>>
-    void writeDifference(Path path, List<String> system, Class<E> xForm, java.util.function.Predicate<String> ignore) {
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            writer.write("------------------- Added -------------------");
-            writer.newLine();
+            writeToFile();
+        }
+
+        public <E extends Enum<E>> void writeDifference(List<String> system, Class<E> xForm) {
+            boolean hasEntries = false;
 
             for (String systemConst : system) {
                 if (ignore != null && ignore.test(systemConst)) continue;
@@ -246,16 +293,23 @@ public final class DifferenceHelper {
                     }
                 }
                 if (exists) {
-                    writer.write(systemConst + ',');
-                    writer.newLine();
+                    if (!hasEntries) {
+                        hasEntries = true;
+                        writeAdded();
+                    }
+                    writer.append(systemConst).append(',');
+                    newLine();
                 }
             }
 
-            writer.newLine();
-            writer.write("------------------ Removed ------------------");
-            writer.newLine();
-
+            hasEntries = false;
             for (Enum<E> customConst : xForm.getEnumConstants()) {
+                try {
+                    if (xForm.getDeclaredField(customConst.name()).isAnnotationPresent(Deprecated.class)) continue;
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                }
+
                 boolean exists = false;
                 for (String systemConst : system) {
                     if (systemConst.equals(customConst.name())) {
@@ -264,12 +318,16 @@ public final class DifferenceHelper {
                     }
                 }
                 if (!exists) {
-                    writer.write(customConst.name());
-                    writer.newLine();
+                    if (!hasEntries) {
+                        hasEntries = true;
+                        writeRemoved();
+                    }
+                    writer.append(customConst.name());
+                    newLine();
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            writeToFile();
         }
     }
 }

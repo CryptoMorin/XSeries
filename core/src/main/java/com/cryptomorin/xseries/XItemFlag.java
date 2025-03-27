@@ -32,16 +32,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * An ItemFlag can hide some attributes from {@link ItemStack}.
+ * These are also known as {@code HideFlags} in Vanilla Minecraft.
+ * <p>
+ * You might find {@link #decorationOnly(ItemMeta)} useful if you're using this for GUIs.
+ */
 public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     /**
      * Setting to show/hide potion effects, book and firework information, map tooltips, patterns of banners.
      *
-     * @see #HIDE_STORED_ENCHANTS for hiding stored enchants (like on enchanted books)
+     * @see #HIDE_STORED_ENCHANTMENTS for hiding stored enchants (like on enchanted books)
      * @see XPatternType
      * @see org.bukkit.inventory.meta.FireworkMeta
      * @see org.bukkit.inventory.meta.MapMeta
@@ -88,7 +95,10 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     /**
      * @see XEnchantment
      * @see ItemMeta#getEnchants()
-     * @see #HIDE_STORED_ENCHANTS for enchantment books.
+     * @see #HIDE_STORED_ENCHANTMENTS for enchantment books.
+     * @see #HIDE_ENCHANTMENTS
+     * @see #HIDE_ENCHANTMENT_GLINT_OVERRIDE
+     * @see #HIDE_ENCHANTABLE
      */
     HIDE_ENCHANTS,
 
@@ -120,7 +130,8 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
      * @see org.bukkit.inventory.meta.EnchantmentStorageMeta
      */
     @XInfo(since = "1.21.3")
-    HIDE_STORED_ENCHANTS,
+    @XChange(version = "1.21.5", from = "HIDE_STORED_ENCHANTS", to = "HIDE_STORED_ENCHANTMENTS")
+    HIDE_STORED_ENCHANTMENTS("HIDE_STORED_ENCHANTS"),
 
     /**
      * This is not the same as {@link XEnchantment#UNBREAKING} enchant.
@@ -128,10 +139,203 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
      *
      * @see ItemMeta#setUnbreakable(boolean)
      */
-    HIDE_UNBREAKABLE;
+    HIDE_UNBREAKABLE,
+
+    @XInfo(since = "1.21.5")
+    HIDE_CUSTOM_DATA,
+    @XInfo(since = "1.21.5")
+    HIDE_MAX_STACK_SIZE,
+    @XInfo(since = "1.21.5")
+    HIDE_MAX_DAMAGE,
+    @XInfo(since = "1.21.5")
+    HIDE_DAMAGE,
+    @XInfo(since = "1.21.5")
+    HIDE_CUSTOM_NAME,
+    @XInfo(since = "1.21.5")
+    HIDE_ITEM_NAME,
+    @XInfo(since = "1.21.5")
+    HIDE_ITEM_MODEL,
+    @XInfo(since = "1.21.5")
+    HIDE_LORE,
+    @XInfo(since = "1.21.5")
+    HIDE_RARITY,
+    @XInfo(since = "1.21.5")
+    HIDE_ENCHANTMENTS,
+    @XInfo(since = "1.21.5")
+    HIDE_CAN_PLACE_ON,
+    @XInfo(since = "1.21.5")
+    HIDE_CAN_BREAK,
+    @XInfo(since = "1.21.5")
+    HIDE_ATTRIBUTE_MODIFIERS,
+    @XInfo(since = "1.21.5")
+    HIDE_CUSTOM_MODEL_DATA,
+    @XInfo(since = "1.21.5")
+    HIDE_TOOLTIP_DISPLAY,
+    @XInfo(since = "1.21.5")
+    HIDE_REPAIR_COST,
+    @XInfo(since = "1.21.5")
+    HIDE_CREATIVE_SLOT_LOCK,
+    @XInfo(since = "1.21.5")
+    HIDE_ENCHANTMENT_GLINT_OVERRIDE,
+    @XInfo(since = "1.21.5")
+    HIDE_INTANGIBLE_PROJECTILE,
+    @XInfo(since = "1.21.5")
+    HIDE_FOOD,
+    @XInfo(since = "1.21.5")
+    HIDE_CONSUMABLE,
+    @XInfo(since = "1.21.5")
+    HIDE_USE_REMAINDER,
+    @XInfo(since = "1.21.5")
+    HIDE_USE_COOLDOWN,
+    @XInfo(since = "1.21.5")
+    HIDE_DAMAGE_RESISTANT,
+    @XInfo(since = "1.21.5")
+    HIDE_TOOL,
+    @XInfo(since = "1.21.5")
+    HIDE_WEAPON,
+    @XInfo(since = "1.21.5")
+    HIDE_ENCHANTABLE,
+    @XInfo(since = "1.21.5")
+    HIDE_EQUIPPABLE,
+    @XInfo(since = "1.21.5")
+    HIDE_REPAIRABLE,
+    @XInfo(since = "1.21.5")
+    HIDE_GLIDER,
+    @XInfo(since = "1.21.5")
+    HIDE_TOOLTIP_STYLE,
+    @XInfo(since = "1.21.5")
+    HIDE_DEATH_PROTECTION,
+    @XInfo(since = "1.21.5")
+    HIDE_BLOCKS_ATTACKS,
+    @XInfo(since = "1.21.5")
+    HIDE_DYED_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_MAP_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_MAP_ID,
+    @XInfo(since = "1.21.5")
+    HIDE_MAP_DECORATIONS,
+    @XInfo(since = "1.21.5")
+    HIDE_MAP_POST_PROCESSING,
+    @XInfo(since = "1.21.5")
+    HIDE_CHARGED_PROJECTILES,
+    @XInfo(since = "1.21.5")
+    HIDE_BUNDLE_CONTENTS,
+    @XInfo(since = "1.21.5")
+    HIDE_POTION_CONTENTS,
+    @XInfo(since = "1.21.5")
+    HIDE_POTION_DURATION_SCALE,
+    @XInfo(since = "1.21.5")
+    HIDE_SUSPICIOUS_STEW_EFFECTS,
+    @XInfo(since = "1.21.5")
+    HIDE_WRITABLE_BOOK_CONTENT,
+    @XInfo(since = "1.21.5")
+    HIDE_WRITTEN_BOOK_CONTENT,
+    @XInfo(since = "1.21.5")
+    HIDE_TRIM,
+    @XInfo(since = "1.21.5")
+    HIDE_DEBUG_STICK_STATE,
+    @XInfo(since = "1.21.5")
+    HIDE_ENTITY_DATA,
+    @XInfo(since = "1.21.5")
+    HIDE_BUCKET_ENTITY_DATA,
+    @XInfo(since = "1.21.5")
+    HIDE_BLOCK_ENTITY_DATA,
+    @XInfo(since = "1.21.5")
+    HIDE_INSTRUMENT,
+    @XInfo(since = "1.21.5")
+    HIDE_PROVIDES_TRIM_MATERIAL,
+    @XInfo(since = "1.21.5")
+    HIDE_OMINOUS_BOTTLE_AMPLIFIER,
+    @XInfo(since = "1.21.5")
+    HIDE_JUKEBOX_PLAYABLE,
+    @XInfo(since = "1.21.5")
+    HIDE_PROVIDES_BANNER_PATTERNS,
+    @XInfo(since = "1.21.5")
+    HIDE_RECIPES,
+    @XInfo(since = "1.21.5")
+    HIDE_LODESTONE_TRACKER,
+    @XInfo(since = "1.21.5")
+    HIDE_FIREWORK_EXPLOSION,
+    @XInfo(since = "1.21.5")
+    HIDE_FIREWORKS,
+    @XInfo(since = "1.21.5")
+    HIDE_PROFILE,
+    @XInfo(since = "1.21.5")
+    HIDE_NOTE_BLOCK_SOUND,
+    @XInfo(since = "1.21.5")
+    HIDE_BANNER_PATTERNS,
+    @XInfo(since = "1.21.5")
+    HIDE_BASE_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_POT_DECORATIONS,
+    @XInfo(since = "1.21.5")
+    HIDE_CONTAINER,
+    @XInfo(since = "1.21.5")
+    HIDE_BLOCK_STATE,
+    @XInfo(since = "1.21.5")
+    HIDE_BEES,
+    @XInfo(since = "1.21.5")
+    HIDE_LOCK,
+    @XInfo(since = "1.21.5")
+    HIDE_CONTAINER_LOOT,
+    @XInfo(since = "1.21.5")
+    HIDE_BREAK_SOUND,
+    @XInfo(since = "1.21.5")
+    HIDE_VILLAGER_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_WOLF_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_WOLF_SOUND_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_WOLF_COLLAR,
+    @XInfo(since = "1.21.5")
+    HIDE_FOX_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_SALMON_SIZE,
+    @XInfo(since = "1.21.5")
+    HIDE_PARROT_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_TROPICAL_FISH_PATTERN,
+    @XInfo(since = "1.21.5")
+    HIDE_TROPICAL_FISH_BASE_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_TROPICAL_FISH_PATTERN_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_MOOSHROOM_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_RABBIT_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_PIG_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_COW_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_CHICKEN_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_FROG_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_HORSE_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_PAINTING_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_LLAMA_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_AXOLOTL_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_CAT_VARIANT,
+    @XInfo(since = "1.21.5")
+    HIDE_CAT_COLLAR,
+    @XInfo(since = "1.21.5")
+    HIDE_SHEEP_COLOR,
+    @XInfo(since = "1.21.5")
+    HIDE_SHULKER_COLOR;
 
     public static final XRegistry<XItemFlag, ItemFlag> REGISTRY = Data.REGISTRY;
-    private static final ItemFlag[] BUKKIT_VALUES = ItemFlag.values();
+    private static final ItemFlag[] NONE_DECORATION_FLAGS = Arrays.stream(XItemFlag.values())
+            .filter(x -> x != HIDE_LORE && x != HIDE_ITEM_NAME && x != HIDE_CUSTOM_NAME)
+            .filter(XBase::isSupported)
+            .map(XItemFlag::get)
+            .toArray(ItemFlag[]::new);
 
     private final ItemFlag itemFlag;
 
@@ -142,6 +346,10 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     private static final class Data {
         private static final XRegistry<XItemFlag, ItemFlag> REGISTRY =
                 new XRegistry<>(ItemFlag.class, XItemFlag.class, XItemFlag[]::new);
+    }
+
+    static {
+        REGISTRY.discardMetadata();
     }
 
     public static XItemFlag of(ItemFlag itemFlag) {
@@ -205,9 +413,23 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     }
 
     /**
-     * Useful for decorative items.
+     * @deprecated The name of this method is misleading as of {@code v1.21.5}. Use {@link #decorationOnly(ItemMeta)} instead.
      */
+    @Deprecated
     public static void hideEverything(ItemMeta meta) {
-        meta.addItemFlags(BUKKIT_VALUES);
+        decorationOnly(meta);
+    }
+
+    /**
+     * This is mostly meant for items inside GUIs. It hides everything
+     * that would be considered redundant/metadata to show to the player.
+     * For example, the item attributes, blocks it can break/place, item id, etc.
+     * There are some rare cases where some of these attributes could be considered
+     * useful even in a GUI, but not in most cases when used as decoration.
+     *
+     * @since 13.2.0
+     */
+    public static void decorationOnly(ItemMeta meta) {
+        meta.addItemFlags(NONE_DECORATION_FLAGS);
     }
 }

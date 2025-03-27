@@ -145,7 +145,14 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     PILLAGER,
     PLAYER,
     POLAR_BEAR,
-    POTION("SPLASH_POTION"),
+
+    @XInfo(since = "1.21.5")
+    @XChange(version = "1.21.5", from = "POTION", to = "SPLASH_POTION")
+    SPLASH_POTION("POTION"),
+
+    @XInfo(since = "1.21.5")
+    LINGERING_POTION,
+
     PUFFERFISH,
     RABBIT,
     RAVAGER,
@@ -206,6 +213,10 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
 
     XEntityType(String... names) {
         this.entityType = Data.REGISTRY.stdEnum(this, names);
+    }
+
+    static {
+        REGISTRY.discardMetadata();
     }
 
     @NotNull
