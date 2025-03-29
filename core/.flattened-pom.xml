@@ -25,7 +25,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.cryptomorin</groupId>
   <artifactId>XSeries</artifactId>
-  <version>13.1.0</version>
+  <version>13.2.0</version>
   <name>XSeries</name>
   <description>A set of utilities for Minecraft plugins</description>
   <url>https://www.spigotmc.org/threads/378136/XSeries/</url>
@@ -69,19 +69,19 @@
     <dependency>
       <groupId>com.github.cryptomorin</groupId>
       <artifactId>commons</artifactId>
-      <version>13.1.0</version>
+      <version>13.2.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.cryptomorin</groupId>
       <artifactId>new-bukkit</artifactId>
-      <version>13.1.0</version>
+      <version>13.2.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.cryptomorin</groupId>
       <artifactId>old-bukkit</artifactId>
-      <version>13.1.0</version>
+      <version>13.2.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

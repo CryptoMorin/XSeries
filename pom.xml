@@ -42,6 +42,23 @@
         <module>core</module>
     </modules>
 
+    <properties>
+        <revision>13.2.0</revision>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
+
+        <!--##### Latest Versions #####-->
+        <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
+        <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
+        <spigotVersion>1.21.5-R0.1-SNAPSHOT</spigotVersion>
+        <jopt>5.0.4</jopt>
+        <testVer/>
+        <testJavaPath/>
+        <testJava>21</testJava>
+        <asm>9.7.1</asm>
+    </properties>
+
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/CryptoMorin/XSeries/issues</url>
@@ -98,23 +115,6 @@
             <url>https://libraries.minecraft.net/</url>
         </repository>
     </repositories>
-
-    <properties>
-        <revision>13.1.0</revision>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
-
-        <!--##### Latest Versions #####-->
-        <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
-        <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
-        <spigotVersion>1.21.5-R0.1-SNAPSHOT</spigotVersion>
-        <jopt>5.0.4</jopt>
-        <testVer/>
-        <testJavaPath/>
-        <testJava>21</testJava>
-        <asm>9.7.1</asm>
-    </properties>
 
 
     <build>

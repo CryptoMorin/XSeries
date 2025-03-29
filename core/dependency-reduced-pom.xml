@@ -4,7 +4,7 @@
   <groupId>com.github.cryptomorin</groupId>
   <artifactId>XSeries</artifactId>
   <name>XSeries</name>
-  <version>13.1.0</version>
+  <version>13.2.0</version>
   <description>A set of utilities for Minecraft plugins</description>
   <url>https://www.spigotmc.org/threads/378136/XSeries/</url>
   <issueManagement>

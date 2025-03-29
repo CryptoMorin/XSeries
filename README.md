@@ -10,8 +10,13 @@ Library mainly designed to provide cross-version support for Minecraft Bukkit pl
 but it also includes numerous extra methods to help developers design their plugins easier and efficiently.
 Some utilities are completely unrelated to cross-version support such as NoteBlockMusic.
 
-Don't forget to add `api-version: "1.13"` to your `plugin.yml`.
-This will keep the plugin working even if the server is not 1.13
+> [!IMPORTANT]
+> Don't forget to add `api-version: "1.13"` to your **plugin.yml**.
+> This will not prevent your plugin from working even if the server is not using Minecraft v1.13
+
+> [!CAUTION]
+> Make sure to [shade](https://github.com/CryptoMorin/XSeries?tab=readme-ov-file#shading)
+> the library to prevent conflicts with other plugins that also use XSeries.
 
 This project aims to provide quality utilities with high performance using the latest, yet efficient techniques.
 Although support for old versions (like 1.8) will still remain for future updates, I highly encourage all developers
@@ -125,7 +130,7 @@ To shade the library, add the following under your maven plugins:
 </plugin>
 ```
 
-### [Gradle Shadow plugin](https://imperceptiblethoughts.com/shadow/)
+### [Gradle Shadow plugin](https://gradleup.com/shadow/)
 
 Gradle (Kotlin DSL)
 
