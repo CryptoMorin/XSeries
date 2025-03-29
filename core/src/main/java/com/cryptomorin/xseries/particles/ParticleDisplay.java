@@ -930,6 +930,7 @@ public class ParticleDisplay {
     @NotNull
     public ParticleDisplay withNoteColor(int color) {
         this.data = new NoteParticleColor(color);
+        this.extra = 1;
         return this;
     }
 
