@@ -29,6 +29,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
@@ -2016,7 +2017,16 @@ public enum XMaterial implements XBase<XMaterial, Material> {
             ItemMeta meta = item.getItemMeta();
             if (meta instanceof SpawnEggMeta) {
                 SpawnEggMeta egg = (SpawnEggMeta) meta;
-                material = egg.getSpawnedType().name() + "_SPAWN_EGG";
+
+                // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaSpawnEgg.java?until=fb4564cc37c37a19a8920025de6bb19dbf852338&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Finventory%2FCraftMetaSpawnEgg.java#113-120
+                // Can be null
+                EntityType type = egg.getSpawnedType();
+                if (type != null) {
+                    material = egg.getSpawnedType().name() + "_SPAWN_EGG";
+                } else {
+                    // We don't have a monster egg with ID 0
+                    return XMaterial.ZOMBIE_SPAWN_EGG;
+                }
             }
         }
 
@@ -2279,6 +2289,18 @@ public enum XMaterial implements XBase<XMaterial, Material> {
         // Splash Potions weren't an official material pre-flattening.
         if (!Data.ISFLAT && this == SPLASH_POTION) {
             base.setDurability((short) 16384); // Hard-coded as 'data' is only a byte.
+        }
+        if (supports(9) && !supports(13) && base.hasItemMeta() && this.name().endsWith("_SPAWN_EGG")) {
+            ItemMeta meta = base.getItemMeta();
+            if (meta instanceof SpawnEggMeta) {
+                SpawnEggMeta egg = (SpawnEggMeta) meta;
+                String entityName = this.name();
+                egg.setSpawnedType(XEntityType
+                        .of(entityName.substring(0, entityName.length() - "_SPAWN_EGG".length()))
+                        .orElse(XEntityType.ZOMBIE)
+                        .get()
+                );
+            }
         }
         return base;
     }
