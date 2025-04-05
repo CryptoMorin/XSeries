@@ -16,14 +16,18 @@ import java.util.function.Supplier;
 import static com.cryptomorin.xseries.XMaterial.supports;
 
 public class XItemBuilder {
-    private static final Map<Class<? extends Property>, Supplier<Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
+    private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
     private final Map<Class<? extends Property>, Property> properties = new IdentityHashMap<>();
     private final XMaterial material;
 
     static {
-        PROPERTIES_REGISTRY.put(Amount.class, Amount::new); //TODO Add private empty constructor to every Property
-        PROPERTIES_REGISTRY.put(DisplayName.class, DisplayName::new);
-        PROPERTIES_REGISTRY.put(Durability.class, Durability::new);
+        register(Amount.class, Amount::new); //TODO Add private empty constructor to every Property
+        register(DisplayName.class, DisplayName::new);
+        register(Durability.class, Durability::new);
+    }
+
+    private static <T extends Property> void register(Class<T> propClass, Supplier<T> creator) {
+        PROPERTIES_REGISTRY.put(propClass, creator);
     }
 
     public XItemBuilder(final XMaterial material) {
@@ -49,7 +53,7 @@ public class XItemBuilder {
         XItemBuilder builder = new XItemBuilder(material);
 
         ItemMeta meta = item.getItemMeta();
-        for (Map.Entry<Class<? extends Property>, Supplier<Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
+        for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
             Property currentProperty = entry.getValue().get();
             currentProperty.from(item, meta);
             builder.property(currentProperty); //TODO Only add if currentProperty was set (maybe add boolean return to Property#from())
