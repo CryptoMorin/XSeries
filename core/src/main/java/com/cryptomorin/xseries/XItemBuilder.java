@@ -332,7 +332,7 @@ public class XItemBuilder {
         public void from(final ItemStack item, final ItemMeta meta) {
             if (supports(NEW_DURABILITY_VERSION)) {
                 if (meta instanceof Damageable) {
-                    if (durability > 0) ((Damageable) meta).setDamage(durability);
+                    durability = ((Damageable) meta).getDamage();
                 }
             } else {
                 durability = item.getDurability();
