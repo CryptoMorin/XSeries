@@ -49,11 +49,11 @@ public class XItemBuilder {
         XItemBuilder builder = new XItemBuilder(material);
 
         ItemMeta meta = item.getItemMeta();
-        PROPERTIES_REGISTRY.forEach((propClass, propSupplier) -> {
-            Property currentProperty = propSupplier.get();
+        for (Map.Entry<Class<? extends Property>, Supplier<Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
+            Property currentProperty = entry.getValue().get();
             currentProperty.from(item, meta);
             builder.property(currentProperty); //TODO Only add if currentProperty was set (maybe add boolean return to Property#from())
-        });
+        }
 
         return builder;
     }
