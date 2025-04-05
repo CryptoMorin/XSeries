@@ -140,45 +140,6 @@ public class XItemBuilder {
         }
     }
 
-    //TODO Should we use this?
-    public abstract static class PropertyCollection implements Property {
-        private Property property;
-
-        public PropertyCollection(Property... properties) {
-            for (Property prop : properties) {
-                if (prop.isSupported()) {
-                    this.property = prop;
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public void to(final ItemStack item, final ItemMeta meta) {
-            if (property == null) return;
-            property.to(item, meta);
-        }
-
-        @Override
-        public void from(final ItemStack item, final ItemMeta meta) {
-            if (property == null) return;
-            property.from(item, meta);
-        }
-
-        @Override
-        public boolean isSupported() {
-            return property != null;
-        }
-
-        @Override
-        public boolean affectsMeta() {
-            if (property != null) {
-                return property.affectsMeta();
-            }
-            return false;
-        }
-    }
-
     public interface SimpleProperty extends Property {
         @Override
         default void to(ItemStack item, ItemMeta meta) {
@@ -285,6 +246,7 @@ public class XItemBuilder {
     //TODO should we use ths? (Implementation of LambdaProperty)
     public static final class AmountAlternative extends LambdaProperty<Integer> {
         public AmountAlternative(final Integer amount) {
+    public static final class Amount extends LambdaProperty<Integer> {
             super(amount, ItemStack::setAmount, ItemStack::getAmount);
         }
     }
@@ -342,65 +304,6 @@ public class XItemBuilder {
         @Override
         public boolean affectsMeta() {
             return supports(NEW_DURABILITY_VERSION);
-        }
-    }
-
-    //TODO should we use ths? (Implementation of PropertyCollection)
-    public static class DurabilityAlternative extends PropertyCollection {
-        public DurabilityAlternative(int durability) {
-            super(new NewDurability(durability), new LegacyDurability(durability));
-        }
-    }
-
-    public static class NewDurability implements MetaProperty<Damageable> {
-        private int durability;
-
-        public NewDurability(final int durability) {
-            this.durability = durability;
-        }
-
-        @Override
-        public boolean isSupported() {
-            return supports(13);
-        }
-
-        @Override
-        public Class<Damageable> getMetaClass() {
-            return Damageable.class;
-        }
-
-        @Override
-        public void to(final Damageable meta) {
-            meta.setDamage(durability);
-        }
-
-        @Override
-        public void from(final Damageable meta) {
-            durability = meta.getDamage();
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    public static class LegacyDurability implements SimpleProperty {
-        private int durability;
-
-        public LegacyDurability(final int durability) {
-            this.durability = durability;
-        }
-
-        @Override
-        public void to(final ItemStack item) {
-            item.setDurability((short) durability);
-        }
-
-        @Override
-        public void from(final ItemStack item) {
-            this.durability = item.getDurability();
-        }
-
-        @Override
-        public boolean isSupported() {
-            return !supports(13);
         }
     }
 
