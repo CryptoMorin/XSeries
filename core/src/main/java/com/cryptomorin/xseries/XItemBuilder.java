@@ -161,7 +161,6 @@ public class XItemBuilder {
         }
     }
 
-    //TODO should we use ths? Would make simple properties much smaller.
     public abstract static class LambdaMetaProperty<META extends ItemMeta, T> implements MetaProperty<META> {
         private final BiConsumer<META, T> toLambda;
         private final Function<META, T> fromLambda;
@@ -196,7 +195,6 @@ public class XItemBuilder {
         }
     }
 
-    //TODO should we use ths? Would make simple properties much smaller.
     public abstract static class LambdaProperty<T> implements SimpleProperty {
         private final BiConsumer<ItemStack, T> toLambda;
         private final Function<ItemStack, T> fromLambda;
@@ -224,29 +222,8 @@ public class XItemBuilder {
     }
 
 
-    public static final class Amount implements SimpleProperty {
-        private int amount;
-
-        public Amount(int amount) {
-            this.amount = amount;
-        }
-
-        @Override
-        public void to(final ItemStack item) {
-            item.setAmount(amount);
-        }
-
-        @Override
-        public void from(final ItemStack item) {
-            this.amount = item.getAmount();
-
-        }
-    }
-
-    //TODO should we use ths? (Implementation of LambdaProperty)
-    public static final class AmountAlternative extends LambdaProperty<Integer> {
-        public AmountAlternative(final Integer amount) {
     public static final class Amount extends LambdaProperty<Integer> {
+        public Amount(final Integer amount) {
             super(amount, ItemStack::setAmount, ItemStack::getAmount);
         }
     }
@@ -265,6 +242,7 @@ public class XItemBuilder {
 
         @Override
         public void from(final ItemMeta meta) {
+            if (!meta.hasDisplayName()) return;
             this.displayName = meta.getDisplayName();
         }
     }
@@ -322,6 +300,7 @@ public class XItemBuilder {
 
         @Override
         public void from(final ItemMeta meta) {
+            if (!meta.hasLore()) return;
             this.lore = meta.getLore();
         }
     }
