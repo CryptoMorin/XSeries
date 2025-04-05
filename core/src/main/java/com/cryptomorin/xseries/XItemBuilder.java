@@ -44,15 +44,18 @@ public class XItemBuilder {
         }
     }
 
-    public void from(ItemStack item) { //TODO Maybe make static and return XItemBuilder instance with XMaterial passed to constructor.
+    public static XItemBuilder from(ItemStack item) {
         XMaterial material = XMaterial.matchXMaterial(item);
+        XItemBuilder builder = new XItemBuilder(material);
 
         ItemMeta meta = item.getItemMeta();
         PROPERTIES_REGISTRY.forEach((propClass, propSupplier) -> {
             Property currentProperty = propSupplier.get();
             currentProperty.from(item, meta);
-            property(currentProperty); //TODO Only add if currentProperty was set (maybe add boolean return to Property#from())
+            builder.property(currentProperty); //TODO Only add if currentProperty was set (maybe add boolean return to Property#from())
         });
+
+        return builder;
     }
 
     public ItemStack build() {
