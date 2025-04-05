@@ -24,6 +24,8 @@ public class XItemBuilder {
         register(Amount.class, Amount::new); //TODO Add private empty constructor to every Property
         register(DisplayName.class, DisplayName::new);
         register(Durability.class, Durability::new);
+        register(Lore.class, Lore::new);
+        register(BookAuthor.class, BookAuthor::new);
     }
 
     private static <T extends Property> void register(Class<T> propClass, Supplier<T> creator) {
@@ -230,10 +232,17 @@ public class XItemBuilder {
         public Amount(final Integer amount) {
             super(amount, ItemStack::setAmount, ItemStack::getAmount);
         }
+
+        private Amount() {
+            this(null);
+        }
     }
 
     public static final class DisplayName implements ItemMetaProperty {
         private String displayName;
+
+        private DisplayName() {
+        }
 
         public DisplayName(final String displayName) {
             this.displayName = displayName;
@@ -255,6 +264,9 @@ public class XItemBuilder {
     public static class Durability implements Property {
         private static final int NEW_DURABILITY_VERSION = 13;
         private int durability;
+
+        private Durability() {
+        }
 
         public Durability(final int durability) {
             this.durability = durability;
@@ -292,6 +304,9 @@ public class XItemBuilder {
     public static final class Lore implements ItemMetaProperty {
         private List<String> lore;
 
+        private Lore() {
+        }
+
         public Lore(final List<String> lore) {
             this.lore = lore;
         }
@@ -309,14 +324,11 @@ public class XItemBuilder {
         }
     }
 
-    public static final class LoreAlternative extends LambdaMetaProperty<ItemMeta, List<String>> {
-        public LoreAlternative(final List<String> lore) {
-            super(lore, ItemMeta.class, ItemMeta::setLore, ItemMeta::getLore);
-        }
-    }
-
     public static final class BookAuthor implements MetaProperty<BookMeta> {
         private String bookAuthor;
+
+        private BookAuthor() {
+        }
 
         public BookAuthor(String bookAuthor) {
             this.bookAuthor = bookAuthor;
