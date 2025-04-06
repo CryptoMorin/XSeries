@@ -50,7 +50,7 @@ public class XItemBuilder {
         }
     }
 
-    public static XItemBuilder from(ItemStack item) {
+    public static XItemBuilder from(ItemStack item, boolean resetProps) {
         XMaterial material = XMaterial.matchXMaterial(item);
         XItemBuilder builder = new XItemBuilder(material);
 
@@ -58,7 +58,9 @@ public class XItemBuilder {
         for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
             Property currentProperty = entry.getValue().get();
             currentProperty.from(item, meta);
-            builder.property(currentProperty); //TODO Only add if currentProperty was set (maybe add boolean return to Property#from())
+            if (resetProps || !currentProperty.isDefault()) {
+                builder.property(currentProperty);
+            }
         }
 
         return builder;
@@ -103,6 +105,8 @@ public class XItemBuilder {
         }
 
         boolean affectsMeta();
+
+        boolean isDefault();
     }
 
     public interface MetaProperty<T extends ItemMeta> extends Property {
@@ -204,15 +208,18 @@ public class XItemBuilder {
     public abstract static class LambdaProperty<T> implements SimpleProperty {
         private final BiConsumer<ItemStack, T> toLambda;
         private final Function<ItemStack, T> fromLambda;
+        private final T defaultValue;
         private T value;
 
         protected LambdaProperty(
                 final T value,
+                final T defaultValue,
                 final BiConsumer<ItemStack, T> toLambda,
                 final Function<ItemStack, T> fromLambda
         ) {
             this.toLambda = toLambda;
             this.fromLambda = fromLambda;
+            this.defaultValue = defaultValue;
             this.value = value;
         }
 
@@ -225,23 +232,30 @@ public class XItemBuilder {
         public void from(final ItemStack meta) {
             value = fromLambda.apply(meta);
         }
+
+        @Override
+        public boolean isDefault() {
+            return value == defaultValue;
+
+        }
     }
 
-
     public static final class Amount extends LambdaProperty<Integer> {
+        private static final int DEFAULT_VALUE = 1;
+
         public Amount(final Integer amount) {
-            super(amount, ItemStack::setAmount, ItemStack::getAmount);
+            super(amount, DEFAULT_VALUE, ItemStack::setAmount, ItemStack::getAmount);
         }
 
-        private Amount() {
-            this(null);
+        public Amount() {
+            this(DEFAULT_VALUE);
         }
     }
 
     public static final class DisplayName implements ItemMetaProperty {
         private String displayName;
 
-        private DisplayName() {
+        public DisplayName() {
         }
 
         public DisplayName(final String displayName) {
@@ -257,6 +271,11 @@ public class XItemBuilder {
         public void from(final ItemMeta meta) {
             if (!meta.hasDisplayName()) return;
             this.displayName = meta.getDisplayName();
+        }
+
+        @Override
+        public boolean isDefault() {
+            return displayName == null;
         }
     }
 
@@ -299,12 +318,17 @@ public class XItemBuilder {
         public boolean affectsMeta() {
             return supports(NEW_DURABILITY_VERSION);
         }
+
+        @Override
+        public boolean isDefault() {
+            return durability == 0;
+        }
     }
 
     public static final class Lore implements ItemMetaProperty {
         private List<String> lore;
 
-        private Lore() {
+        public Lore() {
         }
 
         public Lore(final List<String> lore) {
@@ -322,12 +346,17 @@ public class XItemBuilder {
             if (!meta.hasLore()) return;
             this.lore = meta.getLore();
         }
+
+        @Override
+        public boolean isDefault() {
+            return lore == null;
+        }
     }
 
     public static final class BookAuthor implements MetaProperty<BookMeta> {
         private String bookAuthor;
 
-        private BookAuthor() {
+        public BookAuthor() {
         }
 
         public BookAuthor(String bookAuthor) {
@@ -348,6 +377,11 @@ public class XItemBuilder {
         public void from(final BookMeta meta) {
             if (!meta.hasAuthor()) return;
             bookAuthor = meta.getAuthor();
+        }
+
+        @Override
+        public boolean isDefault() {
+            return bookAuthor == null;
         }
     }
 
