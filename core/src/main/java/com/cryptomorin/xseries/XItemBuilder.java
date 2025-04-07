@@ -21,15 +21,15 @@ public class XItemBuilder {
     private final XMaterial material;
 
     static {
-        register(Amount.class, Amount::new); //TODO Add private empty constructor to every Property
-        register(DisplayName.class, DisplayName::new);
-        register(Durability.class, Durability::new);
-        register(Lore.class, Lore::new);
-        register(BookAuthor.class, BookAuthor::new);
+        register(Amount::new);
+        register(DisplayName::new);
+        register(Durability::new);
+        register(Lore::new);
+        register(BookAuthor::new);
     }
 
-    private static <T extends Property> void register(Class<T> propClass, Supplier<T> creator) {
-        PROPERTIES_REGISTRY.put(propClass, creator);
+    private static <T extends Property> void register(Supplier<T> creator) {
+        PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
     }
 
     public XItemBuilder(final XMaterial material) {
