@@ -18,9 +18,9 @@ import static com.cryptomorin.xseries.XMaterial.supports;
 public class XItemBuilder {
     private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
     private final Map<Class<? extends Property>, Property> properties = new IdentityHashMap<>();
-    private final XMaterial material;
 
     static {
+        register(Material::new);
         register(Amount::new);
         register(DisplayName::new);
         register(Durability::new);
@@ -32,8 +32,11 @@ public class XItemBuilder {
         PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
     }
 
+    public XItemBuilder() {
+    }
+
     public XItemBuilder(final XMaterial material) {
-        this.material = material;
+        property(new Material(material));
     }
 
     public void to(ItemStack item) {
@@ -50,25 +53,32 @@ public class XItemBuilder {
         }
     }
 
-    public static XItemBuilder from(ItemStack item, boolean resetProps) {
-        XMaterial material = XMaterial.matchXMaterial(item);
-        XItemBuilder builder = new XItemBuilder(material);
-
+    public void from(ItemStack item, boolean override) {
         ItemMeta meta = item.getItemMeta();
         for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
             Property currentProperty = entry.getValue().get();
             currentProperty.from(item, meta);
-            if (resetProps || !currentProperty.isDefault()) {
-                builder.property(currentProperty);
+            if (!currentProperty.isDefault() && (override || !properties.containsKey(currentProperty.getClass()))) {
+                property(currentProperty);
             }
         }
+    }
 
+    public static XItemBuilder from(ItemStack item) {
+        XItemBuilder builder = new XItemBuilder();
+        builder.from(item, true);
         return builder;
     }
 
     public ItemStack build() {
-        ItemStack item = material.parseItem();
+        Optional<Material> material = get(Material.class);
+        if (!material.isPresent() || material.get().isDefault()) {
+            throw new IllegalStateException("No material specified for the ItemStack!");
+        }
+
+        ItemStack item = material.get().getMaterial().parseItem();
         to(item);
+
         return item;
     }
 
@@ -237,6 +247,21 @@ public class XItemBuilder {
         public boolean isDefault() {
             return value == defaultValue;
 
+        }
+    }
+
+    public static final class Material extends LambdaProperty<XMaterial> {
+        public Material(final XMaterial material) {
+            super(material, null, (a, b) -> {
+            }, XMaterial::matchXMaterial);
+        }
+
+        public Material() {
+            this(null);
+        }
+
+        public XMaterial getMaterial() {
+            return super.value;
         }
     }
 
