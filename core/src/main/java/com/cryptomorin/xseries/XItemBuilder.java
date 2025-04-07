@@ -284,7 +284,7 @@ public class XItemBuilder {
         private static final int NEW_DURABILITY_VERSION = 13;
         private int durability;
 
-        private Durability() {
+        public Durability() {
         }
 
         public Durability(final int durability) {
@@ -296,10 +296,10 @@ public class XItemBuilder {
         public void to(final ItemStack item, final ItemMeta meta) {
             if (supports(NEW_DURABILITY_VERSION)) {
                 if (meta instanceof Damageable) {
-                    if (durability > 0) ((Damageable) meta).setDamage(durability);
+                    ((Damageable) meta).setDamage(durability);
                 }
             } else {
-                if (durability > 0) item.setDurability((short) durability);
+                item.setDurability((short) durability);
             }
         }
 
