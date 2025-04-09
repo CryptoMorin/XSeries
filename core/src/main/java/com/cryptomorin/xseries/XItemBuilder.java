@@ -40,6 +40,12 @@ public class XItemBuilder {
     }
 
     public void to(ItemStack item) {
+        to(item, false);
+    }
+
+    public void to(ItemStack item, boolean override) {
+        if (override) deleteAll(item);
+
         boolean metaModified = false;
         ItemMeta meta = item.getItemMeta();
 
@@ -89,6 +95,18 @@ public class XItemBuilder {
     public XItemBuilder remove(Class<Property> propertyType) {
         properties.remove(propertyType);
         return this;
+    }
+
+    public static XItemBuilder createResetBuilder() {
+        XItemBuilder deleteBuilder = new XItemBuilder();
+        for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> prop : PROPERTIES_REGISTRY.entrySet()) {
+            deleteBuilder.properties.put(prop.getKey(), prop.getValue().get());
+        }
+        return deleteBuilder;
+    }
+
+    public static void deleteAll(ItemStack item) {
+        createResetBuilder().to(item, false);
     }
 
     private XItemBuilder property(Property property) {
