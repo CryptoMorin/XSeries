@@ -86,6 +86,11 @@ public class XItemBuilder {
         return Optional.ofNullable((T) properties.get(propertyType));
     }
 
+    public XItemBuilder remove(Class<Property> propertyType) {
+        properties.remove(propertyType);
+        return this;
+    }
+
     private XItemBuilder property(Property property) {
         properties.put(property.getClass(), property);
         return this;
