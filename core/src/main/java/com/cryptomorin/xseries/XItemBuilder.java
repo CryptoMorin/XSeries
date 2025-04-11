@@ -43,8 +43,8 @@ public class XItemBuilder {
         to(item, false);
     }
 
-    public void to(ItemStack item, boolean override) {
-        if (override) deleteAll(item);
+    public void to(ItemStack item, boolean deleteBefore) {
+        if (deleteBefore) deleteAll(item);
 
         boolean metaModified = false;
         ItemMeta meta = item.getItemMeta();
@@ -97,7 +97,12 @@ public class XItemBuilder {
         return this;
     }
 
-    public static XItemBuilder createResetBuilder() {
+    public XItemBuilder delete(Class<? extends Property> property) {
+        properties.put(property, PROPERTIES_REGISTRY.get(property).get());
+        return this;
+    }
+
+    public static XItemBuilder createDeleteBuilder() {
         XItemBuilder deleteBuilder = new XItemBuilder();
         for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> prop : PROPERTIES_REGISTRY.entrySet()) {
             deleteBuilder.properties.put(prop.getKey(), prop.getValue().get());
@@ -106,7 +111,7 @@ public class XItemBuilder {
     }
 
     public static void deleteAll(ItemStack item) {
-        createResetBuilder().to(item, false);
+        createDeleteBuilder().to(item, false);
     }
 
     private XItemBuilder property(Property property) {
