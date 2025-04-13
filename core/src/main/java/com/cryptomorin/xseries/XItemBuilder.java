@@ -30,7 +30,10 @@ public class XItemBuilder {
     }
 
     private static <T extends Property> void register(Supplier<T> creator) {
-        PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
+        T property = creator.get();
+        if (property.isSupported()) {
+            PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
+        }
     }
 
     private static final Set<String> availableClasses = new HashSet<>();
