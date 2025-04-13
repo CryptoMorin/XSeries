@@ -98,7 +98,10 @@ public class XItemBuilder {
     }
 
     public XItemBuilder delete(Class<? extends Property> property) {
-        properties.put(property, PROPERTIES_REGISTRY.get(property).get());
+        Supplier<? extends Property> propertyCtor = PROPERTIES_REGISTRY.get(property);
+        if (propertyCtor != null) {
+            properties.put(property, propertyCtor.get());
+        }
         return this;
     }
 
