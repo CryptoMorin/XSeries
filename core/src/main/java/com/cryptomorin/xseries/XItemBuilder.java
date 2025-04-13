@@ -5,15 +5,16 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static com.cryptomorin.xseries.XMaterial.supports;
 
 public class XItemBuilder {
     private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
@@ -31,6 +32,24 @@ public class XItemBuilder {
     private static <T extends Property> void register(Supplier<T> creator) {
         PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
     }
+
+    private static final Set<String> availableClasses = new HashSet<>();
+
+    private static boolean checkMetaAvailable(String metaName) {
+        return checkClassAvailable("org.bukkit.inventory.meta." + metaName);
+    }
+
+    private static boolean checkClassAvailable(String requestedClass) {
+        if (availableClasses.contains(requestedClass)) return true;
+        try {
+            Class.forName(requestedClass);
+            availableClasses.add(requestedClass);
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+        return true;
+    }
+
 
     public XItemBuilder() {
     }
@@ -344,7 +363,7 @@ public class XItemBuilder {
 
     @SuppressWarnings("deprecation")
     public static class Durability implements Property {
-        private static final int NEW_DURABILITY_VERSION = 13;
+        private static final boolean SUPPORTS_META = checkMetaAvailable("Damageable");
         private int durability;
 
         public Durability() {
@@ -357,7 +376,7 @@ public class XItemBuilder {
 
         @Override
         public void to(final ItemStack item, final ItemMeta meta) {
-            if (supports(NEW_DURABILITY_VERSION)) {
+            if (SUPPORTS_META) {
                 if (meta instanceof Damageable) {
                     ((Damageable) meta).setDamage(durability);
                 }
@@ -368,7 +387,7 @@ public class XItemBuilder {
 
         @Override
         public void from(final ItemStack item, final ItemMeta meta) {
-            if (supports(NEW_DURABILITY_VERSION)) {
+            if (SUPPORTS_META) {
                 if (meta instanceof Damageable) {
                     durability = ((Damageable) meta).getDamage();
                 }
@@ -379,7 +398,7 @@ public class XItemBuilder {
 
         @Override
         public boolean affectsMeta() {
-            return supports(NEW_DURABILITY_VERSION);
+            return SUPPORTS_META;
         }
 
         @Override
