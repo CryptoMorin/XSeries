@@ -215,17 +215,20 @@ public class XItemBuilder {
     public abstract static class LambdaMetaProperty<META extends ItemMeta, T> implements MetaProperty<META> {
         private final BiConsumer<META, T> toLambda;
         private final Function<META, T> fromLambda;
+        private final T defaultValue;
         private final Class<META> metaClass;
         private T value;
 
         protected LambdaMetaProperty(
                 final T value,
+                final T defaultValue,
                 final Class<META> metaClass,
                 final BiConsumer<META, T> toLambda,
                 final Function<META, T> fromLambda
         ) {
             this.toLambda = toLambda;
             this.fromLambda = fromLambda;
+            this.defaultValue = defaultValue;
             this.metaClass = metaClass;
             this.value = value;
         }
@@ -243,6 +246,11 @@ public class XItemBuilder {
         @Override
         public Class<META> getMetaClass() {
             return metaClass;
+        }
+
+        @Override
+        public boolean isDefault() {
+            return Objects.equals(value, defaultValue);
         }
     }
 
@@ -276,8 +284,7 @@ public class XItemBuilder {
 
         @Override
         public boolean isDefault() {
-            return value == defaultValue;
-
+            return Objects.equals(value, defaultValue);
         }
     }
 
