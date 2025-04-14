@@ -234,6 +234,20 @@ public class XItemBuilder {
         }
     }
 
+    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action) {
+        return conditional(condition, action, null);
+    }
+
+    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action, T defaultVal) {
+        return (META meta) -> {
+            if (condition.apply(meta)) {
+                return action.apply(meta);
+            }
+            return defaultVal;
+        };
+
+    }
+
     public abstract static class LambdaMetaProperty<META extends ItemMeta, T> implements MetaProperty<META> {
         private final BiConsumer<META, T> toLambda;
         private final Function<META, T> fromLambda;
@@ -244,7 +258,7 @@ public class XItemBuilder {
         protected LambdaMetaProperty(
                 final T value,
                 final T defaultValue,
-                final Class<META> metaClass,
+                final Class<META> metaClass, //TODO will throw if meta isn't supported!
                 final BiConsumer<META, T> toLambda,
                 final Function<META, T> fromLambda
         ) {
@@ -337,30 +351,14 @@ public class XItemBuilder {
         }
     }
 
-    public static final class DisplayName implements ItemMetaProperty {
-        private String displayName;
+    public static final class DisplayName extends LambdaMetaProperty<ItemMeta, String> {
+        public DisplayName(String displayName) {
+            super(displayName, null, ItemMeta.class, ItemMeta::setDisplayName,
+                    conditional(ItemMeta::hasDisplayName, ItemMeta::getDisplayName));
+        }
 
         public DisplayName() {
-        }
-
-        public DisplayName(final String displayName) {
-            this.displayName = displayName;
-        }
-
-        @Override
-        public void to(final ItemMeta meta) {
-            meta.setDisplayName(displayName);
-        }
-
-        @Override
-        public void from(final ItemMeta meta) {
-            if (!meta.hasDisplayName()) return;
-            this.displayName = meta.getDisplayName();
-        }
-
-        @Override
-        public boolean isDefault() {
-            return displayName == null;
+            this(null);
         }
     }
 
