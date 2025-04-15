@@ -252,13 +252,13 @@ public class XItemBuilder {
         private final BiConsumer<META, T> toLambda;
         private final Function<META, T> fromLambda;
         private final T defaultValue;
-        private final Class<META> metaClass;
+        private final Supplier<Class<META>> metaClass;
         private T value;
 
         protected LambdaMetaProperty(
                 final T value,
                 final T defaultValue,
-                final Class<META> metaClass, //TODO will throw if meta isn't supported!
+                final Supplier<Class<META>> metaClass,
                 final BiConsumer<META, T> toLambda,
                 final Function<META, T> fromLambda
         ) {
@@ -281,7 +281,7 @@ public class XItemBuilder {
 
         @Override
         public Class<META> getMetaClass() {
-            return metaClass;
+            return metaClass.get();
         }
 
         @Override
@@ -353,7 +353,7 @@ public class XItemBuilder {
 
     public static final class DisplayName extends LambdaMetaProperty<ItemMeta, String> {
         public DisplayName(String displayName) {
-            super(displayName, null, ItemMeta.class, ItemMeta::setDisplayName,
+            super(displayName, null, ()-> ItemMeta.class, ItemMeta::setDisplayName,
                     conditional(ItemMeta::hasDisplayName, ItemMeta::getDisplayName));
         }
 
