@@ -1,0 +1,406 @@
+package com.cryptomorin.xseries;
+
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+public class XItemBuilder {
+    private static final String META_PACKAGE = "org.bukkit.inventory.meta.";
+    private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
+    private final Map<Class<? extends Property>, Property> properties = new IdentityHashMap<>();
+
+    static {
+        register(Material::new);
+        register(Amount::new);
+        register(DisplayName::new);
+        register(Durability::new);
+        register(Lore::new);
+        register(BookAuthor::new);
+    }
+
+    private static <T extends Property> void register(Supplier<T> creator) {
+        T property = creator.get();
+        if (isSupportedCached(property)) {
+            PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
+        }
+    }
+
+    private static final Set<String> AVAILABLE_CLASSES = new HashSet<>();
+
+    private static boolean checkMetaAvailable(String metaName) {
+        return checkClassAvailable(META_PACKAGE + metaName);
+    }
+
+    private static boolean checkClassAvailable(String requestedClass) {
+        if (AVAILABLE_CLASSES.contains(requestedClass)) return true;
+        try {
+            Class.forName(requestedClass);
+            AVAILABLE_CLASSES.add(requestedClass);
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    private static final Map<Class<? extends Property>, Boolean> PROPERTY_SUPPORT_CACHE = new IdentityHashMap<>();
+
+    private static boolean isSupportedCached(Property property) {
+        Class<? extends Property> propClass = property.getClass();
+        if (PROPERTY_SUPPORT_CACHE.containsKey(propClass)) {
+            return PROPERTY_SUPPORT_CACHE.get(propClass);
+        }
+
+        boolean supported = property.isSupported();
+        PROPERTY_SUPPORT_CACHE.put(propClass, supported);
+        return supported;
+    }
+
+
+    public XItemBuilder() {
+    }
+
+    public XItemBuilder(final XMaterial material) {
+        property(new Material(material));
+    }
+
+    public void to(ItemStack item) {
+        to(item, false);
+    }
+
+    public void to(ItemStack item, boolean deleteBefore) {
+        if (deleteBefore) deleteAll(item);
+
+        boolean metaModified = false;
+        ItemMeta meta = item.getItemMeta();
+
+        for (Property prop : properties.values()) {
+            prop.to(item, meta);
+            if (!metaModified) metaModified = prop.affectsMeta();
+        }
+
+        if (metaModified) {
+            item.setItemMeta(meta);
+        }
+    }
+
+    public void from(ItemStack item, boolean override) {
+        ItemMeta meta = item.getItemMeta();
+        for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> entry : PROPERTIES_REGISTRY.entrySet()) {
+            Property currentProperty = entry.getValue().get();
+            currentProperty.from(item, meta);
+            if (!currentProperty.isDefault() && (override || !properties.containsKey(currentProperty.getClass()))) {
+                property(currentProperty);
+            }
+        }
+    }
+
+    public static XItemBuilder from(ItemStack item) {
+        XItemBuilder builder = new XItemBuilder();
+        builder.from(item, true);
+        return builder;
+    }
+
+    public ItemStack build() {
+        Optional<Material> material = get(Material.class);
+        if (!material.isPresent() || material.get().isDefault()) {
+            throw new IllegalStateException("No material specified for the ItemStack!");
+        }
+
+        ItemStack item = material.get().getMaterial().parseItem();
+        to(item);
+
+        return item;
+    }
+
+    public <T extends Property> Optional<T> get(Class<T> propertyType) {
+        return Optional.ofNullable((T) properties.get(propertyType));
+    }
+
+    public XItemBuilder remove(Class<? extends Property> propertyType) {
+        properties.remove(propertyType);
+        return this;
+    }
+
+    public XItemBuilder delete(Class<? extends Property> property) {
+        Supplier<? extends Property> propertyCtor = PROPERTIES_REGISTRY.get(property);
+        if (propertyCtor != null) {
+            properties.put(property, propertyCtor.get());
+        }
+        return this;
+    }
+
+    public static XItemBuilder createDeleteBuilder() {
+        XItemBuilder deleteBuilder = new XItemBuilder();
+        for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> prop : PROPERTIES_REGISTRY.entrySet()) {
+            deleteBuilder.properties.put(prop.getKey(), prop.getValue().get());
+        }
+        return deleteBuilder;
+    }
+
+    public static void deleteAll(ItemStack item) {
+        createDeleteBuilder().to(item, false);
+    }
+
+
+    private XItemBuilder property(Property property) {
+        properties.put(property.getClass(), property);
+        return this;
+    }
+
+    public XItemBuilder withAmount(int amount) {
+        return property(new Amount(amount));
+    }
+
+    public XItemBuilder withDisplayName(String name) {
+        return property(new DisplayName(name));
+    }
+
+    public XItemBuilder withDurability(int durability) {
+        return property(new Durability(durability));
+    }
+
+
+    public interface Property {
+
+        void to(ItemStack item, ItemMeta meta);
+
+        void from(ItemStack item, ItemMeta meta);
+
+        default boolean isSupported() {
+            return true;
+        }
+
+        boolean affectsMeta();
+
+        boolean isDefault();
+    }
+
+    public interface MetaProperty<T extends ItemMeta> extends Property {
+        Class<T> getMetaClass();
+
+        default void to(ItemStack item, ItemMeta meta) {
+            if (!isSupportedCached(this)) return;
+
+            Class<T> metaClass = getMetaClass();
+            if (!metaClass.isInstance(meta)) return;
+            T specificMeta = metaClass.cast(meta);
+
+            to(specificMeta);
+        }
+
+        void to(T meta);
+
+        default void from(ItemStack item, ItemMeta meta) {
+            if (!isSupportedCached(this)) return;
+
+            Class<T> metaClass = getMetaClass();
+            if (!metaClass.isInstance(meta)) return;
+            T specificMeta = metaClass.cast(meta);
+
+            from(specificMeta);
+        }
+
+        void from(T meta);
+
+        @Override
+        default boolean affectsMeta() {
+            return true;
+        }
+    }
+
+    public interface SimpleProperty extends Property {
+        @Override
+        default void to(ItemStack item, ItemMeta meta) {
+            to(item);
+        }
+
+        void to(ItemStack item);
+
+        @Override
+        default void from(ItemStack item, ItemMeta meta) {
+            from(item);
+        }
+
+        void from(ItemStack item);
+
+        @Override
+        default boolean affectsMeta() {
+            return false;
+        }
+    }
+
+    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action) {
+        return conditional(condition, action, null);
+    }
+
+    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action, T defaultVal) {
+        return (META meta) -> {
+            if (condition.apply(meta)) {
+                return action.apply(meta);
+            }
+            return defaultVal;
+        };
+    }
+
+    public abstract static class LambdaMetaProperty<META extends ItemMeta, T> implements MetaProperty<META> {
+        private final BiConsumer<META, T> toLambda;
+        private final Function<META, T> fromLambda;
+        private final T defaultValue;
+        private final Supplier<Class<META>> metaClass;
+        private T value;
+
+        protected LambdaMetaProperty(
+                final T value,
+                final T defaultValue,
+                final Supplier<Class<META>> metaClass,
+                final BiConsumer<META, T> toLambda,
+                final Function<META, T> fromLambda
+        ) {
+            this.toLambda = toLambda;
+            this.fromLambda = fromLambda;
+            this.defaultValue = defaultValue;
+            this.metaClass = metaClass;
+            this.value = value;
+        }
+
+        @Override
+        public void to(final META meta) {
+            toLambda.accept(meta, value);
+        }
+
+        @Override
+        public void from(final META meta) {
+            value = fromLambda.apply(meta);
+        }
+
+        @Override
+        public Class<META> getMetaClass() {
+            return metaClass.get();
+        }
+
+        @Override
+        public boolean isDefault() {
+            return Objects.equals(value, defaultValue);
+        }
+    }
+
+    public abstract static class LambdaProperty<T> implements SimpleProperty {
+        private final BiConsumer<ItemStack, T> toLambda;
+        private final Function<ItemStack, T> fromLambda;
+        private final T defaultValue;
+        private T value;
+
+        protected LambdaProperty(
+                final T value,
+                final T defaultValue,
+                final BiConsumer<ItemStack, T> toLambda,
+                final Function<ItemStack, T> fromLambda
+        ) {
+            this.toLambda = toLambda;
+            this.fromLambda = fromLambda;
+            this.defaultValue = defaultValue;
+            this.value = value;
+        }
+
+        @Override
+        public void to(final ItemStack meta) {
+            toLambda.accept(meta, value);
+        }
+
+        @Override
+        public void from(final ItemStack meta) {
+            value = fromLambda.apply(meta);
+        }
+
+        @Override
+        public boolean isDefault() {
+            return Objects.equals(value, defaultValue);
+        }
+    }
+
+    // @formatter:off
+
+    public static final class Material extends LambdaProperty<XMaterial> {
+        public Material(XMaterial material) { super(material, null, (a, b) -> {}, XMaterial::matchXMaterial); }
+        public Material() { this(null); }
+
+        public XMaterial getMaterial() { return super.value; }
+    }
+
+    public static final class Amount extends LambdaProperty<Integer> {
+        private static final int DEFAULT_VALUE = 1;
+
+        public Amount(Integer amount) { super(amount, DEFAULT_VALUE, ItemStack::setAmount, ItemStack::getAmount); }
+        public Amount() { this(DEFAULT_VALUE); }
+    }
+
+    public static final class DisplayName extends LambdaMetaProperty<ItemMeta, String> {
+        public DisplayName(String displayName) {
+            super(displayName, null, () -> ItemMeta.class, ItemMeta::setDisplayName,
+                    conditional(ItemMeta::hasDisplayName, ItemMeta::getDisplayName));
+        }
+        public DisplayName() { this(null); }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static class Durability implements Property {
+        private static final boolean SUPPORTS_META = checkMetaAvailable("Damageable");
+        private int durability;
+
+        public Durability() {}
+        public Durability(int durability) { this.durability = durability; }
+
+        @Override public void to(ItemStack item, ItemMeta meta) {
+            if (SUPPORTS_META) {
+                if (meta instanceof Damageable) {
+                    ((Damageable) meta).setDamage(durability);
+                }
+            } else {
+                item.setDurability((short) durability);
+            }
+        }
+
+        @Override public void from(ItemStack item, ItemMeta meta) {
+            if (SUPPORTS_META) {
+                if (meta instanceof Damageable) {
+                    durability = ((Damageable) meta).getDamage();
+                }
+            } else {
+                durability = item.getDurability();
+            }
+        }
+
+        @Override public boolean affectsMeta() { return SUPPORTS_META; }
+        @Override public boolean isDefault() { return durability == 0; }
+    }
+
+    public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
+        public Lore(List<String> lore) {
+            super(lore, null, () -> ItemMeta.class, ItemMeta::setLore, conditional(ItemMeta::hasLore, ItemMeta::getLore));
+        }
+        public Lore() { this(null); }
+    }
+
+    public static final class BookAuthor extends LambdaMetaProperty<BookMeta, String> {
+        public BookAuthor(String bookAuthor) {
+            super(bookAuthor, null, () -> BookMeta.class, BookMeta::setAuthor,
+                    conditional(BookMeta::hasAuthor, BookMeta::getAuthor));
+        }
+        public BookAuthor() { this(null); }
+
+        @Override public boolean isSupported() { return checkMetaAvailable("BookMeta"); }
+    }
+
+}
