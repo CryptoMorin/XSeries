@@ -353,7 +353,7 @@ public class XItemBuilder {
 
     public static final class DisplayName extends LambdaMetaProperty<ItemMeta, String> {
         public DisplayName(String displayName) {
-            super(displayName, null, ()-> ItemMeta.class, ItemMeta::setDisplayName,
+            super(displayName, null, () -> ItemMeta.class, ItemMeta::setDisplayName,
                     conditional(ItemMeta::hasDisplayName, ItemMeta::getDisplayName));
         }
 
@@ -408,63 +408,29 @@ public class XItemBuilder {
         }
     }
 
-    public static final class Lore implements ItemMetaProperty {
-        private List<String> lore;
+    public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
+        public Lore(final List<String> lore) {
+            super(lore, null, () -> ItemMeta.class, ItemMeta::setLore, conditional(ItemMeta::hasLore, ItemMeta::getLore));
+        }
 
         public Lore() {
-        }
-
-        public Lore(final List<String> lore) {
-            this.lore = lore;
-        }
-        //TODO translate lore spaces
-
-        @Override
-        public void to(final ItemMeta meta) {
-            meta.setLore(lore);
-        }
-
-        @Override
-        public void from(final ItemMeta meta) {
-            if (!meta.hasLore()) return;
-            this.lore = meta.getLore();
-        }
-
-        @Override
-        public boolean isDefault() {
-            return lore == null;
+            this(null);
         }
     }
 
-    public static final class BookAuthor implements MetaProperty<BookMeta> {
-        private String bookAuthor;
+    public static final class BookAuthor extends LambdaMetaProperty<BookMeta, String> {
+        public BookAuthor(final String bookAuthor) {
+            super(bookAuthor, null, () -> BookMeta.class, BookMeta::setAuthor,
+                    conditional(BookMeta::hasAuthor, BookMeta::getAuthor));
+        }
 
         public BookAuthor() {
-        }
-
-        public BookAuthor(String bookAuthor) {
-            this.bookAuthor = bookAuthor;
+            this(null);
         }
 
         @Override
-        public Class<BookMeta> getMetaClass() {
-            return BookMeta.class;
-        }
-
-        @Override
-        public void to(final BookMeta meta) {
-            meta.setAuthor(bookAuthor);
-        }
-
-        @Override
-        public void from(final BookMeta meta) {
-            if (!meta.hasAuthor()) return;
-            bookAuthor = meta.getAuthor();
-        }
-
-        @Override
-        public boolean isDefault() {
-            return bookAuthor == null;
+        public boolean isSupported() {
+            return checkMetaAvailable("BookMeta");
         }
     }
 
