@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class XItemBuilder {
+    private static final String META_PACKAGE = "org.bukkit.inventory.meta.";
     private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
     private final Map<Class<? extends Property>, Property> properties = new IdentityHashMap<>();
 
@@ -39,7 +40,7 @@ public class XItemBuilder {
     private static final Set<String> availableClasses = new HashSet<>();
 
     private static boolean checkMetaAvailable(String metaName) {
-        return checkClassAvailable("org.bukkit.inventory.meta." + metaName);
+        return checkClassAvailable(META_PACKAGE + metaName);
     }
 
     private static boolean checkClassAvailable(String requestedClass) {
@@ -151,6 +152,7 @@ public class XItemBuilder {
     public static void deleteAll(ItemStack item) {
         createDeleteBuilder().to(item, false);
     }
+
 
     private XItemBuilder property(Property property) {
         properties.put(property.getClass(), property);
