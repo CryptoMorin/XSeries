@@ -337,31 +337,24 @@ public class XItemBuilder {
         }
     }
 
+    // @formatter:off
+
     public static final class Material extends LambdaProperty<XMaterial> {
-        public Material(final XMaterial material) {
-            super(material, null, (a, b) -> {
-            }, XMaterial::matchXMaterial);
+        public Material(XMaterial material) {
+            super(material, null, (a, b) -> {}, XMaterial::matchXMaterial);
         }
+        public Material() { this(null); }
 
-        public Material() {
-            this(null);
-        }
-
-        public XMaterial getMaterial() {
-            return super.value;
-        }
+        public XMaterial getMaterial() { return super.value; }
     }
 
     public static final class Amount extends LambdaProperty<Integer> {
         private static final int DEFAULT_VALUE = 1;
 
-        public Amount(final Integer amount) {
+        public Amount(Integer amount) {
             super(amount, DEFAULT_VALUE, ItemStack::setAmount, ItemStack::getAmount);
         }
-
-        public Amount() {
-            this(DEFAULT_VALUE);
-        }
+        public Amount() { this(DEFAULT_VALUE); }
     }
 
     public static final class DisplayName extends LambdaMetaProperty<ItemMeta, String> {
@@ -369,10 +362,7 @@ public class XItemBuilder {
             super(displayName, null, () -> ItemMeta.class, ItemMeta::setDisplayName,
                     conditional(ItemMeta::hasDisplayName, ItemMeta::getDisplayName));
         }
-
-        public DisplayName() {
-            this(null);
-        }
+        public DisplayName() { this(null); }
     }
 
     @SuppressWarnings("deprecation")
@@ -380,16 +370,10 @@ public class XItemBuilder {
         private static final boolean SUPPORTS_META = checkMetaAvailable("Damageable");
         private int durability;
 
-        public Durability() {
-        }
+        public Durability() {}
+        public Durability(int durability) { this.durability = durability; }
 
-        public Durability(final int durability) {
-            this.durability = durability;
-        }
-
-
-        @Override
-        public void to(final ItemStack item, final ItemMeta meta) {
+        @Override public void to(ItemStack item, ItemMeta meta) {
             if (SUPPORTS_META) {
                 if (meta instanceof Damageable) {
                     ((Damageable) meta).setDamage(durability);
@@ -399,8 +383,7 @@ public class XItemBuilder {
             }
         }
 
-        @Override
-        public void from(final ItemStack item, final ItemMeta meta) {
+        @Override public void from(ItemStack item, ItemMeta meta) {
             if (SUPPORTS_META) {
                 if (meta instanceof Damageable) {
                     durability = ((Damageable) meta).getDamage();
@@ -410,41 +393,25 @@ public class XItemBuilder {
             }
         }
 
-        @Override
-        public boolean affectsMeta() {
-            return SUPPORTS_META;
-        }
-
-        @Override
-        public boolean isDefault() {
-            return durability == 0;
-        }
+        @Override public boolean affectsMeta() { return SUPPORTS_META; }
+        @Override public boolean isDefault() { return durability == 0; }
     }
 
     public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
-        public Lore(final List<String> lore) {
+        public Lore(List<String> lore) {
             super(lore, null, () -> ItemMeta.class, ItemMeta::setLore, conditional(ItemMeta::hasLore, ItemMeta::getLore));
         }
-
-        public Lore() {
-            this(null);
-        }
+        public Lore() { this(null); }
     }
 
     public static final class BookAuthor extends LambdaMetaProperty<BookMeta, String> {
-        public BookAuthor(final String bookAuthor) {
+        public BookAuthor(String bookAuthor) {
             super(bookAuthor, null, () -> BookMeta.class, BookMeta::setAuthor,
                     conditional(BookMeta::hasAuthor, BookMeta::getAuthor));
         }
+        public BookAuthor() { this(null); }
 
-        public BookAuthor() {
-            this(null);
-        }
-
-        @Override
-        public boolean isSupported() {
-            return checkMetaAvailable("BookMeta");
-        }
+        @Override public boolean isSupported() { return checkMetaAvailable("BookMeta"); }
     }
 
 }
