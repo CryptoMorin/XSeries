@@ -32,22 +32,22 @@ public class XItemBuilder {
 
     private static <T extends Property> void register(Supplier<T> creator) {
         T property = creator.get();
-        if (property.isSupported()) {
+        if (isSupportedCached(property)) {
             PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
         }
     }
 
-    private static final Set<String> availableClasses = new HashSet<>();
+    private static final Set<String> AVAILABLE_CLASSES = new HashSet<>();
 
     private static boolean checkMetaAvailable(String metaName) {
         return checkClassAvailable(META_PACKAGE + metaName);
     }
 
     private static boolean checkClassAvailable(String requestedClass) {
-        if (availableClasses.contains(requestedClass)) return true;
+        if (AVAILABLE_CLASSES.contains(requestedClass)) return true;
         try {
             Class.forName(requestedClass);
-            availableClasses.add(requestedClass);
+            AVAILABLE_CLASSES.add(requestedClass);
         } catch (ClassNotFoundException ex) {
             return false;
         }
@@ -128,7 +128,7 @@ public class XItemBuilder {
         return Optional.ofNullable((T) properties.get(propertyType));
     }
 
-    public XItemBuilder remove(Class<Property> propertyType) {
+    public XItemBuilder remove(Class<? extends Property> propertyType) {
         properties.remove(propertyType);
         return this;
     }
@@ -220,14 +220,6 @@ public class XItemBuilder {
         }
     }
 
-    public interface ItemMetaProperty extends MetaProperty<ItemMeta> {
-
-        @Override
-        default Class<ItemMeta> getMetaClass() {
-            return ItemMeta.class;
-        }
-    }
-
     public interface SimpleProperty extends Property {
         @Override
         default void to(ItemStack item, ItemMeta meta) {
@@ -260,7 +252,6 @@ public class XItemBuilder {
             }
             return defaultVal;
         };
-
     }
 
     public abstract static class LambdaMetaProperty<META extends ItemMeta, T> implements MetaProperty<META> {
@@ -342,9 +333,7 @@ public class XItemBuilder {
     // @formatter:off
 
     public static final class Material extends LambdaProperty<XMaterial> {
-        public Material(XMaterial material) {
-            super(material, null, (a, b) -> {}, XMaterial::matchXMaterial);
-        }
+        public Material(XMaterial material) { super(material, null, (a, b) -> {}, XMaterial::matchXMaterial); }
         public Material() { this(null); }
 
         public XMaterial getMaterial() { return super.value; }
@@ -353,9 +342,7 @@ public class XItemBuilder {
     public static final class Amount extends LambdaProperty<Integer> {
         private static final int DEFAULT_VALUE = 1;
 
-        public Amount(Integer amount) {
-            super(amount, DEFAULT_VALUE, ItemStack::setAmount, ItemStack::getAmount);
-        }
+        public Amount(Integer amount) { super(amount, DEFAULT_VALUE, ItemStack::setAmount, ItemStack::getAmount); }
         public Amount() { this(DEFAULT_VALUE); }
     }
 
