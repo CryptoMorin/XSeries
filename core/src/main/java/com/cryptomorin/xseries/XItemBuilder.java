@@ -32,7 +32,7 @@ public class XItemBuilder {
 
     private static <T extends Property> void register(Supplier<T> creator) {
         T property = creator.get();
-        if (isSupportedCached(property)) {
+        if (property.isSupported()) {
             PROPERTIES_REGISTRY.put(creator.get().getClass(), creator);
         }
     }
@@ -52,19 +52,6 @@ public class XItemBuilder {
             return false;
         }
         return true;
-    }
-
-    private static final Map<Class<? extends Property>, Boolean> PROPERTY_SUPPORT_CACHE = new IdentityHashMap<>();
-
-    private static boolean isSupportedCached(Property property) {
-        Class<? extends Property> propClass = property.getClass();
-        if (PROPERTY_SUPPORT_CACHE.containsKey(propClass)) {
-            return PROPERTY_SUPPORT_CACHE.get(propClass);
-        }
-
-        boolean supported = property.isSupported();
-        PROPERTY_SUPPORT_CACHE.put(propClass, supported);
-        return supported;
     }
 
 
@@ -191,7 +178,7 @@ public class XItemBuilder {
         Class<T> getMetaClass();
 
         default void to(ItemStack item, ItemMeta meta) {
-            if (!isSupportedCached(this)) return;
+            if (!isSupported()) return;
 
             Class<T> metaClass = getMetaClass();
             if (!metaClass.isInstance(meta)) return;
@@ -203,7 +190,7 @@ public class XItemBuilder {
         void to(T meta);
 
         default void from(ItemStack item, ItemMeta meta) {
-            if (!isSupportedCached(this)) return;
+            if (!isSupported()) return;
 
             Class<T> metaClass = getMetaClass();
             if (!metaClass.isInstance(meta)) return;
