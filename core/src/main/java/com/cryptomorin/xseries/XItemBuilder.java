@@ -228,12 +228,12 @@ public class XItemBuilder {
         }
     }
 
-    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action) {
+    private static <T, R> Function<T, R> conditional(Function<T, Boolean> condition, Function<T, R> action) {
         return conditional(condition, action, null);
     }
 
-    private static <META extends ItemMeta, T> Function<META, T> conditional(Function<META, Boolean> condition, Function<META, T> action, T defaultVal) {
-        return (META meta) -> {
+    private static <T, R> Function<T, R> conditional(Function<T, Boolean> condition, Function<T, R> action, R defaultVal) {
+        return (T meta) -> {
             if (condition.apply(meta)) {
                 return action.apply(meta);
             }
