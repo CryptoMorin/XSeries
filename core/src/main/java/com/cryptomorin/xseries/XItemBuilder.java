@@ -146,18 +146,6 @@ public class XItemBuilder {
         return this;
     }
 
-    public XItemBuilder withAmount(int amount) {
-        return property(new Amount(amount));
-    }
-
-    public XItemBuilder withDisplayName(String name) {
-        return property(new DisplayName(name));
-    }
-
-    public XItemBuilder withDurability(int durability) {
-        return property(new Durability(durability));
-    }
-
 
     public interface Property {
 
@@ -317,7 +305,15 @@ public class XItemBuilder {
         }
     }
 
+
     // @formatter:off
+
+    public XItemBuilder withAmount(int amount) { return property(new Amount(amount)); }
+    public XItemBuilder withDisplayName(String name) { return property(new DisplayName(name)); }
+    public XItemBuilder withDurability(int durability) { return property(new Durability(durability)); }
+    public XItemBuilder withLore(List<String> lore) { return property(new Lore(lore)); }
+    public XItemBuilder withBookAuthor(String bookAuthor) { return property(new BookAuthor(bookAuthor)); }
+
 
     public static final class Material extends LambdaProperty<XMaterial> {
         public Material(XMaterial material) { super(material, null, (a, b) -> {}, XMaterial::matchXMaterial); }
