@@ -5,6 +5,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -370,10 +371,32 @@ public class XItemBuilder {
     }
 
     public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
+        /**
+         * In some versions, an empty string for a lore line is completely
+         * ignored, so at least a space " " is needed to get empty lore lines.
+         * <p>
+         * This seems to be inconsistent between versions, so it's always enabled.
+         */
+        private static final boolean SPACE_EMPTY_LORE_LINES = true;
+
         public Lore(List<String> lore) {
-            super(lore, null, () -> ItemMeta.class, ItemMeta::setLore, conditional(ItemMeta::hasLore, ItemMeta::getLore));
+            super(translateLoreSpaces(lore), null, () -> ItemMeta.class, ItemMeta::setLore,
+                    conditional(ItemMeta::hasLore, ItemMeta::getLore));
         }
         public Lore() { this(null); }
+
+        public static List<String> translateLoreSpaces(List<String> lore) {
+            if (!SPACE_EMPTY_LORE_LINES) return lore;
+
+            List<String> translatedLore = new ArrayList<>(lore.size());
+            if (!lore.isEmpty()) {
+                for (String loreLine : lore) {
+                    if (loreLine.isEmpty()) translatedLore.add(" ");
+                }
+            }
+
+            return translatedLore;
+        }
     }
 
     public static final class BookAuthor extends LambdaMetaProperty<BookMeta, String> {
