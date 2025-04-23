@@ -385,7 +385,8 @@ public class XItemBuilder {
         }
         public Unbreakable() { this(false); }
 
-        @Override public boolean isSupported() { return supports(11); }
+        private static final boolean SUPPORTS_PROPERTY = supports(11);
+        @Override public boolean isSupported() { return SUPPORTS_PROPERTY; }
     }
 
     public static final class CustomModelData extends LambdaMetaProperty<ItemMeta, Integer> {
@@ -395,7 +396,8 @@ public class XItemBuilder {
         }
         public CustomModelData() { this(0); }
 
-        @Override public boolean isSupported() { return supports(14); }
+        private static final boolean SUPPORTS_PROPERTY = supports(14);
+        @Override public boolean isSupported() { return SUPPORTS_PROPERTY; }
     }
 
     public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
@@ -434,7 +436,8 @@ public class XItemBuilder {
         }
         public BookAuthor() { this(null); }
 
-        @Override public boolean isSupported() { return checkMetaAvailable("BookMeta"); }
+        private static final boolean SUPPORTS_PROPERTY = checkMetaAvailable("BookMeta");
+        @Override public boolean isSupported() { return SUPPORTS_PROPERTY; }
     }
 
 }
