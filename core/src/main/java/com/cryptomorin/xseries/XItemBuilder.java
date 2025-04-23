@@ -17,6 +17,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.cryptomorin.xseries.XMaterial.supports;
+
 public class XItemBuilder {
     private static final String META_PACKAGE = "org.bukkit.inventory.meta.";
     private static final Map<Class<? extends Property>, Supplier<? extends Property>> PROPERTIES_REGISTRY = new IdentityHashMap<>();
@@ -27,6 +29,8 @@ public class XItemBuilder {
         register(Amount::new);
         register(DisplayName::new);
         register(Durability::new);
+        register(Unbreakable::new);
+        register(CustomModelData::new);
         register(Lore::new);
         register(BookAuthor::new);
     }
@@ -312,6 +316,8 @@ public class XItemBuilder {
     public XItemBuilder withAmount(int amount) { return property(new Amount(amount)); }
     public XItemBuilder withDisplayName(String name) { return property(new DisplayName(name)); }
     public XItemBuilder withDurability(int durability) { return property(new Durability(durability)); }
+    public XItemBuilder withUnbreakable(boolean unbreakable) { return property(new Unbreakable(unbreakable)); }
+    public XItemBuilder withCustomModelData(int customModelData) { return property(new CustomModelData(customModelData)); }
     public XItemBuilder withLore(List<String> lore) { return property(new Lore(lore)); }
     public XItemBuilder withBookAuthor(String bookAuthor) { return property(new BookAuthor(bookAuthor)); }
 
@@ -368,6 +374,25 @@ public class XItemBuilder {
 
         @Override public boolean affectsMeta() { return SUPPORTS_META; }
         @Override public boolean isDefault() { return durability == 0; }
+    }
+
+    public static final class Unbreakable extends LambdaMetaProperty<ItemMeta, Boolean> {
+        public Unbreakable(final Boolean unbreakable) {
+            super(unbreakable, false, () -> ItemMeta.class, ItemMeta::setUnbreakable, ItemMeta::isUnbreakable);
+        }
+        public Unbreakable() { this(false); }
+
+        @Override public boolean isSupported() { return supports(11); }
+    }
+
+    public static final class CustomModelData extends LambdaMetaProperty<ItemMeta, Integer> {
+        public CustomModelData(final Integer customModelData) {
+            super(customModelData, 0, () -> ItemMeta.class, ItemMeta::setCustomModelData,
+                    conditional(ItemMeta::hasCustomModelData, ItemMeta::getCustomModelData));
+        }
+        public CustomModelData() { this(0); }
+
+        @Override public boolean isSupported() { return supports(14); }
     }
 
     public static final class Lore extends LambdaMetaProperty<ItemMeta, List<String>> {
