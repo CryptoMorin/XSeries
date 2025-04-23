@@ -126,6 +126,9 @@ public class XItemBuilder {
     }
 
     public XItemBuilder delete(Class<? extends Property> property) {
+        if (property.equals(Material.class)) {
+            throw new IllegalArgumentException("Can't delete the material property!");
+        }
         Supplier<? extends Property> propertyCtor = PROPERTIES_REGISTRY.get(property);
         if (propertyCtor != null) {
             properties.put(property, propertyCtor.get());
