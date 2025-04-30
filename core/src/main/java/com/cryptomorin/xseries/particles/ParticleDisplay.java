@@ -1644,9 +1644,14 @@ public class ParticleDisplay {
         double dx = offset.getX();
         double dy = offset.getY();
         double dz = offset.getZ();
-        // The "extra" field has no effect on dust particles in some versions,
-        // but in others it causes the colors to not display when set to 0.
-        double extra = (this.particle == XParticle.DUST) ? 1 : this.extra;
+        double extra = this.extra;
+        if (this.particle == XParticle.DUST || this.particle == XParticle.NOTE) {
+            // The "extra" field has no effect on dust particles in some versions,
+            // but in others it causes the colors to not display when set to 0.
+            // For note particles, the rendered color is dx * extra, so we just
+            // always put the color in dx and set extra to 1.
+            extra = 1;
+        }
         if (players == null)
             if (ISFLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
