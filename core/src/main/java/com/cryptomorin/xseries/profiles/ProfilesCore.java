@@ -50,6 +50,7 @@ public final class ProfilesCore {
     public static final Object USER_CACHE, MINECRAFT_SESSION_SERVICE;
     public static final Proxy PROXY;
     public static final LoadingCache<Object, Object> YggdrasilMinecraftSessionService_insecureProfiles;
+    public static final boolean SUPPORTS_BUKKIT_PlayerProfile;
 
     public static final Map<String, Object> UserCache_profilesByName;
     public static final Map<UUID, Object> UserCache_profilesByUUID;
@@ -83,6 +84,11 @@ public final class ProfilesCore {
         MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
                 "package nms.server.players; public class GameProfileCache"
         ).map(MinecraftMapping.SPIGOT, "UserCache");
+
+        SUPPORTS_BUKKIT_PlayerProfile = ns
+                .ofMinecraft("package org.bukkit; public interface OfflinePlayer")
+                .method("org.bukkit.profile.PlayerProfile getPlayerProfile()")
+                .exists();
 
         try {
             MinecraftClassHandle CraftMetaSkull = ns.ofMinecraft(

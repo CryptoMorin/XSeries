@@ -5,8 +5,8 @@ Some changes may need a discussion about quality and usage.
 Make sure to explain your changes clearly when creating a pull request.
 All the pull requests are merged directly into the master branch.
 
-This project imports the full Spigot JAR from an unofficial repo as SkullUtils uses `com.mojang.authlib`
-It's also used for JavaX nullability annotations.
+This project imports the full Spigot JAR from an unofficial repo as `XSkull` uses `com.mojang.authlib`
+It's also used for JavaX nullability annotations and for easier access to NMS/internal code.
 
 Do not make any PRs/issues regarding adding support for new Minecraft versions. I'll be usually finishing the update
 within the first week of Paper unstable release.

@@ -35,6 +35,7 @@ import com.cryptomorin.xseries.profiles.objects.cache.TimedCacheableProfileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.profiles.objects.transformer.TransformableProfile;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
@@ -45,8 +46,10 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 import org.jetbrains.annotations.*;
 
+import java.lang.invoke.MethodHandle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -236,17 +239,23 @@ public interface Profileable {
      * If the profile already has textures, it will be used directly. Otherwise, a new profile will be fetched
      * based on the UUID or username depending on the server's online mode.
      *
-     * @param profile The profile to be used in the profile setting operation.
+     * @param profile               The profile to be used in the profile setting operation.
+     * @param fetchTexturesIfNeeded whether textures should be automatically fetched for this profile
+     *                              if they don't exist. This should almost always be set to true unless
+     *                              you want some other code to handle the texture (whether server-side or client-side.)
      */
     @NotNull
     @Contract(pure = true)
-    static Profileable of(@NotNull GameProfile profile) {
-        return new GameProfileProfileable(profile);
+    static Profileable of(@NotNull GameProfile profile, boolean fetchTexturesIfNeeded) {
+        return fetchTexturesIfNeeded ?
+                new RawGameProfileProfileable(profile) :
+                new DynamicGameProfileProfileable(profile);
     }
 
     /**
      * Sets the skull texture based on the specified offline player.
-     * The profile lookup will depend on whether the server is running in online mode.
+     * The profile lookup will depend on whether the server is running in online mode or not
+     * that's why this method accepts an {@link OfflinePlayer} not a {@link org.bukkit.entity.Player}.
      *
      * @param offlinePlayer The offline player to generate the {@link GameProfile}.
      */
@@ -256,24 +265,44 @@ public interface Profileable {
         return new PlayerProfileable(offlinePlayer);
     }
 
+    /**
+     * Gets the skull texture from a block that is {@link Skull}.
+     *
+     * @see #of(Block)
+     */
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull BlockState blockState) {
         return new ProfileContainer.BlockStateProfileContainer((Skull) blockState);
     }
 
+    /**
+     * Gets the skull texture from a block that is {@link Skull}.
+     *
+     * @see #of(BlockState)
+     */
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull Block block) {
         return new ProfileContainer.BlockProfileContainer(block);
     }
 
+    /**
+     * Gets the skull texture from an item which is a {@link com.cryptomorin.xseries.XMaterial#PLAYER_HEAD}.
+     *
+     * @see #of(ItemMeta)
+     */
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull ItemStack item) {
         return new ProfileContainer.ItemStackProfileContainer(item);
     }
 
+    /**
+     * Gets the skull texture from an item which is a {@link com.cryptomorin.xseries.XMaterial#PLAYER_HEAD}.
+     *
+     * @see #of(ItemStack)
+     */
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull ItemMeta meta) {
@@ -325,7 +354,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile getProfile0() {
+        protected GameProfile cacheProfile() {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
@@ -353,7 +382,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile getProfile0() {
+        protected GameProfile cacheProfile() {
             GameProfile profile = MojangAPI.getCachedProfileByUUID(id);
             if (PlayerProfiles.hasTextures(profile)) return profile;
             return MojangAPI.getOrFetchProfile(profile);
@@ -361,13 +390,13 @@ public interface Profileable {
     }
 
     @ApiStatus.Internal
-    final class GameProfileProfileable extends TimedCacheableProfileable {
+    final class DynamicGameProfileProfileable extends TimedCacheableProfileable {
         private final GameProfile profile;
 
-        public GameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
+        public DynamicGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
-        protected GameProfile getProfile0() {
+        protected GameProfile cacheProfile() {
             if (PlayerProfiles.hasTextures(profile)) {
                 return profile;
             }
@@ -379,13 +408,83 @@ public interface Profileable {
         }
     }
 
+    @ApiStatus.Internal
+    final class RawGameProfileProfileable implements Profileable {
+        private final GameProfile profile;
+
+        public RawGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
+
+        @Override
+        @NotNull
+        @Unmodifiable
+        public GameProfile getProfile() {
+            return profile;
+        }
+    }
+
     /**
-     * Do we need to support {@link org.bukkit.profile.PlayerProfile} for hybrid server software
-     * like Geyser or Mohist that might have their own caching system?
+     * <h3>Bedrock Players</h3>
+     * We need to support hybrid server software like Geyser that has their own way of calculating the UUID.
+     * This will be problematic for Bedrock players as their UUID system is completely different.
+     * To obtain a Bedrock player's Floodgate UUID (whether the server is offline/online):
+     * <ol>
+     *     <li>Strip the username prefix (a dot by default.)</li>
+     *     <li>Go to <a href="https://www.cxkes.me/xbox/xuid">www.cxkes.me</a> and search their username.</li>
+     *     <li>You'll see that Bedrock players use an XUID which is their unique Xbox Live account ID.</li>
+     *     <li>For the UUID, you need to take their XUID in the HEX format not DEC.</li>
+     *     <li>Now their fake UUID (or more specifically Floodgate UUID) will be their XUID with leading zeros to fill the rest of the UUID characters.</li>
+     * </ol>
+     * So for example, a player named {@code Martinacasas234} with XUID {@code 2535442111844868} (DEC):
+     * <pre>{@code
+     *     XUID (HEX):                    0009 01F89E6CD204
+     *     UUID:       00000000-0000-0000-0009-01f89e6cd204
+     * }</pre>
+     * Alternatively, you could get the calculated UUID directly from <a href="https://mcprofile.io/">mcprofile.io</a>.
+     * This is also mentioned in <a href="https://geysermc.org/wiki/floodgate/faq/">Geyser's FAQ</a>.
+     * Trying to look up this UUID from Mojang's API or other third-party Java Edition online lookup tools will not work, obviously.
+     * <p>
+     * Note that their skin texture URL still follow the {@code textures.minecraft.net} URL.
+     * <p>
+     * These services themselves don't make a direct API request to Xbox/Microsoft services since
+     * this specific information (converting gamertag -> XUID) is a lengthy process.
+     * You can read more about it in
+     * <a href="https://stackoverflow.com/questions/58477840/convert-xbox-live-gamertag-to-xuid-using-microsoft-rest-api-java">this StackOverflow question</a>
+     * and <a href="https://den.dev/blog/convert-gamertag-to-xuid/">this den.dev blog post</a>.
+     * The client iself is sending the XUID to the server along with the gamertag, which
+     * means we would need to add direct support for Geyser:
+     * <pre>
+     *               io.netty
+     *                   ↓
+     *     CloudburstMC's packet encoder
+     *                   ↓
+     *     <a href="https://github.com/GeyserMC/Geyser/blob/c5fd3d485bead7be6c2bf1c4cf5b9952fe0161a7/core/src/main/java/org/geysermc/geyser/network/UpstreamPacketHandler.java#L189">Geyser's UpstreamPacketHandler#handle(LoginPacket)</a>
+     *                   ↓
+     *     <a href="https://github.com/GeyserMC/Geyser/blob/c5fd3d485bead7be6c2bf1c4cf5b9952fe0161a7/core/src/main/java/org/geysermc/geyser/util/LoginEncryptionUtils.java#L68-L78">Geyser's LoginEncryptionUtils</a>
+     *                   ↓
+     *     <a href="https://github.com/CloudburstMC/Protocol/blob/88a122de252b50488ffce9fa6c18b825c9287080/bedrock-connection/src/main/java/org/cloudburstmc/protocol/bedrock/util/EncryptionUtils.java#L93-L135">CloudburstMC's EncryptionUtils#validateChain</a>
+     *                   ↓
+     *     <a href="https://github.com/CloudburstMC/Protocol/blob/88a122de252b50488ffce9fa6c18b825c9287080/bedrock-connection/src/main/java/org/cloudburstmc/protocol/bedrock/util/ChainValidationResult.java#L40-L63">CloudburstMC's ChainValidationResult#identityClaims</a>
+     * </pre>
+     *
+     * <br><br><br>
+     * <h3>China's NetEase</h3>
+     * This is unrelated to {@code Minecraft: China Edition}. For Java edition, NetEase
+     * (company associated with contributing to Minecraft: China Edition development) has its own authentication
+     * system instead of Mojang's Yggdrasil and its own private Forge mod for handling {@link GameProfile}s.
+     * The {@link GameProfile} in the server doesn't seem to contain any texture URL but it seems like the
+     * mod itself handles the skin by sending a request (private information) and retrieving the skin directly
+     * from the client itself using the username/UUID only.
+     * Their UUID implementation is custom and the algorithm is private information.
+     *
+     * <br><br><br>
+     * <H3>Solution?</H3>
+     * So the solution to all of this would be to make use of the newer {@link org.bukkit.profile.PlayerProfile}
+     * when available and defaulting back to the provided {@link GameProfile} from the CraftBukkit instance directly
+     * using a system property.
      */
     @ApiStatus.Internal
     final class PlayerProfileable extends TimedCacheableProfileable {
-        // Let the GC do its job.
+        // Only save these to let the GC do its job for the OfflinePlayer instance.
         @Nullable private final String username;
         @NotNull private final UUID id;
 
@@ -401,13 +500,51 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile getProfile0() {
+        protected GameProfile cacheProfile() {
             // Can be empty if used by:
             // CraftServer -> public OfflinePlayer getOfflinePlayer(UUID id)
             if (Strings.isNullOrEmpty(username)) {
                 return new UUIDProfileable(id).getProfile();
             } else {
                 return new UsernameProfileable(username).getProfile();
+            }
+        }
+    }
+
+    @ApiStatus.Internal
+    final class PlayerProfileProfileable extends TimedCacheableProfileable {
+        // Only save these to let the GC do its job for the OfflinePlayer instance.
+        @NotNull private final PlayerProfile profile;
+        @Nullable private PlayerProfile updated;
+
+        private static final MethodHandle CraftPlayerProfile_buildGameProfile = XReflection.ofMinecraft()
+                .inPackage(MinecraftPackage.CB, "profile").named("CraftPlayerProfile")
+                .method("public com.mojang.authlib.GameProfile buildGameProfile()")
+                .reflectOrNull();
+
+        public PlayerProfileProfileable(PlayerProfile profile) {
+            this.profile = Objects.requireNonNull(profile);
+        }
+
+        @Override
+        protected GameProfile cacheProfile() {
+            // This is a timed cache, so we always update.
+            updated = profile.update().join();
+
+            if (CraftPlayerProfile_buildGameProfile == null) {
+                GameProfile gameProfile = new GameProfile(updated.getUniqueId(), updated.getName());
+
+                String skinURL = updated.getTextures().getSkin().toString();
+                String base64 = PlayerProfiles.encodeBase64(PlayerProfiles.TEXTURES_NBT_PROPERTY_PREFIX + skinURL + "\"}}}");
+                PlayerProfiles.setTexturesProperty(gameProfile, base64);
+
+                return gameProfile;
+            } else {
+                try {
+                    return (GameProfile) CraftPlayerProfile_buildGameProfile.invoke(updated);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -433,7 +570,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile getProfile0() {
+        protected GameProfile cacheProfile() {
             determineType();
             if (type == null) {
                 throw new InvalidProfileException(string, "Unknown skull string value: " + string);

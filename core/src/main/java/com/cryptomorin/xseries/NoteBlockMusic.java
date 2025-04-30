@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
@@ -49,7 +48,7 @@ import java.util.function.Supplier;
  * This class is independent of XSound.
  *
  * @author Crypto Morin
- * @version 3.0.0
+ * @version 3.0.1
  * @see Instrument
  * @see Note
  */
@@ -161,14 +160,13 @@ public final class NoteBlockMusic {
     /**
      * A pre-written music script to test with {@link #playMusic(Player, Supplier, String)}
      * If you made a cool script using this let me know, I'll put it here.
-     * You can still give me the script and I'll put it on the Spigot page.
+     * You can still give me the script, and I'll put it on the Spigot page.
      *
      * @param player the player to send the notes to.
-     * @return the async task handling the notes.
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> testMusic(@NotNull Player player) {
-        return playMusic(player, player::getLocation, // Starting piece of Megalovania (not perfectly toned, it's screwed up)
+    public static void testMusic(@NotNull Player player) {
+        playMusic(player, player::getLocation, // Starting piece of Megalovania (not perfectly toned, it's screwed up)
                 "PIANO,D,2,100 PIANO,B#1 200 PIANO,F 250 PIANO,E 250 PIANO,B 200 PIANO,A 100 PIANO,B 100 PIANO,E");
     }
 
@@ -179,23 +177,20 @@ public final class NoteBlockMusic {
      * @param player   the player to play the music to.
      * @param location the location to play the notes to.
      * @param path     the path of the file to read the music notes from.
-     * @return the async task handling the file operations and music parsers.
      * @see #playMusic(Player, Supplier, String)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> fromFile(@NotNull Player player, @NotNull Supplier<Location> location, @NotNull Path path) {
-        return CompletableFuture.runAsync(() -> {
-            try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.isEmpty() || line.startsWith("#")) continue;
-                    parseInstructions(line).play(player, location, true);
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+    public static void fromFile(@NotNull Player player, @NotNull Supplier<Location> location, @NotNull Path path) {
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+                parseInstructions(line).play(player, location, true);
             }
-        });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -233,28 +228,17 @@ public final class NoteBlockMusic {
      * Available Instruments: Basically the first letter of every instrument. E.g. {@code BD -> BASS_DRUM}<br>
      * You can also use their full name. {@link Instrument}
      * <p>
-     * <b>CompletableFuture</b><p>
-     * Warning: Do not use blocking methods such as join() or get()
-     * You may use cancel() or the then... methods.
      *
      * @param player   in order to play the note we need a player instance. Any player.
      * @param location the location to play this note to.
      * @param script   the music script.
-     * @return the async task processing the script.
      * @see #fromFile(Player, Supplier, Path)
      * @since 1.0.0
      */
-    public static CompletableFuture<Void> playMusic(@NotNull Player player, @NotNull Supplier<Location> location, @Nullable String script) {
-        // We don't want to mess around in the main thread.
-        // Sounds are thread-safe.
-        return CompletableFuture.runAsync(() -> {
-            if (Strings.isNullOrEmpty(script)) return;
-            Sequence seq = parseInstructions(script);
-            seq.play(player, location, true);
-        }).exceptionally(ex -> {
-            ex.printStackTrace();
-            return null;
-        });
+    public static void playMusic(@NotNull Player player, @NotNull Supplier<Location> location, @Nullable String script) {
+        if (Strings.isNullOrEmpty(script)) return;
+        Sequence seq = parseInstructions(script);
+        seq.play(player, location, true);
     }
 
     public static Sequence parseInstructions(@NotNull CharSequence script) {

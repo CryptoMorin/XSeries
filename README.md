@@ -1,6 +1,6 @@
 # XSeries
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21-dark_green.svg)](https://shields.io/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/Java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://api.travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://app.travis-ci.com/github/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
@@ -13,6 +13,7 @@ Some utilities are completely unrelated to cross-version support such as NoteBlo
 > [!IMPORTANT]
 > Don't forget to add `api-version: "1.13"` to your **plugin.yml**.
 > This will not prevent your plugin from working even if the server is not using Minecraft v1.13
+> This is only required if you want to use one of the XBase/XModule classes. 
 
 > [!CAUTION]
 > Make sure to [shade](https://github.com/CryptoMorin/XSeries?tab=readme-ov-file#shading)
@@ -37,10 +38,11 @@ All the methods are explained in the JavaDocs. Please read them before using a m
 It's quite common to miss the whole purpose of cross-version support and the efficiency
 of the utility by using the wrong methods.
 
-You can use most of these utilities individually or use the maven dependency.
+You can use some of these utilities individually or use the maven dependency.
 Most of the utilities are intended to be independent. However, some
-utilities such as [XParticle](src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
-another class ([ParticleDisplay](src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java))
+utilities such as [XParticle](core/src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
+another class ([ParticleDisplay](core/src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java)).
+All XBase/XModule classes also depend on these base classes and also [XRegistry](core/src/main/java/com/cryptomorin/xseries/base).
 
 #### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 

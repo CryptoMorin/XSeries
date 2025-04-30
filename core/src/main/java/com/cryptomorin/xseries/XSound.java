@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
  * <p>
  * Sounds are thread-safe. But this doesn't mean you should
  * use a bukkit async scheduler for every {@link Player#playSound} call.
+ * Paper for some reason blocks async calls for playing sounds in a world.
  * <p>
  * <b>Volume:</b> 0.0-∞ - 1.0f (normal) - Using higher values increase the distance from which the sound can be heard.<br>
  * <b>Pitch:</b> 0.5-2.0 - 1.0f (normal) - How fast the sound is play.

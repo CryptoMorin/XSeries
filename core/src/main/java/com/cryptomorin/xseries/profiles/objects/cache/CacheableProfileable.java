@@ -58,7 +58,7 @@ public abstract class CacheableProfileable implements Profileable {
 
         if (cache == null) {
             try {
-                cache = getProfile0();
+                cache = cacheProfile();
                 lastError = null;
             } catch (Throwable ex) {
                 lastError = ex;
@@ -81,7 +81,7 @@ public abstract class CacheableProfileable implements Profileable {
     }
 
     @NotNull
-    protected abstract GameProfile getProfile0();
+    protected abstract GameProfile cacheProfile();
 
     @Override
     public final String toString() {
