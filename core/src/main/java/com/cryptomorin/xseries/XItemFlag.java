@@ -28,6 +28,7 @@ import com.cryptomorin.xseries.base.annotations.XInfo;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -352,11 +353,13 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
         REGISTRY.discardMetadata();
     }
 
-    public static XItemFlag of(ItemFlag itemFlag) {
+    @NotNull
+    public static XItemFlag of(@NotNull ItemFlag itemFlag) {
         return REGISTRY.getByBukkitForm(itemFlag);
     }
 
-    public static Optional<XItemFlag> of(String itemFlag) {
+    @NotNull
+    public static Optional<XItemFlag> of(@NotNull String itemFlag) {
         return REGISTRY.getByName(itemFlag);
     }
 
@@ -372,43 +375,54 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     }
 
     @Override
-    public @Nullable ItemFlag get() {
+    @Nullable
+    public ItemFlag get() {
         return itemFlag;
     }
 
-    public void set(ItemStack item) {
+    @Contract(mutates = "param1")
+    public void set(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(itemFlag);
         item.setItemMeta(meta);
     }
 
-    public void set(ItemMeta meta) {
+    @Contract(mutates = "param1")
+    public void set(@NotNull ItemMeta meta) {
         meta.addItemFlags(itemFlag);
     }
 
-    public void removeFrom(ItemStack item) {
+    @Contract(mutates = "param1")
+    public void removeFrom(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         removeFrom(meta);
         item.setItemMeta(meta);
     }
 
-    public void removeFrom(ItemMeta meta) {
+    @Contract(mutates = "param1")
+    public void removeFrom(@NotNull ItemMeta meta) {
         meta.removeItemFlags(itemFlag);
     }
 
-    public Set<XItemFlag> getFlags(ItemStack item) {
+    @Contract(value = "_ -> new", pure = true)
+    @NotNull
+    public static Set<XItemFlag> getFlags(@NotNull ItemStack item) {
         return getFlags(item.getItemMeta());
     }
 
-    public Set<XItemFlag> getFlags(ItemMeta meta) {
+    @Contract(value = "_ -> new", pure = true)
+    @NotNull
+    public static Set<XItemFlag> getFlags(@NotNull ItemMeta meta) {
         return meta.getItemFlags().stream().map(XItemFlag::of).collect(Collectors.toSet());
     }
 
-    public boolean has(ItemStack item) {
+    @Contract(mutates = "param1")
+    public boolean has(@NotNull ItemStack item) {
         return has(item.getItemMeta());
     }
 
-    public boolean has(ItemMeta meta) {
+    @Contract(mutates = "param1")
+    public boolean has(@NotNull ItemMeta meta) {
         return meta.getItemFlags().contains(itemFlag);
     }
 
@@ -416,7 +430,8 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
      * @deprecated The name of this method is misleading as of {@code v1.21.5}. Use {@link #decorationOnly(ItemMeta)} instead.
      */
     @Deprecated
-    public static void hideEverything(ItemMeta meta) {
+    @Contract(mutates = "param1")
+    public static void hideEverything(@NotNull ItemMeta meta) {
         decorationOnly(meta);
     }
 
@@ -429,7 +444,8 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
      *
      * @since 13.2.0
      */
-    public static void decorationOnly(ItemMeta meta) {
+    @Contract(mutates = "param1")
+    public static void decorationOnly(@NotNull ItemMeta meta) {
         meta.addItemFlags(NONE_DECORATION_FLAGS);
     }
 }

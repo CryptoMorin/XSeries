@@ -159,8 +159,6 @@ public final class XSkull {
     @Contract(value = "-> new", pure = true)
     protected static Profileable getDefaultProfile() {
         // We copy this just in case something changes the GameProfile properties.
-        GameProfile clone = PlayerProfiles.createGameProfile(DEFAULT_PROFILE.getId(), DEFAULT_PROFILE.getName());
-        clone.getProperties().putAll(DEFAULT_PROFILE.getProperties());
-        return Profileable.of(clone);
+        return Profileable.of(PlayerProfiles.clone(DEFAULT_PROFILE), false);
     }
 }

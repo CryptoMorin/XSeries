@@ -44,6 +44,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -52,10 +53,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -63,6 +61,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.cryptomorin.xseries.XMaterial.supports;
 
@@ -88,16 +87,43 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * @see XPatternType
  */
 public final class XItemStack {
-    public static final boolean SUPPORTS_CUSTOM_MODEL_DATA;
-
     /**
      * Because {@link ItemMeta} cannot be applied to {@link Material#AIR}.
      */
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
-    private static final boolean SUPPORTS_POTION_COLOR, SUPPORTS_Inventory_getStorageContents;
+    private static final boolean
+            SUPPORTS_UNBREAKABLE,
+            SUPPORTS_POTION_COLOR,
+            SUPPORTS_Inventory_getStorageContents,
+            SUPPORTS_CUSTOM_MODEL_DATA,
+            SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA;
 
     static {
-        boolean supportsPotionColor = false, supportsGetStorageContents = false;
+        boolean supportsPotionColor = false,
+                supportsUnbreakable = false,
+                supportsGetStorageContents = false,
+                supportSCustomModelData = false,
+                supportsAdvancedCustomModelData = false;
+
+
+        try {
+            ItemMeta.class.getDeclaredMethod("setUnbreakable", boolean.class);
+            supportsUnbreakable = true;
+        } catch (NoSuchMethodException ignored) {
+        }
+
+        try {
+            ItemMeta.class.getDeclaredMethod("hasCustomModelData");
+            supportSCustomModelData = true;
+        } catch (NoSuchMethodException ignored) {
+        }
+
+        try {
+            Class.forName("org.bukkit.inventory.meta.components.CustomModelDataComponent");
+            supportsAdvancedCustomModelData = true;
+        } catch (ClassNotFoundException ignored) {
+        }
+
         try {
             Class.forName("org.bukkit.inventory.meta.PotionMeta").getMethod("setColor", Color.class);
             supportsPotionColor = true;
@@ -111,18 +137,10 @@ public final class XItemStack {
         }
 
         SUPPORTS_POTION_COLOR = supportsPotionColor;
+        SUPPORTS_UNBREAKABLE = supportsUnbreakable;
         SUPPORTS_Inventory_getStorageContents = supportsGetStorageContents;
-    }
-
-    static {
-        boolean supportsCustomModelData = false;
-        try {
-            ItemMeta.class.getMethod("hasCustomModelData");
-            supportsCustomModelData = true;
-        } catch (Throwable ignored) {
-        }
-
-        SUPPORTS_CUSTOM_MODEL_DATA = supportsCustomModelData;
+        SUPPORTS_CUSTOM_MODEL_DATA = supportSCustomModelData;
+        SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA = supportsAdvancedCustomModelData;
     }
 
     private interface MetaHandler<M extends ItemMeta> {
@@ -163,9 +181,9 @@ public final class XItemStack {
         meta(BookMeta        .class, x -> x::handleBookMeta,         x -> x::handleBookMeta);
         meta(BannerMeta      .class, x -> x::handleBannerMeta,       x -> x::handleBannerMeta);
         meta(MapMeta         .class, x -> x::handleMapMeta,          x -> x::handleMapMeta);
-        meta(SpawnEggMeta    .class, x -> x::handleSpawnEggMeta,     x -> x::handleSpawnEggMeta);
         meta(EnchantmentStorageMeta.class, x -> x::handleEnchantmentStorageMeta,     x -> x::handleEnchantmentStorageMeta);
 
+        onlyIf("SpawnEggMeta",           () -> meta(SpawnEggMeta          .class, x -> x::handleSpawnEggMeta,           x -> x::handleSpawnEggMeta));
         onlyIf("ArmorMeta",              () -> meta(ArmorMeta             .class, x -> x::handleArmorMeta,              x -> x::handleArmorMeta));
         onlyIf("AxolotlBucketMeta",      () -> meta(AxolotlBucketMeta     .class, x -> x::handleAxolotlBucketMeta,      x -> x::handleAxolotlBucketMeta));
         onlyIf("CompassMeta",            () -> meta(CompassMeta           .class, x -> x::handleCompassMeta,            x -> x::handleCompassMeta));
@@ -439,10 +457,8 @@ public final class XItemStack {
             if (meta.hasLore())
                 config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
 
-            if (supports(14)) {
-                if (meta.hasCustomModelData()) config.set("custom-model-data", meta.getCustomModelData());
-            }
-            if (supports(11)) {
+            handleCustomModelData();
+            if (SUPPORTS_UNBREAKABLE) {
                 if (meta.isUnbreakable()) config.set("unbreakable", true);
             }
 
@@ -452,6 +468,44 @@ public final class XItemStack {
             legacySpawnEgg();
 
             recursiveMetaHandle(this, meta.getClass(), meta, SERIALIZE_META_HANDLERS, null);
+        }
+
+        @SuppressWarnings("UnstableApiUsage")
+        private void handleCustomModelData() {
+            if (SUPPORTS_CUSTOM_MODEL_DATA) {
+                if (meta.hasCustomModelData()) {
+                    if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
+                        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+                        List<String> strings = customModelData.getStrings();
+                        List<Float> floats = customModelData.getFloats();
+                        List<Boolean> flags = customModelData.getFlags();
+                        List<Color> colors = customModelData.getColors();
+
+                        int idCount = (int) Stream.of(strings, floats, flags, colors).filter(x -> !x.isEmpty()).count();
+                        if (idCount == 0) return;
+                        if (idCount == 1) {
+                            if (!strings.isEmpty()) config.set("custom-model-data", singleOrList(strings));
+                            if (!floats.isEmpty()) config.set("custom-model-data", singleOrList(floats));
+                            if (!flags.isEmpty()) config.set("custom-model-data", singleOrList(flags));
+                            if (!colors.isEmpty())
+                                config.set("custom-model-data", singleOrList(colors.stream().map(Serializer::colorString).collect(Collectors.toList())));
+                        } else {
+                            ConfigurationSection cfgCustomModelData = config.createSection("custom-model-data");
+                            if (!strings.isEmpty()) cfgCustomModelData.set("strings", strings);
+                            if (!floats.isEmpty()) cfgCustomModelData.set("floats", floats);
+                            if (!flags.isEmpty()) cfgCustomModelData.set("flags", flags);
+                            if (!colors.isEmpty())
+                                cfgCustomModelData.set("colors", colors.stream().map(Serializer::colorString).collect(Collectors.toList()));
+                        }
+                    } else {
+                        config.set("custom-model-data", meta.getCustomModelData());
+                    }
+                }
+            }
+        }
+
+        private static <T> Object singleOrList(List<T> list) {
+            return list.size() == 1 ? list.get(0) : list;
         }
 
         @SuppressWarnings("deprecation")
@@ -530,7 +584,7 @@ public final class XItemStack {
                 if (map.hasLocationName()) mapSection.set("location", map.getLocationName());
                 if (map.hasColor()) {
                     Color color = map.getColor();
-                    mapSection.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                    mapSection.set("color", colorString(color));
                 }
             }
 
@@ -585,14 +639,18 @@ public final class XItemStack {
 
                 ConfigurationSection colors = fwc.createSection("colors");
                 for (Color color : fwBaseColors)
-                    baseColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                    baseColors.add(colorString(color));
                 colors.set("base", baseColors);
 
                 for (Color color : fwFadeColors)
-                    fadeColors.add(color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+                    fadeColors.add(colorString(color));
                 colors.set("fade", fadeColors);
                 i++;
             }
+        }
+
+        private static @NotNull String colorString(Color color) {
+            return color.getRed() + ", " + color.getGreen() + ", " + color.getBlue();
         }
 
         @SuppressWarnings({"deprecation", "StatementWithEmptyBody"})
@@ -631,7 +689,7 @@ public final class XItemStack {
 
         private void handleLeatherArmorMeta(LeatherArmorMeta meta) {
             Color color = meta.getColor();
-            config.set("color", color.getRed() + ", " + color.getGreen() + ", " + color.getBlue());
+            config.set("color", colorString(color));
         }
 
         private void handleBannerMeta(BannerMeta meta) {
@@ -815,13 +873,66 @@ public final class XItemStack {
         }
 
         private void unbreakable() {
-            if (supports(11) && config.isSet("unbreakable")) meta.setUnbreakable(config.getBoolean("unbreakable"));
+            if (SUPPORTS_UNBREAKABLE && config.isSet("unbreakable"))
+                meta.setUnbreakable(config.getBoolean("unbreakable"));
         }
 
+        @SuppressWarnings("UnstableApiUsage")
         private void customModelData() {
-            if (supports(14)) {
-                int modelData = config.getInt("custom-model-data");
-                if (modelData != 0) meta.setCustomModelData(modelData);
+            if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
+                CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+
+                ConfigurationSection detailed = config.getConfigurationSection("custom-model-data");
+                if (detailed != null) {
+                    customModelData.setStrings(parseRawOrList("string", "strings", detailed, x -> x));
+                    customModelData.setFlags(parseRawOrList("flag", "flags", detailed, Boolean::parseBoolean));
+                    customModelData.setFloats(parseRawOrList("float", "floats", detailed, Float::parseFloat));
+                    customModelData.setColors(parseRawOrList("color", "colors", detailed, x ->
+                            XItemStack.parseColor(x).orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x))));
+                } else {
+                    List<String> listed = config.getStringList("custom-model-data");
+                    if (!listed.isEmpty()) {
+                        String modelData = listed.get(0);
+                        if (modelData != null && !modelData.isEmpty()) {
+                            if (tryNumber(modelData, Float::parseFloat) != null) {
+                                customModelData.setFloats(listed.stream().map(Float::parseFloat).collect(Collectors.toList()));
+                            } else {
+                                Optional<Color> color = parseColor(modelData);
+                                if (color.isPresent()) {
+                                    customModelData.setColors(listed.stream()
+                                            .map(XItemStack::parseColor)
+                                            .map(x -> x.orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x)))
+                                            .collect(Collectors.toList())
+                                    );
+                                } else {
+                                    customModelData.setStrings(listed);
+                                }
+                            }
+                        }
+                    } else {
+                        String modelData = config.getString("custom-model-data");
+                        if (modelData != null && !modelData.isEmpty()) {
+                            // Not different from setCustomModelData(int)
+                            Float floatId = tryNumber(modelData, Float::parseFloat);
+                            if (floatId != null) {
+                                customModelData.setFloats(Collections.singletonList(floatId));
+                            } else {
+                                Optional<Color> color = parseColor(modelData);
+                                if (color.isPresent()) {
+                                    customModelData.setColors(Collections.singletonList(color.get()));
+                                } else {
+                                    customModelData.setStrings(Collections.singletonList(modelData));
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (SUPPORTS_CUSTOM_MODEL_DATA) {
+                String modelData = config.getString("custom-model-data");
+                if (modelData != null && !modelData.isEmpty()) {
+                    Integer intId = tryNumber(modelData, Integer::parseInt);
+                    if (intId != null) meta.setCustomModelData(intId);
+                }
             }
         }
 
@@ -1000,8 +1111,7 @@ public final class XItemStack {
             if (supports(11)) {
                 if (mapSection.isSet("location")) map.setLocationName(mapSection.getString("location"));
                 if (mapSection.isSet("color")) {
-                    Color color = parseColor(mapSection.getString("color"));
-                    map.setColor(color);
+                    parseColor(mapSection.getString("color")).ifPresent(map::setColor);
                 }
             }
 
@@ -1066,12 +1176,18 @@ public final class XItemStack {
                 if (colorsSection != null) {
                     List<String> fwColors = colorsSection.getStringList("base");
                     List<Color> colors = new ArrayList<>(fwColors.size());
-                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
+                    for (String colorStr : fwColors) {
+                        Optional<Color> color = parseColor(colorStr);
+                        if (color.isPresent()) colors.add(color.get());
+                    }
                     builder.withColor(colors);
 
                     fwColors = colorsSection.getStringList("fade");
                     colors = new ArrayList<>(fwColors.size());
-                    for (String colorStr : fwColors) colors.add(parseColor(colorStr));
+                    for (String colorStr : fwColors) {
+                        Optional<Color> color = parseColor(colorStr);
+                        if (color.isPresent()) colors.add(color.get());
+                    }
                     builder.withFade(colors);
                 }
 
@@ -1174,7 +1290,9 @@ public final class XItemStack {
 
         private void handleLeatherArmorMeta(LeatherArmorMeta leather) {
             String colorStr = config.getString("color");
-            if (colorStr != null) leather.setColor(parseColor(colorStr));
+            if (colorStr != null) {
+                parseColor(colorStr).ifPresent(leather::setColor);
+            }
         }
 
         private void handleBannerMeta(BannerMeta banner) {
@@ -1351,15 +1469,16 @@ public final class XItemStack {
      * @since 1.1.0
      */
     @NotNull
-    public static Color parseColor(@Nullable String str) {
-        if (Strings.isNullOrEmpty(str)) return Color.BLACK;
+    @ApiStatus.Internal
+    public static Optional<Color> parseColor(@Nullable String str) {
+        if (Strings.isNullOrEmpty(str)) return Optional.empty();
         List<String> rgb = split(str.replace(" ", ""), ',');
         if (rgb.size() == 3) {
-            return Color.fromRGB(toInt(rgb.get(0), 0), toInt(rgb.get(1), 0), toInt(rgb.get(2), 0));
+            return Optional.of(Color.fromRGB(toInt(rgb.get(0), 0), toInt(rgb.get(1), 0), toInt(rgb.get(2), 0)));
         }
         // If we read a number that starts with 0x, SnakeYAML has already converted it to base-10
         try {
-            return Color.fromRGB(Integer.parseInt(str));
+            return Optional.of(Color.fromRGB(Integer.parseInt(str)));
         } catch (NumberFormatException ignored) {
         }
         // Trim any prefix, parseInt only accepts digits
@@ -1367,9 +1486,31 @@ public final class XItemStack {
             str = str.substring(1);
         }
         try {
-            return Color.fromRGB(Integer.parseInt(str, 16));
+            return Optional.of(Color.fromRGB(Integer.parseInt(str, 16)));
         } catch (NumberFormatException e) {
-            return Color.WHITE;
+            return Optional.empty();
+        }
+    }
+
+    private static <T> List<T> parseRawOrList(String singular, String plural, ConfigurationSection section, Function<String, T> convert) {
+        List<String> list = section.getStringList(plural);
+        if (!list.isEmpty()) {
+            return list.stream().map(convert).collect(Collectors.toList());
+        }
+
+        String single = section.getString(singular);
+        if (single != null && !single.isEmpty()) {
+            return Collections.singletonList(convert.apply(single));
+        }
+
+        return Collections.emptyList();
+    }
+
+    private static <T> T tryNumber(String str, Function<String, T> convert) {
+        try {
+            return convert.apply(str);
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -128,6 +129,10 @@ public interface XBase<XForm extends XBase<XForm, BukkitForm>, BukkitForm> {
     }
 
     /**
+     * Gets additional information which is only needed during initialization and will only
+     * cause unnecessary memory consumptions when used during runtime.
+     *
+     * @see XRegistry#getOrRegisterMetadata(XBase, Field, boolean)
      */
     @SuppressWarnings("unchecked")
     @ApiStatus.Internal

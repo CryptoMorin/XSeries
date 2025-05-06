@@ -22,7 +22,9 @@
 
 package com.cryptomorin.xseries.base;
 
-import com.cryptomorin.xseries.base.annotations.*;
+import com.cryptomorin.xseries.base.annotations.XChange;
+import com.cryptomorin.xseries.base.annotations.XInfo;
+import com.cryptomorin.xseries.base.annotations.XMerge;
 import org.jetbrains.annotations.ApiStatus;
 
 /**

@@ -26,6 +26,7 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.google.common.base.Strings;
 import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -61,7 +62,7 @@ import static com.cryptomorin.xseries.reflection.XReflection.*;
  * <a href="https://wiki.vg/Protocol#Title">PacketPlayOutTitle</a>
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 5.0.0
  * @see XReflection
  */
 public final class ActionBar {
@@ -166,7 +167,7 @@ public final class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
-     * @see #sendActionBar(Plugin, Player, String, long)
+     * @see #sendActionBar(Plugin, Player, BaseComponent, long)
      * @since 3.2.0
      */
     public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message) {
@@ -178,7 +179,8 @@ public final class ActionBar {
                     time = Integer.parseInt(message.substring(1, end)) * 20;
                 } catch (NumberFormatException ignored) {
                 }
-                if (time >= 0) sendActionBar(plugin, player, message.substring(end + 1), time);
+                if (time >= 0)
+                    sendActionBar(plugin, player, TextComponent.fromLegacy(message.substring(end + 1)), time);
             }
         }
 
@@ -190,7 +192,8 @@ public final class ActionBar {
      *
      * @param player  the player to send the action bar to.
      * @param message the message to send.
-     * @see #sendActionBar(Plugin, Player, String, long)
+     * @see #sendActionBar(Plugin, Player, BaseComponent, long)
+     * @see #sendActionBar(Player, BaseComponent)
      * @since 1.0.0
      */
     @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
@@ -214,6 +217,34 @@ public final class ActionBar {
         }
     }
 
+    /**
+     * Sends an action bar to a player.
+     *
+     * @param player  the player to send the action bar to.
+     * @param message the message to send.
+     * @see #sendActionBar(Plugin, Player, BaseComponent, long)
+     * @see #sendActionBar(Player, String)
+     * @since 5.0.0
+     */
+    public static void sendActionBar(@NotNull Player player, @Nullable BaseComponent message) {
+        Objects.requireNonNull(player, "Cannot send action bar to null player");
+        Objects.requireNonNull(message, "Cannot send null actionbar message");
+
+        if (USE_SPIGOT_API) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, message);
+            return;
+        }
+
+        try {
+            // We need to escape both \ and " to avoid all possiblities of breaking JSON syntax and causing an exception.
+            Object component = CHAT_COMPONENT_TEXT.invoke("{\"text\":\"" + message.toPlainText().replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
+            Object packet = PACKET_PLAY_OUT_CHAT.invoke(component, CHAT_MESSAGE_TYPE);
+            MinecraftConnection.sendPacket(player, packet);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
 
     /**
      * Sends an action bar to a player for a specific amount of ticks.
@@ -222,10 +253,10 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send.
      * @param duration the duration to keep the action bar in ticks.
-     * @see #sendActionBarWhile(Plugin, Player, String, Callable)
+     * @see #sendActionBarWhile(Plugin, Player, BaseComponent, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message, long duration) {
+    public static void sendActionBar(@NotNull Plugin plugin, @NotNull Player player, @Nullable BaseComponent message, long duration) {
         if (duration < 1) return;
         Objects.requireNonNull(plugin, "Cannot send consistent actionbar with null plugin");
         Objects.requireNonNull(player, "Cannot send actionbar to null player");
@@ -249,7 +280,9 @@ public final class ActionBar {
      * @param message the message to send.
      * @see #sendActionBar(Player, String)
      * @since 1.0.0
+     * @deprecated This method is unnecessary and will be removed.
      */
+    @Deprecated
     public static void sendPlayersActionBar(@Nullable String message) {
         for (Player player : Bukkit.getOnlinePlayers()) sendActionBar(player, message);
     }
@@ -270,7 +303,9 @@ public final class ActionBar {
      *
      * @see #clearActionBar(Player)
      * @since 2.1.1
+     * @deprecated This method is unnecessary and will be removed.
      */
+    @Deprecated
     public static void clearPlayersActionBar() {
         for (Player player : Bukkit.getOnlinePlayers()) clearActionBar(player);
     }
@@ -286,10 +321,10 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will not be updated.
      * @param callable the condition for the action bar to continue.
-     * @see #sendActionBar(Plugin, Player, String, long)
+     * @see #sendActionBar(Plugin, Player, BaseComponent, long)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable String message, @NotNull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable BaseComponent message, @NotNull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -317,10 +352,10 @@ public final class ActionBar {
      * @param player   the player to send the action bar to.
      * @param message  the message to send. The message will be updated.
      * @param callable the condition for the action bar to continue.
-     * @see #sendActionBarWhile(Plugin, Player, String, Callable)
+     * @see #sendActionBarWhile(Plugin, Player, BaseComponent, Callable)
      * @since 1.0.0
      */
-    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable Callable<String> message, @NotNull Callable<Boolean> callable) {
+    public static void sendActionBarWhile(@NotNull Plugin plugin, @NotNull Player player, @Nullable Callable<BaseComponent> message, @NotNull Callable<Boolean> callable) {
         new BukkitRunnable() {
             @Override
             public void run() {

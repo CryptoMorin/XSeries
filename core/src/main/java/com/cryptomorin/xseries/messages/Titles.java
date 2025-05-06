@@ -23,7 +23,10 @@ package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -49,7 +54,7 @@ import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.s
  * PacketPlayOutTitle: https://minecraft.wiki/w/Protocol#Title
  *
  * @author Crypto Morin
- * @version 3.1.0
+ * @version 4.0.0
  * @see XReflection
  */
 public final class Titles {
@@ -65,40 +70,72 @@ public final class Titles {
      */
     private static final MethodHandle CHAT_COMPONENT_TEXT;
 
-    private String title, subtitle;
+    private static final MethodHandle
+            ClientboundSetTitlesAnimationPacket,
+            ClientboundSetTitleTextPacket,
+            ClientboundSetSubtitleTextPacket;
+
+    private BaseComponent title, subtitle;
     private final int fadeIn, stay, fadeOut;
 
     /**
      * From the latest 1.11.2 not checked with supports() to prevent
      * errors on outdated 1.11 versions.
      */
-    private static final boolean SUPPORTS_TITLES;
+    private static final boolean SUPPORTS_TITLES, USE_TEXT_COMPONENTS;
 
     static {
         MethodHandle packetCtor = null;
         MethodHandle chatComp = null;
+
+        MethodHandle animationCtor = null, titleCtor = null, subtitleCtor = null;
 
         Object times = null;
         Object title = null;
         Object subtitle = null;
         Object clear = null;
 
+        MinecraftClassHandle IChatBaseComponentClass = ofMinecraft()
+                .inPackage(MinecraftPackage.NMS, "network.chat").named("IChatBaseComponent");
 
-        boolean SUPPORTS_TITLES1;
+        boolean supportsTitles, useTextComponents;
+        try {
+            animationCtor = XReflection.ofMinecraft()
+                    .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named("ClientboundSetTitlesAnimationPacket")
+                    .constructor(int.class, int.class, int.class)
+                    .reflect();
+
+            titleCtor = XReflection.ofMinecraft()
+                    .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named("ClientboundSetTitleTextPacket")
+                    .constructor(IChatBaseComponentClass)
+                    .reflect();
+
+            subtitleCtor = XReflection.ofMinecraft()
+                    .inPackage(MinecraftPackage.NMS, "network.protocol.game")
+                    .named("ClientboundSetSubtitleTextPacket")
+                    .constructor(IChatBaseComponentClass)
+                    .reflect();
+
+            useTextComponents = true;
+        } catch (Throwable ex) {
+            useTextComponents = false;
+        }
+
         try {
             Player.class.getDeclaredMethod("sendTitle",
                     String.class, String.class,
                     int.class, int.class, int.class);
-            SUPPORTS_TITLES1 = true;
+            supportsTitles = true;
         } catch (NoSuchMethodException e) {
-            SUPPORTS_TITLES1 = false;
+            supportsTitles = false;
         }
-        SUPPORTS_TITLES = SUPPORTS_TITLES1;
+        SUPPORTS_TITLES = supportsTitles;
 
         if (!SUPPORTS_TITLES) {
             MinecraftClassHandle chatComponentText = ofMinecraft().inPackage(MinecraftPackage.NMS).named("ChatComponentText");
             MinecraftClassHandle packet = ofMinecraft().inPackage(MinecraftPackage.NMS).named("PacketPlayOutTitle");
-            MinecraftClassHandle IChatBaseComponentClass = ofMinecraft().inPackage(MinecraftPackage.NMS).named("IChatBaseComponent");
             Class<?> titleTypes = packet.unreflect().getDeclaredClasses()[0];
 
             for (Object type : titleTypes.getEnumConstants()) {
@@ -132,14 +169,23 @@ public final class Titles {
 
         PACKET_PLAY_OUT_TITLE = packetCtor;
         CHAT_COMPONENT_TEXT = chatComp;
+
+        USE_TEXT_COMPONENTS = useTextComponents;
+        ClientboundSetTitlesAnimationPacket = animationCtor;
+        ClientboundSetTitleTextPacket = titleCtor;
+        ClientboundSetSubtitleTextPacket = subtitleCtor;
     }
 
-    public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+    public Titles(BaseComponent title, BaseComponent subtitle, int fadeIn, int stay, int fadeOut) {
         this.title = title;
         this.subtitle = subtitle;
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
+    }
+
+    public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        this(TextComponent.fromLegacy(title), TextComponent.fromLegacy(subtitle), fadeIn, stay, fadeOut);
     }
 
     public Titles copy() {
@@ -165,10 +211,40 @@ public final class Titles {
     public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
+        sendTitle(player, fadeIn, stay, fadeOut, TextComponent.fromLegacy(title), TextComponent.fromLegacy(subtitle));
+    }
+
+    public static void sendTitle(@NotNull Player player,
+                                 int fadeIn, int stay, int fadeOut,
+                                 @Nullable BaseComponent title, @Nullable BaseComponent subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
+
+        if (USE_TEXT_COMPONENTS) {
+            // We will use an official API once it's out.
+            // https://github.com/PaperMC/Paper/blob/c98cd65802fcecfd3db613819e6053e2b8cbdf4f/paper-server/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java#L2876-L2890
+            List<Object> packets = new ArrayList<>(3);
+
+            try {
+                packets.add(ClientboundSetTitlesAnimationPacket.invoke(fadeIn, stay, fadeOut));
+
+                if (title != null) {
+                    packets.add(ClientboundSetTitleTextPacket.invoke(MessageComponents.bungeeToVanilla(title)));
+                }
+
+                if (subtitle != null) {
+                    packets.add(ClientboundSetSubtitleTextPacket.invoke(MessageComponents.bungeeToVanilla(title)));
+                }
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+
+            MinecraftConnection.sendPacket(player, packets);
+            return;
+        }
+
         if (SUPPORTS_TITLES) {
-            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+            player.sendTitle(title.toLegacyText(), subtitle.toLegacyText(), fadeIn, stay, fadeOut);
             return;
         }
 
@@ -255,19 +331,29 @@ public final class Titles {
         return new Titles(title, subtitle, fadeIn, stay, fadeOut);
     }
 
-    public String getTitle() {
+    public BaseComponent getTitle() {
         return title;
     }
 
-    public String getSubtitle() {
+    public BaseComponent getSubtitle() {
         return subtitle;
     }
 
+    @Deprecated
     public void setTitle(String title) {
+        this.title = TextComponent.fromLegacy(title);
+    }
+
+    @Deprecated
+    public void setSubtitle(String subtitle) {
+        this.subtitle = TextComponent.fromLegacy(subtitle);
+    }
+
+    public void setTitle(BaseComponent title) {
         this.title = title;
     }
 
-    public void setSubtitle(String subtitle) {
+    public void setSubtitle(BaseComponent subtitle) {
         this.subtitle = subtitle;
     }
 
