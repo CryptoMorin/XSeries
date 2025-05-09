@@ -1,5 +1,6 @@
 package com.cryptomorin.xseries;
 
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.Damageable;
@@ -316,6 +317,7 @@ public class XItemBuilder {
     public XItemBuilder withUnbreakable(boolean unbreakable) { return property(new Unbreakable(unbreakable)); }
     public XItemBuilder withCustomModelData(int customModelData) { return property(new CustomModelData(customModelData)); }
     public XItemBuilder withLore(List<String> lore) { return property(new Lore(lore)); }
+    public XItemBuilder withEnchantments(Set<Enchantments.BuilderEnchantment> enchantments) { return property(new Enchantments(enchantments)); }
     public XItemBuilder withBookAuthor(String bookAuthor) { return property(new BookAuthor(bookAuthor)); }
 
 
@@ -420,6 +422,45 @@ public class XItemBuilder {
             }
 
             return translatedLore;
+        }
+    }
+
+    public static final class Enchantments implements MetaProperty<ItemMeta> {
+        private Set<BuilderEnchantment> enchantments;
+        public Enchantments(final Set<BuilderEnchantment> enchantments) { this.enchantments = enchantments; }
+
+        @Override public void to(final ItemMeta meta) {
+            for (BuilderEnchantment ench : enchantments) {
+                meta.addEnchant(ench.getEnchantment().get(), ench.getLevel(), ench.isIgnoreLevelRestriction());
+            }
+        }
+
+        @Override public void from(final ItemMeta meta) {
+            Set<BuilderEnchantment> enchantments = new HashSet<>();
+            for (Map.Entry<Enchantment, Integer> enchantment : meta.getEnchants().entrySet()) {
+                XEnchantment xEnchantment = XEnchantment.of(enchantment.getKey());
+                enchantments.add(new BuilderEnchantment(xEnchantment, enchantment.getValue(), true));
+            }
+            this.enchantments = enchantments;
+        }
+
+        @Override public boolean isDefault() { return enchantments == null; }
+        @Override public Class<ItemMeta> getMetaClass() { return ItemMeta.class; }
+
+        public static final class BuilderEnchantment {
+            private final XEnchantment enchantment;
+            private final int level;
+            private final boolean ignoreLevelRestriction;
+
+            public BuilderEnchantment(final XEnchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
+                this.enchantment = enchantment;
+                this.level = level;
+                this.ignoreLevelRestriction = ignoreLevelRestriction;
+            }
+
+            public XEnchantment getEnchantment() { return enchantment; }
+            public int getLevel() { return level; }
+            public boolean isIgnoreLevelRestriction() { return ignoreLevelRestriction; }
         }
     }
 
