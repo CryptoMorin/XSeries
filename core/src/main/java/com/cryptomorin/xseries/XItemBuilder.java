@@ -119,9 +119,9 @@ public class XItemBuilder {
         return this;
     }
 
-    public XItemBuilder delete(Class<? extends Property> property) {
+    public XItemBuilder reset(Class<? extends Property> property) {
         if (property.equals(Material.class)) {
-            throw new IllegalArgumentException("Can't delete the material property!");
+            throw new IllegalArgumentException("Can't reset the material property!");
         }
         Supplier<? extends Property> propertyCtor = PROPERTIES_REGISTRY.get(property);
         if (propertyCtor != null) {
@@ -130,16 +130,16 @@ public class XItemBuilder {
         return this;
     }
 
-    public static XItemBuilder createDeleteBuilder() {
-        XItemBuilder deleteBuilder = new XItemBuilder();
+    public static XItemBuilder createResetBuilder() {
+        XItemBuilder resetBuilder = new XItemBuilder();
         for (Map.Entry<Class<? extends Property>, Supplier<? extends Property>> prop : PROPERTIES_REGISTRY.entrySet()) {
-            deleteBuilder.properties.put(prop.getKey(), prop.getValue().get());
+            resetBuilder.properties.put(prop.getKey(), prop.getValue().get());
         }
-        return deleteBuilder;
+        return resetBuilder;
     }
 
-    public static void deleteAll(ItemStack item) {
-        createDeleteBuilder().to(item);
+    public static void resetAll(ItemStack item) {
+        createResetBuilder().to(item);
     }
 
 
