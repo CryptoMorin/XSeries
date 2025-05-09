@@ -68,12 +68,6 @@ public class XItemBuilder {
     }
 
     public void to(ItemStack item) {
-        to(item, false);
-    }
-
-    public void to(ItemStack item, boolean deleteBefore) {
-        if (deleteBefore) deleteAll(item);
-
         boolean metaModified = false;
         ItemMeta meta = item.getItemMeta();
 
@@ -145,7 +139,7 @@ public class XItemBuilder {
     }
 
     public static void deleteAll(ItemStack item) {
-        createDeleteBuilder().to(item, false);
+        createDeleteBuilder().to(item);
     }
 
 
