@@ -22,9 +22,12 @@
 
 package com.cryptomorin.xseries.profiles.lock;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ApiStatus.Internal
 public final class KeyedLock<K> implements AutoCloseable {
     private final KeyedLockMap<K> map;
     protected final K key;

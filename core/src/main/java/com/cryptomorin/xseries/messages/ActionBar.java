@@ -180,7 +180,7 @@ public final class ActionBar {
                 } catch (NumberFormatException ignored) {
                 }
                 if (time >= 0)
-                    sendActionBar(plugin, player, TextComponent.fromLegacy(message.substring(end + 1)), time);
+                    sendActionBar(plugin, player, MessageComponents.fromLegacy(message.substring(end + 1)), time);
             }
         }
 

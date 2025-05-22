@@ -22,8 +22,11 @@
 
 package com.cryptomorin.xseries.profiles.lock;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.UUID;
 
+@ApiStatus.Internal
 public final class MojangRequestQueue {
     public static final KeyedLockMap<String> USERNAME_REQUESTS = new KeyedLockMap<>();
     public static final KeyedLockMap<UUID> UUID_REQUESTS = new KeyedLockMap<>();

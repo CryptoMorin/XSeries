@@ -26,10 +26,12 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
+import java.util.regex.Pattern;
 
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 
@@ -53,7 +55,7 @@ public final class MessageComponents {
                     .method("public static IChatBaseComponent fromJSON(String jsonMessage)").returns(IChatBaseComponentClass)
                     .reflect();
         } catch (Throwable ex) {
-            throw new IllegalStateException(ex);
+            fromJson = null;
         }
 
         CraftChatMessage_fromJson = fromJson;
@@ -65,5 +67,12 @@ public final class MessageComponents {
     public static Object bungeeToVanilla(BaseComponent component) throws Throwable {
         String json = ComponentSerializer.toString(component);
         return CraftChatMessage_fromJson.invoke(json);
+    }
+
+    private static final Pattern url = Pattern.compile("^(?:(https?)://)?([-\\w_.]{2,}\\.[a-z]{2,4})(/\\S*)?$");
+
+    @SuppressWarnings("deprecation")
+    public static BaseComponent fromLegacy(String message) {
+        return new TextComponent(TextComponent.fromLegacyText(message));
     }
 }

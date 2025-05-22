@@ -22,9 +22,12 @@
 
 package com.cryptomorin.xseries.profiles.lock;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@ApiStatus.Internal
 public final class KeyedLockMap<K> {
     private final Map<K, KeyedLock<K>> locks = new HashMap<>();
 

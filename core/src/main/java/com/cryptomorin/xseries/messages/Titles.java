@@ -26,7 +26,6 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -185,7 +184,7 @@ public final class Titles {
     }
 
     public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        this(TextComponent.fromLegacy(title), TextComponent.fromLegacy(subtitle), fadeIn, stay, fadeOut);
+        this(MessageComponents.fromLegacy(title), MessageComponents.fromLegacy(subtitle), fadeIn, stay, fadeOut);
     }
 
     public Titles copy() {
@@ -211,7 +210,7 @@ public final class Titles {
     public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
-        sendTitle(player, fadeIn, stay, fadeOut, TextComponent.fromLegacy(title), TextComponent.fromLegacy(subtitle));
+        sendTitle(player, fadeIn, stay, fadeOut, MessageComponents.fromLegacy(title), MessageComponents.fromLegacy(subtitle));
     }
 
     public static void sendTitle(@NotNull Player player,
@@ -341,12 +340,12 @@ public final class Titles {
 
     @Deprecated
     public void setTitle(String title) {
-        this.title = TextComponent.fromLegacy(title);
+        this.title = MessageComponents.fromLegacy(title);
     }
 
     @Deprecated
     public void setSubtitle(String subtitle) {
-        this.subtitle = TextComponent.fromLegacy(subtitle);
+        this.subtitle = MessageComponents.fromLegacy(subtitle);
     }
 
     public void setTitle(BaseComponent title) {

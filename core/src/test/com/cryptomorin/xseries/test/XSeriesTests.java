@@ -317,7 +317,6 @@ public final class XSeriesTests {
         assertSame(XMaterial.matchXMaterial("CLAY_BRICK"), XMaterial.BRICK);
         assertMaterial("MELON", "MELON");
 
-        assertNotNull(XMaterial.ACACIA_SIGN.parseItem(), "Acacia Sign is null");
         assertMaterial("COMMAND_BLOCK", XMaterial.COMMAND_BLOCK);
         assertMaterial("STEP:1", XMaterial.SANDSTONE_SLAB);
         assertMaterial("WOOD_BUTTON", XMaterial.OAK_BUTTON);
@@ -329,6 +328,7 @@ public final class XSeriesTests {
         assertMaterial("INK_SACK:4", XMaterial.LAPIS_LAZULI);
 
         if (XMaterial.supports(14)) {
+            assertNotNull(XMaterial.ACACIA_SIGN.parseItem(), "Acacia Sign is null");
             assertMaterial(XMaterial.RED_DYE, Material.RED_DYE);
             assertMaterial(XMaterial.GREEN_DYE, Material.GREEN_DYE);
             assertMaterial(XMaterial.BLACK_DYE, Material.BLACK_DYE);
