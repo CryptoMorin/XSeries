@@ -38,8 +38,9 @@ public abstract class TimedCacheableProfileable extends CacheableProfileable {
 
     /**
      * The amount of time the cached results of this profile can be used until it's re-evaluated.
-     * By default, it uses the internal cache's expiration date (6 hours)
-     * {@link Duration#ZERO} or negative durations should not be used.
+     * By default, it uses the internal cache's expiration date (6 hours).
+     * Negative durations should not be used.
+     * {@link Duration#ZERO} means that the cache never expires.
      */
     @NotNull
     protected Duration expiresAfter() {
@@ -47,15 +48,16 @@ public abstract class TimedCacheableProfileable extends CacheableProfileable {
     }
 
     /**
+     * @param renew if this profile is expired, should we mark it as renewed?
      * @return true if this profile hasn't been cached yet or the cache is expired.
      */
     @Override
     public final boolean hasExpired(boolean renew) {
+        Duration expiresAfter = expiresAfter();
+
+        if (expiresAfter.isZero()) return false;
         if (super.hasExpired(renew)) return true;
         if (cache == null && lastError == null) return true;
-
-        Duration expiresAfter = expiresAfter();
-        if (expiresAfter.isZero()) return false;
 
         long now = System.currentTimeMillis();
         if (lastUpdate == 0) {

@@ -91,6 +91,11 @@ public final class TransformableProfile implements Profileable {
     }
 
     @Override
+    public boolean isComplete() {
+        return true;
+    }
+
+    @Override
     public Profileable transform(ProfileTransformer... transformers) {
         // Return a new instance because we promised not to affect the current instance for transform() method.
         List<ProfileTransformer> transformersList = new ArrayList<>(this.transformers.transformers.length + transformers.length);

@@ -76,6 +76,11 @@ public abstract class CacheableProfileable implements Profileable {
         return hasExpired(false);
     }
 
+    @Override
+    public final boolean isComplete() {
+        return !hasExpired(false);
+    }
+
     protected boolean hasExpired(boolean renew) {
         return lastError instanceof MojangAPIRetryException;
     }

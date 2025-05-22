@@ -46,6 +46,6 @@ local.properties
 .settings/
 .loadpath
 
-# XSeries Custom
-.flattened-pom.xml
-dependency-reduced-pom.xml
+# Maven
+**/.flattened-pom.xml
+**/dependency-reduced-pom.xml

@@ -22,6 +22,8 @@
 
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.profiles.lock.KeyedLock;
+import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.google.common.base.Strings;
 import org.bukkit.Bukkit;
@@ -85,20 +87,28 @@ public final class PlayerUUIDs {
             throw new IllegalArgumentException("Username is null or empty: " + username);
 
         UUID offlineUUID = getOfflineUUID(username);
-        UUID realUUID = USERNAME_TO_ONLINE.get(username);
-        boolean cached = realUUID != null;
-        if (realUUID == null) {
-            try {
+        UUID realUUID;
+        boolean cached;
+
+        try (KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username)) {
+            lock.lock();
+            realUUID = USERNAME_TO_ONLINE.get(username);
+            cached = realUUID != null;
+            if (realUUID == null) {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
+
                 if (realUUID == null) {
                     ProfileLogger.debug("Caching null for {} ({}) because it doesn't exist.", username, offlineUUID);
                     realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
-                } else ONLINE_TO_OFFLINE.put(realUUID, offlineUUID);
+                } else {
+                    ONLINE_TO_OFFLINE.put(realUUID, offlineUUID);
+                }
+
                 OFFLINE_TO_ONLINE.put(offlineUUID, realUUID);
                 USERNAME_TO_ONLINE.put(username, realUUID);
-            } catch (IOException e) {
-                throw new IllegalStateException("Error while getting real UUID of player: " + username, e);
             }
+        } catch (IOException e) {
+            throw new IllegalStateException("Error while getting real UUID of player: " + username, e);
         }
 
         if (realUUID == IDENTITY_UUID) {
@@ -125,20 +135,28 @@ public final class PlayerUUIDs {
         // OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
         // if (!player.hasPlayedBefore()) throw new IllegalStateException("Player with UUID " + uuid + " doesn't exist.");
 
-        UUID realUUID = OFFLINE_TO_ONLINE.get(uuid);
-        boolean cached = realUUID != null;
-        if (realUUID == null) {
-            try {
+        UUID realUUID;
+        boolean cached;
+
+        try (KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username)) {
+            lock.lock();
+            realUUID = OFFLINE_TO_ONLINE.get(uuid);
+            cached = realUUID != null;
+            if (realUUID == null) {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
+
                 if (realUUID == null) {
                     ProfileLogger.debug("Caching null for {} ({}) because it doesn't exist.", username, uuid);
                     realUUID = IDENTITY_UUID; // Player not found, we should cache this information.
-                } else ONLINE_TO_OFFLINE.put(realUUID, uuid);
+                } else {
+                    ONLINE_TO_OFFLINE.put(realUUID, uuid);
+                }
+
                 OFFLINE_TO_ONLINE.put(uuid, realUUID);
                 USERNAME_TO_ONLINE.put(username, realUUID);
-            } catch (IOException e) {
-                throw new IllegalStateException("Error while getting real UUID of player: " + username + " (" + uuid + ')', e);
             }
+        } catch (IOException e) {
+            throw new IllegalStateException("Error while getting real UUID of player: " + username + " (" + uuid + ')', e);
         }
 
         if (realUUID == IDENTITY_UUID) {

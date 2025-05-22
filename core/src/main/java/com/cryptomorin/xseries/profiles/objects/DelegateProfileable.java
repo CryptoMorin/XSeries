@@ -64,6 +64,9 @@ public interface DelegateProfileable extends Profileable {
     }
 
     @Override
+    default boolean isComplete() {return getDelegateProfile().isComplete();}
+
+    @Override
     @NotNull
     default Profileable transform(@NotNull ProfileTransformer... transformers) {
         return getDelegateProfile().transform(transformers);

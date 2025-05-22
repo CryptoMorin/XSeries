@@ -523,6 +523,9 @@ public final class XSeriesTests {
     }
 
     private static void testSkulls() {
+        log("Testing skulls request queue...");
+        XSkullRequestQueueTest.test();
+
         log("Testing skulls UUID...");
         XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
         log("Testing skulls username");

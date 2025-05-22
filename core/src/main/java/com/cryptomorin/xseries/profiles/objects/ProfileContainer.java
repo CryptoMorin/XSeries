@@ -52,6 +52,11 @@ public abstract class ProfileContainer<T> implements Profileable {
     public abstract T getObject();
 
     @Override
+    public boolean isComplete() {
+        return true;
+    }
+
+    @Override
     public final String toString() {
         return this.getClass().getSimpleName() + '[' + getObject() + ']';
     }

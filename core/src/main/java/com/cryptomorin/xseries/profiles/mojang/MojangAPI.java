@@ -28,6 +28,8 @@ import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
+import com.cryptomorin.xseries.profiles.lock.KeyedLock;
+import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.cache.Cache;
@@ -210,57 +212,71 @@ public final class MojangAPI {
         }
 
         Map<UUID, String> mapped = new HashMap<>(usernames.size());
-        Set<String> finalUsernames = new HashSet<>(usernames);
-        {
-            // Remove duplicate & cached names
-            // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
-            //        for a Map<String, String> to access case-corrected usernames.
-            Iterator<String> usernameIter = finalUsernames.iterator();
-            while (usernameIter.hasNext()) {
-                String username = usernameIter.next();
-                UUID cached = PlayerUUIDs.USERNAME_TO_ONLINE.get(username);
-                if (cached != null) {
-                    usernameIter.remove();
-                    mapped.put(cached, username);
-                }
-            }
-        }
+        Map<String, KeyedLock<String>> finalUsernames = new HashMap<>(usernames.size());
 
-        if (finalUsernames.isEmpty()) return mapped;
-        boolean onlineMode = PlayerUUIDs.isOnlineMode();
-
-        // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
-        // It also "normalizes" names with lowercase and sends the request.
-        // This API entry case-corrects the usernames in its response.
-        Iterable<List<String>> partition = Iterables.partition(finalUsernames, 10);
-        for (List<String> batch : partition) {
-            JsonArray response;
-            try {
-                // The wiki says that:
-                // BadRequestException is returned when any of the usernames is null or otherwise invalid
-                // But I'm not sure what that means in this context... but invalid usernames are just ignored,
-                // and no response is contained in the final result regarding them.
-                response = USERNAMES_TO_UUIDS.session(config).body(batch).request().getAsJsonArray();
-            } catch (IOException ex) {
-                throw new MojangAPIException("Failed to request UUIDs for username batch: " + batch, ex);
+        try {
+            for (String username : usernames) {
+                finalUsernames.put(username, MojangRequestQueue.USERNAME_REQUESTS.lock(username));
             }
 
-            for (JsonElement element : response) {
-                JsonObject obj = element.getAsJsonObject();
-                String name = obj.get("name").getAsString();
-                UUID realId = PlayerUUIDs.UUIDFromDashlessString(obj.get("id").getAsString());
-                UUID offlineId = PlayerUUIDs.getOfflineUUID(name);
+            {
+                // Remove duplicate & cached names
+                // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
+                //        for a Map<String, String> to access case-corrected usernames.
+                Iterator<Map.Entry<String, KeyedLock<String>>> usernameIter = finalUsernames.entrySet().iterator();
+                while (usernameIter.hasNext()) {
+                    Map.Entry<String, KeyedLock<String>> usernameEntry = usernameIter.next();
+                    String username = usernameEntry.getKey();
 
-                PlayerUUIDs.USERNAME_TO_ONLINE.put(name, realId);
-                PlayerUUIDs.ONLINE_TO_OFFLINE.put(realId, offlineId);
-                PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, realId);
-                if (!ProfilesCore.UserCache_profilesByName.containsKey(name)) {
-                    cacheProfile(PlayerProfiles.createGameProfile(onlineMode ? realId : offlineId, name));
+                    UUID cached = PlayerUUIDs.USERNAME_TO_ONLINE.get(username);
+                    if (cached != null) {
+                        usernameEntry.getValue().unlock();
+                        usernameIter.remove();
+                        mapped.put(cached, username);
+                    }
+                }
+            }
+
+            if (finalUsernames.isEmpty()) return mapped;
+            boolean onlineMode = PlayerUUIDs.isOnlineMode();
+
+            // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
+            // It also "normalizes" names with lowercase and sends the request.
+            // This API entry case-corrects the usernames in its response.
+            Iterable<List<String>> partition = Iterables.partition(finalUsernames.keySet(), 10);
+            for (List<String> batch : partition) {
+                JsonArray response;
+                try {
+                    // The wiki says that:
+                    // BadRequestException is returned when any of the usernames is null or otherwise invalid
+                    // But I'm not sure what that means in this context... but invalid usernames are just ignored,
+                    // and no response is contained in the final result regarding them.
+                    response = USERNAMES_TO_UUIDS.session(config).body(batch).request().getAsJsonArray();
+                } catch (IOException ex) {
+                    throw new MojangAPIException("Failed to request UUIDs for username batch: " + batch, ex);
                 }
 
-                String prev = mapped.put(realId, name);
-                if (prev != null)
-                    throw new IllegalArgumentException("Got duplicate usernames for UUID: " + realId + " (" + prev + " -> " + name + ')');
+                for (JsonElement element : response) {
+                    JsonObject obj = element.getAsJsonObject();
+                    String name = obj.get("name").getAsString();
+                    UUID realId = PlayerUUIDs.UUIDFromDashlessString(obj.get("id").getAsString());
+                    UUID offlineId = PlayerUUIDs.getOfflineUUID(name);
+
+                    PlayerUUIDs.USERNAME_TO_ONLINE.put(name, realId);
+                    PlayerUUIDs.ONLINE_TO_OFFLINE.put(realId, offlineId);
+                    PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, realId);
+                    if (!ProfilesCore.UserCache_profilesByName.containsKey(name)) {
+                        cacheProfile(PlayerProfiles.createGameProfile(onlineMode ? realId : offlineId, name));
+                    }
+
+                    String prev = mapped.put(realId, name);
+                    if (prev != null)
+                        throw new IllegalArgumentException("Got duplicate usernames for UUID: " + realId + " (" + prev + " -> " + name + ')');
+                }
+            }
+        } finally {
+            for (KeyedLock<String> lock : finalUsernames.values()) {
+                lock.unlock();
             }
         }
 
@@ -371,13 +387,15 @@ public final class MojangAPI {
 
     private static @NotNull JsonElement requestProfile(@NotNull GameProfile profile, UUID realUUID) {
         JsonElement request;
-        try {
+        try (KeyedLock<UUID> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID)) {
+            lock.lock();
             request = UUID_TO_PROFILE.session(null)
                     .append(PlayerUUIDs.toUndashedUUID(realUUID) + "?unsigned=" + !REQUIRE_SECURE_PROFILES)
                     .request();
         } catch (IOException e) {
             throw new IllegalStateException("Failed to request profile: " + profile + " with real UUID: " + realUUID, e);
         }
+
         if (request == null) {
             INSECURE_PROFILES.put(realUUID, Optional.empty());
             MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, null, null));

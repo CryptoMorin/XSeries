@@ -50,6 +50,7 @@ import org.bukkit.profile.PlayerProfile;
 import org.jetbrains.annotations.*;
 
 import java.lang.invoke.MethodHandle;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -81,6 +82,19 @@ public interface Profileable {
     @Unmodifiable
     @ApiStatus.Internal
     GameProfile getProfile();
+
+    /**
+     * Whether this profile has all necessary information to construct its {@link #getProfile()} right away.
+     * When this returns true, it means some kind of request has to be sent to Mojang servers
+     * in order to retrieve information.
+     * <p>
+     * This doesn't necessarily mean that this profile has all information (skin, username, UUID, etc.)
+     * it merely means that it has all the information it needs in memory to compute {@link #getProfile()}
+     * and doesn't need to a request using {@link com.cryptomorin.xseries.profiles.mojang.MinecraftClient MinecraftClient}.
+     *
+     * @see #prepare(Collection)
+     */
+    boolean isComplete();
 
     /**
      * Tests whether this profile has any issues or throws any exception.
@@ -415,6 +429,11 @@ public interface Profileable {
         public RawGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
+        public boolean isComplete() {
+            return true;
+        }
+
+        @Override
         @NotNull
         @Unmodifiable
         public GameProfile getProfile() {
@@ -562,6 +581,20 @@ public interface Profileable {
         @Override
         public String getProfileValue() {
             return string;
+        }
+
+        @Override
+        protected Duration expiresAfter() {
+            determineType();
+            if (type == null) return Duration.ZERO;
+
+            switch (type) {
+                case USERNAME:
+                case UUID:
+                    return super.expiresAfter();
+                default:
+                    return Duration.ZERO;
+            }
         }
 
         private StringProfileable determineType() {
