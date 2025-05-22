@@ -26,10 +26,12 @@ import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.cryptomorin.xseries.base.annotations.XMerge;
 import com.cryptomorin.xseries.particles.XParticle;
+import com.google.common.base.Preconditions;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -348,8 +350,11 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
                 // }
 
                 NamespacedKey key;
-                if (name.contains(":")) key = NamespacedKey.fromString(name);
-                else key = NamespacedKey.minecraft(name);
+                if (name.contains(":")) {
+                    key = XNamespacedKey.fromString(name);
+                } else {
+                    key = NamespacedKey.minecraft(name);
+                }
 
                 Keyed bukkit = bukkitRegistry().get(key);
                 if (bukkit != null) bukkitForm = (BukkitForm) bukkit;
