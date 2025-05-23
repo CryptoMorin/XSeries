@@ -1,3 +1,5 @@
+![XSeries Logo](https://github.com/user-attachments/assets/4b179b17-3f2b-4640-bc50-df2275300bcb)
+
 # XSeries
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5-dark_green.svg)](https://shields.io/)
@@ -13,7 +15,7 @@ Some utilities are completely unrelated to cross-version support such as NoteBlo
 > [!IMPORTANT]
 > Don't forget to add `api-version: "1.13"` to your **plugin.yml**.
 > This will not prevent your plugin from working even if the server is not using Minecraft v1.13
-> This is only required if you want to use one of the XBase/XModule classes. 
+> This is only required if you want to use one of the XBase/XModule classes.
 
 > [!CAUTION]
 > Make sure to [shade](https://github.com/CryptoMorin/XSeries?tab=readme-ov-file#shading)
@@ -42,7 +44,8 @@ You can use some of these utilities individually or use the maven dependency.
 Most of the utilities are intended to be independent. However, some
 utilities such as [XParticle](core/src/main/java/com/cryptomorin/xseries/particles/XParticle.java) are intended to use
 another class ([ParticleDisplay](core/src/main/java/com/cryptomorin/xseries/particles/ParticleDisplay.java)).
-All XBase/XModule classes also depend on these base classes and also [XRegistry](core/src/main/java/com/cryptomorin/xseries/base).
+All XBase/XModule classes also depend on these base classes and
+also [XRegistry](core/src/main/java/com/cryptomorin/xseries/base).
 
 #### Maven ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)
 
@@ -53,20 +56,25 @@ All XBase/XModule classes also depend on these base classes and also [XRegistry]
     <artifactId>XSeries</artifactId>
     <version>version</version>
 </dependency>
-
-<!-- If you want to use XSkull and you use 'spigot-api' dependency you need the following: -->
-<repository>
-    <id>minecraft-libraries</id>
-    <name>Minecraft Libraries</name>
-    <url>https://libraries.minecraft.net/</url>
-</repository>
-<dependency>
-<groupId>com.mojang</groupId>
-    <artifactId>authlib</artifactId>
-    <version>6.0.54</version>
-    <scope>provided</scope>
-</dependency>
 ```
+
+> [!NOTE]
+> If you want to use XSkull and you use `spigot-api` dependency you need the following:
+> ```xml
+> <repository>
+>     <id>minecraft-libraries</id>
+>     <name>Minecraft Libraries</name>
+>     <url>https://libraries.minecraft.net/</url>
+> </repository>
+> ```
+> ```xml
+> <dependency>
+>     <groupId>com.mojang</groupId>
+>     <artifactId>authlib</artifactId>
+>     <version>6.0.54</version>
+>     <scope>provided</scope>
+> </dependency>
+> ```
 
 Gradle
 

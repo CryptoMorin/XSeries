@@ -91,7 +91,7 @@ public final class TransformableProfile implements Profileable {
     }
 
     @Override
-    public boolean isComplete() {
+    public boolean isReady() {
         return true;
     }
 

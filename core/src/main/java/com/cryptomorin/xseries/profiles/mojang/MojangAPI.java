@@ -216,7 +216,9 @@ public final class MojangAPI {
 
         try {
             for (String username : usernames) {
-                finalUsernames.put(username, MojangRequestQueue.USERNAME_REQUESTS.lock(username));
+                KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username);
+                lock.lock();
+                finalUsernames.put(username, lock);
             }
 
             {
@@ -349,21 +351,27 @@ public final class MojangAPI {
             }
         }
 
-        GameProfile cached = handleCache(profile, realUUID);
-        if (cached != null) return cached;
+        try (KeyedLock<UUID> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID)) {
+            lock.lock();
 
-        JsonElement request = requestProfile(profile, realUUID);
-        JsonObject profileData = request.getAsJsonObject();
-        List<String> profileActions = new ArrayList<>();
-        GameProfile fetchedProfile = createGameProfile(profileData, profileActions);
+            GameProfile cached = handleCache(profile, realUUID);
+            if (cached != null) return cached;
 
-        fetchedProfile = PlayerProfiles.sanitizeProfile(fetchedProfile);
-        cacheProfile(fetchedProfile);
+            JsonElement request = requestProfile(profile, realUUID);
+            JsonObject profileData = request.getAsJsonObject();
+            List<String> profileActions = new ArrayList<>();
+            GameProfile fetchedProfile = createGameProfile(profileData, profileActions);
 
-        INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
-        MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
+            fetchedProfile = PlayerProfiles.sanitizeProfile(fetchedProfile);
+            cacheProfile(fetchedProfile);
 
-        return fetchedProfile;
+            INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
+            MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
+
+            return fetchedProfile;
+        } catch (Throwable ex) {
+            throw new IllegalStateException("Failed to fetch porfile for " + profile, ex);
+        }
     }
 
     @SuppressWarnings("OptionalAssignedToNull")
@@ -387,8 +395,7 @@ public final class MojangAPI {
 
     private static @NotNull JsonElement requestProfile(@NotNull GameProfile profile, UUID realUUID) {
         JsonElement request;
-        try (KeyedLock<UUID> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID)) {
-            lock.lock();
+        try {
             request = UUID_TO_PROFILE.session(null)
                     .append(PlayerUUIDs.toUndashedUUID(realUUID) + "?unsigned=" + !REQUIRE_SECURE_PROFILES)
                     .request();
@@ -401,6 +408,7 @@ public final class MojangAPI {
             MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, null, null));
             throw new UnknownPlayerException(realUUID, "Player with the given properties not found: " + profile);
         }
+
         return request;
     }
 

@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static com.cryptomorin.xseries.messages.MessageComponents.*;
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.sendPacket;
 
@@ -55,6 +56,7 @@ import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.s
  * @author Crypto Morin
  * @version 4.0.0
  * @see XReflection
+ * @see ActionBar
  */
 public final class Titles {
     /**
@@ -74,7 +76,7 @@ public final class Titles {
             ClientboundSetTitleTextPacket,
             ClientboundSetSubtitleTextPacket;
 
-    private BaseComponent title, subtitle;
+    private MessageText title, subtitle;
     private final int fadeIn, stay, fadeOut;
 
     /**
@@ -175,7 +177,7 @@ public final class Titles {
         ClientboundSetSubtitleTextPacket = subtitleCtor;
     }
 
-    public Titles(BaseComponent title, BaseComponent subtitle, int fadeIn, int stay, int fadeOut) {
+    public Titles(MessageText title, MessageText subtitle, int fadeIn, int stay, int fadeOut) {
         this.title = title;
         this.subtitle = subtitle;
         this.fadeIn = fadeIn;
@@ -183,8 +185,12 @@ public final class Titles {
         this.fadeOut = fadeOut;
     }
 
+    public Titles(BaseComponent title, BaseComponent subtitle, int fadeIn, int stay, int fadeOut) {
+        this(new MessageTextComponent(title), new MessageTextComponent(subtitle), fadeIn, stay, fadeOut);
+    }
+
     public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        this(MessageComponents.fromLegacy(title), MessageComponents.fromLegacy(subtitle), fadeIn, stay, fadeOut);
+        this(new MessageTextString(title), new MessageTextString(subtitle), fadeIn, stay, fadeOut);
     }
 
     public Titles copy() {
@@ -210,12 +216,12 @@ public final class Titles {
     public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
-        sendTitle(player, fadeIn, stay, fadeOut, MessageComponents.fromLegacy(title), MessageComponents.fromLegacy(subtitle));
+        sendTitle(player, fadeIn, stay, fadeOut, new MessageTextString(title), new MessageTextString(subtitle));
     }
 
     public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
-                                 @Nullable BaseComponent title, @Nullable BaseComponent subtitle) {
+                                 @Nullable MessageText title, @Nullable MessageText subtitle) {
         Objects.requireNonNull(player, "Cannot send title to null player");
         if (title == null && subtitle == null) return;
 
@@ -228,11 +234,11 @@ public final class Titles {
                 packets.add(ClientboundSetTitlesAnimationPacket.invoke(fadeIn, stay, fadeOut));
 
                 if (title != null) {
-                    packets.add(ClientboundSetTitleTextPacket.invoke(MessageComponents.bungeeToVanilla(title)));
+                    packets.add(ClientboundSetTitleTextPacket.invoke(MessageComponents.bungeeToVanilla(title.asComponent())));
                 }
 
                 if (subtitle != null) {
-                    packets.add(ClientboundSetSubtitleTextPacket.invoke(MessageComponents.bungeeToVanilla(title)));
+                    packets.add(ClientboundSetSubtitleTextPacket.invoke(MessageComponents.bungeeToVanilla(subtitle.asComponent())));
                 }
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -243,7 +249,7 @@ public final class Titles {
         }
 
         if (SUPPORTS_TITLES) {
-            player.sendTitle(title.toLegacyText(), subtitle.toLegacyText(), fadeIn, stay, fadeOut);
+            player.sendTitle(title.asString(), subtitle.asString(), fadeIn, stay, fadeOut);
             return;
         }
 
@@ -330,30 +336,28 @@ public final class Titles {
         return new Titles(title, subtitle, fadeIn, stay, fadeOut);
     }
 
-    public BaseComponent getTitle() {
+    public MessageText getTitle() {
         return title;
     }
 
-    public BaseComponent getSubtitle() {
+    public MessageText getSubtitle() {
         return subtitle;
     }
 
-    @Deprecated
     public void setTitle(String title) {
-        this.title = MessageComponents.fromLegacy(title);
+        this.title = new MessageTextString(title);
     }
 
-    @Deprecated
     public void setSubtitle(String subtitle) {
-        this.subtitle = MessageComponents.fromLegacy(subtitle);
+        this.subtitle = new MessageTextString(subtitle);
     }
 
     public void setTitle(BaseComponent title) {
-        this.title = title;
+        this.title = new MessageTextComponent(title);
     }
 
     public void setSubtitle(BaseComponent subtitle) {
-        this.subtitle = subtitle;
+        this.subtitle = new MessageTextComponent(subtitle);
     }
 
     /**

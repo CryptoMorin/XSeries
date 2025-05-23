@@ -64,7 +64,7 @@ public interface DelegateProfileable extends Profileable {
     }
 
     @Override
-    default boolean isComplete() {return getDelegateProfile().isComplete();}
+    default boolean isReady() {return getDelegateProfile().isReady();}
 
     @Override
     @NotNull

@@ -31,14 +31,12 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
-import java.util.regex.Pattern;
 
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 
 /**
  * Utility class for sharing methods relating to {@link BaseComponent}.
  */
-@ApiStatus.Experimental
 public final class MessageComponents {
     private static final MethodHandle CraftChatMessage_fromJson;
 
@@ -61,15 +59,35 @@ public final class MessageComponents {
         CraftChatMessage_fromJson = fromJson;
     }
 
+    // @formatter:off
+    public interface MessageText {
+        String asString();
+        BaseComponent asComponent();
+    }
+    public static final class MessageTextString implements MessageText {
+        private final String string;
+        public MessageTextString(String string) {this.string = string;}
+
+        public String asString() {return string;}
+        public BaseComponent asComponent() {return MessageComponents.fromLegacy(string);}
+    }
+    public static final class MessageTextComponent implements MessageText {
+        private final BaseComponent component;
+        public MessageTextComponent(BaseComponent component) {this.component = component;}
+
+        public String asString() {return component.toLegacyText();}
+        public BaseComponent asComponent() {return component;}
+    }
+    // @formatter:on
+
     /**
      * This method is only officially available on <a href="https://github.com/PaperMC/Paper/blob/c98cd65802fcecfd3db613819e6053e2b8cbdf4f/paper-server/src/main/java/org/bukkit/craftbukkit/util/CraftChatMessage.java#L350-L352">Paper</a>.
      */
+    @ApiStatus.Experimental
     public static Object bungeeToVanilla(BaseComponent component) throws Throwable {
         String json = ComponentSerializer.toString(component);
         return CraftChatMessage_fromJson.invoke(json);
     }
-
-    private static final Pattern url = Pattern.compile("^(?:(https?)://)?([-\\w_.]{2,}\\.[a-z]{2,4})(/\\S*)?$");
 
     @SuppressWarnings("deprecation")
     public static BaseComponent fromLegacy(String message) {

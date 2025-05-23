@@ -52,7 +52,7 @@ public abstract class ProfileContainer<T> implements Profileable {
     public abstract T getObject();
 
     @Override
-    public boolean isComplete() {
+    public boolean isReady() {
         return true;
     }
 

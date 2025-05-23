@@ -84,17 +84,18 @@ public interface Profileable {
     GameProfile getProfile();
 
     /**
-     * Whether this profile has all necessary information to construct its {@link #getProfile()} right away.
-     * When this returns true, it means some kind of request has to be sent to Mojang servers
-     * in order to retrieve information.
+     * Whether this profile has all the necessary information to construct its {@link #getProfile()} right away.
+     * When this method returns false, it means some kind of request has to be sent to Mojang servers
+     * in order to retrieve some information.
      * <p>
-     * This doesn't necessarily mean that this profile has all information (skin, username, UUID, etc.)
-     * it merely means that it has all the information it needs in memory to compute {@link #getProfile()}
-     * and doesn't need to a request using {@link com.cryptomorin.xseries.profiles.mojang.MinecraftClient MinecraftClient}.
+     * Even if this method returns true, it doesn't necessarily mean that this profile has all information (textures, username, UUID, etc.)
+     * it merely means that it has all the information it needs in memory to compute its {@link #getProfile()}
+     * and doesn't need to a request any data using {@link com.cryptomorin.xseries.profiles.mojang.MinecraftClient MinecraftClient}.
      *
      * @see #prepare(Collection)
      */
-    boolean isComplete();
+    @Contract(pure = true)
+    boolean isReady();
 
     /**
      * Tests whether this profile has any issues or throws any exception.
@@ -109,6 +110,7 @@ public interface Profileable {
      * Any other type of exception that might happen are still ignored.
      */
     @Nullable
+    @Contract("-> new")
     default ProfileException test() {
         try {
             getProfile();
@@ -129,6 +131,7 @@ public interface Profileable {
      */
     @Nullable
     @ApiStatus.Internal
+    @Contract("-> new")
     default GameProfile getDisposableProfile() {
         GameProfile profile = getProfile();
         return profile == null ? null : PlayerProfiles.clone(profile);
@@ -429,7 +432,7 @@ public interface Profileable {
         public RawGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
-        public boolean isComplete() {
+        public boolean isReady() {
             return true;
         }
 

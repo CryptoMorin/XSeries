@@ -77,7 +77,7 @@ public abstract class CacheableProfileable implements Profileable {
     }
 
     @Override
-    public final boolean isComplete() {
+    public final boolean isReady() {
         return !hasExpired(false);
     }
 
