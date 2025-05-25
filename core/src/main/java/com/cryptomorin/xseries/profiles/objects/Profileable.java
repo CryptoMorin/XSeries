@@ -169,18 +169,33 @@ public interface Profileable {
         return PlayerProfiles.getOriginalValue(getProfile());
     }
 
+    /**
+     * @see #prepare(Collection, ProfileRequestConfiguration, Function)
+     */
     @NotNull
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@NotNull C profileables) {
         return prepare(profileables, null, null);
     }
 
+    /**
+     * Prepares the given profiles asynchrously with the given settings.
+     *
+     * @param profileables the collect of profiles to prepare.
+     * @param config       How requests to Mojang servers are handled if any are necessary.
+     * @param errorHandler how to handle errors that occur for each of the profiles individually.
+     *                     If the error handler returns true, the entire operation will fail exceptionally,
+     *                     otherwise that specific profile will be ignored.
+     * @param <C>          the type of the collection used for the profiles.
+     * @return the same collection unmodified. (The profiles are cached inside the {@link Profileable} itself, so you can use them directly now)
+     */
     @NotNull
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
             @NotNull C profileables, @Nullable ProfileRequestConfiguration config,
             @Nullable Function<Throwable, Boolean> errorHandler) {
         Objects.requireNonNull(profileables, "Profile list is null");
+        if (profileables.isEmpty()) return CompletableFuture.completedFuture(profileables);
 
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
@@ -203,7 +218,8 @@ public interface Profileable {
                 }
             }
 
-            if (!usernameRequests.isEmpty())
+            // Not worth sending this if it's a single request.
+            if (usernameRequests.size() > 1)
                 initial = CompletableFuture.supplyAsync(
                         () -> MojangAPI.usernamesToUUIDs(usernameRequests, config), PlayerProfileFetcherThread.EXECUTOR);
         }
@@ -211,24 +227,30 @@ public interface Profileable {
         // First cache the username requests then get the profiles and finally return the original objects.
         return XReflection.stacktrace(initial
                 .thenCompose(a -> {
-                    List<CompletableFuture<GameProfile>> requests = new ArrayList<>(profileables.size());
+                    List<CompletableFuture<GameProfile>> profileTasks = new ArrayList<>(profileables.size());
 
                     for (Profileable profileable : profileables) {
-                        CompletableFuture<GameProfile> async = CompletableFuture
-                                .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
+                        CompletableFuture<GameProfile> profileTask;
 
-                        if (errorHandler != null) {
-                            async = XReflection.stacktrace(async).exceptionally(ex -> {
-                                boolean rethrow = errorHandler.apply(ex);
-                                if (rethrow) throw XReflection.throwCheckedException(ex);
-                                else return null;
-                            });
+                        if (profileable.isReady()) {
+                            profileTask = CompletableFuture.completedFuture(profileable.getProfile());
+                        } else {
+                            profileTask = CompletableFuture
+                                    .supplyAsync(profileable::getProfile, PlayerProfileFetcherThread.EXECUTOR);
+
+                            if (errorHandler != null) {
+                                profileTask = XReflection.stacktrace(profileTask).exceptionally(ex -> {
+                                    boolean rethrow = errorHandler.apply(ex);
+                                    if (rethrow) throw XReflection.throwCheckedException(ex);
+                                    else return null;
+                                });
+                            }
+
                         }
-
-                        requests.add(async);
+                        profileTasks.add(profileTask);
                     }
 
-                    return CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]));
+                    return CompletableFuture.allOf(profileTasks.toArray(new CompletableFuture[0]));
                 })
                 .thenApply((a) -> profileables));
     }
@@ -589,14 +611,14 @@ public interface Profileable {
         @Override
         protected Duration expiresAfter() {
             determineType();
-            if (type == null) return Duration.ZERO;
+            if (type == null) return Duration.ZERO; // Don't expire.
 
             switch (type) {
                 case USERNAME:
                 case UUID:
                     return super.expiresAfter();
                 default:
-                    return Duration.ZERO;
+                    return Duration.ZERO; // Don't expire.
             }
         }
 

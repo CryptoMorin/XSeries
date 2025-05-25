@@ -43,6 +43,7 @@ final class XSkullRequestQueueTest {
 
     private static final Map<String, UUID> USERNAME_TO_UUID = new HashMap<>();
     private static final Map<String, AtomicInteger> NOT_CACHED_TIMES = Collections.synchronizedMap(new HashMap<>());
+    private static final Set<KeyedLock<?>> USED_LOCKS = new HashSet<>();
     private static final boolean LOG = false;
 
     public static void test() {
@@ -67,6 +68,11 @@ final class XSkullRequestQueueTest {
                 throw new RuntimeException(e);
             }
         }
+
+        // It should be 2 (one for each) but it's possible for the first
+        // thread to somehow quickly finish its job and exit or for other
+        // threads to start with a delay because of current hardware pressure.
+        XLogger.log("[XSkull Thread Queue] Used locks: " + USED_LOCKS);
 
         Map<String, KeyedLock<String>> locks = getLocks(MojangRequestQueue.USERNAME_REQUESTS);
         Assertions.assertTrue(locks.isEmpty(), () -> "Username requests not empty: " + locks);
@@ -101,13 +107,13 @@ final class XSkullRequestQueueTest {
         private final String username;
 
         public RequestThread(String name, String username) {
-            super("XSeries XSkull Test / " + name);
+            super("XSkull Thread Queue / " + name + " / " + username);
             this.username = username;
         }
 
         void log(String msg) {
             if (!LOG) return;
-            XLogger.log("[XSkull Thread Queue / " + getName() + " / " + username + "] " + msg);
+            XLogger.log('[' + getName() + "] " + msg);
         }
 
         @Override
@@ -116,6 +122,7 @@ final class XSkullRequestQueueTest {
             try (KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username)) {
                 log("Lock acquired " + getPendingTasks(lock));
                 lock.lock();
+                USED_LOCKS.add(lock);
                 log("Synchronized");
                 UUID id = USERNAME_TO_UUID.get(username);
                 if (id == null) {

@@ -27,12 +27,23 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * A lock associated to an object that keeps track of how many threads are
+ * currently using this lock until none are left in which case it removes itself.
+ * These locks should be registered in a {@link KeyedLockMap}.
+ */
 @ApiStatus.Internal
 public final class KeyedLock<K> implements AutoCloseable {
+    protected final Lock lock = new ReentrantLock();
     private final KeyedLockMap<K> map;
     protected final K key;
+
+    /**
+     * This does not need to be volatile because access
+     * to this property is entirely synchronized (in {@link KeyedLockMap}) and
+     * no two threads will access this at the same time.
+     */
     protected int pendingTasks;
-    protected Lock lock = new ReentrantLock();
 
     public KeyedLock(KeyedLockMap<K> map, K key) {
         this.map = map;

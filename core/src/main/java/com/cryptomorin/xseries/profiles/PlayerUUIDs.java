@@ -55,7 +55,8 @@ public final class PlayerUUIDs {
     /**
      * We can't use Guava's BiMap here since non-existing players are cached too.
      */
-    public static final Map<UUID, UUID> OFFLINE_TO_ONLINE = new HashMap<>(), ONLINE_TO_OFFLINE = new HashMap<>();
+    public static final Map<UUID, UUID> OFFLINE_TO_ONLINE = new HashMap<>();
+    public static final Map<UUID, UUID> ONLINE_TO_OFFLINE = new HashMap<>();
     public static final Map<String, UUID> USERNAME_TO_ONLINE = new HashMap<>();
 
     public static UUID UUIDFromDashlessString(String dashlessUUIDString) {

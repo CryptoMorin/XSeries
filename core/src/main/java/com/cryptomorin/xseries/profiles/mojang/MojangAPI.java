@@ -26,7 +26,6 @@ import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
-import com.cryptomorin.xseries.profiles.exceptions.MojangAPIException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.lock.KeyedLock;
 import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
@@ -212,20 +211,22 @@ public final class MojangAPI {
         }
 
         Map<UUID, String> mapped = new HashMap<>(usernames.size());
-        Map<String, KeyedLock<String>> finalUsernames = new HashMap<>(usernames.size());
+        Map<String, KeyedLock<String>> fetchedUsernames = new HashMap<>(usernames.size());
 
         try {
+            // Usually the queue shouldn't be used directly in this class and should be handled by the other callers
+            // but this method has additional checks and synchronizing the entire thing is useless and degrades performance.
             for (String username : usernames) {
                 KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username);
                 lock.lock();
-                finalUsernames.put(username, lock);
+                fetchedUsernames.put(username, lock);
             }
 
             {
                 // Remove duplicate & cached names
                 // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
                 //        for a Map<String, String> to access case-corrected usernames.
-                Iterator<Map.Entry<String, KeyedLock<String>>> usernameIter = finalUsernames.entrySet().iterator();
+                Iterator<Map.Entry<String, KeyedLock<String>>> usernameIter = fetchedUsernames.entrySet().iterator();
                 while (usernameIter.hasNext()) {
                     Map.Entry<String, KeyedLock<String>> usernameEntry = usernameIter.next();
                     String username = usernameEntry.getKey();
@@ -239,13 +240,13 @@ public final class MojangAPI {
                 }
             }
 
-            if (finalUsernames.isEmpty()) return mapped;
+            if (fetchedUsernames.isEmpty()) return mapped;
             boolean onlineMode = PlayerUUIDs.isOnlineMode();
 
             // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
             // It also "normalizes" names with lowercase and sends the request.
             // This API entry case-corrects the usernames in its response.
-            Iterable<List<String>> partition = Iterables.partition(finalUsernames.keySet(), 10);
+            Iterable<List<String>> partition = Iterables.partition(fetchedUsernames.keySet(), 10);
             for (List<String> batch : partition) {
                 JsonArray response;
                 try {
@@ -255,7 +256,7 @@ public final class MojangAPI {
                     // and no response is contained in the final result regarding them.
                     response = USERNAMES_TO_UUIDS.session(config).body(batch).request().getAsJsonArray();
                 } catch (IOException ex) {
-                    throw new MojangAPIException("Failed to request UUIDs for username batch: " + batch, ex);
+                    throw new IllegalStateException("Failed to request UUIDs for username batch: " + batch, ex);
                 }
 
                 for (JsonElement element : response) {
@@ -277,7 +278,7 @@ public final class MojangAPI {
                 }
             }
         } finally {
-            for (KeyedLock<String> lock : finalUsernames.values()) {
+            for (KeyedLock<String> lock : fetchedUsernames.values()) {
                 lock.unlock();
             }
         }

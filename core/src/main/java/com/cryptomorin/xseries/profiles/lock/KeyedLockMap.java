@@ -27,6 +27,11 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A registry that queues locks per-object using {@link KeyedLock}.
+ *
+ * @param <K> the type of object used to identify what the locks are associated to.
+ */
 @ApiStatus.Internal
 public final class KeyedLockMap<K> {
     private final Map<K, KeyedLock<K>> locks = new HashMap<>();
@@ -35,6 +40,14 @@ public final class KeyedLockMap<K> {
         return new KeyedLock<>(this, key);
     }
 
+    /**
+     * Doesn't actually lock the object, {@link KeyedLock#lock()} should
+     * be used immediatelly as the first statement after this method.
+     * The main reason why this isn't done in this method is because
+     * try-with-resources for a reference without delcaring a variable
+     * is not supported in Java 8, so we'd have to suppress the unused
+     * variable warning every time we use this method.
+     */
     public KeyedLock<K> lock(K key) {
         synchronized (locks) {
             KeyedLock<K> lock = locks.computeIfAbsent(key, this::createLock);
@@ -46,11 +59,13 @@ public final class KeyedLockMap<K> {
     @SuppressWarnings("resource")
     public void unlock(KeyedLock<K> lock) {
         synchronized (locks) {
-            lock.lock.unlock();
-            lock.pendingTasks--;
+            lock.pendingTasks--; // Not atomic by itself but we're already synchronized.
             if (lock.pendingTasks <= 0)
                 locks.remove(lock.key);
         }
+
+        // There is no reason to synchronize this.
+        lock.lock.unlock();
     }
 
     @Override

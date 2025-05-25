@@ -22,6 +22,11 @@
 
 package com.cryptomorin.xseries.profiles.mojang;
 
+/**
+ * Configures how requests to Mojang servers (sent by {@link MojangAPI}) are performed.
+ * This feature is specific, and it's recommended that you do not configure the client unless
+ * you know how Mojang API works and have specific reasons for doing so.
+ */
 public interface ProfileRequestConfiguration {
     void configure(MinecraftClient.Session session);
 }

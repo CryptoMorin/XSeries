@@ -26,6 +26,10 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.UUID;
 
+/**
+ * A system used to prevent {@link com.cryptomorin.xseries.profiles.mojang.MojangAPI MojangAPI}
+ * from sending multiple requests for the same piece of information simultaneously.
+ */
 @ApiStatus.Internal
 public final class MojangRequestQueue {
     public static final KeyedLockMap<String> USERNAME_REQUESTS = new KeyedLockMap<>();
