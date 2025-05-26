@@ -244,7 +244,7 @@ public final class Titles {
                 throw new RuntimeException(e);
             }
 
-            MinecraftConnection.sendPacket(player, packets);
+            MinecraftConnection.sendPacket(player, packets.toArray(new Object[0]));
             return;
         }
 
