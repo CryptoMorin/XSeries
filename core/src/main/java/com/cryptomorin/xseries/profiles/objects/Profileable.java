@@ -58,10 +58,16 @@ import java.util.concurrent.CompletableFuture;
  * Represents any object that has a {@link GameProfile} or one can be created with it.
  * These objects are cached.
  * <p>
+ * Usually this class is intended to be used with {@link com.cryptomorin.xseries.profiles.builder.XSkull XSkull}
+ * by defining the profile to set for {@link ProfileInstruction#profile(Profileable)}, however it can be used by itself for more advanced
+ * systems if you know what you're doing.
+ * <p>
  * A {@link GameProfile} is an object that represents information about a Minecraft player's
  * account in general (not specific to this or any other server)
  * The most important information contained within this profile however, is the
  * skin texture URL which the client needs to properly see the texture on items/blocks.
+ * The server itself doesn't process the texture from the URL, it gives it to the client for
+ * it to download and process the texture instead.
  *
  * @see com.cryptomorin.xseries.profiles.objects.cache.CacheableProfileable
  * @see TimedCacheableProfileable
@@ -93,6 +99,7 @@ public interface Profileable {
      * and doesn't need to a request any data using {@link com.cryptomorin.xseries.profiles.mojang.MinecraftClient MinecraftClient}.
      *
      * @see #prepare(Collection)
+     * @since 12.0.0
      */
     @Contract(pure = true)
     boolean isReady();
@@ -170,9 +177,29 @@ public interface Profileable {
     }
 
     /**
+     * A single version of {@link #prepare(Collection, ProfileRequestConfiguration, Function)}.
+     * This simply performs profile lookup asynchrously and returns after it's done, or it
+     * will instantly return if {@link #isReady()} is true.
+     *
+     * @return A future containing the same object.
+     * @since 12.0.0
+     */
+    @NotNull
+    @Contract("-> new")
+    @ApiStatus.Experimental
+    default CompletableFuture<Profileable> prepare() {
+        if (isReady()) return CompletableFuture.completedFuture(this);
+
+        return XReflection.stacktrace(CompletableFuture
+                .supplyAsync(this::getProfile, PlayerProfileFetcherThread.EXECUTOR)
+                .thenApply(x -> this));
+    }
+
+    /**
      * @see #prepare(Collection, ProfileRequestConfiguration, Function)
      */
     @NotNull
+    @Contract("_ -> new")
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(@NotNull C profileables) {
         return prepare(profileables, null, null);
@@ -188,8 +215,10 @@ public interface Profileable {
      *                     otherwise that specific profile will be ignored.
      * @param <C>          the type of the collection used for the profiles.
      * @return the same collection unmodified. (The profiles are cached inside the {@link Profileable} itself, so you can use them directly now)
+     * @see #prepare()
      */
     @NotNull
+    @Contract("_, _, _ -> new")
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
             @NotNull C profileables, @Nullable ProfileRequestConfiguration config,

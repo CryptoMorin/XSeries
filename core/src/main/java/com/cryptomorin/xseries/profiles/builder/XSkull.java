@@ -73,8 +73,8 @@ import org.jetbrains.annotations.NotNull;
  * I don't know if this cache system works across other servers or is just specific to one server.
  *
  * @author Crypto Morin, Erick Alexander
- * @version 11.2.1
- * @see XMaterial
+ * @version 12.0.0
+ * @see Profileable
  * @see XReflection
  */
 public final class XSkull {
@@ -140,7 +140,7 @@ public final class XSkull {
 
 
     /**
-     * We'll just return an x shaped hardcoded skull.<br>
+     * We'll just return a prohibition sign hardcoded skull.<br>
      * <a href="https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross">minecraft-heads.com</a>
      */
     private static final GameProfile DEFAULT_PROFILE = PlayerProfiles.signXSeries(ProfileInputType.BASE64.getProfile(
@@ -150,15 +150,17 @@ public final class XSkull {
     ));
 
     /**
-     * Retrieves the default {@link GameProfile} used by XSkull.
+     * The default {@link GameProfile} used by {@link ProfileInstruction} as a last resort
+     * when none of the fallback values could be retrieved. This profile represents
+     * <a href="http://textures.minecraft.net/texture/c10591e6909e6a281b371836e462d67a2c78fa0952e910f32b41a26c48c1757c">
+     * a red prohibition sign on a silver head.</a>
      * This method creates a clone of the default profile to prevent modifications to the original.
      *
-     * @return A clone of the default {@link GameProfile}.
+     * @return A clone of the default {@link Profileable}.
      */
     @NotNull
     @Contract(value = "-> new", pure = true)
     protected static Profileable getDefaultProfile() {
-        // We copy this just in case something changes the GameProfile properties.
         return Profileable.of(PlayerProfiles.clone(DEFAULT_PROFILE), false);
     }
 }

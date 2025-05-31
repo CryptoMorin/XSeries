@@ -927,6 +927,12 @@ public final class XItemStack {
                         }
                     }
                 }
+
+                // Setting an empty component will save it and change the internal meta which affects isSimilar()
+                if (!customModelData.getColors().isEmpty() || !customModelData.getStrings().isEmpty() ||
+                        !customModelData.getFlags().isEmpty() || !customModelData.getFloats().isEmpty()) {
+                    meta.setCustomModelDataComponent(customModelData);
+                }
             } else if (SUPPORTS_CUSTOM_MODEL_DATA) {
                 String modelData = config.getString("custom-model-data");
                 if (modelData != null && !modelData.isEmpty()) {

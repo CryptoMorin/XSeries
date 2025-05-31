@@ -23,7 +23,6 @@ package com.cryptomorin.xseries.messages;
 
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
-import com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.configuration.ConfigurationSection;
@@ -54,7 +53,7 @@ import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.s
  * PacketPlayOutTitle: https://minecraft.wiki/w/Protocol#Title
  *
  * @author Crypto Morin
- * @version 4.0.0
+ * @version 4.0.1
  * @see XReflection
  * @see ActionBar
  */
@@ -240,11 +239,11 @@ public final class Titles {
                 if (subtitle != null) {
                     packets.add(ClientboundSetSubtitleTextPacket.invoke(MessageComponents.bungeeToVanilla(subtitle.asComponent())));
                 }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            } catch (Throwable ex) {
+                throw new IllegalStateException("Failed to create packets with title: " + title + " and subtitle: " + subtitle, ex);
             }
 
-            MinecraftConnection.sendPacket(player, packets.toArray(new Object[0]));
+            sendPacket(player, packets.toArray(new Object[0]));
             return;
         }
 
@@ -254,19 +253,23 @@ public final class Titles {
         }
 
         try {
-            Object timesPacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TIMES, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
-            sendPacket(player, timesPacket);
+            // There are also constructors with only the fade/stay/fadeout or just the text components,
+            // but we will use the full constructor for all of them just to be sure.
+            List<Object> packets = new ArrayList<>(3);
+            Object titleComponent = CHAT_COMPONENT_TEXT.invoke(title);
+
+            packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TIMES, titleComponent, fadeIn, stay, fadeOut));
 
             if (title != null) {
-                Object titlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TITLE, CHAT_COMPONENT_TEXT.invoke(title), fadeIn, stay, fadeOut);
-                sendPacket(player, titlePacket);
+                packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TITLE, titleComponent, fadeIn, stay, fadeOut));
             }
             if (subtitle != null) {
-                Object subtitlePacket = PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut);
-                sendPacket(player, subtitlePacket);
+                packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut));
             }
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+
+            sendPacket(player, packets.toArray(new Object[0]));
+        } catch (Throwable ex) {
+            throw new IllegalStateException("Failed to send packets for title: " + title + " and subtitle: " + subtitle, ex);
         }
     }
 

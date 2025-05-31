@@ -34,9 +34,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @ApiStatus.Internal
 public final class PlayerProfileFetcherThread implements ThreadFactory {
     /**
-     * An executor service with a fixed thread pool of size 2, used for asynchronous operations.
+     * An executor service with a fixed thread pool of size 10, used for asynchronous operations.
      */
-    public static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(2, new PlayerProfileFetcherThread());
+    public static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(10, new PlayerProfileFetcherThread());
 
     private static final AtomicInteger COUNT = new AtomicInteger();
 

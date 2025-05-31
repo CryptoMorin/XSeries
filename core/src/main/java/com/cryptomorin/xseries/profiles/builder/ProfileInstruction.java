@@ -31,6 +31,7 @@ import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
 import com.cryptomorin.xseries.profiles.objects.DelegateProfileable;
 import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.google.common.base.Function;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
@@ -40,10 +41,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -51,6 +49,8 @@ import java.util.function.Consumer;
  * Represents an instruction that sets a property of a {@link GameProfile}.
  * It uses a {@link #profileContainer} to define how to set the property and
  * a {@link #profileable} to define what to set in the property.
+ * <p>
+ * This class must be created from one of {@link XSkull} methods.
  *
  * @param <T> The type of the result produced by the {@link #profileContainer} function.
  */
@@ -87,9 +87,9 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
         return profileContainer.getObject();
     }
 
-    @ApiStatus.Experimental
     @NotNull
     @Contract(value = "_ -> this", mutates = "this")
+    @ApiStatus.Experimental
     public ProfileInstruction<T> profileRequestConfiguration(ProfileRequestConfiguration config) {
         this.profileRequestConfiguration = config;
         return this;
@@ -111,6 +111,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      */
     @Override
     @Nullable
+    @ApiStatus.Internal
     public GameProfile getProfile() {
         // Just here to handle the JavaDocs.
         return profileContainer.getProfile();
@@ -118,6 +119,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
 
     @Override
     @Contract(pure = true)
+    @ApiStatus.Internal
     public Profileable getDelegateProfile() {
         return profileContainer;
     }
@@ -151,6 +153,8 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     /**
      * Called when any of the {@link #fallback(Profileable...)} profiles are used,
      * this is also called if no fallback profile is provided, but the main one {@link #profile(Profileable)} fails.
+     * <p>
+     * Make sure that {@link #lenient()} is not, otherwise this will never be used.
      *
      * @see #onFallback(Runnable)
      */
@@ -187,6 +191,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * @throws ProfileChangeException If any type of {@link ProfileException} occurs, they will be accumulated
      *                                in form of suppressed exceptions ({@link Exception#getSuppressed()}) in this single exception
      *                                starting from the main profile, followed by the fallback profiles.
+     * @see #applyAsync()
      */
     @NotNull
     public T apply() {
@@ -270,6 +275,9 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
      * }</pre>
      *
      * @return A {@link CompletableFuture} that will complete asynchronously.
+     * @see #apply()
+     * @see Profileable#prepare()
+     * @see Profileable#prepare(Collection, ProfileRequestConfiguration, Function)
      */
     @NotNull
     public CompletableFuture<T> applyAsync() {

@@ -548,6 +548,7 @@ public final class XSeriesTests {
                 .lenient().apply();
 
         // Currently broken. Seems like Mojang disabled this API? Read MojangAPI.usernamesToUUIDs for more info.
+        // [5/31/2025] It's working again!
         if (Constants.TEST_MOJANG_API_BULK) {
             log("Testing bulk username to UUID conversion");
             Map<UUID, String> mapped = MojangAPI.usernamesToUUIDs(Arrays.asList("yourmom1212",

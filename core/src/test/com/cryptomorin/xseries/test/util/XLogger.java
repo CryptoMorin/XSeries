@@ -22,9 +22,23 @@
 
 package com.cryptomorin.xseries.test.util;
 
+import java.util.concurrent.CompletableFuture;
+
 public final class XLogger {
     public static void log(String message) {
         // We should probably use an actual logger?
         System.out.println("[XSeries] " + message);
+    }
+
+    public static CompletableFuture<Void> logTimingsAsync(String prefix, Runnable runnable) {
+        return CompletableFuture.runAsync(() -> logTimings(prefix, runnable));
+    }
+
+    public static void logTimings(String prefix, Runnable runnable) {
+        long before = System.currentTimeMillis();
+        runnable.run();
+        long after = System.currentTimeMillis();
+        long diff = after - before;
+        log('[' + prefix + "] Took " + diff + "ms");
     }
 }

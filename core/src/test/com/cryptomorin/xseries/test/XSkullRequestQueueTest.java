@@ -25,12 +25,14 @@ package com.cryptomorin.xseries.test;
 import com.cryptomorin.xseries.profiles.lock.KeyedLock;
 import com.cryptomorin.xseries.profiles.lock.KeyedLockMap;
 import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.test.util.XLogger;
 import org.junit.jupiter.api.Assertions;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class XSkullRequestQueueTest {
@@ -80,6 +82,24 @@ final class XSkullRequestQueueTest {
             int times = cache.getValue().get();
             Assertions.assertEquals(1, times, () -> "Cached more than once: " + cache.getKey() + " -> " + times);
         }
+
+        realTest();
+    }
+
+    private static void realTest() {
+        // This can vary specially for the second request since
+        // they have to wait for the first one to finish.
+        // The best way to test this would be to somehow limit your
+        // internet speed significantly.
+        // Whatever the duration is, it should progressively get smaller and smaller.
+        // 800ms -> 630ms -> 600ms -> 5ms -> 0ms
+        List<CompletableFuture<Void>> profiles = new ArrayList<>(5);
+
+        for (int i = 1; i <= 5; i++) {
+            profiles.add(XLogger.logTimingsAsync("Notch Async Lookup " + i, () -> Profileable.username("Hex_26").getProfile()));
+        }
+
+        CompletableFuture.allOf(profiles.toArray(new CompletableFuture[0])).join();
     }
 
     private static String blackhole(int i) {
