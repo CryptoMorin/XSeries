@@ -68,15 +68,17 @@ public final class MessageComponents {
         private final String string;
         public MessageTextString(String string) {this.string = string;}
 
-        public String asString() {return string;}
-        public BaseComponent asComponent() {return MessageComponents.fromLegacy(string);}
+        @Override public String toString() {return this.getClass().getSimpleName() + '(' + string + ')';}
+        @Override public String asString() {return string;}
+        @Override public BaseComponent asComponent() {return MessageComponents.fromLegacy(string);}
     }
     public static final class MessageTextComponent implements MessageText {
         private final BaseComponent component;
         public MessageTextComponent(BaseComponent component) {this.component = component;}
 
-        public String asString() {return component.toLegacyText();}
-        public BaseComponent asComponent() {return component;}
+        @Override public String toString() {return this.getClass().getSimpleName() + '(' + component + ')';}
+        @Override public String asString() {return component.toLegacyText();}
+        @Override public BaseComponent asComponent() {return component;}
     }
     // @formatter:on
 

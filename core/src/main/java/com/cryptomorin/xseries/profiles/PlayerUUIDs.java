@@ -91,9 +91,8 @@ public final class PlayerUUIDs {
         UUID realUUID;
         boolean cached;
 
-        try (KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username)) {
-            lock.lock();
-            realUUID = USERNAME_TO_ONLINE.get(username);
+        try (KeyedLock<String, UUID> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username, USERNAME_TO_ONLINE::get)) {
+            realUUID = lock.getOrRetryValue();
             cached = realUUID != null;
             if (realUUID == null) {
                 realUUID = MojangAPI.requestUsernameToUUID(username);
@@ -108,7 +107,7 @@ public final class PlayerUUIDs {
                 OFFLINE_TO_ONLINE.put(offlineUUID, realUUID);
                 USERNAME_TO_ONLINE.put(username, realUUID);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new IllegalStateException("Error while getting real UUID of player: " + username, e);
         }
 
@@ -139,9 +138,8 @@ public final class PlayerUUIDs {
         UUID realUUID;
         boolean cached;
 
-        try (KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username)) {
-            lock.lock();
-            realUUID = OFFLINE_TO_ONLINE.get(uuid);
+        try (KeyedLock<String, UUID> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username, () -> OFFLINE_TO_ONLINE.get(uuid))) {
+            realUUID = lock.getOrRetryValue();
             cached = realUUID != null;
             if (realUUID == null) {
                 realUUID = MojangAPI.requestUsernameToUUID(username);

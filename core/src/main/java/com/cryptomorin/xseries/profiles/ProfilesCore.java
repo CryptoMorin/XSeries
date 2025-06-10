@@ -37,6 +37,7 @@ import org.jetbrains.annotations.ApiStatus;
 import java.lang.invoke.MethodHandle;
 import java.net.Proxy;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.cryptomorin.xseries.reflection.XReflection.v;
@@ -217,6 +218,7 @@ public final class ProfilesCore {
         CACHE_PROFILE = cacheProfile;
         MINECRAFT_SESSION_SERVICE = minecraftSessionService;
 
+        Objects.requireNonNull(insecureProfiles, () -> "Couldn't find Mojang's insecureProfiles cache " + XReflection.getVersionInformation());
         YggdrasilMinecraftSessionService_insecureProfiles = (LoadingCache<Object, Object>) insecureProfiles;
         MinecraftSessionService_fillProfileProperties = fillProfileProperties;
 

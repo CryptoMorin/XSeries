@@ -25,22 +25,22 @@ package com.cryptomorin.xseries.profiles.lock;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * A lock associated to an object that keeps track of how many threads are
- * currently using this lock until none are left in which case it removes itself.
- * These locks should be registered in a {@link KeyedLockMap}.
+ * A lock that doesn't do anything because it already has the value it needs.
  */
 @ApiStatus.Internal
-public interface KeyedLock<K, V> extends AutoCloseable {
-    V getOrRetryValue();
+final class FinalizedKeyedLock<K, V> implements KeyedLock<K, V> {
+    private final V value;
 
-    /**
-     * Should not be called by users of lock.
-     */
-    @ApiStatus.OverrideOnly
-    void lock();
-
-    void unlock();
+    protected FinalizedKeyedLock(V value) {this.value = value;}
 
     @Override
-    void close();
+    public String toString() {
+        return this.getClass().getSimpleName() + '(' + value + ')';
+    }
+
+    // @formatter:off
+    @Override public V getOrRetryValue() {return value;}
+    @Override public void lock() {}
+    @Override public void unlock() {}
+    @Override public void close() {}
 }

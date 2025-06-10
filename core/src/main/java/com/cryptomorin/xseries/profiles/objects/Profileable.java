@@ -180,6 +180,10 @@ public interface Profileable {
      * A single version of {@link #prepare(Collection, ProfileRequestConfiguration, Function)}.
      * This simply performs profile lookup asynchrously and returns after it's done, or it
      * will instantly return if {@link #isReady()} is true.
+     * <p>
+     * Remember to handle errors using {@link CompletableFuture#exceptionally(java.util.function.Function)}
+     * or other error handling methods, CompletableFutures will "eat" errors without printing
+     * them when it's not handled manually.
      *
      * @return A future containing the same object.
      * @since 12.0.0

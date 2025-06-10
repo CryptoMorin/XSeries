@@ -159,7 +159,7 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "13.0.0";
+    public static final String XSERIES_VERSION = "13.3.1";
 
     /**
      * System property ({@link System#getProperty(String)}) used to disable Minecraft capabilities
@@ -758,7 +758,7 @@ public final class XReflection {
     @ApiStatus.Experimental
     @Contract(value = "_ -> new", mutates = "param1")
     public static <T> CompletableFuture<T> stacktrace(@NotNull CompletableFuture<T> completableFuture) {
-        StackTraceElement[] currentStacktrace = Thread.currentThread().getStackTrace();
+        StackTraceElement[] currentStacktrace = new Throwable().getStackTrace();
         return completableFuture.whenComplete((value, ex) -> { // Gets called even when it's completed.
             if (ex == null) {
                 // This happens if for example someone does:
@@ -806,8 +806,8 @@ public final class XReflection {
                     exStacktrace = clearStacktrace.toArray(new StackTraceElement[0]);
                 }
 
-                // Skip 2 -> the getStackTrace() method + this method
-                StackTraceElement[] finalCurrentStackTrace = Arrays.stream(currentStacktrace).skip(2).toArray(StackTraceElement[]::new);
+                // Skip this method
+                StackTraceElement[] finalCurrentStackTrace = Arrays.stream(currentStacktrace).skip(1).toArray(StackTraceElement[]::new);
                 ex.setStackTrace(concatenate(exStacktrace, finalCurrentStackTrace));
             } catch (Throwable ex2) {
                 ex.addSuppressed(ex2);

@@ -14,18 +14,22 @@ config-version: 12
 settings:
   debug: false
   moved-wrongly-threshold: 0.0625
-  save-user-cache-on-stop-only: false
+  save-user-cache-on-stop-only: true
   moved-too-quickly-multiplier: 10.0
   bungeecord: false
-  sample-count: 12
+  sample-count: 5
   player-shuffle: 0
-  timeout-time: 60
-  restart-on-crash: true
+
+  # Most tests occupy the main thread specially repeated ones like XSkull,
+  # so we change this to a high value in order to stop the server's watchdog
+  # from freaking out and shutting down the server because it thinks it crashed.
+  timeout-time: 10000
+  restart-on-crash: false
   restart-script: ./start.sh
   netty-threads: 4
   user-cache-size: 1000
-  log-villager-deaths: true
-  log-named-deaths: true
+  log-villager-deaths: false
+  log-named-deaths: false
   attribute:
     maxHealth:
       max: 2048.0
@@ -121,7 +125,7 @@ world-settings:
       villagers-work-immunity-after: 100
       villagers-work-immunity-for: 20
       villagers-active-for-panic: true
-      tick-inactive-villagers: true
+      tick-inactive-villagers: false
       wake-up-inactive:
         animals-max-per-tick: 4
         animals-every: 1200

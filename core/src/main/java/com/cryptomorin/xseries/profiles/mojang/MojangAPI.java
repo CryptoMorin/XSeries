@@ -211,42 +211,35 @@ public final class MojangAPI {
         }
 
         Map<UUID, String> mapped = new HashMap<>(usernames.size());
-        Map<String, KeyedLock<String>> fetchedUsernames = new HashMap<>(usernames.size());
+        Map<String, KeyedLock<String, UUID>> pendingUsernames = new HashMap<>(usernames.size());
 
         try {
+            // Remove duplicate & cached names
             // Usually the queue shouldn't be used directly in this class and should be handled by the other callers
             // but this method has additional checks and synchronizing the entire thing is useless and degrades performance.
+            // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
+            //        for a Map<String, String> to access case-corrected usernames.
             for (String username : usernames) {
-                KeyedLock<String> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username);
-                lock.lock();
-                fetchedUsernames.put(username, lock);
-            }
+                if (pendingUsernames.containsKey(username)) continue;
 
-            {
-                // Remove duplicate & cached names
-                // TODO - Perhaps we could add another list PlayerUUIDs.LOWERCASE_TO_USERNAME
-                //        for a Map<String, String> to access case-corrected usernames.
-                Iterator<Map.Entry<String, KeyedLock<String>>> usernameIter = fetchedUsernames.entrySet().iterator();
-                while (usernameIter.hasNext()) {
-                    Map.Entry<String, KeyedLock<String>> usernameEntry = usernameIter.next();
-                    String username = usernameEntry.getKey();
-
-                    UUID cached = PlayerUUIDs.USERNAME_TO_ONLINE.get(username);
-                    if (cached != null) {
-                        usernameEntry.getValue().unlock();
-                        usernameIter.remove();
-                        mapped.put(cached, username);
-                    }
+                KeyedLock<String, UUID> lock = MojangRequestQueue.USERNAME_REQUESTS.lock(username, PlayerUUIDs.USERNAME_TO_ONLINE::get);
+                UUID cached = lock.getOrRetryValue();
+                if (cached != null) {
+                    mapped.put(cached, username);
+                    lock.unlock();
+                    continue;
                 }
+
+                pendingUsernames.put(username, lock);
             }
 
-            if (fetchedUsernames.isEmpty()) return mapped;
+            if (pendingUsernames.isEmpty()) return mapped;
             boolean onlineMode = PlayerUUIDs.isOnlineMode();
 
             // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
             // It also "normalizes" names with lowercase and sends the request.
             // This API entry case-corrects the usernames in its response.
-            Iterable<List<String>> partition = Iterables.partition(fetchedUsernames.keySet(), 10);
+            Iterable<List<String>> partition = Iterables.partition(pendingUsernames.keySet(), 10);
             for (List<String> batch : partition) {
                 JsonArray response;
                 try {
@@ -278,7 +271,7 @@ public final class MojangAPI {
                 }
             }
         } finally {
-            for (KeyedLock<String> lock : fetchedUsernames.values()) {
+            for (KeyedLock<String, UUID> lock : pendingUsernames.values()) {
                 lock.unlock();
             }
         }
@@ -352,10 +345,8 @@ public final class MojangAPI {
             }
         }
 
-        try (KeyedLock<UUID> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID)) {
-            lock.lock();
-
-            GameProfile cached = handleCache(profile, realUUID);
+        try (KeyedLock<UUID, GameProfile> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID, () -> handleCache(profile, realUUID))) {
+            GameProfile cached = lock.getOrRetryValue();
             if (cached != null) return cached;
 
             JsonElement request = requestProfile(profile, realUUID);
@@ -371,7 +362,7 @@ public final class MojangAPI {
 
             return fetchedProfile;
         } catch (Throwable ex) {
-            throw new IllegalStateException("Failed to fetch porfile for " + profile, ex);
+            throw new IllegalStateException("Failed to fetch profile for " + profile, ex);
         }
     }
 

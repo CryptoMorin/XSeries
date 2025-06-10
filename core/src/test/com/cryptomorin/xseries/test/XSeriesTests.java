@@ -525,7 +525,7 @@ public final class XSeriesTests {
 
     private static void testSkulls() {
         log("Testing skulls request queue...");
-        XSkullRequestQueueTest.test();
+        XSkullRequestQueueTest.createTests();
 
         log("Testing skulls UUID...");
         XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
@@ -537,6 +537,7 @@ public final class XSeriesTests {
         XSkull.createItem().profile(Profileable.detect("f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
         log("Testing skulls textures URL");
         XSkull.createItem().profile(Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
+        XSkull.createItem().profile(Profileable.detect("http://textures.minecraft.net/texture/1391203d3752afc71d8f8cb0da8dbc7f13a3baafe0bf5f911cb21c38341f87db")).apply();
         log("Testing skulls usernamed fallback");
         XSkull.createItem()
                 .profile(Profileable.username("hjkSF3809HFGhs"))

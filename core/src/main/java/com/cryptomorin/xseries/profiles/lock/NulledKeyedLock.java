@@ -24,23 +24,51 @@ package com.cryptomorin.xseries.profiles.lock;
 
 import org.jetbrains.annotations.ApiStatus;
 
-/**
- * A lock associated to an object that keeps track of how many threads are
- * currently using this lock until none are left in which case it removes itself.
- * These locks should be registered in a {@link KeyedLockMap}.
- */
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @ApiStatus.Internal
-public interface KeyedLock<K, V> extends AutoCloseable {
-    V getOrRetryValue();
+final class NulledKeyedLock<K, V> implements KeyedLock<K, V> {
+    protected final Lock lock = new ReentrantLock();
+    private final KeyedLockMap<K> map;
+    protected final K key;
 
     /**
-     * Should not be called by users of lock.
+     * This does not need to be volatile because access
+     * to this property is entirely synchronized (in {@link KeyedLockMap}) and
+     * no two threads will access this at the same time.
      */
-    @ApiStatus.OverrideOnly
-    void lock();
+    protected int pendingTasks;
 
-    void unlock();
+    protected NulledKeyedLock(KeyedLockMap<K> map, K key) {
+        this.map = map;
+        this.key = key;
+    }
 
     @Override
-    void close();
+    public V getOrRetryValue() {
+        return null;
+    }
+
+    public void lock() {
+        lock.lock();
+    }
+
+    protected boolean tryLock() {
+        return lock.tryLock();
+    }
+
+    public void unlock() {
+        map.unlock(this);
+    }
+
+    @Override
+    public void close() {
+        this.unlock();
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "(key=" + key + ", pendingTasks=" + pendingTasks + ')';
+    }
 }

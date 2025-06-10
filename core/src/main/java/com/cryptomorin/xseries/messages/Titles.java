@@ -256,7 +256,7 @@ public final class Titles {
             // There are also constructors with only the fade/stay/fadeout or just the text components,
             // but we will use the full constructor for all of them just to be sure.
             List<Object> packets = new ArrayList<>(3);
-            Object titleComponent = CHAT_COMPONENT_TEXT.invoke(title);
+            Object titleComponent = CHAT_COMPONENT_TEXT.invoke(title == null ? null : title.asString());
 
             packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TIMES, titleComponent, fadeIn, stay, fadeOut));
 
@@ -264,7 +264,8 @@ public final class Titles {
                 packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_TITLE, titleComponent, fadeIn, stay, fadeOut));
             }
             if (subtitle != null) {
-                packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_SUBTITLE, CHAT_COMPONENT_TEXT.invoke(subtitle), fadeIn, stay, fadeOut));
+                Object subtitleComponent = CHAT_COMPONENT_TEXT.invoke(subtitle.asString());
+                packets.add(PACKET_PLAY_OUT_TITLE.invoke(TITLE_ACTION_SUBTITLE, subtitleComponent, fadeIn, stay, fadeOut));
             }
 
             sendPacket(player, packets.toArray(new Object[0]));

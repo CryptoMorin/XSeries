@@ -1,3 +1,7 @@
+> [!NOTE]
+> All feature related contributions to XReflection and its subclasses
+> are paused until XReflection is moved to its new separate project.
+
 I'm really thankful for all the bug fixes and performance improvements.\
 Even if you changed a single line that has a good impact on the performance, it's welcomed.
 
