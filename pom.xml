@@ -287,6 +287,8 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.5.2</version>
                     <configuration>
+                        <!-- Minecraft starts its own thread so we can't really do anything about it. -->
+                        <forkedProcessExitTimeoutInSeconds>0</forkedProcessExitTimeoutInSeconds>
                         <!-- <forkCount>0</forkCount> -->
                         <!--<failIfNoTests>true</failIfNoTests>-->
                         <!-- <skipTests>true</skipTests>-->

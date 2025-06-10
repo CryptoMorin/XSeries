@@ -58,6 +58,8 @@ public final class Constants {
 
     public static final boolean BENCHMARK = false;
 
+    public static final boolean SAFE_SHUTDOWN = false;
+
     public static void disableXReflectionMinecraft() {
         System.setProperty(XReflection.DISABLE_MINECRAFT_CAPABILITIES_PROPERTY, "");
     }

@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.test.server;
 
 import com.cryptomorin.xseries.base.XRegistry;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.XSeriesTests;
 import com.cryptomorin.xseries.test.benchmark.BenchmarkMain;
@@ -204,7 +205,10 @@ public abstract class DummyAbstractServer {
                 // Bukkit.setServer(instance);
 
                 log("Done!");
-            });
+            }, "XSeries Server Starter Thread");
+
+            // Will be useless since CraftBukkit's main thread is not a daemon.
+            thread.setDaemon(true);
 
             // I'm still not sure how to make this part more reliable.
             log("Starting thread " + thread + "...");
@@ -281,7 +285,37 @@ public abstract class DummyAbstractServer {
         // JMH Tests
         if (Constants.BENCHMARK) benchmark();
 
-        log("All operations are done. Forcefully shutting down the server...");
+        log("All operations are done. " + (Constants.SAFE_SHUTDOWN ?
+                "Shutting down the server..." :
+                "Forcefully shutting down the server..."));
+        if (Constants.SAFE_SHUTDOWN) {
+            Bukkit.shutdown();
+            log("Server shutdown signal sent.");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static void forceShutdown() throws Throwable {
+        // The only way to forcefully shut it down would be starting another process...
+        // which wouldn't work, or at least we need extra setup to get it working.
+        Object dedicatedServer = XReflection.ofMinecraft().inPackage(MinecraftPackage.CB)
+                .named("CraftServer")
+                .field("protected final DedicatedServer console")
+                .returns(XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "server.dedicated").named("DedicatedServer"))
+                .getter()
+                .unreflect()
+                .invoke(Bukkit.getServer());
+
+        Thread serverThread = (Thread) XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "server")
+                .named("MinecraftServer")
+                //.method("public Thread ay()")
+                .field("public final Thread aj")
+                .getter()
+                .unreflect()
+                .invoke(dedicatedServer);
+
+        serverThread.interrupt(); // Won't do anything...
+        serverThread.join(); // Same as Bukkit.shutdown()
     }
 
     private static void benchmark() {
