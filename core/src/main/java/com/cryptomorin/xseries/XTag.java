@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XBase;
 import org.bukkit.Material;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,11 +80,16 @@ public final class XTag<T extends XBase<?, ?>> {
      */
     @NotNull
     public static final XTag<XMaterial> ALIVE_CORAL_PLANTS;
-    /**
-     *
-     */
     @NotNull
     public static final XTag<XMaterial> ALIVE_CORAL_WALL_FANS;
+
+    @NotNull
+    public static final XTag<XMaterial> SPAWN_EGGS = TagBuilder.of(
+            Arrays.stream(XMaterial.values())
+                    .filter(x -> x.name().endsWith("_SPAWN_EGG"))
+                    .toArray(XMaterial[]::new)
+    ).build();
+
     /**
      * Tag representing all possible blocks available for animals to spawn on
      */
@@ -1106,6 +1112,17 @@ public final class XTag<T extends XBase<?, ?>> {
             XPotion.LEVITATION, XPotion.POISON, XPotion.SLOWNESS, XPotion.MINING_FATIGUE, XPotion.UNLUCK,
             XPotion.WEAKNESS, XPotion.WITHER
     );
+
+    /**
+     * What entity spawns when a material is placed down?
+     * Mostly for things that spawn instantly after a single
+     * right-click whether it requires a block or free air.
+     * <p>
+     * It doesn't work for bows and arrows, TNT, fishing bobs
+     * or EXP bottles.
+     */
+    @SuppressWarnings("MapReplaceableByEnumMap")
+    public static final Map<XMaterial, XEntityType> MATERIAL_TO_ENTITY = new HashMap<>();
 
     static { // logs
         ACACIA_LOGS = TagBuilder.simple(
@@ -2468,20 +2485,62 @@ public final class XTag<T extends XBase<?, ?>> {
     static {
         INVENTORY_NOT_DISPLAYABLE = TagBuilder
                 .of(
-                        XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH, XMaterial.KELP_PLANT,
-                        XMaterial.FROSTED_ICE, XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM,
-                        XMaterial.COCOA, XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.PITCHER_CROP,
-                        XMaterial.POWDER_SNOW, XMaterial.REDSTONE_WIRE, XMaterial.TALL_SEAGRASS, XMaterial.TRIPWIRE,
-                        XMaterial.TORCHFLOWER_CROP, XMaterial.BUBBLE_COLUMN, XMaterial.TWISTING_VINES_PLANT,
-                        XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING
+                        XMaterial.FROSTED_ICE,
+                        XMaterial.MOVING_PISTON, XMaterial.PISTON_HEAD, XMaterial.BUBBLE_COLUMN,
+                        XMaterial.POWDER_SNOW, XMaterial.REDSTONE_WIRE, XMaterial.TRIPWIRE,
+
+                        // Saplings, stems and crops
+                        XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH,
+                        XMaterial.TORCHFLOWER_CROP, XMaterial.TWISTING_VINES_PLANT,
+                        XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING,
+                        XMaterial.CARROT, XMaterial.CARROTS, XMaterial.POTATO, XMaterial.POTATOES,
+                        XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO, XMaterial.CHORUS_PLANT,
+                        XMaterial.KELP_PLANT, XMaterial.COCOA, XMaterial.TALL_SEAGRASS,
+                        XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM,
+                        XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM
                 )
                 .inheritFrom(
                         AIR, CAVE_VINES, FILLED_CAULDRONS, FIRE, FLUID, PORTALS,
                         WALL_SIGNS, WALL_HANGING_SIGNS, WALL_TORCHES, ALIVE_CORAL_WALL_FANS,
                         DEAD_CORAL_WALL_FANS, WALL_HEADS, CANDLE_CAKES, WALL_BANNERS,
-                        FLOWER_POTS.without(XMaterial.FLOWER_POT),
-                        CROPS.without(XMaterial.WHEAT_SEEDS, XMaterial.WHEAT)
+                        FLOWER_POTS.without(XMaterial.FLOWER_POT)
                 ).build();
+    }
+
+    static {
+        // Minecarts
+        MATERIAL_TO_ENTITY.put(XMaterial.MINECART, XEntityType.MINECART);
+        MATERIAL_TO_ENTITY.put(XMaterial.CHEST_MINECART, XEntityType.CHEST_MINECART);
+        MATERIAL_TO_ENTITY.put(XMaterial.COMMAND_BLOCK_MINECART, XEntityType.COMMAND_BLOCK_MINECART);
+        MATERIAL_TO_ENTITY.put(XMaterial.TNT_MINECART, XEntityType.TNT_MINECART);
+        MATERIAL_TO_ENTITY.put(XMaterial.FURNACE_MINECART, XEntityType.FURNACE_MINECART);
+        MATERIAL_TO_ENTITY.put(XMaterial.HOPPER_MINECART, XEntityType.HOPPER_MINECART);
+
+        // MATERIAL_TO_ENTITY.put(XMaterial.TNT, XEntityType.TNT);
+        // MATERIAL_TO_ENTITY.put(XMaterial.TRIDENT, XEntityType.TRIDENT);
+        MATERIAL_TO_ENTITY.put(XMaterial.END_CRYSTAL, XEntityType.END_CRYSTAL);
+        MATERIAL_TO_ENTITY.put(XMaterial.PAINTING, XEntityType.PAINTING);
+        MATERIAL_TO_ENTITY.put(XMaterial.ITEM_FRAME, XEntityType.ITEM_FRAME);
+        MATERIAL_TO_ENTITY.put(XMaterial.GLOW_ITEM_FRAME, XEntityType.GLOW_ITEM_FRAME);
+        MATERIAL_TO_ENTITY.put(XMaterial.WIND_CHARGE, XEntityType.WIND_CHARGE);
+        MATERIAL_TO_ENTITY.put(XMaterial.EGG, XEntityType.EGG);
+        MATERIAL_TO_ENTITY.put(XMaterial.SNOWBALL, XEntityType.SNOWBALL);
+        MATERIAL_TO_ENTITY.put(XMaterial.ENDER_PEARL, XEntityType.ENDER_PEARL);
+        MATERIAL_TO_ENTITY.put(XMaterial.ENDER_EYE, XEntityType.EYE_OF_ENDER);
+
+        // Boats
+        for (XMaterial boat : ITEMS_BOATS.values) {
+            XEntityType entityType = XEntityType.of(boat.name())
+                    .orElseThrow(() -> new IllegalStateException("Cannot find entity type for boat: " + boat));
+            MATERIAL_TO_ENTITY.put(boat, entityType);
+        }
+
+        // Spawn Eggs
+        for (XMaterial spawnEgg : SPAWN_EGGS.values) {
+            XEntityType entityType = XEntityType.of(spawnEgg.name())
+                    .orElseThrow(() -> new IllegalStateException("Cannot find entity type for spawn egg: " + spawnEgg));
+            MATERIAL_TO_ENTITY.put(spawnEgg, entityType);
+        }
     }
 
     @NotNull
