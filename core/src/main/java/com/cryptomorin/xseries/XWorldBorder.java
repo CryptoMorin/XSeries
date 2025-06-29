@@ -415,20 +415,22 @@ public abstract class XWorldBorder {
                 WORLDBORDER = wb.constructor().unreflect();
                 WORLDBORDER_WORLD = wb.field().setter().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
 
-                CENTER = wb.method()
-                        .named(v(18, "c").orElse("setCenter"))
+                CENTER = wb.method() // last check: 1.21.5
+                        .map(MinecraftMapping.OBFUSCATED, v(21, 5, "d").v(18, "c").orElse("setCenter"))
+                        .map(MinecraftMapping.MOJANG, "setCenter")
                         .returns(void.class).parameters(double.class, double.class)
                         .unreflect();
                 SIZE = wb.method()
-                        .named(v(18, "a").orElse("setSize"))
+                        .named(v(18, "a").orElse("setSize")) // last check: 1.21.5
                         .returns(void.class).parameters(double.class)
                         .unreflect();
                 WARNING_TIME = wb.method()
-                        .named(v(18, "b").orElse("setWarningTime"))
+                        .named(v(18, "b").orElse("setWarningTime")) // last check: 1.21.5
                         .returns(void.class).parameters(int.class)
                         .unreflect();
                 WARNING_DISTANCE = wb.method() // or setWarningBlocks
-                        .named(v(20, "c").v(18, "b").orElse("setWarningDistance"))
+                        .map(MinecraftMapping.OBFUSCATED, v(20, "c").v(18, "b").orElse("setWarningDistance"))
+                        .map(MinecraftMapping.MOJANG, "setWarningBlocks")
                         .returns(void.class).parameters(int.class)
                         .unreflect();
                 // Renamed to lerpSizeBetween(double d0, double d1, long i)
