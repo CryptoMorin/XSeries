@@ -34,6 +34,12 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Corresponds to {@link EntityType}
+ *
+ * @version 1.0.1
+ * @see XEntity
+ */
 public enum XEntityType implements XBase<XEntityType, EntityType> {
     ACACIA_BOAT,
     ACACIA_CHEST_BOAT,
@@ -102,6 +108,8 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     GLOW_SQUID,
     GOAT,
     GUARDIAN,
+    @XInfo(since = "1.21.6")
+    HAPPY_GHAST,
     HOGLIN,
     HOPPER_MINECART("MINECART_HOPPER"),
     HORSE,
@@ -116,6 +124,8 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     JUNGLE_CHEST_BOAT,
     LEASH_KNOT("LEASH_HITCH"),
     LIGHTNING_BOLT("LIGHTNING"),
+    @XInfo(since = "1.21.5")
+    LINGERING_POTION,
     LLAMA,
     LLAMA_SPIT,
     MAGMA_CUBE,
@@ -125,10 +135,8 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     MINECART,
     MOOSHROOM("MUSHROOM_COW"),
     MULE,
-
     @XChange(version = "v1.21.2", from = "BOAT", to = "OAK_BOAT")
     OAK_BOAT("BOAT"),
-
     @XChange(version = "v1.21.2", from = "CHEST_BOAT", to = "OAK_CHEST_BOAT")
     OAK_CHEST_BOAT("CHEST_BOAT"),
     OCELOT,
@@ -145,14 +153,6 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     PILLAGER,
     PLAYER,
     POLAR_BEAR,
-
-    @XInfo(since = "1.21.5")
-    @XChange(version = "1.21.5", from = "POTION", to = "SPLASH_POTION")
-    SPLASH_POTION("POTION"),
-
-    @XInfo(since = "1.21.5")
-    LINGERING_POTION,
-
     PUFFERFISH,
     RABBIT,
     RAVAGER,
@@ -171,6 +171,9 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     SPAWNER_MINECART("MINECART_MOB_SPAWNER"),
     SPECTRAL_ARROW,
     SPIDER,
+    @XInfo(since = "1.21.5")
+    @XChange(version = "1.21.5", from = "POTION", to = "SPLASH_POTION")
+    SPLASH_POTION("POTION"),
     SPRUCE_BOAT,
     SPRUCE_CHEST_BOAT,
     SQUID,

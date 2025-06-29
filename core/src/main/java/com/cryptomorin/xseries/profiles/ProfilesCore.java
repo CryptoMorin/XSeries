@@ -104,7 +104,7 @@ public final class ProfilesCore {
             if (ResolvableProfile.exists()) {
                 newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile)").reflect();
                 $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile gameProfile()")
-                        .map(MinecraftMapping.OBFUSCATED, "f")
+                        .map(MinecraftMapping.OBFUSCATED, v(21, 6, "g").orElse("f"))
                         .reflect();
 
                 bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile").exists();

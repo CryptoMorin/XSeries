@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * play command: <a href="https://minecraft.wiki/w/Commands/play">minecraft.wiki/w</a>
  *
  * @author Crypto Morin
- * @version 11.0.0
+ * @version 11.0.1
  * @see Sound
  */
 public final class XSound extends XModule<XSound, Sound> {
@@ -1803,6 +1803,38 @@ public final class XSound extends XModule<XSound, Sound> {
             ENTITY_WOLF_SAD_HURT = std("entity.wolf_sad.hurt"),
             ENTITY_WOLF_SAD_PANT = std("entity.wolf_sad.pant"),
             ENTITY_WOLF_SAD_WHINE = std("entity.wolf_sad.whine");
+
+    @XInfo(since = "1.21.6")
+    public static final XSound
+            BLOCK_DRIED_GHAST_AMBIENT = std("block.dried_ghast.ambient"),
+            BLOCK_DRIED_GHAST_AMBIENT_WATER = std("block.dried_ghast.ambient_water"),
+            BLOCK_DRIED_GHAST_BREAK = std("block.dried_ghast.break"),
+            BLOCK_DRIED_GHAST_FALL = std("block.dried_ghast.fall"),
+            BLOCK_DRIED_GHAST_PLACE = std("block.dried_ghast.place"),
+            BLOCK_DRIED_GHAST_PLACE_IN_WATER = std("block.dried_ghast.place_in_water"),
+            BLOCK_DRIED_GHAST_STEP = std("block.dried_ghast.step"),
+            BLOCK_DRIED_GHAST_TRANSITION = std("block.dried_ghast.transition"),
+            BLOCK_DRY_GRASS_AMBIENT = std("block.dry_grass.ambient"),
+            ENTITY_GHASTLING_AMBIENT = std("entity.ghastling.ambient"),
+            ENTITY_GHASTLING_DEATH = std("entity.ghastling.death"),
+            ENTITY_GHASTLING_HURT = std("entity.ghastling.hurt"),
+            ENTITY_GHASTLING_SPAWN = std("entity.ghastling.spawn"),
+            ENTITY_HAPPY_GHAST_AMBIENT = std("entity.happy_ghast.ambient"),
+            ENTITY_HAPPY_GHAST_DEATH = std("entity.happy_ghast.death"),
+            ENTITY_HAPPY_GHAST_EQUIP = std("entity.happy_ghast.equip"),
+            ENTITY_HAPPY_GHAST_HARNESS_GOGGLES_DOWN = std("entity.happy_ghast.harness_goggles_down"),
+            ENTITY_HAPPY_GHAST_HARNESS_GOGGLES_UP = std("entity.happy_ghast.harness_goggles_up"),
+            ENTITY_HAPPY_GHAST_HURT = std("entity.happy_ghast.hurt"),
+            ENTITY_HAPPY_GHAST_RIDING = std("entity.happy_ghast.riding"),
+            ENTITY_HAPPY_GHAST_UNEQUIP = std("entity.happy_ghast.unequip"),
+            ITEM_HORSE_ARMOR_UNEQUIP = std("item.horse_armor.unequip"),
+            ITEM_LEAD_BREAK = std("item.lead.break"),
+            ITEM_LEAD_TIED = std("item.lead.tied"),
+            ITEM_LEAD_UNTIED = std("item.lead.untied"),
+            ITEM_LLAMA_CARPET_UNEQUIP = std("item.llama_carpet.unequip"),
+            ITEM_SADDLE_UNEQUIP = std("item.saddle.unequip"),
+            ITEM_SHEARS_SNIP = std("item.shears.snip"),
+            MUSIC_DISC_TEARS = std("music_disc.tears");
 
     static {
         REGISTRY.discardMetadata();

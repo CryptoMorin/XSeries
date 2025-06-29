@@ -58,6 +58,7 @@ import java.util.function.Function;
  *
  * @author Crypto Morin
  * @version 4.0.2.1
+ * @see XEntityType
  * @see XMaterial
  * @see XItemStack
  * @see XPotion

@@ -23,7 +23,6 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XBase;
 import org.bukkit.Material;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -2537,8 +2536,10 @@ public final class XTag<T extends XBase<?, ?>> {
 
         // Spawn Eggs
         for (XMaterial spawnEgg : SPAWN_EGGS.values) {
-            XEntityType entityType = XEntityType.of(spawnEgg.name())
-                    .orElseThrow(() -> new IllegalStateException("Cannot find entity type for spawn egg: " + spawnEgg));
+            String name = spawnEgg.name().substring(0, spawnEgg.name().length() - "_SPAWN_EGG".length());
+
+            XEntityType entityType = XEntityType.of(name)
+                    .orElseThrow(() -> new IllegalStateException("Cannot find entity type for spawn egg: " + spawnEgg + " named " + name));
             MATERIAL_TO_ENTITY.put(spawnEgg, entityType);
         }
     }

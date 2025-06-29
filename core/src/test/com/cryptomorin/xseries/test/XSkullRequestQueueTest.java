@@ -78,7 +78,9 @@ final class XSkullRequestQueueTest {
         }
 
         for (int i = 0; i < TEST_ITERATIONS; i++) {
-            XLogger.log("************************** XSkullRequestQueueTest Iteration [" + i + "] **************************");
+            if (LOG) {
+                XLogger.log("************************** XSkullRequestQueueTest Iteration [" + i + "] **************************");
+            }
             new XSkullRequestQueueTest().test();
         }
     }
@@ -213,7 +215,9 @@ final class XSkullRequestQueueTest {
         List<CompletableFuture<Void>> profiles = new ArrayList<>(5);
 
         for (int i = 1; i <= 5; i++) {
-            profiles.add(XLogger.logTimingsAsync("Notch Async Lookup " + i, () -> Profileable.username("Hex_26").getProfile()));
+            if (LOG) {
+                profiles.add(XLogger.logTimingsAsync("Notch Async Lookup " + i, () -> Profileable.username("Hex_26").getProfile()));
+            }
         }
 
         CompletableFuture.allOf(profiles.toArray(new CompletableFuture[0])).join();

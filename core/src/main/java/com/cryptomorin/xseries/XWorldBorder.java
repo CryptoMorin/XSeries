@@ -45,19 +45,21 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.cryptomorin.xseries.reflection.XReflection.*;
 
 /**
  * Send different <a href="https://minecraft.fandom.com/wiki/World_border">World Border</a> data to each player.
+ * This class is merely for visual purposes and doesn't support player HP damaging features.
  *
- * @version 1.0.1
+ * @version 2.0.0
  */
 public abstract class XWorldBorder {
-    public static final int ABSOLUTE_MAX_SIZE = 29999984;
-    public static final double MAX_SIZE = 5.9999968E7D;
-    public static final double MAX_CENTER_COORDINATE = 2.9999984E7D;
+    public static final int ABSOLUTE_MAX_SIZE = 29_999_984;
+    public static final double MAX_SIZE = 59_999_968;
+    public static final double MAX_CENTER_COORDINATE = 29_999_984;
 
     private static final boolean SUPPORTS_NATIVE_WORLDBORDERS = XReflection.of(Player.class)
             .method().named("setWorldBorder").returns(void.class).parameters(WorldBorder.class)
@@ -73,17 +75,70 @@ public abstract class XWorldBorder {
     public abstract int getWarningDistance();
     public abstract Duration getWarningTime();
     public abstract Location getCenter();
-    public abstract void setFor(Player player, boolean forceInit);
+    public abstract void setFor(Collection<Player> players, boolean forceInit);
     public final BorderBounds getBorderBounds() {return borderBounds;}
 
     public abstract XWorldBorder copy();
     public abstract XWorldBorder setDamageBuffer(double blocks);
     public abstract XWorldBorder setWarningTime(Duration time);
+
+    /**
+     * Sets the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border.
+     */
     public abstract XWorldBorder setWarningDistance(int blocks);
-    public abstract XWorldBorder setSize(double newSize, @NotNull Duration duration);
-    public abstract XWorldBorder setCenter(double x, double z);
-    public abstract XWorldBorder setSizeLerpTarget(double sizeLerpTarget);
+
+    public XWorldBorder setSize(double newSize) {
+        return setSize(newSize, Duration.ZERO);
+    }
+
+    public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
+        Objects.requireNonNull(duration, "Size change duration cannot be null");
+        if (newSize > MAX_SIZE)
+            throw new IllegalArgumentException("Border size is bigger than max border size: " + newSize + " > " + MAX_SIZE);
+        return this;
+    }
+
+    /**
+     * The old size in which the border shrinking starts from.
+     * @param sizeLerpTarget in blocks.
+     * @see #setSize(double, Duration)
+     */
+    public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {
+        if (sizeLerpTarget > MAX_SIZE)
+            throw new IllegalArgumentException("Size lerp target size is bigger than max border size: " + sizeLerpTarget + " > " + MAX_SIZE);
+        return this;
+    }
+
+    public abstract XWorldBorder setCenter(Location location);
+
+    public XWorldBorder setCenter(double x, double z) {
+        if (Double.isNaN(x) || Double.isNaN(z)) throw new IllegalArgumentException("Invalid coordinates: " + x + ", " + z);
+        return this;
+    }
+
+    /**
+     * Updates may be instant without needing this method, but it's always
+     * recommended to call this method after you're done to ensure changes
+     * are sent to the players.
+     *
+     * @param players The players to send the updates to. Note that only players that were previously
+     *                set using {@link #setFor(Collection, boolean)} must be present here, otherwise
+     *                you only need to call the other method.
+     */
+    public XWorldBorder update(Player... players) {
+        if (players == null) throw new IllegalArgumentException("Player array is null");
+        return this;
+    }
     // @formatter:on
+
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "(size: " + getSize()
+                + ", warningDistance: " + getWarningDistance() + ", warningTime: " + getWarningTime()
+                + ", center: " + getCenter() + ", damageBuffer: " + getDamageBuffer()
+                + ')';
+    }
 
     public final double getDistanceToBorder(Location location) {
         if (this.borderBounds == null) {
@@ -103,8 +158,7 @@ public abstract class XWorldBorder {
         return Math.min(d6, d3);
     }
 
-    protected void updateBorderBounds() {
-        Location center = getCenter();
+    protected void updateBorderBounds(Location center) {
         this.borderBounds = new BorderBounds(center.getWorld(), center.getX(), center.getZ(), getSize());
     }
 
@@ -134,7 +188,7 @@ public abstract class XWorldBorder {
     }
 
     private static final class NMSWorldBorder extends XWorldBorder {
-        private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, TRANSITION;
+        private static final MethodHandle WORLD_HANDLE, WORLDBORDER, WORLDBORDER_WORLD, CENTER, WARNING_DISTANCE, WARNING_TIME, SIZE, WorldBorder_lerpSizeBetween;
         private static final MethodHandle PACKET_WARNING_DISTANCE, PACKET_WARNING_DELAY, PACKET_LERP_SIZE, PACKET_INIT, PACKET_CENTER, PACKET_SIZE;
         private static final Object INITIALIZE;
         private static final boolean SUPPORTS_SEPARATE_PACKETS;
@@ -144,6 +198,9 @@ public abstract class XWorldBorder {
         private double damagePerBlock = 0.2D;
         private double damageSafeZone = 5.0D;
         private double size = 100;
+        /**
+         * The previous size.
+         */
         private double sizeLerpTarget = 0;
         private Duration warningTime = Duration.ofSeconds(15);
         private Duration sizeLerpTime = Duration.ZERO;
@@ -214,9 +271,16 @@ public abstract class XWorldBorder {
         }
 
         public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {
+            super.setSizeLerpTarget(sizeLerpTarget);
             if (this.sizeLerpTarget == sizeLerpTarget) return this;
             this.sizeLerpTarget = sizeLerpTarget;
             update(Component.SIZE_LERP);
+            return this;
+        }
+
+        @Override
+        public XWorldBorder update(Player... players) {
+            setFor(Arrays.asList(players), false);
             return this;
         }
 
@@ -224,12 +288,20 @@ public abstract class XWorldBorder {
             return warningBlocks;
         }
 
+        @Override
+        public XWorldBorder setCenter(Location location) {
+            this.setCenter(location.getX(), location.getZ());
+            this.world = location.getWorld();
+            return this;
+        }
+
         public XWorldBorder setCenter(double x, double z) {
+            super.setCenter(x, z);
             if (centerX == x && centerZ == z) return this;
             centerX = x;
             centerZ = z;
 
-            updateBorderBounds();
+            updateBorderBounds(getCenter());
             update(Component.CENTER);
 
             return this;
@@ -240,11 +312,12 @@ public abstract class XWorldBorder {
         }
 
         public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
+            super.setSize(newSize, duration);
             if (this.size == newSize && sizeLerpTime.equals(duration)) return this;
             size = newSize;
             sizeLerpTime = duration;
 
-            updateBorderBounds();
+            updateBorderBounds(getCenter());
             update(Component.SIZE);
             if (!duration.isZero()) update(Component.SIZE_LERP);
 
@@ -257,7 +330,7 @@ public abstract class XWorldBorder {
 
         public boolean isWithinBorder(Location location) {
             if (this.borderBounds == null) return false;
-            if (this.world != location.getWorld()) return false;
+            if (this.world != null && this.world != location.getWorld()) return false;
 
             return (location.getX() + 1) > borderBounds.minX &&
                     location.getX() < borderBounds.maxX &&
@@ -359,40 +432,46 @@ public abstract class XWorldBorder {
                         .returns(void.class).parameters(int.class)
                         .unreflect();
                 // Renamed to lerpSizeBetween(double d0, double d1, long i)
-                TRANSITION = wb.method()
-                        .named(v(18, "a").orElse("transitionSizeBetween"))
+                WorldBorder_lerpSizeBetween = wb.method()
+                        .map(MinecraftMapping.OBFUSCATED, v(18, "a").orElse("transitionSizeBetween"))
+                        .map(MinecraftMapping.MOJANG, v(21, "lerpSizeBetween").orElse("transitionSizeBetween"))
                         .returns(void.class).parameters(double.class, double.class, long.class)
                         .unreflect();
             } else {
                 WORLD_HANDLE = WORLDBORDER = WORLDBORDER_WORLD = CENTER = WARNING_DISTANCE = WARNING_TIME =
-                        SIZE = TRANSITION = PACKET_WARNING_DISTANCE = PACKET_WARNING_DELAY = PACKET_LERP_SIZE =
+                        SIZE = WorldBorder_lerpSizeBetween = PACKET_WARNING_DISTANCE = PACKET_WARNING_DELAY = PACKET_LERP_SIZE =
                                 PACKET_INIT = PACKET_CENTER = PACKET_SIZE = null;
                 INITIALIZE = null;
                 SUPPORTS_SEPARATE_PACKETS = true;
             }
         }
 
-        public void setFor(Player player, boolean forceInit) {
+        public void setFor(Collection<Player> players, boolean forceInit) {
             boolean init = forceInit || this.init;
             this.init = false;
 
             try {
+                Object[] packets;
+                for (Component component : updateRequired) {
+                    component.setHandle(this);
+                }
+
                 if (SUPPORTS_SEPARATE_PACKETS && !init) {
-                    Object[] packets = new Object[updateRequired.size()];
+                    packets = new Object[updateRequired.size()];
                     int i = 0;
                     for (Component component : updateRequired) {
-                        component.setHandle(this);
                         packets[i++] = component.createPacket(this);
                     }
-                    MinecraftConnection.sendPacket(player, packets);
                 } else {
-                    for (Component component : updateRequired) {
-                        component.setHandle(this);
-                    }
                     Object packet = supports(17) ?
                             PACKET_INIT.invoke(handle) :
                             PACKET_INIT.invoke(handle, INITIALIZE);
-                    MinecraftConnection.sendPacket(player, packet);
+
+                    packets = new Object[]{packet};
+                }
+
+                for (Player player : players) {
+                    MinecraftConnection.sendPacket(player, packets);
                 }
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
@@ -428,17 +507,19 @@ public abstract class XWorldBorder {
                 protected Object createPacket(NMSWorldBorder wb) throws Throwable {
                     return PACKET_SIZE.invoke(wb.handle);
                 }
-            }, SIZE_LERP {
+            },
+            SIZE_LERP {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
-                    NMSWorldBorder.TRANSITION.invoke(wb.handle, wb.sizeLerpTarget, wb.size, wb.sizeLerpTime.toMillis());
+                    NMSWorldBorder.WorldBorder_lerpSizeBetween.invoke(wb.handle, wb.sizeLerpTarget, wb.size, wb.sizeLerpTime.toMillis());
                 }
 
                 @Override
                 protected Object createPacket(NMSWorldBorder wb) throws Throwable {
                     return PACKET_LERP_SIZE.invoke(wb.handle);
                 }
-            }, WARNING_DISTANCE {
+            },
+            WARNING_DISTANCE {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
                     NMSWorldBorder.WARNING_DISTANCE.invoke(wb.handle, wb.warningBlocks);
@@ -448,7 +529,8 @@ public abstract class XWorldBorder {
                 protected Object createPacket(NMSWorldBorder wb) throws Throwable {
                     return PACKET_WARNING_DISTANCE.invoke(wb.handle);
                 }
-            }, WARNING_DELAY {
+            },
+            WARNING_DELAY {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
                     NMSWorldBorder.WARNING_TIME.invoke(wb.handle, wb.warningBlocks);
@@ -458,7 +540,8 @@ public abstract class XWorldBorder {
                 protected Object createPacket(NMSWorldBorder wb) throws Throwable {
                     return PACKET_WARNING_DELAY.invoke(wb.handle);
                 }
-            }, CENTER {
+            },
+            CENTER {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
                     NMSWorldBorder.CENTER.invoke(wb.handle, wb.centerX, wb.centerZ);
@@ -487,23 +570,33 @@ public abstract class XWorldBorder {
         public double getSize() {return worldBorder.getSize();}
         public int getWarningDistance() {return worldBorder.getWarningDistance();}
         public Duration getWarningTime() {return Duration.ofSeconds(worldBorder.getWarningTime());}
-        public void setFor(Player player, boolean forceInit) {player.setWorldBorder(this.worldBorder);}
-
 
         public XWorldBorder setDamageBuffer(double blocks) { worldBorder.setDamageBuffer(blocks); return this; }
         public XWorldBorder setWarningDistance(int blocks) {worldBorder.setWarningDistance(blocks); return this;}
         public XWorldBorder setWarningTime(Duration time) {worldBorder.setWarningTime((int) time.getSeconds()); return this;}
-        public XWorldBorder setSize(double newSize, @NotNull Duration duration) {worldBorder.setSize(newSize); return this;}
+        public XWorldBorder setSize(double newSize, @NotNull Duration duration) {worldBorder.setSize(newSize, TimeUnit.MILLISECONDS, duration.toMillis()); return this;}
+        public XWorldBorder setCenter(Location location) {worldBorder.setCenter(location); return this;}
         public XWorldBorder setCenter(double x, double z) {worldBorder.setCenter(x, z); return this;}
-        public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {return this;}
+        public XWorldBorder update(Player... players) {return this;}
         // @formatter:on
 
+        public XWorldBorder setSizeLerpTarget(double sizeLerpTarget) {
+            worldBorder.setSize(sizeLerpTarget);
+            return this;
+        }
+
+        @Override
+        public void setFor(Collection<Player> players, boolean forceInit) {
+            for (Player player : players) {
+                player.setWorldBorder(this.worldBorder);
+            }
+        }
 
         @Override
         public Location getCenter() {
             Location center = worldBorder.getCenter();
             if (borderBounds == null || borderBounds.isCenterSame(center.getWorld(), center.getX(), center.getZ())) {
-                updateBorderBounds();
+                updateBorderBounds(center);
             }
             return center;
         }
@@ -545,7 +638,7 @@ public abstract class XWorldBorder {
             Player player = event.getPlayer();
             XWorldBorder wb = get(player);
             if (wb == null) return;
-            wb.setFor(player, true);
+            wb.setFor(Collections.singleton(player), true);
         }
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -553,7 +646,7 @@ public abstract class XWorldBorder {
             Player player = event.getPlayer();
             XWorldBorder wb = get(player);
             if (wb == null) return;
-            wb.setFor(player, true);
+            wb.setFor(Collections.singleton(player), true);
         }
     }
 
@@ -567,7 +660,7 @@ public abstract class XWorldBorder {
         if (wb != null) return wb;
 
         wb = create();
-        wb.setFor(player, true);
+        wb.setFor(Collections.singleton(player), true);
 
         if (!SUPPORTS_NATIVE_WORLDBORDERS) {
             NMSWorldBorder.WORLD_BORDERS.put(player.getUniqueId(), wb);
@@ -583,6 +676,19 @@ public abstract class XWorldBorder {
             return worldBorder == null ? null : new BukkitWorldBorder(worldBorder);
         } else {
             return NMSWorldBorder.WORLD_BORDERS.get(player.getUniqueId());
+        }
+    }
+
+    @Nullable
+    public static XWorldBorder remove(Player player) {
+        if (SUPPORTS_NATIVE_WORLDBORDERS) {
+            WorldBorder worldBorder = player.getWorldBorder();
+            if (worldBorder == null) return null;
+
+            player.setWorldBorder(player.getWorld().getWorldBorder());
+            return new BukkitWorldBorder(worldBorder);
+        } else {
+            return NMSWorldBorder.WORLD_BORDERS.remove(player.getUniqueId());
         }
     }
 

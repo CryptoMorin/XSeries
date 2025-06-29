@@ -33,6 +33,7 @@ import com.cryptomorin.xseries.test.util.XLogger;
 import org.bukkit.Keyed;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Biome;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
@@ -73,6 +74,7 @@ public final class DifferenceHelper {
                 particle = serverFolder.resolve("XParticle.txt"),
                 entityType = serverFolder.resolve("XEntityType.txt"),
                 itemFlag = serverFolder.resolve("XItemFlag.txt"),
+                attributes = serverFolder.resolve("XAttribute.txt"),
                 biomes = serverFolder.resolve("XBiome.txt");
 
         // TODO - Right now the difference writer doesn't properly consider the version that is being tested
@@ -83,6 +85,7 @@ public final class DifferenceHelper {
         new DiffWriter(itemFlag).writeDifference(getEnumLikeFields(ItemFlag.class), XItemFlag.class);
         new DiffWriter(potion).writeDifference(getEnumLikeFields(PotionEffectType.class), XPotion.class);
         new DiffWriter(enchantment).writeDifference(Enchantment.class, XEnchantment.REGISTRY);
+        new DiffWriter(attributes).writeDifference(Attribute.class, XAttribute.REGISTRY);
 
         if (XReflection.supports(9))
             new DiffWriter(particle).writeDifference(getEnumLikeFields(Particle.class), XParticle.class);
@@ -253,10 +256,14 @@ public final class DifferenceHelper {
                     if (!hasEntries) {
                         hasEntries = true;
                         writeAdded();
+                        writeInfoAnnotation();
+                        writer.append("public static final ").append(xRegistry.getXFormClass().getSimpleName());
+                        newLine();
                     }
 
+
                     String otherNames = altNames.stream().map(j -> '"' + j + '"').collect(Collectors.joining(", "));
-                    writer.append(systemConst.name).append(" = std(").append(otherNames).append("),");
+                    writer.append("    ").append(systemConst.name).append(" = std(").append(otherNames).append("),");
                     newLine();
                 }
             }
@@ -279,6 +286,14 @@ public final class DifferenceHelper {
             writeToFile();
         }
 
+        private void writeInfoAnnotation() {
+            writer.append("@XInfo(since = \"")
+                    .append(XReflection.MAJOR_NUMBER)
+                    .append('.').append(XReflection.MINOR_NUMBER)
+                    .append('.').append(XReflection.PATCH_NUMBER).append("\")");
+            newLine();
+        }
+
         public <E extends Enum<E>> void writeDifference(List<String> system, Class<E> xForm) {
             boolean hasEntries = false;
 
@@ -297,6 +312,7 @@ public final class DifferenceHelper {
                         hasEntries = true;
                         writeAdded();
                     }
+                    writeInfoAnnotation();
                     writer.append(systemConst).append(',');
                     newLine();
                 }

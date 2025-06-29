@@ -22,6 +22,10 @@
 
 package com.cryptomorin.xseries;
 
+/**
+ * A class that delegates {@link Object} methods from {@link #object()}.
+ * @param <T>
+ */
 public abstract class AbstractReferencedClass<T> {
     protected abstract T object();
 
