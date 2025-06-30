@@ -51,7 +51,7 @@
         <!--##### Latest Versions #####-->
         <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
         <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
-        <spigotVersion>1.21.6-R0.1-SNAPSHOT</spigotVersion>
+        <spigotVersion>1.21.7-R0.1-SNAPSHOT</spigotVersion>
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>

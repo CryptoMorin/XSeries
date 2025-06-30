@@ -420,7 +420,7 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         if (mapping == null) {
             if (!PERFORM_AUTO_ADD) // If you ever get this error, it could mean that you're not following Minecraft's new dot separated namespace format.
                 throw new UnsupportedOperationException("Unknown standard bukkit form (no auto-add) for " + registryName + ": " + bukkit);
-            if (creator == null)
+            if (creator == null) // For enum registries
                 throw new UnsupportedOperationException("Unsupported value for " + registryName + ": " + bukkit);
             XForm xForm = std(bukkit);
             if (xForm == null) throw new IllegalStateException("Unknown " + registryName + ": " + bukkit);

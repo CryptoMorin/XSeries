@@ -1836,6 +1836,10 @@ public final class XSound extends XModule<XSound, Sound> {
             ITEM_SHEARS_SNIP = std("item.shears.snip"),
             MUSIC_DISC_TEARS = std("music_disc.tears");
 
+    @XInfo(since = "1.21.7")
+    public static final XSound
+            MUSIC_DISC_LAVA_CHICKEN = std("music_disc.lava_chicken");
+
     static {
         REGISTRY.discardMetadata();
     }
