@@ -159,7 +159,7 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "13.3.2";
+    public static final String XSERIES_VERSION = "13.3.3";
 
     /**
      * System property ({@link System#getProperty(String)}) used to disable Minecraft capabilities
@@ -366,7 +366,7 @@ public final class XReflection {
                 /* 18 */ 2,
                 /* 19 */ 4,
                 /* 20 */ 6,
-                /* 21 */ 5,
+                /* 21 */ 7,
         };
 
         if (minorVersion > patches.length) return null;
