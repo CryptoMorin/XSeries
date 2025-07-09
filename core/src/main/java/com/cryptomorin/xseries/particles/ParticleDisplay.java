@@ -1652,12 +1652,13 @@ public class ParticleDisplay {
             // always put the color in dx and set extra to 1.
             extra = 1;
         }
-        if (players == null)
+        if (players == null || players.isEmpty())
             if (ISFLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
             else loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
         else {
-            for (Player player : players)
+            // We copy this to avoid concurrent modification.
+            for (Player player : players.toArray(new Player[0]))
                 player.spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
         }
     }
