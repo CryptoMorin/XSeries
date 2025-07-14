@@ -1711,6 +1711,9 @@ public final class XItemStack {
         for (ItemStack item : items) {
             if (item == null) continue;
 
+            // AssertionError: TRAP ItemStack.setCount -> ItemStack.updateEmptyCacheFlag
+            if (item.getType() == Material.AIR) continue;
+
             boolean add = true;
             for (ItemStack stack : stacked) {
                 if (similarity.test(item, stack)) {

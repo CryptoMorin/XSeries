@@ -2056,7 +2056,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
         byte data = (byte) (Data.ISFLAT || material.equals("MAP") || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         // Versions 1.9-1.12 didn't really use the items data value.
-        if (supports(9) && !supports(13) && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
+        if (Data.SUPPORTS_SpawnEggMeta && !supports(13) && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
             ItemMeta meta = item.getItemMeta();
             if (meta instanceof SpawnEggMeta) {
                 SpawnEggMeta egg = (SpawnEggMeta) meta;
@@ -2518,5 +2518,21 @@ public enum XMaterial implements XBase<XMaterial, Material> {
          * @since 3.0.0
          */
         private static final boolean ISFLAT = supports(13);
+
+        /**
+         * Added around Minecraft v1.11
+         */
+        private static final boolean SUPPORTS_SpawnEggMeta;
+
+        static {
+            boolean supportsSpawnEggMeta;
+            try {
+                Class.forName("org.bukkit.inventory.meta.SpawnEggMeta");
+                supportsSpawnEggMeta = true;
+            } catch (ClassNotFoundException ex) {
+                supportsSpawnEggMeta = false;
+            }
+            SUPPORTS_SpawnEggMeta = supportsSpawnEggMeta;
+        }
     }
 }
