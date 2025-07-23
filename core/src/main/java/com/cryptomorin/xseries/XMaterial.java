@@ -315,7 +315,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     CARROTS("CARROT"),
     CARROT_ON_A_STICK("CARROT_STICK"),
     CARTOGRAPHY_TABLE,
-    CARVED_PUMPKIN,
+    CARVED_PUMPKIN("PUMPKIN"),
     CAT_SPAWN_EGG,
     CAULDRON("CAULDRON", "CAULDRON_ITEM"),
     /**
