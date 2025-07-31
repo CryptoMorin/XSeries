@@ -22,8 +22,8 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.cryptomorin</groupId>
@@ -133,16 +133,13 @@
                         <execution>
                             <phase>validate</phase>
                             <goals>
-                                <goal>toolchain</goal>
+                                <goal>display-discovered-jdk-toolchains</goal>
+                                <goal>select-jdk-toolchain</goal>
                             </goals>
                         </execution>
                     </executions>
                     <configuration>
-                        <toolchains>
-                            <jdk>
-                                <version>[${testJava}]</version>
-                            </jdk>
-                        </toolchains>
+                        <version>[${testJava},)</version>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -415,21 +412,21 @@
                     <extensions>true</extensions>
                     <configuration>
                         <publishingServerId>central</publishingServerId>
-<!--                        <autoPublish>true</autoPublish>-->
-<!--                        <waitUntil>published</waitUntil>-->
+                        <!--                        <autoPublish>true</autoPublish>-->
+                        <!--                        <waitUntil>published</waitUntil>-->
                     </configuration>
                 </plugin>
-<!--                <plugin>-->
-<!--                    <groupId>org.sonatype.plugins</groupId>-->
-<!--                    <artifactId>nexus-staging-maven-plugin</artifactId>-->
-<!--                    <version>1.7.0</version>-->
-<!--                    <extensions>true</extensions>-->
-<!--                    <configuration>-->
-<!--                        <serverId>ossrh</serverId>-->
-<!--                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
-<!--                        <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-<!--                    </configuration>-->
-<!--                </plugin>-->
+                <!--                <plugin>-->
+                <!--                    <groupId>org.sonatype.plugins</groupId>-->
+                <!--                    <artifactId>nexus-staging-maven-plugin</artifactId>-->
+                <!--                    <version>1.7.0</version>-->
+                <!--                    <extensions>true</extensions>-->
+                <!--                    <configuration>-->
+                <!--                        <serverId>ossrh</serverId>-->
+                <!--                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
+                <!--                        <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
+                <!--                    </configuration>-->
+                <!--                </plugin>-->
             </plugins>
         </pluginManagement>
     </build>
