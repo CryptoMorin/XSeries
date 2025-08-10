@@ -31,6 +31,7 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Objects;
 
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 
@@ -59,6 +60,14 @@ public final class MessageComponents {
         CraftChatMessage_fromJson = fromJson;
     }
 
+    public static MessageTextString ofNullable(String text) {
+        return text == null ? null : new MessageTextString(text);
+    }
+
+    public static MessageTextComponent ofNullable(BaseComponent text) {
+        return text == null ? null : new MessageTextComponent(text);
+    }
+
     // @formatter:off
     public interface MessageText {
         String asString();
@@ -66,7 +75,7 @@ public final class MessageComponents {
     }
     public static final class MessageTextString implements MessageText {
         private final String string;
-        public MessageTextString(String string) {this.string = string;}
+        public MessageTextString(String string) {this.string = Objects.requireNonNull(string, "Message cannot be null");}
 
         @Override public String toString() {return this.getClass().getSimpleName() + '(' + string + ')';}
         @Override public String asString() {return string;}
@@ -74,7 +83,7 @@ public final class MessageComponents {
     }
     public static final class MessageTextComponent implements MessageText {
         private final BaseComponent component;
-        public MessageTextComponent(BaseComponent component) {this.component = component;}
+        public MessageTextComponent(BaseComponent component) {this.component = Objects.requireNonNull(component, "Message cannot be null");;}
 
         @Override public String toString() {return this.getClass().getSimpleName() + '(' + component + ')';}
         @Override public String asString() {return component.toLegacyText();}

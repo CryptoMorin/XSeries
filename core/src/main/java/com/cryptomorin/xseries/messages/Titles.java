@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.cryptomorin.xseries.messages.MessageComponents.*;
+import static com.cryptomorin.xseries.messages.MessageComponents.MessageText;
 import static com.cryptomorin.xseries.reflection.XReflection.ofMinecraft;
 import static com.cryptomorin.xseries.reflection.minecraft.MinecraftConnection.sendPacket;
 
@@ -75,6 +75,7 @@ public final class Titles {
             ClientboundSetTitleTextPacket,
             ClientboundSetSubtitleTextPacket;
 
+    @Nullable
     private MessageText title, subtitle;
     private final int fadeIn, stay, fadeOut;
 
@@ -185,11 +186,11 @@ public final class Titles {
     }
 
     public Titles(BaseComponent title, BaseComponent subtitle, int fadeIn, int stay, int fadeOut) {
-        this(new MessageTextComponent(title), new MessageTextComponent(subtitle), fadeIn, stay, fadeOut);
+        this(MessageComponents.ofNullable(title), MessageComponents.ofNullable(subtitle), fadeIn, stay, fadeOut);
     }
 
     public Titles(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        this(new MessageTextString(title), new MessageTextString(subtitle), fadeIn, stay, fadeOut);
+        this(MessageComponents.ofNullable(title), MessageComponents.ofNullable(subtitle), fadeIn, stay, fadeOut);
     }
 
     public Titles copy() {
@@ -215,7 +216,7 @@ public final class Titles {
     public static void sendTitle(@NotNull Player player,
                                  int fadeIn, int stay, int fadeOut,
                                  @Nullable String title, @Nullable String subtitle) {
-        sendTitle(player, fadeIn, stay, fadeOut, new MessageTextString(title), new MessageTextString(subtitle));
+        sendTitle(player, fadeIn, stay, fadeOut, MessageComponents.ofNullable(title), MessageComponents.ofNullable(subtitle));
     }
 
     public static void sendTitle(@NotNull Player player,
@@ -349,19 +350,19 @@ public final class Titles {
     }
 
     public void setTitle(String title) {
-        this.title = new MessageTextString(title);
+        this.title = MessageComponents.ofNullable(title);
     }
 
     public void setSubtitle(String subtitle) {
-        this.subtitle = new MessageTextString(subtitle);
+        this.subtitle = MessageComponents.ofNullable(subtitle);
     }
 
     public void setTitle(BaseComponent title) {
-        this.title = new MessageTextComponent(title);
+        this.title = MessageComponents.ofNullable(title);
     }
 
     public void setSubtitle(BaseComponent subtitle) {
-        this.subtitle = new MessageTextComponent(subtitle);
+        this.subtitle = MessageComponents.ofNullable(subtitle);
     }
 
     /**
