@@ -55,6 +55,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ColorableArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -425,8 +426,10 @@ public final class XSeriesTests {
                 ItemStack redeserializedItem = XItemStack.deserialize(serializeRedeserialized);
 
                 assertTrue(dual.serialized.isSimilar(redeserializedItem),
-                        () -> "Items for redeserialized '" + entry.getKey() + "' are not similar:\n\nSerialized:   "
-                                + dual.serialized + "\n\nDeserialized: " + redeserializedItem + '\n');
+                        () -> "Items for re-deserialized '" + entry.getKey() + "' are not similar:"
+                                + "\n\nSerialized:   " + dual.serialized
+                                + "\n\nDeserialized: " + dual.deserialized
+                                + "\n\nRe-deserialized: " + redeserializedItem + "\n\n");
             }
         }
     }
@@ -465,7 +468,7 @@ public final class XSeriesTests {
         }
     }
 
-    @SuppressWarnings("CodeBlock2Expr")
+    @SuppressWarnings({"CodeBlock2Expr", "UnstableApiUsage"})
     private static YamlConfiguration serializeItemStack(Map<String, ItemSerialDual> map) throws IOException {
         File file = new File(Bukkit.getWorldContainer(), "serialized.yml");
         if (!file.exists()) {
@@ -479,6 +482,22 @@ public final class XSeriesTests {
             meta.setDisplayName("&3Yay");
             meta.setLore(Arrays.asList("Line 1", "Line 2", " ", "Line 4"));
         }));
+        if (XReflection.supports(1, 21, 5)) {
+            items.put("advanced-custom-model-data-text", createItem(XMaterial.PAPER, meta -> {
+                CustomModelDataComponent comp = meta.getCustomModelDataComponent();
+                comp.setStrings(Collections.singletonList("text"));
+                meta.setCustomModelDataComponent(comp);
+            }));
+            items.put("advanced-custom-model-data-compound", createItem(XMaterial.PAPER, meta -> {
+                CustomModelDataComponent comp = meta.getCustomModelDataComponent();
+
+                comp.setStrings(Arrays.asList("a", "b", "c"));
+                comp.setFlags(Arrays.asList(true, false, true));
+                comp.setFloats(Arrays.asList(3f, 5.3f, 1000.3f));
+
+                meta.setCustomModelDataComponent(comp);
+            }));
+        }
         if (metaExists("ColorableArmorMeta")) {
             items.put("leather-colored-armor-trim", createItem(XMaterial.LEATHER_CHESTPLATE, meta -> {
                 ColorableArmorMeta leather = (ColorableArmorMeta) meta;

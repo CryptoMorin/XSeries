@@ -28,3 +28,14 @@ leather-colored-armor-trim:
   trim:
     material: 'minecraft:diamond'
     pattern: 'minecraft:snout'
+
+advanced-custom-model-data-text:
+  custom-model-data: 'text'
+  material: PAPER
+
+advanced-custom-model-data-compound:
+  custom-model-data:
+    strings: [ 'a', 'b', 'c' ]
+    flags: [ true, false, true ]
+    float: [ 3, 5.3, 1000.3 ]
+  material: PAPER
