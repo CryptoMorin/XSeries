@@ -1,6 +1,15 @@
+# Use the latest LTS, as long as it can compile Java 8
 jdk:
   - openjdk21
 
+# Uses the latest Maven version by default (Sometimes a few versions behind)
 before_install:
   - sdk install maven
   - sdk default maven
+
+# I'm not sure if tests work on JitPack...
+# JitPack itself will skip tests of all builds by default.
+# Note that you must use "mvn install" and not "mvn package"
+install:
+  - 'echo "Running XSeries aggregated core project setup..."'
+  - 'mvn clean installx -pl core -am -DskipTests=true -Dmaven.test.skip=true'
