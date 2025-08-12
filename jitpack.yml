@@ -12,4 +12,4 @@ before_install:
 # Note that you must use "mvn install" and not "mvn package"
 install:
   - 'echo "Running XSeries aggregated core project setup..."'
-  - 'mvn clean install -pl core -am -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
+  - 'mvn clean install -X -pl core -am -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
