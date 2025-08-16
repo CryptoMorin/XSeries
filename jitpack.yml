@@ -13,3 +13,7 @@ before_install:
 install:
   - 'echo "Running XSeries aggregated core project setup..."'
   - 'mvn clean install -X -pl core -am -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
+  - 'echo "Uninstalling sub-module build files..."'
+  - `mvn clean -pl commons`
+  - `mvn clean -pl new-bukkit`
+  - `mvn clean -pl old-bukkit`
