@@ -13,4 +13,4 @@ before_install:
 # * Note: We can't use multiple separate Maven commands, you'll get "/script/buildit.sh: line 92: [INFO]: command not found"
 install:
   - 'echo "Running XSeries aggregated core project setup..."'
-  - 'mvn clean install -X -pl core -am -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
+  - 'mvn install -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
