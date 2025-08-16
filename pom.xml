@@ -22,8 +22,8 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.cryptomorin</groupId>
@@ -149,6 +149,7 @@
                     <version>3.6.0</version>
                     <executions>
                         <execution>
+                            <id>aggregate-packages</id>
                             <phase>package</phase>
                             <goals>
                                 <goal>shade</goal>
@@ -156,6 +157,15 @@
                         </execution>
                     </executions>
                     <configuration>
+                        <filters>
+                            <filter>
+                                <artifact>*.*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+
                         <shadeTestJar>false</shadeTestJar>
                         <createDependencyReducedPom>true</createDependencyReducedPom>
                         <shadedArtifactAttached>false</shadedArtifactAttached>
@@ -181,29 +191,59 @@
                                 <goal>jar-no-fork</goal>
                             </goals>
                         </execution>
+                        <execution>
+                            <id>aggregate-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>aggregate</goal>
+                            </goals>
+                        </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.4</version>
+
+                    <!-- Skip for other submodules -->
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.11.2</version>
+
+                    <executions>
+                        <execution>
+                            <id>aggregate-javadocs</id>
+                            <!-- For some reason, using the "install" phase doesn't copy the javadocs jar into the .m2 folder. -->
+                            <phase>package</phase>
+                            <goals>
+                                <goal>aggregate-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+
                     <configuration>
                         <!--all,-missing-->
                         <doclint>none</doclint>
                         <release>21</release>
+                        <attach>true</attach>
                         <excludePackageNames>com.cryptomorin.xseries.unused:com.cryptomorin.xseries.particles
                         </excludePackageNames>
                         <!-- Apparently this is needed because it's a bug with maven JavaDoc plugin not being able to find the exe by itself. -->
                         <!-- <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>-->
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
