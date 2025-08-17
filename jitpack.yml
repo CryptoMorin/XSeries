@@ -9,7 +9,8 @@ before_install:
 
 # I'm not sure if tests work on JitPack...
 # JitPack itself will skip tests of all builds by default.
-# Note that you must use "mvn install" and not "mvn package"
+# * Note: You must use "mvn install" and not "mvn package"
+# * Note: We can't use multiple separate Maven commands, you'll get "/script/buildit.sh: line 92: [INFO]: command not found"
 install:
   - 'echo "Running XSeries aggregated core project setup..."'
-  - 'mvn clean install -pl core -am -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
+  - 'mvn install -DskipTests=true -Dmaven.test.skip=true -Dgpg.skip=true'
