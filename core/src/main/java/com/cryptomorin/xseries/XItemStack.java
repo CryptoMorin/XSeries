@@ -96,14 +96,16 @@ public final class XItemStack {
             SUPPORTS_POTION_COLOR,
             SUPPORTS_Inventory_getStorageContents,
             SUPPORTS_CUSTOM_MODEL_DATA,
-            SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA;
+            SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA,
+            SUPPORTS_ITEM_MODEL;
 
     static {
         boolean supportsPotionColor = false,
                 supportsUnbreakable = false,
                 supportsGetStorageContents = false,
                 supportSCustomModelData = false,
-                supportsAdvancedCustomModelData = false;
+                supportsAdvancedCustomModelData = false,
+                supportsItemModel = false;
 
 
         try {
@@ -125,6 +127,12 @@ public final class XItemStack {
         }
 
         try {
+            ItemMeta.class.getDeclaredMethod("getItemModel");
+            supportsItemModel = true;
+        } catch (NoSuchMethodException ignored) {
+        }
+
+        try {
             Class.forName("org.bukkit.inventory.meta.PotionMeta").getMethod("setColor", Color.class);
             supportsPotionColor = true;
         } catch (Throwable ignored) {
@@ -141,6 +149,7 @@ public final class XItemStack {
         SUPPORTS_Inventory_getStorageContents = supportsGetStorageContents;
         SUPPORTS_CUSTOM_MODEL_DATA = supportSCustomModelData;
         SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA = supportsAdvancedCustomModelData;
+        SUPPORTS_ITEM_MODEL = supportsItemModel;
     }
 
     private interface MetaHandler<M extends ItemMeta> {
@@ -457,7 +466,7 @@ public final class XItemStack {
             if (meta.hasLore())
                 config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
 
-            handleCustomModelData();
+            customModelData();
             if (SUPPORTS_UNBREAKABLE) {
                 if (meta.isUnbreakable()) config.set("unbreakable", true);
             }
@@ -471,7 +480,14 @@ public final class XItemStack {
         }
 
         @SuppressWarnings("UnstableApiUsage")
-        private void handleCustomModelData() {
+        private void customModelData() {
+            if (SUPPORTS_ITEM_MODEL) {
+                String itemModel = config.getString("item-model");
+                if (itemModel != null && !itemModel.isEmpty()) {
+                    meta.setItemModel(NamespacedKey.fromString(itemModel));
+                }
+            }
+
             if (SUPPORTS_CUSTOM_MODEL_DATA) {
                 if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA && meta.hasCustomModelDataComponent()) {
                     CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
@@ -877,6 +893,12 @@ public final class XItemStack {
 
         @SuppressWarnings("UnstableApiUsage")
         private void customModelData() {
+            if (SUPPORTS_ITEM_MODEL) {
+                if (meta.hasItemModel()) {
+                    config.set("item-model", meta.getItemModel().toString());
+                }
+            }
+
             if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
                 CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
 
