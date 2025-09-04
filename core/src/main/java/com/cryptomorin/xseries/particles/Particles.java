@@ -2889,19 +2889,19 @@ public final class Particles {
 
             switch (facing) {
                 case NORTH:
-                    x = location.getX() - pixelLoc[0];
+                    x = location.getX() + pixelLoc[0];
                     y = location.getY() - pixelLoc[1];
                     z = location.getZ();
                     break;
                 case EAST:
                     // East
                     x = location.getX();
-                    y = location.getY() - pixelLoc[0];
-                    z = location.getZ() - pixelLoc[1];
+                    y = location.getY() - pixelLoc[1];
+                    z = location.getZ() + pixelLoc[0];
                     break;
                 case SOUTH:
-                    x = location.getX() - pixelLoc[1];
-                    y = location.getY() - pixelLoc[0];
+                    x = location.getX() - pixelLoc[0];
+                    y = location.getY() - pixelLoc[1];
                     z = location.getZ();
                     break;
                 case WEST:
