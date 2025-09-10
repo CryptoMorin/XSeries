@@ -986,6 +986,31 @@ public final class XTag<T extends XBase<?, ?>> {
     @NotNull
     public static final XTag<XMaterial> NETHERITE_TOOLS;
     /**
+     * Tag representing all possible types of sword
+     */
+    @NotNull
+    public static final XTag<XMaterial> SWORD;
+    /**
+     * Tag representing all possible types of pickaxe
+     */
+    @NotNull
+    public static final XTag<XMaterial> PICKAXE;
+    /**
+     * Tag representing all possible types of axe
+     */
+    @NotNull
+    public static final XTag<XMaterial> AXE;
+    /**
+     * Tag representing all possible types of shovel
+     */
+    @NotNull
+    public static final XTag<XMaterial> SHOVEL;
+    /**
+     * Tag representing all possible types of hoe
+     */
+    @NotNull
+    public static final XTag<XMaterial> HOE;
+    /**
      * Tag representing all blocks that could harm a player.
      */
     @NotNull
@@ -2123,12 +2148,42 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.DIAMOND_AXE,
                 XMaterial.DIAMOND_HOE,
                 XMaterial.DIAMOND_SHOVEL,
-                XMaterial.DIAMOND_SHOVEL);
+                XMaterial.DIAMOND_SWORD);
         NETHERITE_TOOLS = TagBuilder.simple(XMaterial.NETHERITE_PICKAXE,
                 XMaterial.NETHERITE_AXE,
                 XMaterial.NETHERITE_HOE,
                 XMaterial.NETHERITE_SHOVEL,
+                XMaterial.NETHERITE_SWORD);
+        SWORD = TagBuilder.simple(XMaterial.WOODEN_SWORD,
+                XMaterial.STONE_SWORD,
+                XMaterial.IRON_SWORD,
+                XMaterial.GOLDEN_SWORD,
+                XMaterial.DIAMOND_SWORD,
+                XMaterial.NETHERITE_SWORD);
+        PICKAXE = TagBuilder.simple(XMaterial.WOODEN_PICKAXE,
+                XMaterial.STONE_PICKAXE,
+                XMaterial.IRON_PICKAXE,
+                XMaterial.GOLDEN_PICKAXE,
+                XMaterial.DIAMOND_PICKAXE,
+                XMaterial.NETHERITE_PICKAXE);
+        AXE = TagBuilder.simple(XMaterial.WOODEN_AXE,
+                XMaterial.STONE_AXE,
+                XMaterial.IRON_AXE,
+                XMaterial.GOLDEN_AXE,
+                XMaterial.DIAMOND_AXE,
+                XMaterial.NETHERITE_AXE);
+        SHOVEL = TagBuilder.simple(XMaterial.WOODEN_SHOVEL,
+                XMaterial.STONE_SHOVEL,
+                XMaterial.IRON_SHOVEL,
+                XMaterial.GOLDEN_SHOVEL,
+                XMaterial.DIAMOND_SHOVEL,
                 XMaterial.NETHERITE_SHOVEL);
+        HOE = TagBuilder.simple(XMaterial.WOODEN_HOE,
+                XMaterial.STONE_HOE,
+                XMaterial.IRON_HOE,
+                XMaterial.GOLDEN_HOE,
+                XMaterial.DIAMOND_HOE,
+                XMaterial.NETHERITE_HOE);
         ARMOR_PIECES = TagBuilder
                 .of(XMaterial.TURTLE_HELMET)
                 .inheritFrom(
