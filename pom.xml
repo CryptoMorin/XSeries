@@ -43,7 +43,7 @@
     </modules>
 
     <properties>
-        <revision>13.3.3</revision>
+        <revision>13.4.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
@@ -51,7 +51,11 @@
         <!--##### Latest Versions #####-->
         <!-- https://repo.codemc.io/service/rest/repository/browse/nms/org/spigotmc/spigot/ -->
         <!-- mvn install:install-file "-Dfile=server.jar" -DgroupId=org.spigotmc -DartifactId=spigot -Dversion=1.21.4-R0.1-EXPR -Dpackaging=jar -DgeneratePom=true -->
-        <spigotVersion>1.21.7-R0.1-SNAPSHOT</spigotVersion>
+
+        <!-- Note: timestamped snapshots are used because a recent Maven Central policy update made it so that it's impossible to -->
+        <!-- publish your artifact if it has SNAPSHOT depednencies without any prior notice. -->
+        <!-- Error: Dependencies to SNAPSHOT versions not allowed for dependency: org.spigotmc:spigot -->
+        <spigotVersion>1.21.8-R0.1-20250911.101837-6</spigotVersion>
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>

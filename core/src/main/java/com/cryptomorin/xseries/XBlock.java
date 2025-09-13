@@ -25,12 +25,14 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
 import org.bukkit.TreeSpecies;
-import org.bukkit.block.Banner;
-import org.bukkit.block.Skull;
 import org.bukkit.block.*;
+import org.bukkit.block.Banner;
+import org.bukkit.block.Bed;
+import org.bukkit.block.Skull;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.*;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +48,7 @@ import java.util.*;
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
  *
  * @author Crypto Morin
- * @version 3.1.0.1
+ * @version 4.0.0
  * @see Block
  * @see BlockState
  * @see MaterialData
@@ -106,7 +108,7 @@ public final class XBlock {
             return lightable.isLit();
         }
 
-        return isMaterial(block, BlockMaterial.REDSTONE_LAMP_ON, BlockMaterial.REDSTONE_TORCH_ON, BlockMaterial.BURNING_FURNACE);
+        return isMaterial(block, LegacyBlockMaterial.REDSTONE_LAMP_ON, LegacyBlockMaterial.REDSTONE_TORCH_ON, LegacyBlockMaterial.BURNING_FURNACE);
     }
 
     /**
@@ -138,9 +140,9 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.endsWith("FURNACE")) block.setType(BlockMaterial.BURNING_FURNACE.material);
-        else if (name.startsWith("REDSTONE_LAMP")) block.setType(BlockMaterial.REDSTONE_LAMP_ON.material);
-        else block.setType(BlockMaterial.REDSTONE_TORCH_ON.material);
+        if (name.endsWith("FURNACE")) block.setType(LegacyBlockMaterial.BURNING_FURNACE.material);
+        else if (name.startsWith("REDSTONE_LAMP")) block.setType(LegacyBlockMaterial.REDSTONE_LAMP_ON.material);
+        else block.setType(LegacyBlockMaterial.REDSTONE_TORCH_ON.material);
     }
 
     /**
@@ -186,42 +188,67 @@ public final class XBlock {
         return null;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     public static boolean isCake(@Nullable Material material) {
         if (!ISFLAT) {
-            return material == BlockMaterial.CAKE_BLOCK.material;
+            return material == LegacyBlockMaterial.CAKE_BLOCK.material;
         }
         return material == Material.CAKE;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isWheat(@Nullable Material material) {
         if (!ISFLAT) {
-            return material == BlockMaterial.CROPS.material;
+            return material == LegacyBlockMaterial.CROPS.material;
         }
         return material == Material.WHEAT;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isSugarCane(@Nullable Material material) {
         if (!ISFLAT) {
-            return material == BlockMaterial.SUGAR_CANE_BLOCK.material;
+            return material == LegacyBlockMaterial.SUGAR_CANE_BLOCK.material;
         }
         return material == Material.SUGAR_CANE;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isBeetroot(@Nullable Material material) {
         if (!ISFLAT) {
             // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
-            return material != null && material == BlockMaterial.BEETROOT_BLOCK.material;
+            return material != null && material == LegacyBlockMaterial.BEETROOT_BLOCK.material;
         }
         return material == Material.BEETROOTS;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isNetherWart(@Nullable Material material) {
         if (!ISFLAT) {
-            return material == BlockMaterial.NETHER_WARTS.material;
+            return material == LegacyBlockMaterial.NETHER_WARTS.material;
         }
         return material == Material.NETHER_WART;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isCarrot(@Nullable Material material) {
         if (!ISFLAT) {
             return material == Material.CARROT;
@@ -229,13 +256,21 @@ public final class XBlock {
         return material == Material.CARROTS;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isMelon(@Nullable Material material) {
         if (!ISFLAT) {
-            return material == BlockMaterial.MELON_BLOCK.material;
+            return material == LegacyBlockMaterial.MELON_BLOCK.material;
         }
         return material == Material.MELON;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isPotato(@Nullable Material material) {
         if (!ISFLAT) {
             return material == Material.POTATO;
@@ -278,6 +313,259 @@ public final class XBlock {
         return false;
     }
 
+    /**
+     * Best attempt at guessing the correct {@link XMaterial} version of a given block.
+     *
+     * @since 4.0.0
+     */
+    @ApiStatus.Experimental
+    public static XMaterial getType(Block block) {
+        if (ISFLAT) return XMaterial.matchXMaterial(block.getType());
+
+        Material mat = block.getType();
+        LegacyMaterialGroup legacyMaterial = LegacyMaterialGroup.getMaterial(mat.name());
+
+        // The materials from BlockMaterial is already handled correctly by XMaterial.
+        if (legacyMaterial == null) return XMaterial.matchXMaterial(block.getType());
+
+        byte data = block.getData();
+
+        // @formatter:off
+        switch (legacyMaterial) {
+            case SAPLING:
+                data = (byte) (data & 0x7); // Exclude growth state.
+                break;
+            case LOG:
+            case LOG_2:
+            case LEAVES:
+            case LEAVES_2:
+                data = (byte) (data & 0x3);
+                break;
+            case QUARTZ_BLOCK:
+                switch (data) {
+                    case 0: return XMaterial.QUARTZ_BLOCK;
+                    case 1: return XMaterial.CHISELED_QUARTZ_BLOCK;
+                    case 2: // Vertical
+                    case 3: // Horizontal X-axis
+                    case 4: // Horizontal Z-axis
+                        return XMaterial.QUARTZ_PILLAR;
+                    default:
+                        throw new AssertionError("Unknown QUARTZ_BLOCK type: " + data);
+                }
+            case BRICK:
+                return XMaterial.BRICKS;
+            case STEP:
+                if (data == 2) return XMaterial.OAK_SLAB; // Treated as stone-type in 1.12
+                break; // Others can be handled by XMaterial
+            case DOUBLE_STEP:
+                switch (data) {
+                    case 0: return XMaterial.SMOOTH_STONE_SLAB; // SMOOTH_STONE was added in 1.13
+                    case 1: return XMaterial.SANDSTONE;
+                    case 2: return XMaterial.OAK_PLANKS; // Treated as stone-type in 1.12
+                    case 3: return XMaterial.COBBLESTONE;
+                    case 4: return XMaterial.BRICKS;
+                    case 5: return XMaterial.STONE_BRICKS;
+                    case 6: return XMaterial.NETHER_BRICKS;
+                    case 7: return XMaterial.QUARTZ_BLOCK;
+                    default: throw new AssertionError("Unknown STEP type: " + data);
+                }
+            case WOOD_DOUBLE_STEP:
+                switch (data) {
+                    case 0: return XMaterial.OAK_PLANKS;
+                    case 1: return XMaterial.SPRUCE_PLANKS;
+                    case 2: return XMaterial.BIRCH_PLANKS;
+                    case 3: return XMaterial.JUNGLE_PLANKS;
+                    case 4: return XMaterial.ACACIA_PLANKS;
+                    case 5: return XMaterial.DARK_OAK_PLANKS;
+                    default: throw new AssertionError("Unknown WOOD_DOUBLE_STEP type: " + data);
+                }
+            case DOUBLE_STONE_SLAB2:
+                if (data == 0) return XMaterial.RED_SANDSTONE;
+                else throw new AssertionError("Unknown DOUBLE_STONE_SLAB2 type: " + data);
+            case SKULL:
+                // Raw data for skulls only store the rotation and wall data, they don't contain the actual skull type.
+                // data = (byte)(data & 0x7); // Mask lower 3 bits for skull type and ignore rotation
+
+                Skull skull = (Skull) block.getState();
+                switch (skull.getSkullType()) {
+                    case SKELETON: return XMaterial.SKELETON_SKULL;
+                    case WITHER:   return XMaterial.WITHER_SKELETON_SKULL;
+                    case ZOMBIE:   return XMaterial.ZOMBIE_HEAD;
+                    case PLAYER:   return XMaterial.PLAYER_HEAD;
+                    case CREEPER:  return XMaterial.CREEPER_HEAD;
+                    case DRAGON:   return XMaterial.DRAGON_HEAD;
+                    default:       throw new AssertionError("Unknown SKULL type: " + skull);
+                }
+            case ANVIL:
+                data = block.getData();
+                data = (byte) ((data >> 2) & 0x3); // Mask to ignore rotation bits
+                break;
+            case BED:
+            case BED_BLOCK:
+                if (!XMaterial.supports(12)) return XMaterial.RED_BED;
+                // This doesn't work, the returned data value is incorrect.
+                // data = (byte) (data & 0x7); // Mask to ignore head/foot, facing, occupied bits
+
+                Bed bed = (Bed) block.getState();
+                DyeColor dyeColor = bed.getColor();
+
+                switch (dyeColor) {
+                    case WHITE:      return XMaterial.WHITE_BED;
+                    case ORANGE:     return XMaterial.ORANGE_BED;
+                    case MAGENTA:    return XMaterial.MAGENTA_BED;
+                    case LIGHT_BLUE: return XMaterial.LIGHT_BLUE_BED;
+                    case YELLOW:     return XMaterial.YELLOW_BED;
+                    case LIME:       return XMaterial.LIME_BED;
+                    case PINK:       return XMaterial.PINK_BED;
+                    case GRAY:       return XMaterial.GRAY_BED;
+                    case LIGHT_GRAY: return XMaterial.LIGHT_GRAY_BED;
+                    case CYAN:       return XMaterial.CYAN_BED;
+                    case PURPLE:     return XMaterial.PURPLE_BED;
+                    case BLUE:       return XMaterial.BLUE_BED;
+                    case BROWN:      return XMaterial.BROWN_BED;
+                    case GREEN:      return XMaterial.GREEN_BED;
+                    case RED:        return XMaterial.RED_BED;
+                    case BLACK:      return XMaterial.BLACK_BED;
+                    default:         throw new AssertionError("Unkonwn " + legacyMaterial + " type: " + dyeColor);
+                }
+            case DOUBLE_PLANT:
+                // Special bug in 1.8-1.12 which causes all top halves of DOUBLE_PLANT to return 10
+                // boolean isTopHalf = (data & 0x8) != 0;
+                // If top half, get the bottom half (block below)
+                if (data == 10) {
+                    Block targetBlock = block.getRelative(0, -1, 0);
+                    if (targetBlock.getType().name().equals("DOUBLE_PLANT")) {
+                        data = targetBlock.getData();
+                    }
+                    // else { It's probably a world issue and the block is glitched without a bottom }
+                }
+
+                data = (byte) (data & 0x7); // Mask to ignore top/bottom halves.
+                break;
+            case FLOWER_POT:
+                Material contentType;
+                byte contentData;
+
+                BlockState state = block.getState();
+                FlowerPot pot = (FlowerPot) state.getData();
+                MaterialData contents = pot.getContents();
+
+                // TODO There is a bug in 1.8-1.12 versions where this is always null.
+                //      The only solution would be to use NMS but using XReflection here is
+                //      very extra.
+                if (contents == null) {
+                    return XMaterial.FLOWER_POT; // Empty flower pot
+                }
+
+                contentType = contents.getItemType();
+                contentData = contents.getData();
+
+                switch (contentType.name()) {
+                    case "RED_ROSE":
+                        switch (contentData) {
+                            case 0: return XMaterial.POTTED_POPPY;
+                            case 1: return XMaterial.POTTED_BLUE_ORCHID;
+                            case 2: return XMaterial.POTTED_ALLIUM;
+                            case 3: return XMaterial.POTTED_AZURE_BLUET;
+                            case 4: return XMaterial.POTTED_RED_TULIP;
+                            case 5: return XMaterial.POTTED_ORANGE_TULIP;
+                            case 6: return XMaterial.POTTED_WHITE_TULIP;
+                            case 7: return XMaterial.POTTED_PINK_TULIP;
+                            case 8: return XMaterial.POTTED_OXEYE_DAISY;
+                            default: break;
+                        }
+                    case "YELLOW_FLOWER":
+                        return XMaterial.POTTED_DANDELION;
+                    case "RED_MUSHROOM":
+                        return XMaterial.POTTED_RED_MUSHROOM;
+                    case "BROWN_MUSHROOM":
+                        return XMaterial.POTTED_BROWN_MUSHROOM;
+                    case "CACTUS":
+                        return XMaterial.POTTED_CACTUS;
+                    case "DEAD_BUSH":
+                        return XMaterial.POTTED_DEAD_BUSH;
+                    case "SAPLING":
+                        switch (contentData) {
+                            case 0: return XMaterial.POTTED_OAK_SAPLING;
+                            case 1: return XMaterial.POTTED_SPRUCE_SAPLING;
+                            case 2: return XMaterial.POTTED_BIRCH_SAPLING;
+                            case 3: return XMaterial.POTTED_JUNGLE_SAPLING;
+                            case 4: return XMaterial.POTTED_ACACIA_SAPLING;
+                            case 5: return XMaterial.POTTED_DARK_OAK_SAPLING;
+                            default: break;
+                        }
+                    case "LONG_GRASS":
+                        if (contentData == 2) {
+                            return XMaterial.POTTED_FERN;
+                        }
+                        break;
+                }
+                throw new AssertionError("Unknown potted flower type: " + pot + " | " + contentType + " | " + contentData);
+            case BANNER:
+            case STANDING_BANNER: {
+                Banner banner = (Banner) block.getState();
+                DyeColor baseColor = banner.getBaseColor();
+                switch (baseColor) {
+                    case WHITE:      return XMaterial.WHITE_BANNER;
+                    case ORANGE:     return XMaterial.ORANGE_BANNER;
+                    case MAGENTA:    return XMaterial.MAGENTA_BANNER;
+                    case LIGHT_BLUE: return XMaterial.LIGHT_BLUE_BANNER;
+                    case YELLOW:     return XMaterial.YELLOW_BANNER;
+                    case LIME:       return XMaterial.LIME_BANNER;
+                    case PINK:       return XMaterial.PINK_BANNER;
+                    case GRAY:       return XMaterial.GRAY_BANNER;
+                    case LIGHT_GRAY: return XMaterial.LIGHT_GRAY_BANNER;
+                    case CYAN:       return XMaterial.CYAN_BANNER;
+                    case PURPLE:     return XMaterial.PURPLE_BANNER;
+                    case BLUE:       return XMaterial.BLUE_BANNER;
+                    case BROWN:      return XMaterial.BROWN_BANNER;
+                    case GREEN:      return XMaterial.GREEN_BANNER;
+                    case RED:        return XMaterial.RED_BANNER;
+                    case BLACK:      return XMaterial.BLACK_BANNER;
+                    default:         throw new AssertionError("Unknown " + legacyMaterial + " type: " + baseColor);
+                }
+            }
+            case WALL_BANNER: {
+                Banner banner = (Banner) block.getState();
+                DyeColor baseColor = banner.getBaseColor();
+                switch (baseColor) {
+                    case WHITE:      return XMaterial.WHITE_WALL_BANNER;
+                    case ORANGE:     return XMaterial.ORANGE_WALL_BANNER;
+                    case MAGENTA:    return XMaterial.MAGENTA_WALL_BANNER;
+                    case LIGHT_BLUE: return XMaterial.LIGHT_BLUE_WALL_BANNER;
+                    case YELLOW:     return XMaterial.YELLOW_WALL_BANNER;
+                    case LIME:       return XMaterial.LIME_WALL_BANNER;
+                    case PINK:       return XMaterial.PINK_WALL_BANNER;
+                    case GRAY:       return XMaterial.GRAY_WALL_BANNER;
+                    case LIGHT_GRAY: return XMaterial.LIGHT_GRAY_WALL_BANNER;
+                    case CYAN:       return XMaterial.CYAN_WALL_BANNER;
+                    case PURPLE:     return XMaterial.PURPLE_WALL_BANNER;
+                    case BLUE:       return XMaterial.BLUE_WALL_BANNER;
+                    case BROWN:      return XMaterial.BROWN_WALL_BANNER;
+                    case GREEN:      return XMaterial.GREEN_WALL_BANNER;
+                    case RED:        return XMaterial.RED_WALL_BANNER;
+                    case BLACK:      return XMaterial.BLACK_WALL_BANNER;
+                    default:         throw new AssertionError("Unknown " + legacyMaterial + " type: " + baseColor);
+                }
+            }
+        }
+        // @formatter:on
+
+        // if (legacyMaterial.handling != LegacyMaterialGroup.Handling.XMaterial) {
+        //     throw new AssertionError("Expected XMaterial handling, instead got: "
+        //             + state + " | " + data + " | " + mat + " | " + legacyMaterial);
+        // }
+
+        byte finalData = data;
+        return XMaterial.matchDefinedXMaterial(mat.name(), data).orElseThrow(() ->
+                new AssertionError("Unknown legacy block type: "
+                        + " | " + finalData + " | " + mat + " | " + legacyMaterial));
+    }
+
+    /**
+     * Note: Special blocks such as beds that require two different blocks to handle will not be
+     * set correctly. You'd have to manually set these blocks. (Double/tall plants work fine)
+     */
     public static boolean setType(@NotNull Block block, @Nullable XMaterial material, boolean applyPhysics) {
         Objects.requireNonNull(block, "Cannot set type of null block");
         if (material == null) material = XMaterial.AIR;
@@ -296,25 +584,41 @@ public final class XBlock {
         block.setType(parsedMat, applyPhysics);
         if (ISFLAT) return false;
 
-        if (parsedName.endsWith("_ITEM")) {
-            String blockName = parsedName.substring(0, parsedName.length() - "_ITEM".length());
-            Material blockMaterial = Objects.requireNonNull(Material.getMaterial(blockName),
-                    () -> "Could not find block material for item '" + parsedName + "' as '" + blockName + '\'');
-            block.setType(blockMaterial, applyPhysics);
-        } else if (parsedName.contains("CAKE")) {
-            Material blockMaterial = Material.getMaterial("CAKE_BLOCK");
-            block.setType(blockMaterial, applyPhysics);
+        LegacyBlockMaterial blockMaterial = null;
+        switch (material) {
+            case CAKE:
+                blockMaterial = LegacyBlockMaterial.CAKE_BLOCK;
+                break;
+            case SUGAR_CANE:
+                blockMaterial = LegacyBlockMaterial.SUGAR_CANE_BLOCK;
+                break;
+            case POTATOES:
+            case POTATO:
+                blockMaterial = LegacyBlockMaterial.POTATO;
+                break;
+            case CARROT:
+            case CARROTS:
+                blockMaterial = LegacyBlockMaterial.CARROT;
+                break;
+            case WHEAT_SEEDS:
+            case WHEAT: // TODO set the age to fully grown?
+                blockMaterial = LegacyBlockMaterial.CROPS;
+                break;
+        }
+        if (blockMaterial != null) {
+            block.setType(blockMaterial.material, applyPhysics);
+            return true;
         }
 
-        LegacyMaterial legacyMaterial = LegacyMaterial.getMaterial(parsedName);
-        if (legacyMaterial == LegacyMaterial.BANNER)
-            block.setType(LegacyMaterial.STANDING_BANNER.material, applyPhysics);
-        LegacyMaterial.Handling handling = legacyMaterial == null ? null : legacyMaterial.handling;
+        LegacyMaterialGroup legacyMaterial = LegacyMaterialGroup.getMaterial(parsedName);
+        if (legacyMaterial == LegacyMaterialGroup.BANNER)
+            block.setType(LegacyMaterialGroup.STANDING_BANNER.material, applyPhysics);
+        LegacyMaterialGroup.Handling handling = legacyMaterial == null ? null : legacyMaterial.handling;
 
         BlockState state = block.getState();
         boolean update = false;
 
-        if (handling == LegacyMaterial.Handling.COLORABLE) {
+        if (handling == LegacyMaterialGroup.Handling.COLORABLE) {
             if (state instanceof Banner) {
                 Banner banner = (Banner) state;
                 String xName = material.name();
@@ -325,7 +629,7 @@ public final class XBlock {
                 banner.setBaseColor(DyeColor.valueOf(color));
             } else state.setRawData(material.getData());
             update = true;
-        } else if (handling == LegacyMaterial.Handling.WOOD_SPECIES) {
+        } else if (handling == LegacyMaterialGroup.Handling.WOOD_SPECIES) {
             // Wood doesn't exist in 1.8
             // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/material/Wood.java?until=7d83cba0f2575112577ed7a091ed8a193bfc261a&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fmaterial%2FWood.java
             // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/TreeSpecies.java
@@ -536,15 +840,23 @@ public final class XBlock {
     }
 
     public static boolean isWaterStationary(Block block) {
-        return ISFLAT ? getFluidLevel(block) < 7 : block.getType() == BlockMaterial.STATIONARY_WATER.material;
+        return ISFLAT ? getFluidLevel(block) < 7 : block.getType() == LegacyBlockMaterial.STATIONARY_WATER.material;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isWater(Material material) {
-        return material == Material.WATER || material == BlockMaterial.STATIONARY_WATER.material;
+        return material == Material.WATER || material == LegacyBlockMaterial.STATIONARY_WATER.material;
     }
 
+    /**
+     * @deprecated Use {@link #isSimilar(Block, XMaterial)} instead.
+     */
+    @Deprecated
     public static boolean isLava(Material material) {
-        return material == Material.LAVA || material == BlockMaterial.STATIONARY_LAVA.material;
+        return material == Material.LAVA || material == LegacyBlockMaterial.STATIONARY_LAVA.material;
     }
 
     /**
@@ -649,6 +961,14 @@ public final class XBlock {
 
     /**
      * <b>Universal Method</b>
+     * The difference between simply checkign the given material against {@link #getType(Block)} and
+     * this is that this method is more lenient and will match materials even if their "state" are different.
+     * This usually only happens in older versions where for example carrots and potatoes have two separate
+     * materials for blocks and items. Or for example growth state of crops are ignored and all "air" materials
+     * are treated the same.
+     * <p>
+     * So use {@link #getType(Block)} for more exact matches and use this method if you want to be more forgiving,
+     * which can be useful for configured values by server admins.
      *
      * @param block    the block to compare.
      * @param material the material to compare with.
@@ -656,41 +976,58 @@ public final class XBlock {
      * @since 1.3.0
      */
     public static boolean isSimilar(Block block, XMaterial material) {
+        if (material == XBlock.getType(block)) return true;
+
         Material mat = block.getType();
-        if (material == XMaterial.matchXMaterial(mat)) return true;
+
+        if (material.name().endsWith("_BED") && !XMaterial.supports(12))
+            return mat == LegacyBlockMaterial.BED_BLOCK.material || mat == LegacyBlockMaterial.BED.material;
+
         switch (material) {
             case CAKE:
                 return isCake(mat);
             case NETHER_WART:
-                return isNetherWart(mat);
+            case NETHER_WART_BLOCK:
+                if (!ISFLAT) return mat == LegacyBlockMaterial.NETHER_WARTS.material;
+                return mat == Material.NETHER_WART;
             case MELON:
             case MELON_SLICE:
-                return isMelon(mat);
+                if (!ISFLAT) return mat == LegacyBlockMaterial.MELON_BLOCK.material;
+                return mat == Material.MELON;
             case CARROT:
             case CARROTS:
-                return isCarrot(mat);
+                if (!ISFLAT) return mat == Material.CARROT;
+                return mat == Material.CARROTS;
             case POTATO:
             case POTATOES:
-                return isPotato(mat);
+                if (!ISFLAT) return mat == Material.POTATO;
+                return mat == Material.POTATOES;
             case WHEAT:
             case WHEAT_SEEDS:
-                return isWheat(mat);
+                if (!ISFLAT) return mat == LegacyBlockMaterial.CROPS.material;
+                return mat == Material.WHEAT;
             case BEETROOT:
             case BEETROOT_SEEDS:
             case BEETROOTS:
-                return isBeetroot(mat);
+                if (!ISFLAT) {
+                    // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
+                    return mat == LegacyBlockMaterial.BEETROOT_BLOCK.material;
+                }
+                return mat == Material.BEETROOTS;
             case SUGAR_CANE:
-                return isSugarCane(mat);
+                if (!ISFLAT) return mat == LegacyBlockMaterial.SUGAR_CANE_BLOCK.material;
+                return mat == Material.SUGAR_CANE;
             case WATER:
-                return isWater(mat);
+                return mat == Material.WATER || mat == LegacyBlockMaterial.STATIONARY_WATER.material;
             case LAVA:
-                return isLava(mat);
+                return mat == Material.LAVA || mat == LegacyBlockMaterial.STATIONARY_LAVA.material;
             case AIR:
             case CAVE_AIR:
             case VOID_AIR:
                 return isAir(mat);
+            default:
+                return false;
         }
-        return false;
     }
 
     public static boolean isAir(@Nullable Material material) {
@@ -717,7 +1054,7 @@ public final class XBlock {
 
         String name = block.getType().name();
         if (name.startsWith("REDSTONE_COMPARATOR"))
-            return block.getType() == BlockMaterial.REDSTONE_COMPARATOR_ON.material;
+            return block.getType() == LegacyBlockMaterial.REDSTONE_COMPARATOR_ON.material;
         return false;
     }
 
@@ -732,7 +1069,7 @@ public final class XBlock {
         }
 
         String name = block.getType().name();
-        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(BlockMaterial.REDSTONE_COMPARATOR_ON.material);
+        if (name.startsWith("REDSTONE_COMPARATOR")) block.setType(LegacyBlockMaterial.REDSTONE_COMPARATOR_ON.material);
     }
 
     public static boolean isOpen(Block block) {
@@ -823,30 +1160,41 @@ public final class XBlock {
         }
     }
 
-    private static boolean isMaterial(Block block, BlockMaterial... materials) {
+    private static boolean isMaterial(Block block, LegacyBlockMaterial... materials) {
         Material type = block.getType();
-        for (BlockMaterial material : materials) {
+        for (LegacyBlockMaterial material : materials) {
             if (type == material.material) return true;
         }
         return false;
     }
 
-    private enum LegacyMaterial {
+    private enum LegacyMaterialGroup {
         // Colorable
         STANDING_BANNER(Handling.COLORABLE), WALL_BANNER(Handling.COLORABLE), BANNER(Handling.COLORABLE),
         CARPET(Handling.COLORABLE), WOOL(Handling.COLORABLE), STAINED_CLAY(Handling.COLORABLE),
         STAINED_GLASS(Handling.COLORABLE), STAINED_GLASS_PANE(Handling.COLORABLE), THIN_GLASS(Handling.COLORABLE),
 
+        STONE, QUARTZ_BLOCK, SKULL, RED_ROSE, FLOWER_POT, DOUBLE_PLANT, LONG_GRASS,
+
+        DIRT, SAND, SANDSTONE, RED_SANDSTONE, SPONGE, PRISMARINE, CONCRETE, CONCRETE_POWDER, ANVIL,
+        SMOOTH_BRICK, COBBLE_WALL, BED, BED_BLOCK, MONSTER_EGGS,
+
         // Wood Species
         WOOD(Handling.WOOD_SPECIES), WOOD_STEP(Handling.WOOD_SPECIES), WOOD_DOUBLE_STEP(Handling.WOOD_SPECIES),
         LEAVES(Handling.WOOD_SPECIES), LEAVES_2(Handling.WOOD_SPECIES),
         LOG(Handling.WOOD_SPECIES), LOG_2(Handling.WOOD_SPECIES),
-        SAPLING(Handling.WOOD_SPECIES);
+        SAPLING(Handling.WOOD_SPECIES),
 
-        private static final Map<String, LegacyMaterial> LOOKUP = new HashMap<>();
+        // Map single item material to block variant BRICKS
+        BRICK,
+
+        // For stone/brick slabs.
+        STEP, DOUBLE_STEP, DOUBLE_STONE_SLAB2;
+
+        private static final Map<String, LegacyMaterialGroup> LOOKUP = new HashMap<>();
 
         static {
-            for (LegacyMaterial legacyMaterial : values()) {
+            for (LegacyMaterialGroup legacyMaterial : values()) {
                 LOOKUP.put(legacyMaterial.name(), legacyMaterial);
             }
         }
@@ -854,15 +1202,27 @@ public final class XBlock {
         private final Material material = Material.getMaterial(name());
         private final Handling handling;
 
-        LegacyMaterial(Handling handling) {
+        LegacyMaterialGroup(Handling handling) {
             this.handling = handling;
         }
 
-        private static LegacyMaterial getMaterial(String name) {
+        LegacyMaterialGroup() {
+            this(null);
+        }
+
+        private static LegacyMaterialGroup getMaterial(String name) {
             return LOOKUP.get(name);
         }
 
-        private enum Handling {COLORABLE, WOOD_SPECIES;}
+        private enum Handling {
+            /**
+             * Instructs the handler to use {@link XMaterial#matchDefinedXMaterial(String, byte)}
+             */
+            XMaterial,
+
+            COLORABLE,
+            WOOD_SPECIES;
+        }
     }
 
     /**
@@ -870,9 +1230,11 @@ public final class XBlock {
      *
      * @since 2.0.0
      */
-    public enum BlockMaterial {
+    private enum LegacyBlockMaterial {
         // Blocks
-        CAKE_BLOCK, CROPS, SUGAR_CANE_BLOCK, BEETROOT_BLOCK, NETHER_WARTS, MELON_BLOCK,
+        CAKE_BLOCK, CROPS, SUGAR_CANE_BLOCK, BEETROOT_BLOCK, NETHER_WARTS, MELON_BLOCK, BED, BED_BLOCK,
+
+        CARROT, POTATO,
 
         // Others
         BURNING_FURNACE, STATIONARY_WATER, STATIONARY_LAVA,
@@ -885,7 +1247,7 @@ public final class XBlock {
         @Nullable
         private final Material material;
 
-        BlockMaterial() {
+        LegacyBlockMaterial() {
             this.material = Material.getMaterial(this.name());
         }
     }
