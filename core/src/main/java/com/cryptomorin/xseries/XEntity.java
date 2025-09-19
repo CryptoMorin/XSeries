@@ -32,9 +32,11 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,19 +73,41 @@ public final class XEntity {
      */
     public static final Set<EntityType> UNDEAD;
     private static final boolean SUPPORTS_DELAYED_SPAWN;
+    private static final MethodHandle DELAYED_SPAWN_1_17;
+    private static final MethodHandle DELAYED_SPAWN_1_16_5; // paper only
+    private static final MethodHandle DELAYED_SPAWN_1_11;
     private static final Object REGISTRY_CAT_VARIANT = supportsRegistry("CAT_VARIANT");
     private static Object REGISTRY_DEFAULT_CAT_VARIANT;
 
     static {
-        boolean delayed;
+        boolean supportsDelayedSpawn;
+        MethodHandle delayedSpawn1_17 = null;
+        MethodHandle delayedSpawn1_16_5 = null;
+        MethodHandle delayedSpawn1_11 = null;
+
         try {
             World.class.getMethod("spawn", Location.class, Class.class, boolean.class, Consumer.class);
-            delayed = true;
+            supportsDelayedSpawn = true;
         } catch (NoSuchMethodException ex) {
-            delayed = false;
+            supportsDelayedSpawn = false;
         }
 
-        SUPPORTS_DELAYED_SPAWN = delayed;
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+        try {
+            delayedSpawn1_17 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, boolean.class, org.bukkit.util.Consumer.class));
+        } catch (Throwable ignored) { }
+        try {
+            delayedSpawn1_16_5 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, CreatureSpawnEvent.SpawnReason.class, org.bukkit.util.Consumer.class));
+        } catch (Throwable ignored) { }
+        try {
+            delayedSpawn1_11 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, org.bukkit.util.Consumer.class));
+        } catch (Throwable ignored) { }
+
+        SUPPORTS_DELAYED_SPAWN = supportsDelayedSpawn;
+        DELAYED_SPAWN_1_17 = delayedSpawn1_17;
+        DELAYED_SPAWN_1_16_5 = delayedSpawn1_16_5;
+        DELAYED_SPAWN_1_11 = delayedSpawn1_11;
     }
 
     private static final Map<Class<?>, BiConsumer<Entity, ConfigurationSection>> MAPPING = new HashMap<>(20);
@@ -269,11 +293,74 @@ public final class XEntity {
         XEntityType finalType = type.get().or(XEntityType.ZOMBIE);
         if (!finalType.isSupported()) return null;
 
+        return spawn(location, finalType.get().getEntityClass(), false, entity -> edit(entity, config));
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public static <T extends Entity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, boolean randomizeData, @Nullable Consumer<? super T> function) {
         if (SUPPORTS_DELAYED_SPAWN) {
-            return location.getWorld().spawn(location, finalType.get().getEntityClass(), false, entity -> edit(entity, config));
+            return location.getWorld().spawn(location, clazz, randomizeData, function);
+        } else if (DELAYED_SPAWN_1_17 != null) {
+            try {
+                return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, oldConsumer(function));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        } else if (DELAYED_SPAWN_1_11 != null) {
+            try {
+                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, oldConsumer(function));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
         } else {
-            return edit(location.getWorld().spawnEntity(location, finalType.get()), config);
+            return location.getWorld().spawn(location, clazz);
         }
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public static <T extends LivingEntity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, @NotNull CreatureSpawnEvent.SpawnReason spawnReason, boolean randomizeData, @Nullable Consumer<? super T> function) {
+        if (SUPPORTS_DELAYED_SPAWN) {
+            return location.getWorld().spawn(location, clazz, spawnReason, randomizeData, function);
+        } else if (DELAYED_SPAWN_1_16_5 != null) {
+            if (!randomizeData && DELAYED_SPAWN_1_17 != null) { // Prefer 1.17 method with non-default randomizeData over 1.16.5 method with modified spawn reason
+                try {
+                    return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, oldConsumer(function));
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+
+            try {
+                return (T) DELAYED_SPAWN_1_16_5.invoke(location.getWorld(), location, clazz, spawnReason, oldConsumer(function));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        } else if (DELAYED_SPAWN_1_11 != null) {
+            try {
+                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, oldConsumer(function));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        } else {
+            return location.getWorld().spawn(location, clazz);
+        }
+    }
+
+    @Nullable
+    @Contract("!null -> !null")
+    @SuppressWarnings("deprecation")
+    private static <T> org.bukkit.util.Consumer<T> oldConsumer(@Nullable Consumer<T> consumer) {
+        if (consumer == null) {
+            return null;
+        }
+        return new org.bukkit.util.Consumer<T>() {
+            @Override
+            public void accept(T t) {
+                consumer.accept(t);
+            }
+        };
     }
 
     private static void map(Class<?> target, Entity entity, ConfigurationSection config) {
