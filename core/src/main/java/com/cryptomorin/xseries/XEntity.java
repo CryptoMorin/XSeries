@@ -303,18 +303,22 @@ public final class XEntity {
             return location.getWorld().spawn(location, clazz, randomizeData, function);
         } else if (DELAYED_SPAWN_1_17 != null) {
             try {
-                return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, oldConsumer(function));
+                return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, toBukkitConsumer(function));
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
         } else if (DELAYED_SPAWN_1_11 != null) {
             try {
-                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, oldConsumer(function));
+                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, toBukkitConsumer(function));
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
         } else {
-            return location.getWorld().spawn(location, clazz);
+            final T entity = location.getWorld().spawn(location, clazz);
+            if (function != null) {
+                function.accept(entity);
+            }
+            return entity;
         }
     }
 
@@ -323,35 +327,37 @@ public final class XEntity {
     public static <T extends LivingEntity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, @NotNull CreatureSpawnEvent.SpawnReason spawnReason, boolean randomizeData, @Nullable Consumer<? super T> function) {
         if (SUPPORTS_DELAYED_SPAWN) {
             return location.getWorld().spawn(location, clazz, spawnReason, randomizeData, function);
-        } else if (DELAYED_SPAWN_1_16_5 != null) {
-            if (!randomizeData && DELAYED_SPAWN_1_17 != null) { // Prefer 1.17 method with non-default randomizeData over 1.16.5 method with modified spawn reason
-                try {
-                    return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, oldConsumer(function));
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }
-
+        } else if (!randomizeData && DELAYED_SPAWN_1_17 != null) { // Prefer 1.17 method with non-default randomizeData over 1.16.5 method with modified spawn reason
             try {
-                return (T) DELAYED_SPAWN_1_16_5.invoke(location.getWorld(), location, clazz, spawnReason, oldConsumer(function));
+                return (T) DELAYED_SPAWN_1_17.invoke(location.getWorld(), location, clazz, randomizeData, toBukkitConsumer(function));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        } else if (DELAYED_SPAWN_1_16_5 != null) { // paper only
+            try {
+                return (T) DELAYED_SPAWN_1_16_5.invoke(location.getWorld(), location, clazz, spawnReason, toBukkitConsumer(function));
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
         } else if (DELAYED_SPAWN_1_11 != null) {
             try {
-                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, oldConsumer(function));
+                return (T) DELAYED_SPAWN_1_11.invoke(location.getWorld(), location, clazz, toBukkitConsumer(function));
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
         } else {
-            return location.getWorld().spawn(location, clazz);
+            final T entity = location.getWorld().spawn(location, clazz);
+            if (function != null) {
+                function.accept(entity);
+            }
+            return entity;
         }
     }
 
     @Nullable
     @Contract("!null -> !null")
     @SuppressWarnings("deprecation")
-    private static <T> org.bukkit.util.Consumer<T> oldConsumer(@Nullable Consumer<T> consumer) {
+    private static <T> org.bukkit.util.Consumer<T> toBukkitConsumer(@Nullable Consumer<T> consumer) {
         if (consumer == null) {
             return null;
         }
