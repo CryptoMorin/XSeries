@@ -2496,8 +2496,8 @@ public final class XTag<T extends XBase<?, ?>> {
                         XMaterial.BIG_DRIPLEAF_STEM, XMaterial.SWEET_BERRY_BUSH,
                         XMaterial.TORCHFLOWER_CROP, XMaterial.TWISTING_VINES_PLANT,
                         XMaterial.WEEPING_VINES_PLANT, XMaterial.BAMBOO_SAPLING,
-                        XMaterial.CARROT, XMaterial.CARROTS, XMaterial.POTATO, XMaterial.POTATOES,
-                        XMaterial.BAMBOO_SAPLING, XMaterial.BAMBOO, XMaterial.CHORUS_PLANT,
+                        XMaterial.CARROTS, XMaterial.POTATOES,
+                        XMaterial.BAMBOO_SAPLING, XMaterial.CHORUS_PLANT,
                         XMaterial.KELP_PLANT, XMaterial.COCOA, XMaterial.TALL_SEAGRASS,
                         XMaterial.MELON_STEM, XMaterial.PUMPKIN_STEM,
                         XMaterial.ATTACHED_MELON_STEM, XMaterial.ATTACHED_PUMPKIN_STEM
