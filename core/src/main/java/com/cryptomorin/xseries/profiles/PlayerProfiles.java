@@ -22,9 +22,13 @@
 
 package com.cryptomorin.xseries.profiles;
 
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
@@ -61,7 +66,7 @@ public final class PlayerProfiles {
     private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(XSERIES_SIG, XReflection.XSERIES_VERSION);
     private static final String TEXTURES_PROPERTY = "textures";
 
-    public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, XSERIES_SIG);
+    public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, XSERIES_SIG).object();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 
@@ -82,13 +87,13 @@ public final class PlayerProfiles {
      * returns HTTP for texture URL when the Base64 is decoded, so we can keep it consistent
      * when it's not explicitly defined by the user.
      *
-     * @see #getTextureValue(GameProfile)
+     * @see #getTextureValue(MojangGameProfile)
      */
     public static final String TEXTURES_BASE_URL = "http://textures.minecraft.net/texture/";
 
-    public static Optional<Property> getTextureProperty(GameProfile profile) {
+    public static Optional<Property> getTextureProperty(MojangGameProfile profile) {
         // This is the property with Base64 encoded value.
-        return Optional.ofNullable(Iterables.getFirst(profile.getProperties().get(TEXTURES_PROPERTY), null));
+        return Optional.ofNullable(profile.getProperty(TEXTURES_PROPERTY));
     }
 
     /**
@@ -97,16 +102,16 @@ public final class PlayerProfiles {
      * @param profile The {@link GameProfile} to retrieve the skin value from.
      * @return The skin value as a {@link String}, or {@code null} if not found.
      * @throws NullPointerException if {@code profile} is {@code null}.
-     * @see #getTextureProperty(GameProfile)
+     * @see #getTextureProperty(MojangGameProfile)
      */
     @Nullable
-    public static String getTextureValue(@NotNull GameProfile profile) {
+    public static String getTextureValue(@NotNull MojangGameProfile profile) {
         Objects.requireNonNull(profile, "Game profile cannot be null");
         return getTextureProperty(profile).map(PlayerProfiles::getPropertyValue).orElse(null);
     }
 
     @Nullable
-    public static String getOriginalValue(@Nullable GameProfile profile) {
+    public static String getOriginalValue(@Nullable MojangGameProfile profile) {
         if (profile == null) return null;
 
         String original = ProfileTransformer.IncludeOriginalValue.getOriginalValue(profile);
@@ -135,9 +140,9 @@ public final class PlayerProfiles {
      *
      * @param profile The {@link GameProfile} to check.
      * @return {@code true} if the profile has a texture property, {@code false} otherwise.
-     * @see #getTextureProperty(GameProfile)
+     * @see #getTextureProperty(MojangGameProfile)
      */
-    public static boolean hasTextures(GameProfile profile) {
+    public static boolean hasTextures(MojangGameProfile profile) {
         return getTextureProperty(profile).isPresent();
     }
 
@@ -151,15 +156,15 @@ public final class PlayerProfiles {
      * to ensure consistency after restarts.
      */
     @NotNull
-    public static GameProfile profileFromHashAndBase64(String hash, String base64) {
+    public static MojangGameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
-        GameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
+        MojangGameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
         PlayerProfiles.setTexturesProperty(profile, base64);
         return profile;
     }
 
     @SuppressWarnings("deprecation")
-    public static void removeTimestamp(GameProfile profile) {
+    public static void removeTimestamp(MojangGameProfile profile) {
         JsonObject jsonObject = Optional.ofNullable(getTextureValue(profile)).map(PlayerProfiles::decodeBase64)
                 .map((decoded) -> new JsonParser().parse(decoded).getAsJsonObject())
                 .orElse(null);
@@ -185,10 +190,10 @@ public final class PlayerProfiles {
     }
 
     @Nullable
-    public static Object wrapProfile(@Nullable GameProfile profile) throws Throwable {
+    public static Object wrapProfile(@Nullable MojangGameProfile profile) throws Throwable {
         if (profile == null) return null;
         if (ProfilesCore.ResolvableProfile$bukkitSupports) {
-            return ProfilesCore.ResolvableProfile$constructor.invoke(profile);
+            return ProfilesCore.ResolvableProfile$constructor.invoke(profile.object());
         } else {
             return profile;
         }
@@ -197,10 +202,10 @@ public final class PlayerProfiles {
     /**
      * Uses the online/offline UUID depending on {@link Bukkit#getOnlineMode()}.
      *
-     * @param profile must have complete name and UUID
+     * @param gameProfile must have complete name and UUID
      * @return may return the same or a new profile.
      */
-    public static GameProfile sanitizeProfile(GameProfile profile) {
+    public static GameProfile sanitizeProfile(GameProfile gameProfile) {
         // We could remove the unnecessary timestamp data, but let's keep it there, the texture is Base64 encoded anyway.
         // It doesn't affect it in terms of performance.
         // The timestamp property is the last time the values have been updated, this
@@ -208,26 +213,19 @@ public final class PlayerProfiles {
         // because of Mojang server's cache.
 
         // The stored cache UUID must be according to online/offline servers.
-        if (PlayerUUIDs.isOnlineMode()) return profile;
-        UUID offlineId = PlayerUUIDs.getOfflineUUID(profile.getName());
-        PlayerUUIDs.ONLINE_TO_OFFLINE.put(profile.getId(), offlineId);
+        if (PlayerUUIDs.isOnlineMode()) return gameProfile;
 
-        GameProfile clone = createGameProfile(offlineId, profile.getName());
-        clone.getProperties().putAll(profile.getProperties());
-        return clone;
+        MojangGameProfile profile = XGameProfile.of(gameProfile);
+        UUID offlineId = PlayerUUIDs.getOfflineUUID(profile.name());
+        PlayerUUIDs.ONLINE_TO_OFFLINE.put(profile.id(), offlineId);
+
+        MojangGameProfile clone = createGameProfile(offlineId, profile.name(), profile.properties());
+        return clone.object();
     }
 
-    public static GameProfile clone(GameProfile gameProfile) {
-        GameProfile clone = new GameProfile(gameProfile.getId(), gameProfile.getName());
-        clone.getProperties().putAll(gameProfile.getProperties());
-        return clone;
-    }
-
-    public static void setTexturesProperty(GameProfile profile, String texture) {
-        Property property = new Property(TEXTURES_PROPERTY, texture);
-        PropertyMap properties = profile.getProperties();
-        properties.asMap().remove(TEXTURES_PROPERTY);
-        properties.put(TEXTURES_PROPERTY, property);
+    public static void setTexturesProperty(MojangGameProfile profile, String texture) {
+        profile.removeProperty(TEXTURES_PROPERTY);
+        profile.addProperty(TEXTURES_PROPERTY, texture);
     }
 
     /**
@@ -257,8 +255,12 @@ public final class PlayerProfiles {
         }
     }
 
-    public static GameProfile createGameProfile(UUID uuid, String username) {
-        return signXSeries(new GameProfile(uuid, username));
+    public static MojangGameProfile createGameProfile(UUID uuid, String username) {
+        return signXSeries(XGameProfile.create(uuid, username));
+    }
+
+    public static MojangGameProfile createGameProfile(UUID uuid, String username, PropertyMap properties) {
+        return signXSeries(XGameProfile.create(uuid, username, properties));
     }
 
     /**
@@ -266,17 +268,28 @@ public final class PlayerProfiles {
      * purposes, specially since we're directly messing with the server's internal cache
      * it should be there in case something goes wrong.
      */
-    public static GameProfile signXSeries(GameProfile profile) {
+    public static MojangGameProfile signXSeries(MojangGameProfile profile) {
         // Just as an indicator that this is not a vanilla-created profile.
-        PropertyMap properties = profile.getProperties();
+        PropertyMap properties = profile.properties();
         // I don't think a single profile is being signed multiple times.
         // Even if it was, it might be helpful?
         // properties.asMap().remove(DEFAULT_PROFILE_NAME); // Remove previous versions if any.
-        properties.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
+        try {
+            Field props = PropertyMap.class.getDeclaredField("properties");
+            props.setAccessible(true);
+            ListMultimap<String, Property> newProps = MultimapBuilder.hashKeys().arrayListValues().build();
+            newProps.putAll(properties);
+            newProps.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
+            props.set(properties, ImmutableMultimap.copyOf(newProps));
+
+            // properties.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
         return profile;
     }
 
-    public static GameProfile createNamelessGameProfile(UUID id) {
+    public static MojangGameProfile createNamelessGameProfile(UUID id) {
         return createGameProfile(id, XSERIES_SIG);
     }
 }

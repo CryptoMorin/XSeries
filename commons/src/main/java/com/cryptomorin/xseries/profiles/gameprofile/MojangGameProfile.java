@@ -20,39 +20,43 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.profiles.gameprofile;
 
-/**
- * A class that delegates {@link Object} methods from {@link #object()}.
- *
- * @param <T>
- */
-public abstract class AbstractReferencedClass<T> {
-    public abstract T object();
+import com.cryptomorin.xseries.AbstractReferencedClass;
+import com.google.common.collect.Iterables;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 
-    /**
-     * We cast to Object to force invokevirtual instead of invokeinterface.
-     */
-    protected final Object toVirtual() {
-        return object();
-    }
+import java.util.UUID;
+
+public abstract class MojangGameProfile extends AbstractReferencedClass<GameProfile> {
+    protected final GameProfile object;
+
+    protected MojangGameProfile(GameProfile object) {this.object = object;}
 
     @Override
-    public final boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (this.getClass().isInstance(obj.getClass())) {
-            return toVirtual().equals(((AbstractReferencedClass<?>) obj).toVirtual());
-        } else return object().equals(obj);
+    public final GameProfile object() {
+        return object;
     }
 
-    @Override
-    public final int hashCode() {
-        return toVirtual().hashCode();
-    }
+    public abstract UUID id();
 
-    @Override
-    public final String toString() {
-        return this.getClass().getSimpleName() + '(' + toVirtual().toString() + ')';
+    public abstract String name();
+
+    public abstract PropertyMap properties();
+
+    public abstract void addProperty(Property property);
+
+    public abstract void addProperty(String name, String value);
+
+    public abstract void removeProperty(String name);
+
+    public abstract void setProperty(String name, String value);
+
+    public abstract MojangGameProfile copy();
+
+    public Property getProperty(String name) {
+        return Iterables.getFirst(this.properties().get(name), null);
     }
 }

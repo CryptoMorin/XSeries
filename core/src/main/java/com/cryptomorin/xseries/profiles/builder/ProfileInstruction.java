@@ -26,6 +26,7 @@ import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileChangeException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
 import com.cryptomorin.xseries.profiles.objects.DelegateProfileable;
@@ -112,7 +113,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
     @Override
     @Nullable
     @ApiStatus.Internal
-    public GameProfile getProfile() {
+    public MojangGameProfile getProfile() {
         // Just here to handle the JavaDocs.
         return profileContainer.getProfile();
     }
@@ -207,7 +208,7 @@ public final class ProfileInstruction<T> implements DelegateProfileable {
         boolean tryingFallbacks = false;
         for (Profileable profileable : tries) {
             try {
-                GameProfile gameProfile = profileable.getDisposableProfile();
+                MojangGameProfile gameProfile = profileable.getDisposableProfile();
                 if (gameProfile != null) {
                     profileContainer.setProfile(gameProfile);
                     success = true;

@@ -22,9 +22,8 @@
 
 package com.cryptomorin.xseries.profiles.objects.transformer;
 
-import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
-import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +53,7 @@ public final class TransformableProfile implements Profileable {
     private static final class TransformationSequence {
         private final Profileable profileable;
         @Nullable
-        private GameProfile profile;
+        private MojangGameProfile profile;
         private boolean expired, markRestAsCopy;
         private final TransformedProfileCache[] transformers;
 
@@ -69,7 +68,7 @@ public final class TransformableProfile implements Profileable {
             @Nullable
             private final ProfileTransformer transformer;
             @Nullable
-            private GameProfile cacheProfile;
+            private MojangGameProfile cacheProfile;
 
             private TransformedProfileCache(@Nullable ProfileTransformer transformer) {this.transformer = transformer;}
 
@@ -84,7 +83,7 @@ public final class TransformableProfile implements Profileable {
                 }
                 profile = cacheProfile = transformer.transform(
                         profileable,
-                        markRestAsCopy ? profile : PlayerProfiles.clone(profile));
+                        markRestAsCopy ? profile : profile.copy());
                 if (!transformer.canBeCached()) markRestAsCopy = true;
             }
         }
@@ -105,7 +104,7 @@ public final class TransformableProfile implements Profileable {
     }
 
     @Override
-    public GameProfile getProfile() {
+    public MojangGameProfile getProfile() {
         // This method doesn't need to be synchronized for the cache (see CacheableProfileable#getProfile), since the
         // transformation sequences don't send any API requests. The cost of synchronizing
         // this method would be probably more than letting the transformation happen again.

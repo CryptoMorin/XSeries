@@ -286,7 +286,10 @@ public enum XParticle implements XBase<XParticle, Particle> {
     WHITE_SMOKE,
 
     @XChange(version = "1.20.5", from = "SPELL_WITCH", to = "WITCH")
-    WITCH("SPELL_WITCH");
+    WITCH("SPELL_WITCH"),
+
+    @XInfo(since = "1.21.9") COPPER_FIRE_FLAME,
+    ;
 
     public static final XRegistry<XParticle, Particle> REGISTRY = Data.REGISTRY;
 

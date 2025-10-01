@@ -23,18 +23,15 @@
 package com.cryptomorin.xseries.profiles.objects.transformer;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
-import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -53,7 +50,7 @@ public interface ProfileTransformer {
      * @return may return the same or a new instance.
      */
     @NotNull
-    GameProfile transform(@NotNull Profileable profileable, @NotNull GameProfile profile);
+    MojangGameProfile transform(@NotNull Profileable profileable, @NotNull MojangGameProfile profile);
 
     /**
      * Whether the results of this transformation can be cached or not.
@@ -138,19 +135,17 @@ public interface ProfileTransformer {
         public static final String PROPERTY_NAME = "OriginalValue";
 
         @Nullable
-        public static String getOriginalValue(@NotNull GameProfile profile) {
-            PropertyMap props = profile.getProperties();
-            Collection<Property> prop = props.get(PROPERTY_NAME);
-            if (prop.isEmpty()) return null;
+        public static String getOriginalValue(@NotNull MojangGameProfile profile) {
+            Property prop = profile.getProperty(PROPERTY_NAME);
+            if (prop == null) return null;
 
-            Property first = Iterables.getFirst(prop, null);
-            return PlayerProfiles.getPropertyValue(first);
+            return PlayerProfiles.getPropertyValue(prop);
         }
 
         @Override
-        public GameProfile transform(Profileable profileable, GameProfile profile) {
+        public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             String originalValue = profileable.getProfileValue();
-            profile.getProperties().put(PROPERTY_NAME, new Property(PROPERTY_NAME, originalValue));
+            profile.addProperty(PROPERTY_NAME, originalValue);
             return profile;
         }
 
@@ -166,9 +161,9 @@ public interface ProfileTransformer {
         private static final AtomicLong NEXT_ID = new AtomicLong();
 
         @Override
-        public GameProfile transform(Profileable profileable, GameProfile profile) {
+        public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             String value = System.currentTimeMillis() + "-" + NEXT_ID.getAndIncrement();
-            profile.getProperties().put(PROPERTY_NAME, new Property(PROPERTY_NAME, value));
+            profile.addProperty(PROPERTY_NAME, value);
             return profile;
         }
 
@@ -182,12 +177,10 @@ public interface ProfileTransformer {
         private static final RemoveMetadata INSTANCE = new RemoveMetadata();
 
         @Override
-        public GameProfile transform(Profileable profileable, GameProfile profile) {
+        public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             PlayerProfiles.removeTimestamp(profile);
-            // It's a multimap, remove all values associated to this key.
-            Map<String, Collection<Property>> props = profile.getProperties().asMap();
-            props.remove(PlayerProfiles.XSERIES_SIG);
-            props.remove(IncludeOriginalValue.PROPERTY_NAME);
+            profile.removeProperty(PlayerProfiles.XSERIES_SIG);
+            profile.removeProperty(IncludeOriginalValue.PROPERTY_NAME);
             return profile;
         }
 

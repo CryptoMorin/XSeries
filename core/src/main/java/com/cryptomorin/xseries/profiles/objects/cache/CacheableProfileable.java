@@ -23,9 +23,9 @@
 package com.cryptomorin.xseries.profiles.objects.cache;
 
 import com.cryptomorin.xseries.profiles.exceptions.MojangAPIRetryException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
-import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +35,11 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal
 public abstract class CacheableProfileable implements Profileable {
-    protected GameProfile cache;
+    protected MojangGameProfile cache;
     protected Throwable lastError;
 
     @Override
-    public final synchronized GameProfile getProfile() {
+    public final synchronized MojangGameProfile getProfile() {
         // Synchronized in case two threads try to access the
         // same profileable that is not cached yet. That way, other threads
         // will wait for the first one to cache the results so the other threads
@@ -86,7 +86,7 @@ public abstract class CacheableProfileable implements Profileable {
     }
 
     @NotNull
-    protected abstract GameProfile cacheProfile();
+    protected abstract MojangGameProfile cacheProfile();
 
     @Override
     public final String toString() {

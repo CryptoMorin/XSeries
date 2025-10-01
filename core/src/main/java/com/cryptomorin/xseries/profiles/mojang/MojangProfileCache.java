@@ -23,6 +23,8 @@
 package com.cryptomorin.xseries.profiles.mojang;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.google.common.base.Strings;
 import com.google.common.cache.LoadingCache;
 import com.mojang.authlib.GameProfile;
@@ -106,11 +108,12 @@ abstract class MojangProfileCache {
         Optional<GameProfile> get(UUID realId, GameProfile gameProfile) {
             // This is probably not going to work most of the time since the whole GameProfile
             // object is used to hash the key, and the name isn't always provided to us.
-            String profileName = gameProfile.getName();
+            MojangGameProfile profile = XGameProfile.of(gameProfile);
+            String profileName = profile.name();
             if (Strings.isNullOrEmpty(profileName) || profileName.equals(PlayerProfiles.XSERIES_SIG))
                 return null;
 
-            GameProfile cache = insecureProfiles.getIfPresent(new GameProfile(realId, gameProfile.getName()));
+            GameProfile cache = insecureProfiles.getIfPresent(XGameProfile.create(realId, profile.name()).object());
             if (cache == PlayerProfiles.NIL) return Optional.empty();
             return cache == null ? null : Optional.of(cache);
         }

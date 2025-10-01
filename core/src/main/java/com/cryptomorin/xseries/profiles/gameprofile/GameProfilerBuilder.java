@@ -20,39 +20,32 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries;
+package com.cryptomorin.xseries.profiles.gameprofile;
 
-/**
- * A class that delegates {@link Object} methods from {@link #object()}.
- *
- * @param <T>
- */
-public abstract class AbstractReferencedClass<T> {
-    public abstract T object();
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 
-    /**
-     * We cast to Object to force invokevirtual instead of invokeinterface.
-     */
-    protected final Object toVirtual() {
-        return object();
+import java.util.UUID;
+
+public final class GameProfilerBuilder {
+    private final String name;
+    private final UUID id;
+    private final Multimap<String, Property> properties;
+
+    public GameProfilerBuilder(String name, UUID id) {
+        this.name = name;
+        this.id = id;
+        this.properties = MultimapBuilder.hashKeys().arrayListValues().build();
     }
 
-    @Override
-    public final boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (this.getClass().isInstance(obj.getClass())) {
-            return toVirtual().equals(((AbstractReferencedClass<?>) obj).toVirtual());
-        } else return object().equals(obj);
+    public GameProfilerBuilder addProperty(String name, String value) {
+        this.properties.put(name, new Property(name, value));
+        return this;
     }
 
-    @Override
-    public final int hashCode() {
-        return toVirtual().hashCode();
-    }
-
-    @Override
-    public final String toString() {
-        return this.getClass().getSimpleName() + '(' + toVirtual().toString() + ')';
+    public MojangGameProfile build() {
+        return XGameProfile.create(id, name, new PropertyMap(properties));
     }
 }

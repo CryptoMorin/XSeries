@@ -203,7 +203,12 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     ZOMBIE,
     ZOMBIE_HORSE,
     ZOMBIE_VILLAGER,
-    ZOMBIFIED_PIGLIN;
+    ZOMBIFIED_PIGLIN,
+
+    @XInfo(since = "1.21.9") COPPER_GOLEM,
+    @XInfo(since = "1.21.9") MANNEQUIN,
+
+    ;
 
     public static final XRegistry<XEntityType, EntityType> REGISTRY = Data.REGISTRY;
 

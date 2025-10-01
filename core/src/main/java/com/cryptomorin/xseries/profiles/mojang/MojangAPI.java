@@ -27,6 +27,8 @@ import com.cryptomorin.xseries.profiles.PlayerUUIDs;
 import com.cryptomorin.xseries.profiles.ProfileLogger;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.cryptomorin.xseries.profiles.lock.KeyedLock;
 import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
@@ -131,7 +133,7 @@ public final class MojangAPI {
             @Nullable Object profile = ProfilesCore.GameProfileCache_get$profileByName$.invoke(ProfilesCore.USER_CACHE, username);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
             GameProfile gameProfile = profile == null ?
-                    PlayerProfiles.createGameProfile(PlayerUUIDs.IDENTITY_UUID, username) :
+                    PlayerProfiles.createGameProfile(PlayerUUIDs.IDENTITY_UUID, username).object() :
                     PlayerProfiles.sanitizeProfile((GameProfile) profile);
             ProfileLogger.debug("The cached profile for {} -> {}", username, profile);
             return gameProfile;
@@ -163,12 +165,21 @@ public final class MojangAPI {
             // The side effects of setLastAccess() is really insignificant, it's used for UserCache#getTopMRUProfiles()
             // (MRU = Most Recently Used) which saves game profile cache to usercache.json from most accessed to least accessed.
             // This is because of "settings.user-cache-size" spigot.yml option.
-            if (ProfilesCore.UserCacheEntry_setLastAccess != null && ProfilesCore.UserCache_getNextOperation != null) {
+            if (ProfilesCore.GameProfileInfo_setLastAccess != null && ProfilesCore.UserCache_getNextOperation != null) {
                 // usercache_usercacheentry.setLastAccess(this.getNextOperation());
                 long nextOperation = (long) ProfilesCore.UserCache_getNextOperation.invoke(ProfilesCore.USER_CACHE);
-                ProfilesCore.UserCacheEntry_setLastAccess.invoke(userCacheEntry, nextOperation);
+                ProfilesCore.GameProfileInfo_setLastAccess.invoke(userCacheEntry, nextOperation);
             }
-            optional = Optional.of((GameProfile) ProfilesCore.UserCacheEntry_getProfile.invoke(userCacheEntry));
+            if (ProfilesCore.GameProfileInfo_getProfile != null) {
+                optional = Optional.of((GameProfile) ProfilesCore.GameProfileInfo_getProfile.invoke(userCacheEntry));
+            } else {
+                // 1.21.9+
+                Object nameAndId = ProfilesCore.GameProfileInfo_nameAndId.invoke(userCacheEntry);
+                optional = Optional.of(XGameProfile.create(
+                        (UUID) ProfilesCore.NameAndId_id.invoke(nameAndId),
+                        (String) ProfilesCore.NameAndId_name.invoke(nameAndId)
+                ).object());
+            }
         } else {
             // optional = lookupGameProfile(this.profileRepository, username); // CraftBukkit - use correct case for offline players
             UUID realUUID = PlayerUUIDs.getRealUUIDOfPlayer(username);
@@ -176,7 +187,7 @@ public final class MojangAPI {
             GameProfile profile = PlayerProfiles.createGameProfile(
                     PlayerUUIDs.isOnlineMode() ? realUUID : PlayerUUIDs.getOfflineUUID(username),
                     username
-            );
+            ).object();
             optional = Optional.of(profile);
             // this.add((GameProfile) optional.get());
             cacheProfile(profile);
@@ -262,7 +273,7 @@ public final class MojangAPI {
                     PlayerUUIDs.ONLINE_TO_OFFLINE.put(realId, offlineId);
                     PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, realId);
                     if (!ProfilesCore.UserCache_profilesByName.containsKey(name)) {
-                        cacheProfile(PlayerProfiles.createGameProfile(onlineMode ? realId : offlineId, name));
+                        cacheProfile(PlayerProfiles.createGameProfile(onlineMode ? realId : offlineId, name).object());
                     }
 
                     String prev = mapped.put(realId, name);
@@ -294,11 +305,11 @@ public final class MojangAPI {
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
             ProfileLogger.debug("The cached profile for {} -> {}", uuid, profile);
             return profile == null ?
-                    PlayerProfiles.createNamelessGameProfile(uuid) :
+                    PlayerProfiles.createNamelessGameProfile(uuid).object() :
                     PlayerProfiles.sanitizeProfile((GameProfile) profile);
         } catch (Throwable throwable) {
             ProfileLogger.LOGGER.error("Unable to get cached profile by UUID: {}", uuid, throwable);
-            return PlayerProfiles.createNamelessGameProfile(uuid);
+            return PlayerProfiles.createNamelessGameProfile(uuid).object();
         }
     }
 
@@ -310,7 +321,13 @@ public final class MojangAPI {
      */
     private static void cacheProfile(GameProfile profile) {
         try {
-            ProfilesCore.CACHE_PROFILE.invoke(ProfilesCore.USER_CACHE, profile);
+            if (ProfilesCore.NameAndId$ctor_GameProfile == null) {
+                ProfilesCore.CachedUserNameToIdResolver_add.invoke(ProfilesCore.USER_CACHE, profile);
+            } else {
+                // 1.21.9+
+                Object nameAndId = ProfilesCore.NameAndId$ctor_GameProfile.invoke(profile);
+                ProfilesCore.CachedUserNameToIdResolver_add.invoke(ProfilesCore.USER_CACHE, nameAndId);
+            }
             ProfileLogger.debug("Profile is now cached: {}", profile);
         } catch (Throwable throwable) {
             ProfileLogger.LOGGER.error("Unable to cache profile {}", profile);
@@ -327,29 +344,29 @@ public final class MojangAPI {
      * @throws UnknownPlayerException if a player with the specified profile properties (username and UUID) doesn't exist.
      */
     @NotNull
-    public static GameProfile getOrFetchProfile(@NotNull final GameProfile profile) throws UnknownPlayerException {
+    public static GameProfile getOrFetchProfile(@NotNull final MojangGameProfile profile) throws UnknownPlayerException {
         // Get real UUID for offline players
         UUID realUUID;
-        if (profile.getName().equals(PlayerProfiles.XSERIES_SIG)) {
+        if (profile.name().equals(PlayerProfiles.XSERIES_SIG)) {
             // We will assume that the requested UUID is the real one
             // since the server cache didn't find it and that player never
             // joined this server.
             // There is no way to tell if this is fake or real UUID, the
             // closest we can get is to just request it from the server
             // and see if it exists. (We can't reverse UUID.nameUUIDFromBytes)
-            realUUID = profile.getId();
+            realUUID = profile.id();
         } else {
-            realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.getName(), profile.getId());
+            realUUID = PlayerUUIDs.getRealUUIDOfPlayer(profile.name(), profile.id());
             if (realUUID == null) {
-                throw new UnknownPlayerException(profile.getName(), "Player with the given properties not found: " + profile);
+                throw new UnknownPlayerException(profile.name(), "Player with the given properties not found: " + profile);
             }
         }
 
-        try (KeyedLock<UUID, GameProfile> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID, () -> handleCache(profile, realUUID))) {
+        try (KeyedLock<UUID, GameProfile> lock = MojangRequestQueue.UUID_REQUESTS.lock(realUUID, () -> handleCache(profile.object(), realUUID))) {
             GameProfile cached = lock.getOrRetryValue();
             if (cached != null) return cached;
 
-            JsonElement request = requestProfile(profile, realUUID);
+            JsonElement request = requestProfile(profile.object(), realUUID);
             JsonObject profileData = request.getAsJsonObject();
             List<String> profileActions = new ArrayList<>();
             GameProfile fetchedProfile = createGameProfile(profileData, profileActions);
@@ -358,7 +375,7 @@ public final class MojangAPI {
             cacheProfile(fetchedProfile);
 
             INSECURE_PROFILES.put(realUUID, Optional.of(fetchedProfile));
-            MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile, fetchedProfile, profileActions));
+            MOJANG_PROFILE_CACHE.cache(new PlayerProfile(realUUID, profile.object(), fetchedProfile, profileActions));
 
             return fetchedProfile;
         } catch (Throwable ex) {
@@ -408,13 +425,13 @@ public final class MojangAPI {
         // Two main fields, name and UUID
         UUID id = PlayerUUIDs.UUIDFromDashlessString(profileData.get("id").getAsString());
         String name = profileData.get("name").getAsString();
-        GameProfile fetchedProfile = PlayerProfiles.createGameProfile(id, name);
+        GameProfile fetchedProfile = PlayerProfiles.createGameProfile(id, name).object();
 
         // Basic properties
         JsonElement propertiesEle = profileData.get("properties");
         if (propertiesEle != null) {
             JsonArray props = propertiesEle.getAsJsonArray();
-            PropertyMap properties = fetchedProfile.getProperties();
+            PropertyMap properties = XGameProfile.of(fetchedProfile).properties();
             for (JsonElement prop : props) {
                 JsonObject obj = prop.getAsJsonObject();
                 String propName = obj.get("name").getAsString();

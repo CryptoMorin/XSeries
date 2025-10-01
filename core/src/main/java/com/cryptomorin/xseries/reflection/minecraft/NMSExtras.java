@@ -163,7 +163,7 @@ public final class NMSExtras {
             getDataWatcher = XReflection.of(nmsEntity)
                     .method().returns(DataWatcherClass)
                     .map(MinecraftMapping.MOJANG, "getEntityData")
-                    .map(MinecraftMapping.OBFUSCATED, v(21, 6, "au")
+                    .map(MinecraftMapping.OBFUSCATED, v(21, 9, "aC").v(21, 6, "au")
                             .v(21, 5, "ar")
                             .v(21, 3, "au")
                             .v(21, "ar")
@@ -351,7 +351,7 @@ public final class NMSExtras {
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BlockState));
                 tileEntitySign_getUpdatePacket = XReflection.of(TileEntitySign).method().returns(PacketPlayOutTileEntityData)
                         .map(MinecraftMapping.MOJANG, "getUpdatePacket")
-                        .map(MinecraftMapping.SPIGOT, v(21, 6, "u").v(21, 4, "s").v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
+                        .map(MinecraftMapping.SPIGOT, v(21, 9, "l").v(21, 6, "u").v(21, 4, "s").v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
                         .unreflect();
 
                 if (supports(20)) {

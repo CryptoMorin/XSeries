@@ -23,8 +23,8 @@
 package com.cryptomorin.xseries.profiles.objects;
 
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
-import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +49,7 @@ public interface DelegateProfileable extends Profileable {
     @Override
     @Nullable
     @Unmodifiable
-    default GameProfile getProfile() {
+    default MojangGameProfile getProfile() {
         return getDelegateProfile().getProfile();
     }
 
@@ -59,7 +59,7 @@ public interface DelegateProfileable extends Profileable {
     }
 
     @Override
-    default @Nullable GameProfile getDisposableProfile() {
+    default @Nullable MojangGameProfile getDisposableProfile() {
         return getDelegateProfile().getDisposableProfile();
     }
 

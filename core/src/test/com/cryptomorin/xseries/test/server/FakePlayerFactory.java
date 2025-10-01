@@ -23,6 +23,7 @@
 package com.cryptomorin.xseries.test.server;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.jvm.ConstructorMemberHandle;
@@ -46,26 +47,26 @@ public final class FakePlayerFactory {
         ReflectiveNamespace ns = XReflection.namespaced();
         ns.imports(GameProfile.class);
 
-        MinecraftClassHandle CraftServer = ns.ofMinecraft("package cb; public final class CraftServer implements Server {}");
-        ns.ofMinecraft("package nms.server;           public abstract class MinecraftServer {}");
-        ns.ofMinecraft("package nms.server.dedicated; public          class DedicatedServer extends MinecraftServer implements IMinecraftServer {}");
+        MinecraftClassHandle CraftServer = ns.ofMinecraft("package cb; public final class CraftServer implements Server");
+        ns.ofMinecraft("package nms.server;           public abstract class MinecraftServer");
+        ns.ofMinecraft("package nms.server.dedicated; public          class DedicatedServer extends MinecraftServer implements IMinecraftServer");
         MethodMemberHandle CraftServer_getServer = CraftServer.method("public DedicatedServer getServer();");
 
         MinecraftClassHandle CraftPlayer = ns.ofMinecraft(
                 "package cb.entity;" +
-                        "public class CraftPlayer extends CraftHumanEntity implements Player {}");
+                        "public class CraftPlayer extends CraftHumanEntity implements Player");
 
         MinecraftClassHandle EntityPlayer = ns.ofMinecraft(
                 "package nms.server.level;" +
-                        "public class EntityPlayer extends EntityHuman {}");
+                        "public class EntityPlayer extends EntityHuman");
 
         MinecraftClassHandle CraftWorld = ns.ofMinecraft("package cb;" +
-                "public class CraftWorld extends CraftRegionAccessor implements World {}");
+                "public class CraftWorld extends CraftRegionAccessor implements World");
         ns.ofMinecraft("package nms.server.level;" +
-                "public class WorldServer extends World implements ServerEntityGetter, GeneratorAccessSeed {}");
+                "public class WorldServer extends World implements ServerEntityGetter, GeneratorAccessSeed");
         MethodMemberHandle CraftWorld_getHandle = CraftWorld.method("public WorldServer getHandle();");
 
-        MinecraftClassHandle ChatVisibility = ns.ofMinecraft("package nms.world.entity.player; public enum ChatVisibility implements OptionEnum {}")
+        MinecraftClassHandle ChatVisibility = ns.ofMinecraft("package nms.world.entity.player; public enum ChatVisibility implements OptionEnum")
                 .map(MinecraftMapping.MOJANG, "ChatVisibility")
                 .map(MinecraftMapping.OBFUSCATED, "EnumChatVisibility");
         Object ChatVisibility_FULL = ChatVisibility.enums()
@@ -73,20 +74,20 @@ public final class FakePlayerFactory {
                 .map(MinecraftMapping.OBFUSCATED, "a")
                 .getEnumConstant();
 
-        MinecraftClassHandle HumanoidArm = ns.ofMinecraft("package nms.world.entity; public enum HumanoidArm implements OptionEnum, INamable {}")
+        MinecraftClassHandle HumanoidArm = ns.ofMinecraft("package nms.world.entity; public enum HumanoidArm implements OptionEnum, INamable")
                 .map(MinecraftMapping.OBFUSCATED, "EnumMainHand");
         Object HumanoidArm_RIGHT = HumanoidArm.enums()
                 .map(MinecraftMapping.MOJANG, "RIGHT")
                 .map(MinecraftMapping.OBFUSCATED, "b")
                 .getEnumConstant();
 
-        MinecraftClassHandle ParticleStatus = ns.ofMinecraft("package nms.server.level; public enum ParticleStatus implements OptionEnum {}");
+        MinecraftClassHandle ParticleStatus = ns.ofMinecraft("package nms.server.level; public enum ParticleStatus implements OptionEnum");
         Object ParticleStatus_ALL = ParticleStatus.enums()
                 .map(MinecraftMapping.MOJANG, "ALL")
                 .map(MinecraftMapping.OBFUSCATED, "a")
                 .getEnumConstant();
 
-        MinecraftClassHandle ClientInformation = ns.ofMinecraft("package nms.server.level; public record ClientInformation() {}");
+        MinecraftClassHandle ClientInformation = ns.ofMinecraft("package nms.server.level; public record ClientInformation()");
         ConstructorMemberHandle ClientInformation$ctor = ClientInformation.constructor("public ClientInformation(" +
                 "String language," +
                 "int viewDistance," +
@@ -114,7 +115,7 @@ public final class FakePlayerFactory {
         World world = Constants.getMainWorld();
         Object nmsWorld = CraftWorld_getHandle.reflect().invoke(world);
 
-        GameProfile gameProfile = PlayerProfiles.createGameProfile(
+        MojangGameProfile gameProfile = PlayerProfiles.createGameProfile(
                 UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"),
                 "Notch"
         );

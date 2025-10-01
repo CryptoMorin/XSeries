@@ -28,6 +28,8 @@ import com.cryptomorin.xseries.profiles.builder.ProfileInstruction;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.ProfileException;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.mojang.PlayerProfileFetcherThread;
 import com.cryptomorin.xseries.profiles.mojang.ProfileRequestConfiguration;
@@ -87,7 +89,7 @@ public interface Profileable {
     @Nullable
     @Unmodifiable
     @ApiStatus.Internal
-    GameProfile getProfile();
+    MojangGameProfile getProfile();
 
     /**
      * Whether this profile has all the necessary information to construct its {@link #getProfile()} right away.
@@ -139,9 +141,9 @@ public interface Profileable {
     @Nullable
     @ApiStatus.Internal
     @Contract("-> new")
-    default GameProfile getDisposableProfile() {
-        GameProfile profile = getProfile();
-        return profile == null ? null : PlayerProfiles.clone(profile);
+    default MojangGameProfile getDisposableProfile() {
+        MojangGameProfile profile = getProfile();
+        return profile == null ? null : profile.copy();
     }
 
     /**
@@ -260,10 +262,10 @@ public interface Profileable {
         // First cache the username requests then get the profiles and finally return the original objects.
         return XReflection.stacktrace(initial
                 .thenCompose(a -> {
-                    List<CompletableFuture<GameProfile>> profileTasks = new ArrayList<>(profileables.size());
+                    List<CompletableFuture<MojangGameProfile>> profileTasks = new ArrayList<>(profileables.size());
 
                     for (Profileable profileable : profileables) {
-                        CompletableFuture<GameProfile> profileTask;
+                        CompletableFuture<MojangGameProfile> profileTask;
 
                         if (profileable.isReady()) {
                             profileTask = CompletableFuture.completedFuture(profileable.getProfile());
@@ -319,6 +321,22 @@ public interface Profileable {
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull GameProfile profile, boolean fetchTexturesIfNeeded) {
+        return of(XGameProfile.of(profile), fetchTexturesIfNeeded);
+    }
+
+    /**
+     * Sets the skull texture based on the specified profile.
+     * If the profile already has textures, it will be used directly. Otherwise, a new profile will be fetched
+     * based on the UUID or username depending on the server's online mode.
+     *
+     * @param profile               The profile to be used in the profile setting operation.
+     * @param fetchTexturesIfNeeded whether textures should be automatically fetched for this profile
+     *                              if they don't exist. This should almost always be set to true unless
+     *                              you want some other code to handle the texture (whether server-side or client-side.)
+     */
+    @NotNull
+    @Contract(pure = true)
+    static Profileable of(@NotNull MojangGameProfile profile, boolean fetchTexturesIfNeeded) {
         return fetchTexturesIfNeeded ?
                 new RawGameProfileProfileable(profile) :
                 new DynamicGameProfileProfileable(profile);
@@ -426,7 +444,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile cacheProfile() {
+        protected MojangGameProfile cacheProfile() {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
@@ -436,9 +454,9 @@ public interface Profileable {
             if (!profileOpt.isPresent())
                 throw new UnknownPlayerException(username, "Cannot find player named '" + username + '\'');
 
-            GameProfile profile = profileOpt.get();
+            MojangGameProfile profile = XGameProfile.of(profileOpt.get());
             if (PlayerProfiles.hasTextures(profile)) return profile;
-            return MojangAPI.getOrFetchProfile(profile);
+            return XGameProfile.of(MojangAPI.getOrFetchProfile(profile));
         }
     }
 
@@ -454,37 +472,37 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile cacheProfile() {
-            GameProfile profile = MojangAPI.getCachedProfileByUUID(id);
+        protected MojangGameProfile cacheProfile() {
+            MojangGameProfile profile = XGameProfile.of(MojangAPI.getCachedProfileByUUID(id));
             if (PlayerProfiles.hasTextures(profile)) return profile;
-            return MojangAPI.getOrFetchProfile(profile);
+            return XGameProfile.of(MojangAPI.getOrFetchProfile(profile));
         }
     }
 
     @ApiStatus.Internal
     final class DynamicGameProfileProfileable extends TimedCacheableProfileable {
-        private final GameProfile profile;
+        private final MojangGameProfile profile;
 
-        public DynamicGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
+        public DynamicGameProfileProfileable(MojangGameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
-        protected GameProfile cacheProfile() {
+        protected MojangGameProfile cacheProfile() {
             if (PlayerProfiles.hasTextures(profile)) {
                 return profile;
             }
 
             return (PlayerUUIDs.isOnlineMode()
-                    ? new UUIDProfileable(profile.getId())
-                    : new UsernameProfileable(profile.getName())
+                    ? new UUIDProfileable(profile.id())
+                    : new UsernameProfileable(profile.name())
             ).getProfile();
         }
     }
 
     @ApiStatus.Internal
     final class RawGameProfileProfileable implements Profileable {
-        private final GameProfile profile;
+        private final MojangGameProfile profile;
 
-        public RawGameProfileProfileable(GameProfile profile) {this.profile = Objects.requireNonNull(profile);}
+        public RawGameProfileProfileable(MojangGameProfile profile) {this.profile = Objects.requireNonNull(profile);}
 
         @Override
         public boolean isReady() {
@@ -494,7 +512,7 @@ public interface Profileable {
         @Override
         @NotNull
         @Unmodifiable
-        public GameProfile getProfile() {
+        public MojangGameProfile getProfile() {
             return profile;
         }
     }
@@ -577,7 +595,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile cacheProfile() {
+        protected MojangGameProfile cacheProfile() {
             // Can be empty if used by:
             // CraftServer -> public OfflinePlayer getOfflinePlayer(UUID id)
             if (Strings.isNullOrEmpty(username)) {
@@ -604,12 +622,12 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile cacheProfile() {
+        protected MojangGameProfile cacheProfile() {
             // This is a timed cache, so we always update.
             updated = profile.update().join();
 
             if (CraftPlayerProfile_buildGameProfile == null) {
-                GameProfile gameProfile = new GameProfile(updated.getUniqueId(), updated.getName());
+                MojangGameProfile gameProfile = XGameProfile.create(updated.getUniqueId(), updated.getName());
 
                 String skinURL = updated.getTextures().getSkin().toString();
                 String base64 = PlayerProfiles.encodeBase64(PlayerProfiles.TEXTURES_NBT_PROPERTY_PREFIX + skinURL + "\"}}}");
@@ -618,7 +636,7 @@ public interface Profileable {
                 return gameProfile;
             } else {
                 try {
-                    return (GameProfile) CraftPlayerProfile_buildGameProfile.invoke(updated);
+                    return XGameProfile.of((GameProfile) CraftPlayerProfile_buildGameProfile.invoke(updated));
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
@@ -661,7 +679,7 @@ public interface Profileable {
         }
 
         @Override
-        protected GameProfile cacheProfile() {
+        protected MojangGameProfile cacheProfile() {
             determineType();
             if (type == null) {
                 throw new InvalidProfileException(string, "Unknown skull string value: " + string);

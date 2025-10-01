@@ -25,6 +25,8 @@ package com.cryptomorin.xseries.profiles.objects;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileContainerException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -46,7 +48,7 @@ import java.util.Objects;
 @ApiStatus.Internal
 public abstract class ProfileContainer<T> implements Profileable {
     @NotNull
-    public abstract void setProfile(@Nullable GameProfile profile);
+    public abstract void setProfile(@Nullable MojangGameProfile profile);
 
     @NotNull
     public abstract T getObject();
@@ -73,7 +75,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public void setProfile(GameProfile profile) {
+        public void setProfile(@Nullable MojangGameProfile profile) {
             ItemMeta meta = itemStack.getItemMeta();
             getMetaContainer(meta).setProfile(profile);
             itemStack.setItemMeta(meta);
@@ -96,7 +98,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         public ItemMetaProfileContainer(SkullMeta meta) {this.meta = Objects.requireNonNull(meta, "ItemMeta is null");}
 
         @Override
-        public void setProfile(GameProfile profile) {
+        public void setProfile(@Nullable MojangGameProfile profile) {
             try {
                 ProfilesCore.CraftMetaSkull_profile$setter.invoke(meta, PlayerProfiles.wrapProfile(profile));
             } catch (Throwable throwable) {
@@ -110,9 +112,9 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public GameProfile getProfile() {
+        public MojangGameProfile getProfile() {
             try {
-                return PlayerProfiles.unwrapProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta));
+                return XGameProfile.of(PlayerProfiles.unwrapProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta)));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get profile from item meta: " + meta, throwable);
             }
@@ -132,7 +134,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public void setProfile(GameProfile profile) {
+        public void setProfile(@Nullable MojangGameProfile profile) {
             Skull state = getBlockState();
             new BlockStateProfileContainer(state).setProfile(profile);
             state.update(true);
@@ -155,7 +157,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         public BlockStateProfileContainer(Skull state) {this.state = Objects.requireNonNull(state, "Skull BlockState is null");}
 
         @Override
-        public void setProfile(GameProfile profile) {
+        public void setProfile(@Nullable MojangGameProfile profile) {
             try {
                 ProfilesCore.CraftSkull_profile$setter.invoke(state, PlayerProfiles.wrapProfile(profile));
             } catch (Throwable throwable) {
@@ -169,9 +171,9 @@ public abstract class ProfileContainer<T> implements Profileable {
         }
 
         @Override
-        public GameProfile getProfile() {
+        public MojangGameProfile getProfile() {
             try {
-                return PlayerProfiles.unwrapProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state));
+                return XGameProfile.of(PlayerProfiles.unwrapProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state)));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Unable to get profile fr om blockstate: " + state, throwable);
             }

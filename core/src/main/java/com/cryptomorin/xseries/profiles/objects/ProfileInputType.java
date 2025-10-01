@@ -24,6 +24,7 @@ package com.cryptomorin.xseries.profiles.objects;
 
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileException;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ public enum ProfileInputType {
      */
     TEXTURE_HASH(Pattern.compile("[0-9a-z]{55,70}")) {
         @Override
-        public GameProfile getProfile(String textureHash) {
+        public MojangGameProfile getProfile(String textureHash) {
             String base64 = PlayerProfiles.encodeBase64(PlayerProfiles.TEXTURES_NBT_PROPERTY_PREFIX + PlayerProfiles.TEXTURES_BASE_URL + textureHash + "\"}}}");
             return PlayerProfiles.profileFromHashAndBase64(textureHash, base64);
         }
@@ -63,7 +64,7 @@ public enum ProfileInputType {
      */
     TEXTURE_URL(Pattern.compile("(?:https?://)?(?:textures\\.)?minecraft\\.net/texture/(?<hash>" + TEXTURE_HASH.pattern + ')', Pattern.CASE_INSENSITIVE)) {
         @Override
-        public GameProfile getProfile(String textureUrl) {
+        public MojangGameProfile getProfile(String textureUrl) {
             String hash = extractTextureHash(textureUrl);
             return TEXTURE_HASH.getProfile(hash);
         }
@@ -76,7 +77,7 @@ public enum ProfileInputType {
      */
     BASE64(Pattern.compile("[-A-Za-z0-9+/]{100,}={0,3}")) {
         @Override
-        public GameProfile getProfile(String base64) {
+        public MojangGameProfile getProfile(String base64) {
             // The base64 string represents the textures.
             // There are 3 types of textures: SKIN - CAPE - ELYTRA (not present in v1.8)
             // Each can have a URL and an additional set of metadata (like model of skin, steve or alex, classic or slim)
@@ -99,7 +100,7 @@ public enum ProfileInputType {
     UUID(Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")) {
         // Case-insensitive flag doesn't work for some UUIDs.
         @Override
-        public GameProfile getProfile(String uuidString) {
+        public MojangGameProfile getProfile(String uuidString) {
             java.util.UUID uuid;
             try {
                 uuid = java.util.UUID.fromString(uuidString);
@@ -118,7 +119,7 @@ public enum ProfileInputType {
      */
     USERNAME(Pattern.compile("[A-Za-z0-9_]{1,16}")) {
         @Override
-        public GameProfile getProfile(String username) {
+        public MojangGameProfile getProfile(String username) {
             return Profileable.username(username).getProfile();
         }
     };
@@ -140,7 +141,7 @@ public enum ProfileInputType {
      * @param input The input string to retrieve the profile for.
      * @return The {@link GameProfile} corresponding to the input string.
      */
-    public abstract GameProfile getProfile(String input);
+    public abstract MojangGameProfile getProfile(String input);
 
     /**
      * Returns the corresponding {@link ProfileInputType} for the given identifier, if it matches any pattern.

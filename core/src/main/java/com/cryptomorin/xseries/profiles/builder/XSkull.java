@@ -23,6 +23,7 @@ package com.cryptomorin.xseries.profiles.builder;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.ProfileContainer;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
@@ -143,7 +144,7 @@ public final class XSkull {
      * We'll just return a prohibition sign hardcoded skull.<br>
      * <a href="https://minecraft-heads.com/custom-heads/miscellaneous/58141-cross">minecraft-heads.com</a>
      */
-    private static final GameProfile DEFAULT_PROFILE = PlayerProfiles.signXSeries(ProfileInputType.BASE64.getProfile(
+    private static final MojangGameProfile DEFAULT_PROFILE = PlayerProfiles.signXSeries(ProfileInputType.BASE64.getProfile(
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5l" +
                     "Y3JhZnQubmV0L3RleHR1cmUvYzEwNTkxZTY5MDllNmEyODFiMzcxODM2ZTQ2MmQ2" +
                     "N2EyYzc4ZmEwOTUyZTkxMGYzMmI0MWEyNmM0OGMxNzU3YyJ9fX0="
@@ -161,6 +162,6 @@ public final class XSkull {
     @NotNull
     @Contract(value = "-> new", pure = true)
     protected static Profileable getDefaultProfile() {
-        return Profileable.of(PlayerProfiles.clone(DEFAULT_PROFILE), false);
+        return Profileable.of(DEFAULT_PROFILE.copy(), false);
     }
 }

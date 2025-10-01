@@ -1890,7 +1890,7 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER,
                 XMaterial.LIGHT_WEIGHTED_PRESSURE_PLATE,
                 XMaterial.WAXED_WEATHERED_CUT_COPPER,
-                XMaterial.CHAIN,
+                XMaterial.IRON_CHAIN,
                 XMaterial.MAGMA_BLOCK,
                 XMaterial.STONE_PRESSURE_PLATE,
                 XMaterial.DARK_PRISMARINE,

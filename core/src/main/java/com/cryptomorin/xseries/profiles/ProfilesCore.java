@@ -57,12 +57,14 @@ public final class ProfilesCore {
     public static final Map<UUID, Object> UserCache_profilesByUUID;
 
     public static final MethodHandle
-            MinecraftSessionService_fillProfileProperties, GameProfileCache_get$profileByName$, GameProfileCache_get$profileByUUID$, CACHE_PROFILE,
+            MinecraftSessionService_fillProfileProperties, GameProfileCache_get$profileByName$, GameProfileCache_get$profileByUUID$,
+            CachedUserNameToIdResolver_add,
             CraftMetaSkull_profile$getter, CraftMetaSkull_profile$setter,
             CraftSkull_profile$setter, CraftSkull_profile$getter,
             Property_getValue,
             UserCache_getNextOperation,
-            UserCacheEntry_getProfile, UserCacheEntry_setLastAccess,
+            GameProfileInfo_getProfile, GameProfileInfo_setLastAccess, GameProfileInfo_nameAndId,
+            NameAndId_id, NameAndId_name, NameAndId$ctor_GameProfile,
             ResolvableProfile$constructor, ResolvableProfile_gameProfile;
     public static final boolean ResolvableProfile$bukkitSupports;
 
@@ -76,20 +78,31 @@ public final class ProfilesCore {
         Proxy proxy;
         MethodHandle fillProfileProperties = null, getProfileByName, getProfileByUUID, cacheProfile;
         MethodHandle profileSetterMeta, profileGetterMeta;
-        MethodHandle newResolvableProfile = null, $ResolvableProfile_gameProfile = null;
+        MethodHandle newResolvableProfile = null, $ResolvableProfile_gameProfile = null, NameAndId$ctor = null;
         boolean bukkitUsesResolvableProfile = false;
 
         ReflectiveNamespace ns = XReflection.namespaced()
                 .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
 
-        MinecraftClassHandle GameProfileCache = ns.ofMinecraft(
-                "package nms.server.players; public class GameProfileCache"
-        ).map(MinecraftMapping.SPIGOT, "UserCache");
+        MinecraftClassHandle CachedUserNameToIdResolver = ns.ofMinecraft(
+                        "package nms.server.players; public class CachedUserNameToIdResolver"
+                )
+                .map(MinecraftMapping.MOJANG, v(21, 9, "CachedUserNameToIdResolver").orElse("GameProfileCache"))
+                .map(MinecraftMapping.SPIGOT, "UserCache");
 
         SUPPORTS_BUKKIT_PlayerProfile = ns
                 .ofMinecraft("package org.bukkit; public interface OfflinePlayer")
                 .method("org.bukkit.profile.PlayerProfile getPlayerProfile()")
                 .exists();
+
+        MinecraftClassHandle GameProfileInfo = CachedUserNameToIdResolver
+                .inner("private static class GameProfileInfo")
+                .map(MinecraftMapping.SPIGOT, v(21, 9, "a").orElse("UserCacheEntry"))
+                .map(MinecraftMapping.OBFUSCATED, "bay$a");
+
+        MinecraftClassHandle NameAndId = ns
+                .ofMinecraft("package nms.server.players; public class NameAndId") // Record class
+                .map(MinecraftMapping.OBFUSCATED, "bbb");
 
         try {
             MinecraftClassHandle CraftMetaSkull = ns.ofMinecraft(
@@ -102,9 +115,16 @@ public final class ProfilesCore {
                     ns.ofMinecraft("package nms.world.item.component; public class ResolvableProfile");
 
             if (ResolvableProfile.exists()) {
-                newResolvableProfile = ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile)").reflect();
-                $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile gameProfile()")
-                        .map(MinecraftMapping.OBFUSCATED, v(21, 6, "g").orElse("f"))
+                newResolvableProfile = XReflection.any(
+                        // Introduced in v1.21.9
+                        ResolvableProfile.method("public static ResolvableProfile createResolved(GameProfile gameProfile)")
+                                .map(MinecraftMapping.OBFUSCATED, "a"),
+                        ResolvableProfile.constructor("public ResolvableProfile(GameProfile gameProfile)")
+                ).reflect();
+
+                $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile partialProfile()")
+                        .map(MinecraftMapping.MOJANG, v(21, 9, "partialProfile").orElse("gameProfile"))
+                        .map(MinecraftMapping.OBFUSCATED, v(21, 9, "b").v(21, 6, "g").orElse("f"))
                         .reflect();
 
                 bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile").exists();
@@ -134,28 +154,54 @@ public final class ProfilesCore {
             // Added by Bukkit
             Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer()").reflect().invoke();
 
-            minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService()")
-                    .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
-                    .reflect().invoke(minecraftServer);
+            // Services is a record class.
+            MinecraftClassHandle Services = ns.ofMinecraft("package nms.server; public class Services");
+            boolean usesServices = Services.exists();
+            Object services = null;
+            if (usesServices) {
+                services = MinecraftServer.method("public Services services()")
+                        .map(MinecraftMapping.OBFUSCATED, "av")
+                        .reflect().invoke(minecraftServer);
+
+                minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.MinecraftSessionService sessionService()")
+                        .map(MinecraftMapping.OBFUSCATED, "c")
+                        .reflect().invoke(services);
+            } else {
+                minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService()")
+                        .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
+                        .reflect().invoke(minecraftServer);
+            }
 
             {
-                FieldMemberHandle insecureProfilesFieldHandle = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
-                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService").field().getter();
+                MinecraftClassHandle yggdrasilService = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
+                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService");
+
+                FieldMemberHandle yggdrasilField = yggdrasilService.field().getter();
+
                 if (NULLABILITY_RECORD_UPDATE) {
-                    insecureProfilesFieldHandle.signature("private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles");
+                    yggdrasilField.signature("private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles");
                 } else {
-                    insecureProfilesFieldHandle.signature("private final LoadingCache<GameProfile, GameProfile> insecureProfiles");
+                    yggdrasilField.signature("private final LoadingCache<GameProfile, GameProfile> insecureProfiles");
                 }
-                MethodHandle insecureProfilesField = insecureProfilesFieldHandle.reflectOrNull();
+                MethodHandle insecureProfilesField = yggdrasilField.reflectOrNull();
                 if (insecureProfilesField != null) {
                     insecureProfiles = insecureProfilesField.invoke(minecraftSessionService);
                 }
             }
 
-            userCache = MinecraftServer.method("public GameProfileCache getProfileCache()")
-                    .named("at", /* 1.21.3 */ "ar", /* 1.18.2 */ "ao", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
-                    .map(MinecraftMapping.OBFUSCATED, /* 1.9.4 */ "getUserCache")
-                    .reflect().invoke(minecraftServer);
+            if (usesServices) {
+                ns.ofMinecraft("package nms.server.players; public interface UserNameToIdResolver")
+                        .map(MinecraftMapping.OBFUSCATED, "bbm");
+
+                userCache = Services.method("public UserNameToIdResolver nameToIdCache()")
+                        .map(MinecraftMapping.OBFUSCATED, "f")
+                        .reflect().invoke(services);
+            } else {
+                userCache = MinecraftServer.method("public CachedUserNameToIdResolver getProfileCache()")
+                        .named("at", /* 1.21.3 */ "ar", /* 1.18.2 */ "ao", /* 1.20.4 */ "ap", /* 1.20.6 */ "au")
+                        .map(MinecraftMapping.OBFUSCATED, /* 1.9.4 */ "getUserCache")
+                        .reflect().invoke(minecraftServer);
+            }
 
             if (!NULLABILITY_RECORD_UPDATE) {
                 fillProfileProperties = ns.of(MinecraftSessionService.class).method(
@@ -164,11 +210,11 @@ public final class ProfilesCore {
             }
 
             // noinspection MethodMayBeStatic
-            UserCache_getNextOperation = GameProfileCache.method("private long getNextOperation()")
+            UserCache_getNextOperation = CachedUserNameToIdResolver.method("private long getNextOperation()")
                     .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).reflectOrNull();
 
-            MethodMemberHandle profileByName = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
-            MethodMemberHandle profileByUUID = GameProfileCache.method().named(/* v1.17.1 */ "getProfile", "a");
+            MethodMemberHandle profileByName = CachedUserNameToIdResolver.method().named(/* v1.17.1 */ "getProfile", "a");
+            MethodMemberHandle profileByUUID = CachedUserNameToIdResolver.method().named(/* v1.17.1 */ "getProfile", "a");
             // @formatter:off
             getProfileByName = XReflection.anyOf(
                     () -> profileByName.signature("public          GameProfile  get(String username)"),
@@ -180,13 +226,21 @@ public final class ProfilesCore {
             ).reflect();
             // @formatter:on
 
-            cacheProfile = GameProfileCache.method("public void add(GameProfile profile)")
-                    .map(MinecraftMapping.OBFUSCATED, "a").reflect();
+            if (usesServices) {
+                NameAndId$ctor = NameAndId.constructor("public NameAndId(GameProfile profile)").reflect();
+                cacheProfile = CachedUserNameToIdResolver.method("private void add(NameAndId nameAndId)")
+                        .parameters(NameAndId)
+                        .map(MinecraftMapping.OBFUSCATED, "a").reflect();
+            } else {
+                cacheProfile = CachedUserNameToIdResolver.method("public void add(GameProfile profile)")
+                        .map(MinecraftMapping.OBFUSCATED, "a").reflect();
+            }
 
             try {
                 // Some versions don't have the public getProxy() method. It's very very inconsistent...
                 proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy").getter()
-                        .map(MinecraftMapping.OBFUSCATED, v(20, 5, "h").v(20, 3, "i")
+                        .map(MinecraftMapping.OBFUSCATED, v(21, 9, "i")
+                                .v(20, 5, "h").v(20, 3, "i")
                                 .v(19, "j")
                                 .v(18, 2, "n").v(18, "o")
                                 .v(17, "m")
@@ -215,8 +269,9 @@ public final class ProfilesCore {
 
         PROXY = proxy;
         USER_CACHE = userCache;
-        CACHE_PROFILE = cacheProfile;
+        CachedUserNameToIdResolver_add = cacheProfile;
         MINECRAFT_SESSION_SERVICE = minecraftSessionService;
+        NameAndId$ctor_GameProfile = NameAndId$ctor;
 
         Objects.requireNonNull(insecureProfiles, () -> "Couldn't find Mojang's insecureProfiles cache " + XReflection.getVersionInformation());
         YggdrasilMinecraftSessionService_insecureProfiles = (LoadingCache<Object, Object>) insecureProfiles;
@@ -235,23 +290,34 @@ public final class ProfilesCore {
         ResolvableProfile_gameProfile = $ResolvableProfile_gameProfile;
         ResolvableProfile$bukkitSupports = bukkitUsesResolvableProfile;
 
-        MinecraftClassHandle UserCacheEntry = GameProfileCache
-                .inner("private static class GameProfileInfo")
-                .map(MinecraftMapping.SPIGOT, "UserCacheEntry");
-
-        UserCacheEntry_getProfile = UserCacheEntry.method("public GameProfile getProfile()")
+        GameProfileInfo_getProfile = GameProfileInfo.method("public GameProfile getProfile()")
                 .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
-                .unreflect();
-        UserCacheEntry_setLastAccess = UserCacheEntry.method("public void setLastAccess(long i)")
+                .unwrap().reflectOrNull();
+        if (GameProfileInfo_getProfile == null) { // 1.21.9
+            GameProfileInfo_nameAndId = GameProfileInfo.method("public NameAndId nameAndId()")
+                    .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
+                    .unwrap().unreflect();
+            NameAndId_id = NameAndId.method("public UUID id()")
+                    .map(MinecraftMapping.OBFUSCATED, "a").makeAccessible()
+                    .unwrap().unreflect();
+            NameAndId_name = NameAndId.method("public String name()")
+                    .map(MinecraftMapping.OBFUSCATED, "b").makeAccessible()
+                    .unwrap().unreflect();
+        } else {
+            GameProfileInfo_nameAndId = null;
+            NameAndId_id = null;
+            NameAndId_name = null;
+        }
+        GameProfileInfo_setLastAccess = GameProfileInfo.method("public void setLastAccess(long lastAccess)")
                 .map(MinecraftMapping.OBFUSCATED, "a").reflectOrNull();
 
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
-            UserCache_profilesByName = (Map<String, Object>) GameProfileCache.field("private final Map<String, UserCache.UserCacheEntry> profilesByName")
+            UserCache_profilesByName = (Map<String, Object>) CachedUserNameToIdResolver.field("private final Map<String, UserCache.UserCacheEntry> profilesByName")
                     .getter().map(MinecraftMapping.OBFUSCATED, v(17, "e").v(16, 2, "c").v(9, "d").orElse("c"))
                     .reflect().invoke(userCache);
             // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
-            UserCache_profilesByUUID = (Map<UUID, Object>) GameProfileCache.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID")
+            UserCache_profilesByUUID = (Map<UUID, Object>) CachedUserNameToIdResolver.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID")
                     .getter().map(MinecraftMapping.OBFUSCATED, v(17, "f").v(16, 2, "d").v(9, "e").orElse("d"))
                     .reflect().invoke(userCache);
 

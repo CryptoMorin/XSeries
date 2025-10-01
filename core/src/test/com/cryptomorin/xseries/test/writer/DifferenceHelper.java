@@ -291,7 +291,8 @@ public final class DifferenceHelper {
                     .append(XReflection.MAJOR_NUMBER)
                     .append('.').append(XReflection.MINOR_NUMBER)
                     .append('.').append(XReflection.PATCH_NUMBER).append("\")");
-            newLine();
+            // newLine(); It looks cleaner without the new line
+            writer.append(' ');
         }
 
         public <E extends Enum<E>> void writeDifference(List<String> system, Class<E> xForm) {

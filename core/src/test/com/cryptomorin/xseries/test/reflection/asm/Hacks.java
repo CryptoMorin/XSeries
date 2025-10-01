@@ -25,6 +25,8 @@ package com.cryptomorin.xseries.test.reflection.asm;
 import com.cryptomorin.xseries.reflection.asm.XReflectASM;
 import com.cryptomorin.xseries.test.util.XLogger;
 
+import java.lang.Module;
+import java.lang.ModuleLayer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;

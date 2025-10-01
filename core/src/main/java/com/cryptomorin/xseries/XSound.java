@@ -1840,6 +1840,52 @@ public final class XSound extends XModule<XSound, Sound> {
     public static final XSound
             MUSIC_DISC_LAVA_CHICKEN = std("music_disc.lava_chicken");
 
+    @XInfo(since = "1.21.9")
+    public static final XSound
+            BLOCK_COPPER_CHEST_CLOSE = std("block.copper_chest.close"),
+            BLOCK_COPPER_CHEST_OPEN = std("block.copper_chest.open"),
+            BLOCK_COPPER_CHEST_OXIDIZED_CLOSE = std("block.copper_chest_oxidized.close"),
+            BLOCK_COPPER_CHEST_OXIDIZED_OPEN = std("block.copper_chest_oxidized.open"),
+            BLOCK_COPPER_CHEST_WEATHERED_CLOSE = std("block.copper_chest_weathered.close"),
+            BLOCK_COPPER_CHEST_WEATHERED_OPEN = std("block.copper_chest_weathered.open"),
+            BLOCK_COPPER_GOLEM_STATUE_BREAK = std("block.copper_golem_statue.break"),
+            BLOCK_COPPER_GOLEM_STATUE_FALL = std("block.copper_golem_statue.fall"),
+            BLOCK_COPPER_GOLEM_STATUE_HIT = std("block.copper_golem_statue.hit"),
+            BLOCK_COPPER_GOLEM_STATUE_PLACE = std("block.copper_golem_statue.place"),
+            BLOCK_COPPER_GOLEM_STATUE_STEP = std("block.copper_golem_statue.step"),
+            BLOCK_SHELF_ACTIVATE = std("block.shelf.activate"),
+            BLOCK_SHELF_BREAK = std("block.shelf.break"),
+            BLOCK_SHELF_DEACTIVATE = std("block.shelf.deactivate"),
+            BLOCK_SHELF_FALL = std("block.shelf.fall"),
+            BLOCK_SHELF_HIT = std("block.shelf.hit"),
+            BLOCK_SHELF_MULTI_SWAP = std("block.shelf.multi_swap"),
+            BLOCK_SHELF_PLACE = std("block.shelf.place"),
+            BLOCK_SHELF_PLACE_ITEM = std("block.shelf.place_item"),
+            BLOCK_SHELF_SINGLE_SWAP = std("block.shelf.single_swap"),
+            BLOCK_SHELF_STEP = std("block.shelf.step"),
+            BLOCK_SHELF_TAKE_ITEM = std("block.shelf.take_item"),
+            ENTITY_COPPER_GOLEM_BECOME_STATUE = std("entity.copper_golem_become_statue"),
+            ENTITY_COPPER_GOLEM_DEATH = std("entity.copper_golem.death"),
+            ENTITY_COPPER_GOLEM_HURT = std("entity.copper_golem.hurt"),
+            ENTITY_COPPER_GOLEM_ITEM_DROP = std("entity.copper_golem.item_drop"),
+            ENTITY_COPPER_GOLEM_ITEM_NO_DROP = std("entity.copper_golem.item_no_drop"),
+            ENTITY_COPPER_GOLEM_NO_ITEM_GET = std("entity.copper_golem.no_item_get"),
+            ENTITY_COPPER_GOLEM_NO_ITEM_NO_GET = std("entity.copper_golem.no_item_no_get"),
+            ENTITY_COPPER_GOLEM_OXIDIZED_DEATH = std("entity.copper_golem_oxidized.death"),
+            ENTITY_COPPER_GOLEM_OXIDIZED_HURT = std("entity.copper_golem_oxidized.hurt"),
+            ENTITY_COPPER_GOLEM_OXIDIZED_SPIN = std("entity.copper_golem_oxidized.spin"),
+            ENTITY_COPPER_GOLEM_OXIDIZED_STEP = std("entity.copper_golem_oxidized.step"),
+            ENTITY_COPPER_GOLEM_SHEAR = std("entity.copper_golem.shear"),
+            ENTITY_COPPER_GOLEM_SPAWN = std("entity.copper_golem.spawn"),
+            ENTITY_COPPER_GOLEM_SPIN = std("entity.copper_golem.spin"),
+            ENTITY_COPPER_GOLEM_STEP = std("entity.copper_golem.step"),
+            ENTITY_COPPER_GOLEM_WEATHERED_DEATH = std("entity.copper_golem_weathered.death"),
+            ENTITY_COPPER_GOLEM_WEATHERED_HURT = std("entity.copper_golem_weathered.hurt"),
+            ENTITY_COPPER_GOLEM_WEATHERED_SPIN = std("entity.copper_golem_weathered.spin"),
+            ENTITY_COPPER_GOLEM_WEATHERED_STEP = std("entity.copper_golem_weathered.step"),
+            ITEM_ARMOR_EQUIP_COPPER = std("item.armor.equip_copper"),
+            WEATHER_END_FLASH = std("weather.end_flash");
+
     static {
         REGISTRY.discardMetadata();
     }

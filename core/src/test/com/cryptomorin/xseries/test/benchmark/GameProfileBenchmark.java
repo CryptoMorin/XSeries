@@ -22,9 +22,9 @@
 
 package com.cryptomorin.xseries.test.benchmark;
 
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
-import com.mojang.authlib.GameProfile;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.UUID;
@@ -62,7 +62,7 @@ public class GameProfileBenchmark {
 
         @Benchmark
         @Measurement(iterations = 1, batchSize = 10)
-        public GameProfile detect() {
+        public MojangGameProfile detect() {
             return Profileable.detect(detectValues).getProfile();
         }
     }
@@ -70,29 +70,29 @@ public class GameProfileBenchmark {
     @Benchmark
     @Warmup(iterations = 0)
     @Measurement(iterations = 1, batchSize = 10)
-    public GameProfile username() {
+    public MojangGameProfile username() {
         return Profileable.username("Notch").getProfile();
     }
 
     @Benchmark
     @Warmup(iterations = 0)
     @Measurement(iterations = 1, batchSize = 10)
-    public GameProfile uuid() {
+    public MojangGameProfile uuid() {
         return Profileable.of(id).getProfile();
     }
 
     @Benchmark
-    public GameProfile base64() {
+    public MojangGameProfile base64() {
         return Profileable.of(ProfileInputType.BASE64, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzI0ZTY3ZGNlN2E0NDE4ZjdkYmE3MTE3MDQxODAzMDQ1MDVhMDM3YzEyZjE1NWE3MDYwM2UxOWYxMzIwMzRiMSJ9fX0=").getProfile();
     }
 
     @Benchmark
-    public GameProfile textureURL() {
+    public MojangGameProfile textureURL() {
         return Profileable.of(ProfileInputType.TEXTURE_URL, "https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990").getProfile();
     }
 
     @Benchmark
-    public GameProfile textureHash() {
+    public MojangGameProfile textureHash() {
         return Profileable.of(ProfileInputType.TEXTURE_HASH, "f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990").getProfile();
     }
 }
