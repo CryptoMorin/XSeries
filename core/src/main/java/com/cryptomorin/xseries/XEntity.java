@@ -59,7 +59,7 @@ import java.util.function.Function;
  * Entity: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/Entity.html
  *
  * @author Crypto Morin
- * @version 4.0.2.1
+ * @version 4.1.0
  * @see XEntityType
  * @see XMaterial
  * @see XItemStack

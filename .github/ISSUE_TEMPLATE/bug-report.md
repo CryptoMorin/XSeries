@@ -1,7 +1,7 @@
 ---
 name: Bug Report
-about: Create a bug report to help the project improve.
-title: "[Utility Name] - Issue"
+about: Create a bug report.
+title: "[Utility Class Name] Short Issue Description"
 labels: 'bug'
 assignees: CryptoMorin
 ---
@@ -19,3 +19,6 @@ here.
 Your server version. It must be using the latest version of that major update.
 E.g. 1.14, 1.14.1, 1.14.2 and 1.14.3 are not supported, only 1.14.4 is supported.\
 Also, make sure you're using the latest utility/maven version.
+
+**Do not** make requests regarding support for newly released Minecraft versions
+(read [contributing guidelines](/CONTRIBUTING.md) for more info).
