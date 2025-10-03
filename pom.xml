@@ -573,7 +573,7 @@
             <id>21</id>
             <properties>
                 <nms>21_R0</nms>
-                <spigotVersion>1.21.1-R0.1-SNAPSHOT</spigotVersion>
+                <spigotVersion>1.21.8-R0.1-SNAPSHOT</spigotVersion>
                 <testJava>21</testJava>
             </properties>
         </profile>

@@ -154,9 +154,9 @@ public final class ProfilesCore {
             // Added by Bukkit
             Object minecraftServer = MinecraftServer.method("public static MinecraftServer getServer()").reflect().invoke();
 
-            // Services is a record class.
+            // Services is a record class, it existed even in 1.21.8 but we don't need to switch.
             MinecraftClassHandle Services = ns.ofMinecraft("package nms.server; public class Services");
-            boolean usesServices = Services.exists();
+            boolean usesServices = XReflection.supports(1, 21, 9) && Services.exists();
             Object services = null;
             if (usesServices) {
                 services = MinecraftServer.method("public Services services()")

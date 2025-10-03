@@ -100,7 +100,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public void setProfile(@Nullable MojangGameProfile profile) {
             try {
-                ProfilesCore.CraftMetaSkull_profile$setter.invoke(meta, PlayerProfiles.wrapProfile(profile));
+                ProfilesCore.CraftMetaSkull_profile$setter.invoke(meta, PlayerProfiles.toResolvableProfile(profile));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Unable to set profile " + profile + " to " + meta, throwable);
             }
@@ -114,7 +114,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public MojangGameProfile getProfile() {
             try {
-                return XGameProfile.of(PlayerProfiles.unwrapProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta)));
+                return XGameProfile.of(PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta)));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get profile from item meta: " + meta, throwable);
             }
@@ -159,7 +159,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public void setProfile(@Nullable MojangGameProfile profile) {
             try {
-                ProfilesCore.CraftSkull_profile$setter.invoke(state, PlayerProfiles.wrapProfile(profile));
+                ProfilesCore.CraftSkull_profile$setter.invoke(state, PlayerProfiles.toResolvableProfile(profile));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Unable to set profile " + profile + " to " + state, throwable);
             }
@@ -173,7 +173,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public MojangGameProfile getProfile() {
             try {
-                return XGameProfile.of(PlayerProfiles.unwrapProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state)));
+                return XGameProfile.of(PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state)));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Unable to get profile fr om blockstate: " + state, throwable);
             }

@@ -6,6 +6,8 @@ labels: 'bug'
 assignees: CryptoMorin
 ---
 
+Example of a good bug report: https://github.com/CryptoMorin/XSeries/issues/376
+
 ## Description
 A clear and concise description of what the bug is.
 

@@ -54,7 +54,7 @@ public final class TransformableProfile implements Profileable {
         private final Profileable profileable;
         @Nullable
         private MojangGameProfile profile;
-        private boolean expired, markRestAsCopy;
+        private boolean expired;
         private final TransformedProfileCache[] transformers;
 
         private TransformationSequence(Profileable profileable, List<ProfileTransformer> transformers) {
@@ -83,8 +83,8 @@ public final class TransformableProfile implements Profileable {
                 }
                 profile = cacheProfile = transformer.transform(
                         profileable,
-                        markRestAsCopy ? profile : profile.copy());
-                if (!transformer.canBeCached()) markRestAsCopy = true;
+                        profile
+                );
             }
         }
     }

@@ -24,11 +24,14 @@ package com.cryptomorin.xseries.profiles.gameprofile;
 
 import com.cryptomorin.xseries.AbstractReferencedClass;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public abstract class MojangGameProfile extends AbstractReferencedClass<GameProfile> {
     protected final GameProfile object;
@@ -46,16 +49,13 @@ public abstract class MojangGameProfile extends AbstractReferencedClass<GameProf
 
     public abstract PropertyMap properties();
 
-    public abstract void addProperty(Property property);
+    public final MojangGameProfile copy() {
+        return copy(null);
+    }
 
-    public abstract void addProperty(String name, String value);
+    public abstract MojangGameProfile copy(@Nullable Consumer<PropertyModifier> propertyModifier);
 
-    public abstract void removeProperty(String name);
-
-    public abstract void setProperty(String name, String value);
-
-    public abstract MojangGameProfile copy();
-
+    @Nullable
     public Property getProperty(String name) {
         return Iterables.getFirst(this.properties().get(name), null);
     }

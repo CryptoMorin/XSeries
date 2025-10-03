@@ -94,13 +94,13 @@ public final class XSkull {
     /**
      * Creates a {@link ProfileInstruction} for an {@link ItemStack}.
      *
-     * @param stack The {@link ItemStack} to set the profile for.
+     * @param item The {@link ItemStack} to set the profile for.
      * @return A {@link ProfileInstruction} that sets the profile for the given {@link ItemStack}.
      */
     @NotNull
     @Contract(value = "_ -> new", pure = true)
-    public static ProfileInstruction<ItemStack> of(@NotNull ItemStack stack) {
-        return new ProfileInstruction<>(new ProfileContainer.ItemStackProfileContainer(stack));
+    public static ProfileInstruction<ItemStack> of(@NotNull ItemStack item) {
+        return new ProfileInstruction<>(new ProfileContainer.ItemStackProfileContainer(item));
     }
 
     /**

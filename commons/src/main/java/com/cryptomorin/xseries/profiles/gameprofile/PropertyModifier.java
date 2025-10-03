@@ -23,39 +23,28 @@
 package com.cryptomorin.xseries.profiles.gameprofile;
 
 import com.google.common.collect.Multimap;
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+public final class PropertyModifier {
+    private final Multimap<String, Property> properties;
 
-public final class OldGameProfile extends MojangGameProfile {
-    protected OldGameProfile(GameProfile object) {
-        super(object);
+    public PropertyModifier(Multimap<String, Property> properties) {this.properties = properties;}
+
+    public void setProperty(String name, String value) {
+        properties.removeAll(name);
+        properties.put(name, new Property(name, value));
     }
 
-    @Override
-    public UUID id() {
-        return object.getId();
+    public void setProperty(String name, Property value) {
+        properties.removeAll(name);
+        properties.put(name, value);
     }
 
-    @Override
-    public String name() {
-        return object.getName();
+    public void removeProperty(String name) {
+        properties.removeAll(name);
     }
 
-    @Override
-    public PropertyMap properties() {
-        return object.getProperties();
-    }
-
-    @Override
-    public MojangGameProfile copy(Consumer<PropertyModifier> propertyModifier) {
-        GameProfile clone = new GameProfile(id(), name());
-        PropertyMap properties = clone.getProperties();
-        properties.putAll(properties());
-        if (propertyModifier != null) propertyModifier.accept(new PropertyModifier(properties));
-        return new OldGameProfile(clone);
+    public Multimap<String, Property> getProperties() {
+        return properties;
     }
 }

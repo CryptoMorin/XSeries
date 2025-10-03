@@ -39,6 +39,8 @@ import com.cryptomorin.xseries.reflection.proxy.ReflectiveProxyObject;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -532,6 +534,15 @@ public final class XReflection {
     @Deprecated
     public static Class<?> getNMSClass(@NotNull String name) {
         return getNMSClass(null, name);
+    }
+
+    public static boolean isRecord(Class<?> clazz) {
+        try {
+            Method isRecord = Class.class.getDeclaredMethod("isRecord");
+            return (boolean) isRecord.invoke(clazz);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return false;
+        }
     }
 
     /**

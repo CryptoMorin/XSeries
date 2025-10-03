@@ -145,8 +145,7 @@ public interface ProfileTransformer {
         @Override
         public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             String originalValue = profileable.getProfileValue();
-            profile.addProperty(PROPERTY_NAME, originalValue);
-            return profile;
+            return profile.copy(x -> x.setProperty(PROPERTY_NAME, originalValue));
         }
 
         @Override
@@ -163,8 +162,7 @@ public interface ProfileTransformer {
         @Override
         public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             String value = System.currentTimeMillis() + "-" + NEXT_ID.getAndIncrement();
-            profile.addProperty(PROPERTY_NAME, value);
-            return profile;
+            return profile.copy(x -> x.setProperty(PROPERTY_NAME, value));
         }
 
         @Override
@@ -179,9 +177,10 @@ public interface ProfileTransformer {
         @Override
         public MojangGameProfile transform(Profileable profileable, MojangGameProfile profile) {
             PlayerProfiles.removeTimestamp(profile);
-            profile.removeProperty(PlayerProfiles.XSERIES_SIG);
-            profile.removeProperty(IncludeOriginalValue.PROPERTY_NAME);
-            return profile;
+            return profile.copy(x -> {
+                x.removeProperty(PlayerProfiles.XSERIES_SIG);
+                x.removeProperty(IncludeOriginalValue.PROPERTY_NAME);
+            });
         }
 
         @Override

@@ -29,6 +29,7 @@ import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.UnknownPlayerException;
 import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.property.XProperty;
 import com.cryptomorin.xseries.profiles.lock.KeyedLock;
 import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
 import com.cryptomorin.xseries.profiles.objects.ProfileInputType;
@@ -36,6 +37,8 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -303,6 +306,12 @@ public final class MojangAPI {
         try {
             @Nullable Object profile = ProfilesCore.GameProfileCache_get$profileByUUID$.invoke(ProfilesCore.USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);
+            if (ProfilesCore.NameAndId_name != null && profile != null) {
+                String name = (String) ProfilesCore.NameAndId_name.invoke(profile);
+                UUID id = (UUID) ProfilesCore.NameAndId_id.invoke(profile);
+                profile = XGameProfile.create(id, name).object();
+            }
+
             ProfileLogger.debug("The cached profile for {} -> {}", uuid, profile);
             return profile == null ?
                     PlayerProfiles.createNamelessGameProfile(uuid).object() :
@@ -425,13 +434,12 @@ public final class MojangAPI {
         // Two main fields, name and UUID
         UUID id = PlayerUUIDs.UUIDFromDashlessString(profileData.get("id").getAsString());
         String name = profileData.get("name").getAsString();
-        GameProfile fetchedProfile = PlayerProfiles.createGameProfile(id, name).object();
 
         // Basic properties
+        ListMultimap<String, Property> propertyMap = MultimapBuilder.hashKeys().arrayListValues().build();
         JsonElement propertiesEle = profileData.get("properties");
         if (propertiesEle != null) {
             JsonArray props = propertiesEle.getAsJsonArray();
-            PropertyMap properties = XGameProfile.of(fetchedProfile).properties();
             for (JsonElement prop : props) {
                 JsonObject obj = prop.getAsJsonObject();
                 String propName = obj.get("name").getAsString();
@@ -445,7 +453,7 @@ public final class MojangAPI {
                     property = new Property(propName, propValue);
                 }
 
-                properties.put(propName, property);
+                propertyMap.put(propName, property);
             }
         }
 
@@ -457,6 +465,7 @@ public final class MojangAPI {
             }
         }
 
-        return fetchedProfile;
+        PropertyMap properties = XProperty.createPropertyMap(propertyMap);
+        return PlayerProfiles.createGameProfile(id, name, properties).object();
     }
 }

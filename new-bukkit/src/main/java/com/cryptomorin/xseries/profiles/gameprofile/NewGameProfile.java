@@ -29,26 +29,15 @@ import com.google.common.collect.MultimapBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class NewGameProfile extends MojangGameProfile {
-    private static final Field PropertyMap_properties$setter;
-
-    static {
-        Field props;
-        try {
-            props = PropertyMap.class.getDeclaredField("properties");
-            props.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-
-        PropertyMap_properties$setter = props;
-    }
-
     protected NewGameProfile(GameProfile object) {
         super(object);
     }
@@ -69,47 +58,16 @@ public final class NewGameProfile extends MojangGameProfile {
     }
 
     @Override
-    public MojangGameProfile copy() {
-        ListMultimap<String, Property> copiedProperties = MultimapBuilder.hashKeys().arrayListValues().build();
-        copiedProperties.putAll(this.properties());
+    public MojangGameProfile copy(@Nullable Consumer<PropertyModifier> propertyModifier) {
+        // We unfortunately can't just modify GameProfile's "properties" using reflection since it's a record.
+        // We can't modify the PropertyMap's "properties" field either because of the existance of PropertyMap.EMPTY
+        PropertyMap properties = this.properties();
+        ListMultimap<String, Property> copiedProperties = MultimapBuilder.hashKeys(properties.size()).arrayListValues(1).build();
+
+        copiedProperties.putAll(properties);
+        if (propertyModifier != null) propertyModifier.accept(new PropertyModifier(copiedProperties));
 
         GameProfile clone = new GameProfile(id(), name(), new PropertyMap(copiedProperties));
         return new NewGameProfile(clone);
-    }
-
-    @Override
-    public void addProperty(String name, String value) {
-        addProperty(new Property(name, value));
-    }
-
-    @Override
-    public void addProperty(Property property) {
-        modifyProperties(x -> x.put(property.name(), property));
-    }
-
-    @Override
-    public void removeProperty(String name) {
-        modifyProperties(x -> x.removeAll(name));
-    }
-
-    @Override
-    public void setProperty(String name, String value) {
-        modifyProperties(x -> {
-            x.removeAll(name);
-            x.put(name, new Property(name, value));
-        });
-    }
-
-    private void modifyProperties(Consumer<Multimap<String, Property>> modifier) {
-        try {
-            ListMultimap<String, Property> newProps = MultimapBuilder.hashKeys().arrayListValues().build();
-            PropertyMap properties = this.properties();
-
-            newProps.putAll(properties);
-            modifier.accept(newProps);
-            PropertyMap_properties$setter.set(properties, ImmutableMultimap.copyOf(newProps));
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

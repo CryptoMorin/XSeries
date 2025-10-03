@@ -20,32 +20,35 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.profiles.gameprofile;
+package com.cryptomorin.xseries.profiles.gameprofile.property;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
+import com.cryptomorin.xseries.AbstractReferencedClass;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.UUID;
+public abstract class MojangProperty extends AbstractReferencedClass<Property> {
+    protected final Property object;
 
-public final class GameProfilerBuilder {
-    private final String name;
-    private final UUID id;
-    private final Multimap<String, Property> properties;
+    protected MojangProperty(Property object) {this.object = object;}
 
-    public GameProfilerBuilder(String name, UUID id) {
-        this.name = name;
-        this.id = id;
-        this.properties = MultimapBuilder.hashKeys().arrayListValues().build();
+    @Override
+    public final Property object() {
+        return object;
     }
 
-    public GameProfilerBuilder addProperty(String name, String value) {
-        this.properties.put(name, new Property(name, value));
-        return this;
-    }
 
-    public MojangGameProfile build() {
-        return XGameProfile.create(id, name, new PropertyMap(properties));
+    @NonNull
+    public abstract String name();
+
+    @NonNull
+    public abstract String value();
+
+    @Nullable
+    public abstract String signature();
+
+    @NonNull
+    public final Property copy() {
+        return new Property(name(), value(), signature());
     }
 }

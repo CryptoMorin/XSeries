@@ -24,11 +24,9 @@ package com.cryptomorin.xseries.profiles;
 
 import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.property.XProperty;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -38,10 +36,10 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
@@ -63,7 +61,7 @@ public final class PlayerProfiles {
      * It's not needed to change it every time, but it should be changed
      * if the XSeries internals are changed.
      */
-    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = new Property(XSERIES_SIG, XReflection.XSERIES_VERSION);
+    private static final Property XSERIES_GAMEPROFILE_SIGNATURE = XProperty.create(XSERIES_SIG, XReflection.XSERIES_VERSION).object();
     private static final String TEXTURES_PROPERTY = "textures";
 
     public static final GameProfile NIL = createGameProfile(PlayerUUIDs.IDENTITY_UUID, XSERIES_SIG).object();
@@ -159,8 +157,7 @@ public final class PlayerProfiles {
     public static MojangGameProfile profileFromHashAndBase64(String hash, String base64) {
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8));
         MojangGameProfile profile = PlayerProfiles.createNamelessGameProfile(uuid);
-        PlayerProfiles.setTexturesProperty(profile, base64);
-        return profile;
+        return PlayerProfiles.setTexturesProperty(profile, base64);
     }
 
     @SuppressWarnings("deprecation")
@@ -180,7 +177,7 @@ public final class PlayerProfiles {
      * Tries to unwrap a {@link GameProfile} from a {@link net.minecraft.world.item.component.ResolvableProfile}.
      */
     @Nullable
-    public static GameProfile unwrapProfile(@Nullable Object profile) throws Throwable {
+    public static GameProfile fromResolvableProfile(@Nullable Object profile) throws Throwable {
         if (profile == null) return null;
         if (!(profile instanceof GameProfile) && ProfilesCore.ResolvableProfile_gameProfile != null) {
             // Unwrap from ResolvableProfile
@@ -190,7 +187,7 @@ public final class PlayerProfiles {
     }
 
     @Nullable
-    public static Object wrapProfile(@Nullable MojangGameProfile profile) throws Throwable {
+    public static Object toResolvableProfile(@Nullable MojangGameProfile profile) throws Throwable {
         if (profile == null) return null;
         if (ProfilesCore.ResolvableProfile$bukkitSupports) {
             return ProfilesCore.ResolvableProfile$constructor.invoke(profile.object());
@@ -223,9 +220,9 @@ public final class PlayerProfiles {
         return clone.object();
     }
 
-    public static void setTexturesProperty(MojangGameProfile profile, String texture) {
-        profile.removeProperty(TEXTURES_PROPERTY);
-        profile.addProperty(TEXTURES_PROPERTY, texture);
+    @Contract(pure = true)
+    public static MojangGameProfile setTexturesProperty(MojangGameProfile profile, String texture) {
+        return profile.copy(x -> x.setProperty(TEXTURES_PROPERTY, texture));
     }
 
     /**
@@ -234,6 +231,7 @@ public final class PlayerProfiles {
      * @param str The string to encode.
      * @return The Base64 encoded string.
      */
+    @Contract(pure = true)
     public static String encodeBase64(String str) {
         return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
     }
@@ -245,6 +243,7 @@ public final class PlayerProfiles {
      * @return the decoded Base64 string if it is a valid Base64 string, or null if not.
      */
     @Nullable
+    @Contract(pure = true)
     public static String decodeBase64(String base64) {
         Objects.requireNonNull(base64, "Cannot decode null string");
         try {
@@ -255,10 +254,12 @@ public final class PlayerProfiles {
         }
     }
 
+    @Contract(pure = true)
     public static MojangGameProfile createGameProfile(UUID uuid, String username) {
         return signXSeries(XGameProfile.create(uuid, username));
     }
 
+    @Contract(pure = true)
     public static MojangGameProfile createGameProfile(UUID uuid, String username, PropertyMap properties) {
         return signXSeries(XGameProfile.create(uuid, username, properties));
     }
@@ -268,27 +269,15 @@ public final class PlayerProfiles {
      * purposes, specially since we're directly messing with the server's internal cache
      * it should be there in case something goes wrong.
      */
+    @Contract(pure = true)
     public static MojangGameProfile signXSeries(MojangGameProfile profile) {
         // Just as an indicator that this is not a vanilla-created profile.
-        PropertyMap properties = profile.properties();
         // I don't think a single profile is being signed multiple times.
         // Even if it was, it might be helpful?
-        // properties.asMap().remove(DEFAULT_PROFILE_NAME); // Remove previous versions if any.
-        try {
-            Field props = PropertyMap.class.getDeclaredField("properties");
-            props.setAccessible(true);
-            ListMultimap<String, Property> newProps = MultimapBuilder.hashKeys().arrayListValues().build();
-            newProps.putAll(properties);
-            newProps.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
-            props.set(properties, ImmutableMultimap.copyOf(newProps));
-
-            // properties.put(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        return profile;
+        return profile.copy(x -> x.setProperty(XSERIES_SIG, XSERIES_GAMEPROFILE_SIGNATURE));
     }
 
+    @Contract(pure = true)
     public static MojangGameProfile createNamelessGameProfile(UUID id) {
         return createGameProfile(id, XSERIES_SIG);
     }

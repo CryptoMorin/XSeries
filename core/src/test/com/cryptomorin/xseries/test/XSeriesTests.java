@@ -30,7 +30,10 @@ import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
+import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
+import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
+import com.cryptomorin.xseries.profiles.gameprofile.property.XProperty;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
@@ -43,6 +46,8 @@ import com.cryptomorin.xseries.test.server.FakePlayerFactory;
 import com.cryptomorin.xseries.test.util.ResourceHelper;
 import com.cryptomorin.xseries.test.writer.ClassConverter;
 import com.cryptomorin.xseries.test.writer.DifferenceHelper;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
@@ -71,6 +76,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -546,31 +552,62 @@ public final class XSeriesTests {
         log("Testing skulls request queue...");
         XSkullRequestQueueTest.createTests();
 
+        {
+            log("Testing skulls, no duplicated properties...");
+            MojangGameProfile profile = Profileable.username("Notch").getProfile();
+            PropertyMap properties = profile.properties();
+            for (Map.Entry<String, Collection<Property>> propertyList : properties.asMap().entrySet()) {
+                assertEquals(1, propertyList.getValue().size(), () -> "GameProfile of skull has duplicated properties for '"
+                        + propertyList.getKey() + "' -> " + profile);
+            }
+            log("Simple GameProfile with username 'Notch' -> " + profile);
+        }
+
         log("Testing skulls UUID...");
         XSkull.createItem().profile(Profileable.of(UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5"))).apply();
-        log("Testing skulls username");
+
+        log("Testing skulls username...");
         XSkull.createItem().profile(Profileable.username("Notch")).apply();
-        log("Testing skulls Base64");
+
+        log("Testing skulls Base64...");
         XSkull.createItem().profile(Profileable.detect("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzI0ZTY3ZGNlN2E0NDE4ZjdkYmE3MTE3MDQxODAzMDQ1MDVhMDM3YzEyZjE1NWE3MDYwM2UxOWYxMzIwMzRiMSJ9fX0=")).apply();
-        log("Testing skulls textures hash");
+
+        log("Testing skulls textures hash...");
         XSkull.createItem().profile(Profileable.detect("f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
-        log("Testing skulls textures URL");
+
+        log("Testing skulls textures URL...");
         XSkull.createItem().profile(Profileable.detect("https://textures.minecraft.net/texture/f9f28fe3a81d67e67472b7b91caad063722477dfc37f0d729a19be49c2ec2990")).apply();
         XSkull.createItem().profile(Profileable.detect("http://textures.minecraft.net/texture/1391203d3752afc71d8f8cb0da8dbc7f13a3baafe0bf5f911cb21c38341f87db")).apply();
-        log("Testing skulls usernamed fallback");
+
+        log("Testing skulls usernamed fallback...");
         XSkull.createItem()
                 .profile(Profileable.username("hjkSF3809HFGhs"))
                 .fallback(Profileable.username("CryptoMorin"))
                 .apply();
-        log("Testing skulls lenient silence");
+
+        log("Testing skulls lenient silence...");
         XSkull.createItem()
                 .profile(Profileable.username("F(&$#%Y(@&$(@#$Y_{GFS!"))
                 .lenient().apply();
 
+        log("Testing XSkull cache similarity...");
+        compareProfiles(Profileable.username("Notch"), Profileable.username("Crypto_Morin"));
+        try {
+            Profileable.prepare(Arrays.asList(Profileable.username("jeb_"), Profileable.username("Junkboy"))).thenApply(profiles -> {
+                compareProfiles(profiles.get(0), profiles.get(1));
+                return null;
+            }).exceptionally(x -> {
+                x.printStackTrace();
+                return null;
+            }).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
         // Currently broken. Seems like Mojang disabled this API? Read MojangAPI.usernamesToUUIDs for more info.
         // [5/31/2025] It's working again!
         if (Constants.TEST_MOJANG_API_BULK) {
-            log("Testing bulk username to UUID conversion");
+            log("Testing bulk username to UUID conversion...");
             Map<UUID, String> mapped = MojangAPI.usernamesToUUIDs(Arrays.asList("yourmom1212",
                     "ybe", "Scavage", "Tinchosz", "daerb",
                     "verflow", "Brazzer", "Trillest", "EZix",
@@ -589,6 +626,21 @@ public final class XSeriesTests {
             profilePreparation(); // Takes ~5 seconds (If we ignore the previous requests in this method)
             profilePreparation(); // Takes less than a second
         }
+    }
+
+    private static void compareProfiles(Profileable firstProfile, Profileable secondProfile) {
+        MojangGameProfile first = firstProfile.getProfile();
+        MojangGameProfile second = secondProfile.getProfile();
+
+        Optional<Property> firstTextures = PlayerProfiles.getTextureProperty(first);
+        Optional<Property> secondTextures = PlayerProfiles.getTextureProperty(second);
+
+        assertPresent(firstTextures, "Skull has no texture: " + first);
+        assertPresent(secondTextures, "Skull has no texture: " + second);
+
+        // noinspection OptionalGetWithoutIsPresent
+        Assertions.assertNotEquals(XProperty.of(firstTextures.get()).value(), XProperty.of(secondTextures.get()).value(),
+                () -> "Textures of two different skulls match: " + first + " vs " + second);
     }
 
     private static void profilePreparation() {

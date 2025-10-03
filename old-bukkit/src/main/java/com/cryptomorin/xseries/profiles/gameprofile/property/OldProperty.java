@@ -20,24 +20,13 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.cryptomorin.xseries.profiles.gameprofile;
+package com.cryptomorin.xseries.profiles.gameprofile.property;
 
-import com.google.common.collect.Multimap;
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 
-import java.util.UUID;
-import java.util.function.Consumer;
-
-public final class OldGameProfile extends MojangGameProfile {
-    protected OldGameProfile(GameProfile object) {
+public final class OldProperty extends MojangProperty {
+    protected OldProperty(Property object) {
         super(object);
-    }
-
-    @Override
-    public UUID id() {
-        return object.getId();
     }
 
     @Override
@@ -46,16 +35,12 @@ public final class OldGameProfile extends MojangGameProfile {
     }
 
     @Override
-    public PropertyMap properties() {
-        return object.getProperties();
+    public String value() {
+        return object.getValue();
     }
 
     @Override
-    public MojangGameProfile copy(Consumer<PropertyModifier> propertyModifier) {
-        GameProfile clone = new GameProfile(id(), name());
-        PropertyMap properties = clone.getProperties();
-        properties.putAll(properties());
-        if (propertyModifier != null) propertyModifier.accept(new PropertyModifier(properties));
-        return new OldGameProfile(clone);
+    public String signature() {
+        return object.getSignature();
     }
 }
