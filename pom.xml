@@ -43,7 +43,7 @@
     </modules>
 
     <properties>
-        <revision>13.4.0</revision>
+        <revision>13.5.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
