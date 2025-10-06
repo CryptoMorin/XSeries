@@ -177,13 +177,13 @@ public final class PlayerProfiles {
      * Tries to unwrap a {@link GameProfile} from a {@link net.minecraft.world.item.component.ResolvableProfile}.
      */
     @Nullable
-    public static GameProfile fromResolvableProfile(@Nullable Object profile) throws Throwable {
+    public static MojangGameProfile fromResolvableProfile(@Nullable Object profile) throws Throwable {
         if (profile == null) return null;
         if (!(profile instanceof GameProfile) && ProfilesCore.ResolvableProfile_gameProfile != null) {
             // Unwrap from ResolvableProfile
             profile = ProfilesCore.ResolvableProfile_gameProfile.invoke(profile);
         }
-        return (GameProfile) profile;
+        return XGameProfile.of((GameProfile) profile);
     }
 
     @Nullable
@@ -192,7 +192,7 @@ public final class PlayerProfiles {
         if (ProfilesCore.ResolvableProfile$bukkitSupports) {
             return ProfilesCore.ResolvableProfile$constructor.invoke(profile.object());
         } else {
-            return profile;
+            return profile.object();
         }
     }
 

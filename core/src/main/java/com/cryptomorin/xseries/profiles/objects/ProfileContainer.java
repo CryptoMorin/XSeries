@@ -114,7 +114,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public MojangGameProfile getProfile() {
             try {
-                return XGameProfile.of(PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta)));
+                return PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftMetaSkull_profile$getter.invoke((SkullMeta) meta));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get profile from item meta: " + meta, throwable);
             }
@@ -173,7 +173,7 @@ public abstract class ProfileContainer<T> implements Profileable {
         @Override
         public MojangGameProfile getProfile() {
             try {
-                return XGameProfile.of(PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state)));
+                return PlayerProfiles.fromResolvableProfile(ProfilesCore.CraftSkull_profile$getter.invoke(state));
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Unable to get profile fr om blockstate: " + state, throwable);
             }
