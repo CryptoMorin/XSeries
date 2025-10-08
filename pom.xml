@@ -43,7 +43,7 @@
     </modules>
 
     <properties>
-        <revision>13.5.0</revision>
+        <revision>13.5.1</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.deploy.skip>true</maven.deploy.skip> <!-- Override this in core module -->
@@ -55,7 +55,7 @@
         <!-- Note: timestamped snapshots are used because a recent Maven Central policy update made it so that it's impossible to -->
         <!-- publish your artifact if it has SNAPSHOT depednencies without any prior notice. -->
         <!-- Error: Dependencies to SNAPSHOT versions not allowed for dependency: org.spigotmc:spigot -->
-        <spigotVersion>1.21.9-R0.1-20250930.202015-1</spigotVersion>
+        <spigotVersion>1.21.10-R0.1-20251007.210716-1</spigotVersion>
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>

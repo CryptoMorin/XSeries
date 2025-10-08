@@ -2,7 +2,7 @@
 
 # XSeries
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.8-dark_green.svg)](https://shields.io/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.10-dark_green.svg)](https://shields.io/)
 [![Java](https://img.shields.io/badge/Java-8-dark_green.svg)](https://shields.io/)
 [![Build Status](https://api.travis-ci.com/CryptoMorin/XSeries.svg?branch=master)](https://app.travis-ci.com/github/CryptoMorin/XSeries)
 ![maven-central](https://img.shields.io/maven-central/v/com.github.cryptomorin/XSeries)

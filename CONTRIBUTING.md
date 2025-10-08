@@ -44,6 +44,11 @@ To test the library using the latest Spigot server, you can use:
 mvn clean test -Ptester,latest -pl core -am
 ```
 
+If you want to test older versions, you could for example use:
+```maven
+mvn clean exec:exec@compile exec:exec@test -DtestVer=21 --projects core -am
+```
+
 > [!NOTE]
 > The server files will be generated inside `target/tests` folder.\
 > The common server settings used between tests are in `src/test/resources`
