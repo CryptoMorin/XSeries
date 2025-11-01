@@ -121,7 +121,9 @@ public final class RateLimiter {
         long sleepUntil = timeUntilNextFreeRequest().toMillis();
         if (sleepUntil == 0) return;
         try {
-            Thread.sleep(sleepUntil);
+            synchronized (this) {
+                wait(sleepUntil);
+            }
         } catch (InterruptedException e) {
             throw new IllegalStateException("RateLimiter lock was interrupted unexpectedly", e);
         }

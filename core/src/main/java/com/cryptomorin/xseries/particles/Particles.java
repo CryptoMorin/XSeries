@@ -2653,10 +2653,10 @@ public final class Particles {
                     double z = times * Math.sin(theta);
                     display.spawn(x, y, z);
 
-                    theta = theta + Math.PI / 64;
-                    x = times * Math.cos(theta);
+                    double theta2 = theta + Math.PI / 64;
+                    x = times * Math.cos(theta2);
                     // y = 2 * Math.exp(-0.1 * times) * Math.sin(times) + 1.5;
-                    z = times * Math.sin(theta);
+                    z = times * Math.sin(theta2);
                     secDisplay.spawn(x, y, z);
                 }
                 if (times > 20) {

@@ -39,8 +39,8 @@ final class FinalizedKeyedLock<K, V> implements KeyedLock<K, V> {
     }
 
     // @formatter:off
-    @Override public V getOrRetryValue() {return value;}
-    @Override public void lock() {}
-    @Override public void unlock() {}
-    @Override public void close() {}
+    @Override public V getOrRetryValue() {return value;} // This is a finalized lock, value is already available
+    @Override public void lock() {} // No-op: Lock is already finalized
+    @Override public void unlock() {} // No-op: Lock is already finalized
+    @Override public void close() {} // No-op: Nothing to close for a finalized lock
 }

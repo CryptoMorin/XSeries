@@ -389,6 +389,16 @@ public final class XEntity {
         Objects.requireNonNull(entity, "Cannot edit properties of a null entity");
         Objects.requireNonNull(config, "Cannot edit an entity from a null configuration section");
 
+        editBasicProperties(entity, config);
+        editBossProperties(entity, config);
+        editVehicleProperties(entity, config);
+        editLivingEntityProperties(entity, config);
+        editOtherEntityProperties(entity, config);
+
+        return entity;
+    }
+
+    private static void editBasicProperties(Entity entity, ConfigurationSection config) {
         String name = config.getString("name");
         if (name != null) {
             entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
@@ -407,7 +417,9 @@ public final class XEntity {
 
         if (config.isSet("portal-cooldown")) entity.setPortalCooldown(config.getInt("portal-cooldown", -1));
         // We don't need damage cause.
+    }
 
+    private static void editBossProperties(Entity entity, ConfigurationSection config) {
         if (XReflection.supports(13)) {
             // TODO Needs to be implemented.
             // This might not work properly as the loot table class needs to be
@@ -430,7 +442,9 @@ public final class XEntity {
                 }
             }
         }
+    }
 
+    private static void editVehicleProperties(Entity entity, ConfigurationSection config) {
         if (entity instanceof Vehicle) {
             if (entity instanceof Boat) {
                 Boat boat = (Boat) entity;
@@ -441,201 +455,223 @@ public final class XEntity {
                 }
             }
         }
+    }
 
+    private static void editLivingEntityProperties(Entity entity, ConfigurationSection config) {
         if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) entity;
-            if (config.isSet("health")) {
-                double hp = config.getDouble("health");
-                living.getAttribute(XAttribute.MAX_HEALTH.get()).setBaseValue(hp);
-                living.setHealth(hp);
-            }
-
-            if (XReflection.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
-            if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
-            if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
-            if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
-            if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
-            if (config.isSet("remove-when-far-away"))
-                living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (XReflection.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
-
-            if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
-            if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));
-            if (config.isSet("remaining-air")) living.setRemainingAir(config.getInt("remaining-air"));
-            XPotion.addEffects(living, config.getStringList("effects"));
-
-            ConfigurationSection equip = config.getConfigurationSection("equipment");
-            if (equip != null) {
-                EntityEquipment equipment = living.getEquipment();
-                boolean isMob = entity instanceof Mob;
-
-                ConfigurationSection helmet = equip.getConfigurationSection("helmet");
-                if (helmet != null) {
-                    equipment.setHelmet(XItemStack.deserialize(helmet.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setHelmetDropChance(helmet.getInt("drop-chance"));
-                    }
-                }
-
-                ConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
-                if (chestplate != null) {
-                    equipment.setChestplate(XItemStack.deserialize(chestplate.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setChestplateDropChance(chestplate.getInt("drop-chance"));
-                    }
-                }
-
-                ConfigurationSection leggings = equip.getConfigurationSection("leggings");
-                if (leggings != null) {
-                    equipment.setLeggings(XItemStack.deserialize(leggings.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setLeggingsDropChance(leggings.getInt("drop-chance"));
-                    }
-                }
-
-                ConfigurationSection boots = equip.getConfigurationSection("boots");
-                if (boots != null) {
-                    equipment.setBoots(XItemStack.deserialize(boots.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setBootsDropChance(boots.getInt("drop-chance"));
-                    }
-                }
-
-                ConfigurationSection mainHand = equip.getConfigurationSection("main-hand");
-                if (mainHand != null) {
-                    equipment.setItemInMainHand(XItemStack.deserialize(mainHand.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setItemInMainHandDropChance(mainHand.getInt("drop-chance"));
-                    }
-                }
-
-                ConfigurationSection offHand = equip.getConfigurationSection("off-hand");
-                if (offHand != null) {
-                    equipment.setItemInOffHand(XItemStack.deserialize(offHand.getConfigurationSection("item")));
-                    if (isMob) {
-                        equipment.setItemInOffHandDropChance(offHand.getInt("drop-chance"));
-                    }
-                }
-            }
-
-            if (living instanceof Ageable) { // and Breedable
-                Ageable ageable = (Ageable) living;
-                if (config.isSet("breed")) ageable.setBreed(config.getBoolean("breed"));
-                if (config.isSet("baby")) {
-                    if (config.getBoolean("baby")) ageable.setBaby();
-                    else ageable.setAdult();
-                }
-
-                int age = config.getInt("age", 0);
-                if (age > 0) ageable.setAge(age);
-
-                if (config.isSet("age-lock")) ageable.setAgeLock(config.getBoolean("age-lock"));
-
-                if (living instanceof Animals) {
-                    Animals animals = (Animals) living;
-                    int loveModeTicks = config.getInt("love-mode");
-                    if (loveModeTicks != 0) animals.setLoveModeTicks(loveModeTicks);
-
-                    if (living instanceof Tameable) {
-                        Tameable tam = (Tameable) living;
-                        tam.setTamed(config.getBoolean("tamed"));
-                    }
-                }
-            }
-            if (living instanceof Sittable) {
-                Sittable sit = (Sittable) living;
-                sit.setSitting(config.getBoolean("sitting"));
-            }
-            if (living instanceof Spellcaster) {
-                Spellcaster caster = (Spellcaster) living;
-                String spell = config.getString("spell");
-                if (spell != null)
-                    caster.setSpell(Enums.getIfPresent(Spellcaster.Spell.class, spell).or(Spellcaster.Spell.NONE));
-            }
-            if (living instanceof AbstractHorse) {
-                AbstractHorse horse = (AbstractHorse) living;
-                if (config.isSet("domestication")) horse.setDomestication(config.getInt("domestication"));
-                if (config.isSet("jump-strength")) horse.setJumpStrength(config.getDouble("jump-strength"));
-                if (config.isSet("max-domestication")) horse.setMaxDomestication(config.getInt("max-domestication"));
-
-                ConfigurationSection items = config.getConfigurationSection("items");
-                if (items != null) {
-                    Inventory inventory = horse.getInventory();
-                    for (String key : items.getKeys(false)) {
-                        ConfigurationSection itemSec = items.getConfigurationSection(key);
-                        int slot = itemSec.getInt("slot", -1);
-                        if (slot != -1) {
-                            ItemStack item = XItemStack.deserialize(itemSec);
-                            if (item != null) inventory.setItem(slot, item);
-                        }
-                    }
-                }
-
-                if (living instanceof ChestedHorse) { // Llamas too
-                    ChestedHorse chested = (ChestedHorse) living;
-                    boolean hasChest = config.getBoolean("has-chest");
-                    if (hasChest) chested.setCarryingChest(true);
-                }
-            }
-
+            editLivingEntityBasicStats(living, config);
+            editLivingEntityEquipment(living, entity, config);
+            editLivingEntityAgeableProperties(living, config);
+            editLivingEntitySpecialProperties(living, config);
             map(entity.getClass(), entity, config);
+            editLivingEntityTypeSpecificProperties(living, entity, config);
+        }
+    }
 
-            if (living instanceof Villager) {
-                Villager villager = (Villager) living;
-                if (SUPPORTS_VILLAGER_SET_VILLAGER_LEVEL) villager.setVillagerLevel(config.getInt("level"));
-                if (SUPPORTS_VILLAGER_SET_VILLAGER_EXPERIENCE) villager.setVillagerExperience(config.getInt("xp"));
-            } else if (living instanceof Enderman) {
-                Enderman enderman = (Enderman) living;
-                String block = config.getString("carrying");
+    private static void editLivingEntityBasicStats(LivingEntity living, ConfigurationSection config) {
+        if (config.isSet("health")) {
+            double hp = config.getDouble("health");
+            living.getAttribute(XAttribute.MAX_HEALTH.get()).setBaseValue(hp);
+            living.setHealth(hp);
+        }
 
-                if (block != null) {
-                    Optional<XMaterial> mat = XMaterial.matchXMaterial(block);
-                    if (mat.isPresent()) {
-                        ItemStack item = mat.get().parseItem();
-                        if (item != null) enderman.setCarriedMaterial(item.getData());
-                    }
+        if (XReflection.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
+        if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
+        if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
+        if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
+        if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
+        if (config.isSet("remove-when-far-away"))
+            living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
+        if (XReflection.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+
+        if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
+        if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));
+        if (config.isSet("remaining-air")) living.setRemainingAir(config.getInt("remaining-air"));
+        XPotion.addEffects(living, config.getStringList("effects"));
+    }
+
+    private static void editLivingEntityEquipment(LivingEntity living, Entity entity, ConfigurationSection config) {
+        ConfigurationSection equip = config.getConfigurationSection("equipment");
+        if (equip != null) {
+            EntityEquipment equipment = living.getEquipment();
+            boolean isMob = entity instanceof Mob;
+
+            ConfigurationSection helmet = equip.getConfigurationSection("helmet");
+            if (helmet != null) {
+                equipment.setHelmet(XItemStack.deserialize(helmet.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setHelmetDropChance(helmet.getInt("drop-chance"));
                 }
-            } else if (living instanceof Sheep) {
-                Sheep sheep = (Sheep) living;
-                boolean sheared = config.getBoolean("sheared");
-                if (sheared) sheep.setSheared(true);
-            } else if (living instanceof Rabbit) {
-                Rabbit rabbit = (Rabbit) living;
-                rabbit.setRabbitType(Enums.getIfPresent(Rabbit.Type.class, config.getString("color")).or(Rabbit.Type.WHITE));
-            } else if (living instanceof Bat) {
-                Bat bat = (Bat) living;
-                if (!config.getBoolean("awake")) bat.setAwake(false);
-            } else if (living instanceof Wolf) {
-                Wolf wolf = (Wolf) living;
-                wolf.setAngry(config.getBoolean("angry"));
-                wolf.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
-            } else if (living instanceof Creeper) {
-                Creeper creeper = (Creeper) living;
-                creeper.setExplosionRadius(config.getInt("explosion-radius"));
-                creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
-                creeper.setPowered(config.getBoolean("powered"));
-            } else if (XReflection.supports(10)) {
-                if (XReflection.supports(11)) {
-                    if (living instanceof Llama) {
-                        Llama llama = (Llama) living;
-                        if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
-                        com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
-                        if (color.isPresent()) llama.setColor(color.get());
-                    } else if (XReflection.supports(12)) {
-                        if (living instanceof Parrot) {
-                            Parrot parrot = (Parrot) living;
-                            parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("color")).or(Parrot.Variant.RED));
-                        }
+            }
 
-                        if (XReflection.supports(13)) thirteen(entity, config);
-                        if (XReflection.supports(14)) fourteen(entity, config);
-                        if (XReflection.supports(15)) fifteen(entity, config);
-                        if (XReflection.supports(16)) sixteen(entity, config);
-                        if (XReflection.supports(17)) seventeen(entity, config);
+            ConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
+            if (chestplate != null) {
+                equipment.setChestplate(XItemStack.deserialize(chestplate.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setChestplateDropChance(chestplate.getInt("drop-chance"));
+                }
+            }
+
+            ConfigurationSection leggings = equip.getConfigurationSection("leggings");
+            if (leggings != null) {
+                equipment.setLeggings(XItemStack.deserialize(leggings.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setLeggingsDropChance(leggings.getInt("drop-chance"));
+                }
+            }
+
+            ConfigurationSection boots = equip.getConfigurationSection("boots");
+            if (boots != null) {
+                equipment.setBoots(XItemStack.deserialize(boots.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setBootsDropChance(boots.getInt("drop-chance"));
+                }
+            }
+
+            ConfigurationSection mainHand = equip.getConfigurationSection("main-hand");
+            if (mainHand != null) {
+                equipment.setItemInMainHand(XItemStack.deserialize(mainHand.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setItemInMainHandDropChance(mainHand.getInt("drop-chance"));
+                }
+            }
+
+            ConfigurationSection offHand = equip.getConfigurationSection("off-hand");
+            if (offHand != null) {
+                equipment.setItemInOffHand(XItemStack.deserialize(offHand.getConfigurationSection("item")));
+                if (isMob) {
+                    equipment.setItemInOffHandDropChance(offHand.getInt("drop-chance"));
+                }
+            }
+        }
+    }
+
+    private static void editLivingEntityAgeableProperties(LivingEntity living, ConfigurationSection config) {
+        if (living instanceof Ageable) { // and Breedable
+            Ageable ageable = (Ageable) living;
+            if (config.isSet("breed")) ageable.setBreed(config.getBoolean("breed"));
+            if (config.isSet("baby")) {
+                if (config.getBoolean("baby")) ageable.setBaby();
+                else ageable.setAdult();
+            }
+
+            int age = config.getInt("age", 0);
+            if (age > 0) ageable.setAge(age);
+
+            if (config.isSet("age-lock")) ageable.setAgeLock(config.getBoolean("age-lock"));
+
+            if (living instanceof Animals) {
+                Animals animals = (Animals) living;
+                int loveModeTicks = config.getInt("love-mode");
+                if (loveModeTicks != 0) animals.setLoveModeTicks(loveModeTicks);
+
+                if (living instanceof Tameable) {
+                    Tameable tam = (Tameable) living;
+                    tam.setTamed(config.getBoolean("tamed"));
+                }
+            }
+        }
+    }
+
+    private static void editLivingEntitySpecialProperties(LivingEntity living, ConfigurationSection config) {
+        if (living instanceof Sittable) {
+            Sittable sit = (Sittable) living;
+            sit.setSitting(config.getBoolean("sitting"));
+        }
+        if (living instanceof Spellcaster) {
+            Spellcaster caster = (Spellcaster) living;
+            String spell = config.getString("spell");
+            if (spell != null)
+                caster.setSpell(Enums.getIfPresent(Spellcaster.Spell.class, spell).or(Spellcaster.Spell.NONE));
+        }
+        if (living instanceof AbstractHorse) {
+            AbstractHorse horse = (AbstractHorse) living;
+            if (config.isSet("domestication")) horse.setDomestication(config.getInt("domestication"));
+            if (config.isSet("jump-strength")) horse.setJumpStrength(config.getDouble("jump-strength"));
+            if (config.isSet("max-domestication")) horse.setMaxDomestication(config.getInt("max-domestication"));
+
+            ConfigurationSection items = config.getConfigurationSection("items");
+            if (items != null) {
+                Inventory inventory = horse.getInventory();
+                for (String key : items.getKeys(false)) {
+                    ConfigurationSection itemSec = items.getConfigurationSection(key);
+                    int slot = itemSec.getInt("slot", -1);
+                    if (slot != -1) {
+                        ItemStack item = XItemStack.deserialize(itemSec);
+                        if (item != null) inventory.setItem(slot, item);
                     }
                 }
             }
-        } else if (entity instanceof EnderSignal) {
+
+            if (living instanceof ChestedHorse) { // Llamas too
+                ChestedHorse chested = (ChestedHorse) living;
+                boolean hasChest = config.getBoolean("has-chest");
+                if (hasChest) chested.setCarryingChest(true);
+            }
+        }
+    }
+
+    private static void editLivingEntityTypeSpecificProperties(LivingEntity living, Entity entity, ConfigurationSection config) {
+        if (living instanceof Villager) {
+            Villager villager = (Villager) living;
+            if (SUPPORTS_VILLAGER_SET_VILLAGER_LEVEL) villager.setVillagerLevel(config.getInt("level"));
+            if (SUPPORTS_VILLAGER_SET_VILLAGER_EXPERIENCE) villager.setVillagerExperience(config.getInt("xp"));
+        } else if (living instanceof Enderman) {
+            Enderman enderman = (Enderman) living;
+            String block = config.getString("carrying");
+
+            if (block != null) {
+                Optional<XMaterial> mat = XMaterial.matchXMaterial(block);
+                if (mat.isPresent()) {
+                    ItemStack item = mat.get().parseItem();
+                    if (item != null) enderman.setCarriedMaterial(item.getData());
+                }
+            }
+        } else if (living instanceof Sheep) {
+            Sheep sheep = (Sheep) living;
+            boolean sheared = config.getBoolean("sheared");
+            if (sheared) sheep.setSheared(true);
+        } else if (living instanceof Rabbit) {
+            Rabbit rabbit = (Rabbit) living;
+            rabbit.setRabbitType(Enums.getIfPresent(Rabbit.Type.class, config.getString("color")).or(Rabbit.Type.WHITE));
+        } else if (living instanceof Bat) {
+            Bat bat = (Bat) living;
+            if (!config.getBoolean("awake")) bat.setAwake(false);
+        } else if (living instanceof Wolf) {
+            Wolf wolf = (Wolf) living;
+            wolf.setAngry(config.getBoolean("angry"));
+            wolf.setCollarColor(Enums.getIfPresent(DyeColor.class, config.getString("color")).or(DyeColor.GREEN));
+        } else if (living instanceof Creeper) {
+            Creeper creeper = (Creeper) living;
+            creeper.setExplosionRadius(config.getInt("explosion-radius"));
+            creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
+            creeper.setPowered(config.getBoolean("powered"));
+        } else if (XReflection.supports(10)) {
+            if (XReflection.supports(11)) {
+                if (living instanceof Llama) {
+                    Llama llama = (Llama) living;
+                    if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
+                    com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
+                    if (color.isPresent()) llama.setColor(color.get());
+                } else if (XReflection.supports(12)) {
+                    if (living instanceof Parrot) {
+                        Parrot parrot = (Parrot) living;
+                        parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("color")).or(Parrot.Variant.RED));
+                    }
+
+                    if (XReflection.supports(13)) thirteen(entity, config);
+                    if (XReflection.supports(14)) fourteen(entity, config);
+                    if (XReflection.supports(15)) fifteen(entity, config);
+                    if (XReflection.supports(16)) sixteen(entity, config);
+                    if (XReflection.supports(17)) seventeen(entity, config);
+                }
+            }
+        }
+    }
+
+    private static void editOtherEntityProperties(Entity entity, ConfigurationSection config) {
+        if (entity instanceof EnderSignal) {
             EnderSignal signal = (EnderSignal) entity;
             signal.setDespawnTimer(config.getInt("despawn-timer"));
             signal.setDropItem(config.getBoolean("drop-item"));
@@ -650,8 +686,6 @@ public final class XEntity {
             EnderCrystal crystal = (EnderCrystal) entity;
             crystal.setShowingBottom(config.getBoolean("show-bottom"));
         }
-
-        return entity;
     }
 
     private static void fourteen(Entity entity, ConfigurationSection config) {

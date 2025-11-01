@@ -62,7 +62,7 @@ public enum ClassTypeConstraint implements ReflectiveConstraint {
         /**
          * What the fuck is this syntax??? Last time I checked we're not in kotlin...
          */
-        private final MethodHandle isRecord;{
+        private final transient MethodHandle isRecord;{
             MethodHandle isRecord0;
             try {
                 isRecord0 = MethodHandles.lookup()

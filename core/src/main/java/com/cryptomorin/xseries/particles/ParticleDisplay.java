@@ -1057,7 +1057,7 @@ public class ParticleDisplay {
 
     @NotNull
     public Vector getParticleDirection() {
-        return direction;
+        return particleDirection;
     }
 
     /**

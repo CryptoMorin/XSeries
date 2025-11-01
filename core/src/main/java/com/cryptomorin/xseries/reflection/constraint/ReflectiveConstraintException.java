@@ -25,6 +25,7 @@ package com.cryptomorin.xseries.reflection.constraint;
 import com.cryptomorin.xseries.reflection.ReflectiveHandle;
 import com.cryptomorin.xseries.reflection.XAccessFlag;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -33,9 +34,10 @@ import java.util.Optional;
  *
  * @since 12.0.0
  */
-public class ReflectiveConstraintException extends RuntimeException {
-    private final ReflectiveConstraint constraint;
-    private final ReflectiveConstraint.Result result;
+public class ReflectiveConstraintException extends RuntimeException implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private final transient ReflectiveConstraint constraint;
+    private final transient ReflectiveConstraint.Result result;
 
     private ReflectiveConstraintException(ReflectiveConstraint constraint, ReflectiveConstraint.Result result, String message) {
         super(message);

@@ -247,6 +247,9 @@ public class MinecraftClient {
                             rateLimiter.instantRateLimit();
                             throw new MojangAPIRetryException(MojangAPIRetryException.Reason.RATELIMITED,
                                     "Rate limit has been hit (server confirmed): " + rateLimitBefore + " -> " + rateLimitBefore + totalReq());
+                        default:
+                            // Handle other HTTP response codes
+                            break;
                     }
                     if (ex instanceof SocketException && ex.getMessage().toLowerCase(Locale.ENGLISH).contains("connection reset")) {
                         throw new MojangAPIRetryException(MojangAPIRetryException.Reason.CONNECTION_RESET, "Connection was closed", ex);
