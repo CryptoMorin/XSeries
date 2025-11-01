@@ -2598,32 +2598,36 @@ public final class XTag<T extends XBase<?, ?>> {
         List<Matcher<E>> matchers = new ArrayList<>(elements.size());
 
         for (String comp : elements) {
-            String checker = comp.toUpperCase(Locale.ENGLISH);
-            if (checker.startsWith("CONTAINS:")) {
-                comp = XMaterial.format(checker.substring(9));
-                matchers.add(new Matcher.TextMatcher<>(comp, true));
-                continue;
-            }
-            if (checker.startsWith("REGEX:")) {
-                comp = comp.substring(6);
-                try {
-                    matchers.add(new Matcher.RegexMatcher<>(Pattern.compile(comp)));
-                } catch (Throwable e) {
-                    if (errors != null) errors.add(new Matcher.Error(comp, "REGEX", e));
-                }
-                continue;
-            }
-            if (checker.startsWith("TAG:")) {
-                comp = XMaterial.format(comp.substring(4));
-                Optional<XTag<?>> tag = getTag(comp);
-                if (tag.isPresent()) matchers.add(new Matcher.XTagMatcher(tag.get()));
-                else errors.add(new Matcher.Error("Cannot find tag: " + comp, "TAG"));
-            }
-
-            matchers.add(new Matcher.TextMatcher<>(comp, false));
+            matchers.add(parseMatcher(comp, errors));
         }
 
         return matchers;
+    }
+
+    private static <E> Matcher<E> parseMatcher(String comp, @Nullable Collection<Matcher.Error> errors) {
+        String checker = comp.toUpperCase(Locale.ENGLISH);
+        if (checker.startsWith("CONTAINS:")) {
+            comp = XMaterial.format(checker.substring(9));
+            return new Matcher.TextMatcher<>(comp, true);
+        }
+        if (checker.startsWith("REGEX:")) {
+            comp = comp.substring(6);
+            try {
+                return new Matcher.RegexMatcher<>(Pattern.compile(comp));
+            } catch (Throwable e) {
+                if (errors != null) errors.add(new Matcher.Error(comp, "REGEX", e));
+                // Return a default text matcher when regex fails
+                return new Matcher.TextMatcher<>(comp, false);
+            }
+        }
+        if (checker.startsWith("TAG:")) {
+            comp = XMaterial.format(comp.substring(4));
+            Optional<XTag<? extends XBase<?, ?>>> tag = getTag(comp);
+            if (tag.isPresent()) return new Matcher.XTagMatcher(tag.get());
+            else if (errors != null) errors.add(new Matcher.Error("Cannot find tag: " + comp, "TAG"));
+        }
+
+        return new Matcher.TextMatcher<>(comp, false);
     }
 
     public static <T> boolean anyMatchString(T target, Collection<String> matchers) {
@@ -3091,9 +3095,9 @@ public final class XTag<T extends XBase<?, ?>> {
         return new XTag<>(newSet);
     }
 
-    private static final Map<String, XTag<?>> TAGS = new HashMap<>(30);
+    private static final Map<String, XTag<? extends XBase<?, ?>>> TAGS = new HashMap<>(30);
 
-    public static Optional<XTag<?>> getTag(String name) {
+    public static Optional<XTag<? extends XBase<?, ?>>> getTag(String name) {
         return Optional.ofNullable(TAGS.get(name));
     }
 
@@ -3101,7 +3105,7 @@ public final class XTag<T extends XBase<?, ?>> {
         for (Field field : XTag.class.getDeclaredFields()) {
             try {
                 if (field.getType() == XTag.class) {
-                    TAGS.put(field.getName(), (XTag<?>) field.get(null));
+                    TAGS.put(field.getName(), (XTag<? extends XBase<?, ?>>) field.get(null));
                 }
             } catch (IllegalAccessException ex) {
                 new IllegalStateException("Failed to get XTag " + field, ex).printStackTrace();

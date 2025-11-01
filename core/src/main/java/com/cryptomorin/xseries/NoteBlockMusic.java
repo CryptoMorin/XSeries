@@ -453,6 +453,12 @@ public final class NoteBlockMusic {
                                 phase = InstructionParserPhase.FERMATA;
                                 currentBuilder = fermataBuilder;
                                 break;
+                            case NEUTRAL:
+                            case INSTRUMENT:
+                            case END_SEQ:
+                            case RESTATEMENT:
+                                // Do nothing for these phases
+                                break;
                         }
                         break;
                     case ':': // Pitch/Note & Volume Separator
@@ -549,7 +555,7 @@ public final class NoteBlockMusic {
                 case RESTATEMENT_DELAY:
                 case FERMATA:
                     return true;
-                default:
+                default: // NEUTRAL, INSTRUMENT, NOTE, END_SEQ
                     return false;
             }
         }

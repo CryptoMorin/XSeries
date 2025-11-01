@@ -1134,7 +1134,11 @@ public final class XBlock {
                     return XMaterial.POTTED_FERN;
                 }
                 break;
+            default:
+                // Unknown content type, return empty flower pot
+                return XMaterial.FLOWER_POT;
         }
+        // This line should never be reached due to the default case above
         throw new AssertionError("Unknown potted flower type: " + pot + " | " + contentType + " | " + contentData);
     }
 

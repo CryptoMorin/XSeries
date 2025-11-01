@@ -125,7 +125,7 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
      *
      * @since 1.0.0
      */
-    public static final XPotion[] VALUES = values();
+    public static final XPotion[] POTION_VALUES = values();
 
     /**
      * An unmodifiable set of "bad" potion effects.
@@ -143,10 +143,10 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
      * Efficient mapping to get {@link XPotion} from a {@link PotionEffectType}
      * Note that <code>values.length + 1</code> is intentional as it allocates one useless space since IDs start from 1
      */
-    private static final XPotion[] POTIONEFFECTTYPE_MAPPING = new XPotion[VALUES.length + 1];
+    private static final XPotion[] POTIONEFFECTTYPE_MAPPING = new XPotion[POTION_VALUES.length + 1];
 
     static {
-        for (XPotion pot : VALUES)
+        for (XPotion pot : POTION_VALUES)
             if (pot.potionEffectType != null)
                 POTIONEFFECTTYPE_MAPPING[pot.potionEffectType.getId()] = pot;
     }
