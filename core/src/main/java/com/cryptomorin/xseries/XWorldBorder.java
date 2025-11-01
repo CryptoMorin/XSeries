@@ -197,7 +197,7 @@ public abstract class XWorldBorder {
         private Object handle;
         private double damagePerBlock = 0.2D;
         private double damageSafeZone = 5.0D;
-        private double size = 100;
+        private double borderSize = 100;
         /**
          * The previous size.
          */
@@ -216,7 +216,7 @@ public abstract class XWorldBorder {
             wb.world = world;
             wb.centerX = centerX;
             wb.centerZ = centerZ;
-            wb.size = size;
+            wb.borderSize = borderSize;
             wb.sizeLerpTime = sizeLerpTime;
             wb.damagePerBlock = damagePerBlock;
             wb.damageSafeZone = damageSafeZone;
@@ -232,7 +232,7 @@ public abstract class XWorldBorder {
         }
 
         public double getSize() {
-            return size;
+            return borderSize;
         }
 
         public double getDamageAmount() {
@@ -313,8 +313,8 @@ public abstract class XWorldBorder {
 
         public XWorldBorder setSize(double newSize, @NotNull Duration duration) {
             super.setSize(newSize, duration);
-            if (this.size == newSize && sizeLerpTime.equals(duration)) return this;
-            size = newSize;
+            if (this.borderSize == newSize && sizeLerpTime.equals(duration)) return this;
+            borderSize = newSize;
             sizeLerpTime = duration;
 
             updateBorderBounds(getCenter());
@@ -502,7 +502,7 @@ public abstract class XWorldBorder {
             SIZE {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
-                    NMSWorldBorder.SIZE.invoke(wb.handle, wb.size);
+                    NMSWorldBorder.SIZE.invoke(wb.handle, wb.borderSize);
                 }
 
                 @Override
@@ -513,7 +513,7 @@ public abstract class XWorldBorder {
             SIZE_LERP {
                 @Override
                 protected void setHandle(NMSWorldBorder wb) throws Throwable {
-                    NMSWorldBorder.WorldBorder_lerpSizeBetween.invoke(wb.handle, wb.sizeLerpTarget, wb.size, wb.sizeLerpTime.toMillis());
+                    NMSWorldBorder.WorldBorder_lerpSizeBetween.invoke(wb.handle, wb.sizeLerpTarget, wb.borderSize, wb.sizeLerpTime.toMillis());
                 }
 
                 @Override
@@ -702,7 +702,7 @@ public abstract class XWorldBorder {
             wb.world = bukkitWb.getCenter().getWorld(); // Don't use WorldBorder#getWorld() not supported in pre-1.17
             wb.centerX = bukkitWb.getCenter().getX();
             wb.centerZ = bukkitWb.getCenter().getZ();
-            wb.size = bukkitWb.getSize();
+            wb.borderSize = bukkitWb.getSize();
             wb.sizeLerpTime = Duration.ZERO;
             wb.damagePerBlock = bukkitWb.getDamageAmount();
             wb.damageSafeZone = bukkitWb.getDamageBuffer();
