@@ -167,15 +167,15 @@ public final class XEntity {
     }
 
     private static final boolean
-            SUPPORTS_Villager_setVillagerLevel,
-            SUPPORTS_Villager_setVillagerExperience,
-            SUPPORTS_Villager_setVillagerType;
+            SUPPORTS_VILLAGER_SET_VILLAGER_LEVEL,
+            SUPPORTS_VILLAGER_SET_VILLAGER_EXPERIENCE,
+            SUPPORTS_VILLAGER_SET_VILLAGER_TYPE;
 
     static {
         StaticClassHandle villager = XReflection.of(Villager.class);
-        SUPPORTS_Villager_setVillagerLevel = villager.method("void setVillagerLevel(int var1);").exists();
-        SUPPORTS_Villager_setVillagerExperience = villager.method("void setVillagerExperience(int xp);").exists();
-        SUPPORTS_Villager_setVillagerType = villager.method()
+        SUPPORTS_VILLAGER_SET_VILLAGER_LEVEL = villager.method("void setVillagerLevel(int var1);").exists();
+        SUPPORTS_VILLAGER_SET_VILLAGER_EXPERIENCE = villager.method("void setVillagerExperience(int xp);").exists();
+        SUPPORTS_VILLAGER_SET_VILLAGER_TYPE = villager.method()
                 .named("setVillagerType")
                 .returns(void.class).parameters(villager.inner(XReflection.ofMinecraft().named("Type")))
                 .exists();
@@ -298,7 +298,7 @@ public final class XEntity {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, boolean randomizeData, @Nullable Consumer<? super T> function) {
+    public static <T extends Entity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, boolean randomizeData, @Nullable Consumer<T> function) {
         if (SUPPORTS_DELAYED_SPAWN) {
             return location.getWorld().spawn(location, clazz, randomizeData, function);
         } else if (DELAYED_SPAWN_1_17 != null) {
@@ -324,7 +324,7 @@ public final class XEntity {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public static <T extends LivingEntity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, @NotNull CreatureSpawnEvent.SpawnReason spawnReason, boolean randomizeData, @Nullable Consumer<? super T> function) {
+    public static <T extends LivingEntity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, @NotNull CreatureSpawnEvent.SpawnReason spawnReason, boolean randomizeData, @Nullable Consumer<T> function) {
         if (SUPPORTS_DELAYED_SPAWN) {
             return location.getWorld().spawn(location, clazz, spawnReason, randomizeData, function);
         } else if (!randomizeData && DELAYED_SPAWN_1_17 != null) { // Prefer 1.17 method with non-default randomizeData over 1.16.5 method with modified spawn reason
@@ -582,8 +582,8 @@ public final class XEntity {
 
             if (living instanceof Villager) {
                 Villager villager = (Villager) living;
-                if (SUPPORTS_Villager_setVillagerLevel) villager.setVillagerLevel(config.getInt("level"));
-                if (SUPPORTS_Villager_setVillagerExperience) villager.setVillagerExperience(config.getInt("xp"));
+                if (SUPPORTS_VILLAGER_SET_VILLAGER_LEVEL) villager.setVillagerLevel(config.getInt("level"));
+                if (SUPPORTS_VILLAGER_SET_VILLAGER_EXPERIENCE) villager.setVillagerExperience(config.getInt("xp"));
             } else if (living instanceof Enderman) {
                 Enderman enderman = (Enderman) living;
                 String block = config.getString("carrying");
