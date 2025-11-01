@@ -342,60 +342,21 @@ public final class XBlock {
                 data = (byte) (data & 0x3);
                 break;
             case QUARTZ_BLOCK:
-                switch (data) {
-                    case 0: return XMaterial.QUARTZ_BLOCK;
-                    case 1: return XMaterial.CHISELED_QUARTZ_BLOCK;
-                    case 2: // Vertical
-                    case 3: // Horizontal X-axis
-                    case 4: // Horizontal Z-axis
-                        return XMaterial.QUARTZ_PILLAR;
-                    default:
-                        throw new AssertionError("Unknown QUARTZ_BLOCK type: " + data);
-                }
+                return handleQuartzBlock(data);
             case BRICK:
                 return XMaterial.BRICKS;
             case STEP:
                 if (data == 2) return XMaterial.OAK_SLAB; // Treated as stone-type in 1.12
                 break; // Others can be handled by XMaterial
             case DOUBLE_STEP:
-                switch (data) {
-                    case 0: return XMaterial.SMOOTH_STONE_SLAB; // SMOOTH_STONE was added in 1.13
-                    case 1: return XMaterial.SANDSTONE;
-                    case 2: return XMaterial.OAK_PLANKS; // Treated as stone-type in 1.12
-                    case 3: return XMaterial.COBBLESTONE;
-                    case 4: return XMaterial.BRICKS;
-                    case 5: return XMaterial.STONE_BRICKS;
-                    case 6: return XMaterial.NETHER_BRICKS;
-                    case 7: return XMaterial.QUARTZ_BLOCK;
-                    default: throw new AssertionError("Unknown STEP type: " + data);
-                }
+                return handleDoubleStep(data);
             case WOOD_DOUBLE_STEP:
-                switch (data) {
-                    case 0: return XMaterial.OAK_PLANKS;
-                    case 1: return XMaterial.SPRUCE_PLANKS;
-                    case 2: return XMaterial.BIRCH_PLANKS;
-                    case 3: return XMaterial.JUNGLE_PLANKS;
-                    case 4: return XMaterial.ACACIA_PLANKS;
-                    case 5: return XMaterial.DARK_OAK_PLANKS;
-                    default: throw new AssertionError("Unknown WOOD_DOUBLE_STEP type: " + data);
-                }
+                return handleWoodDoubleStep(data);
             case DOUBLE_STONE_SLAB2:
                 if (data == 0) return XMaterial.RED_SANDSTONE;
                 else throw new AssertionError("Unknown DOUBLE_STONE_SLAB2 type: " + data);
             case SKULL:
-                // Raw data for skulls only store the rotation and wall data, they don't contain the actual skull type.
-                // data = (byte)(data & 0x7); // Mask lower 3 bits for skull type and ignore rotation
-
-                Skull skull = (Skull) block.getState();
-                switch (skull.getSkullType()) {
-                    case SKELETON: return XMaterial.SKELETON_SKULL;
-                    case WITHER:   return XMaterial.WITHER_SKELETON_SKULL;
-                    case ZOMBIE:   return XMaterial.ZOMBIE_HEAD;
-                    case PLAYER:   return XMaterial.PLAYER_HEAD;
-                    case CREEPER:  return XMaterial.CREEPER_HEAD;
-                    case DRAGON:   return XMaterial.DRAGON_HEAD;
-                    default:       throw new AssertionError("Unknown SKULL type: " + skull);
-                }
+                return handleSkull(block);
             case ANVIL:
                 data = block.getData();
                 data = (byte) ((data >> 2) & 0x3); // Mask to ignore rotation bits
@@ -406,28 +367,7 @@ public final class XBlock {
                 // This doesn't work, the returned data value is incorrect.
                 // data = (byte) (data & 0x7); // Mask to ignore head/foot, facing, occupied bits
 
-                Bed bed = (Bed) block.getState();
-                DyeColor dyeColor = bed.getColor();
-
-                switch (dyeColor) {
-                    case WHITE:      return XMaterial.WHITE_BED;
-                    case ORANGE:     return XMaterial.ORANGE_BED;
-                    case MAGENTA:    return XMaterial.MAGENTA_BED;
-                    case LIGHT_BLUE: return XMaterial.LIGHT_BLUE_BED;
-                    case YELLOW:     return XMaterial.YELLOW_BED;
-                    case LIME:       return XMaterial.LIME_BED;
-                    case PINK:       return XMaterial.PINK_BED;
-                    case GRAY:       return XMaterial.GRAY_BED;
-                    case LIGHT_GRAY: return XMaterial.LIGHT_GRAY_BED;
-                    case CYAN:       return XMaterial.CYAN_BED;
-                    case PURPLE:     return XMaterial.PURPLE_BED;
-                    case BLUE:       return XMaterial.BLUE_BED;
-                    case BROWN:      return XMaterial.BROWN_BED;
-                    case GREEN:      return XMaterial.GREEN_BED;
-                    case RED:        return XMaterial.RED_BED;
-                    case BLACK:      return XMaterial.BLACK_BED;
-                    default:         throw new AssertionError("Unkonwn " + legacyMaterial + " type: " + dyeColor);
-                }
+                return handleBed(block);
             case DOUBLE_PLANT:
                 // Special bug in 1.8-1.12 which causes all top halves of DOUBLE_PLANT to return 10
                 // boolean isTopHalf = (data & 0x8) != 0;
@@ -443,64 +383,7 @@ public final class XBlock {
                 data = (byte) (data & 0x7); // Mask to ignore top/bottom halves.
                 break;
             case FLOWER_POT:
-                Material contentType;
-                byte contentData;
-
-                BlockState state = block.getState();
-                FlowerPot pot = (FlowerPot) state.getData();
-                MaterialData contents = pot.getContents();
-
-                // TODO There is a bug in 1.8-1.12 versions where this is always null.
-                //      The only solution would be to use NMS but using XReflection here is
-                //      very extra.
-                if (contents == null) {
-                    return XMaterial.FLOWER_POT; // Empty flower pot
-                }
-
-                contentType = contents.getItemType();
-                contentData = contents.getData();
-
-                switch (contentType.name()) {
-                    case "RED_ROSE":
-                        switch (contentData) {
-                            case 0: return XMaterial.POTTED_POPPY;
-                            case 1: return XMaterial.POTTED_BLUE_ORCHID;
-                            case 2: return XMaterial.POTTED_ALLIUM;
-                            case 3: return XMaterial.POTTED_AZURE_BLUET;
-                            case 4: return XMaterial.POTTED_RED_TULIP;
-                            case 5: return XMaterial.POTTED_ORANGE_TULIP;
-                            case 6: return XMaterial.POTTED_WHITE_TULIP;
-                            case 7: return XMaterial.POTTED_PINK_TULIP;
-                            case 8: return XMaterial.POTTED_OXEYE_DAISY;
-                            default: break;
-                        }
-                    case "YELLOW_FLOWER":
-                        return XMaterial.POTTED_DANDELION;
-                    case "RED_MUSHROOM":
-                        return XMaterial.POTTED_RED_MUSHROOM;
-                    case "BROWN_MUSHROOM":
-                        return XMaterial.POTTED_BROWN_MUSHROOM;
-                    case "CACTUS":
-                        return XMaterial.POTTED_CACTUS;
-                    case "DEAD_BUSH":
-                        return XMaterial.POTTED_DEAD_BUSH;
-                    case "SAPLING":
-                        switch (contentData) {
-                            case 0: return XMaterial.POTTED_OAK_SAPLING;
-                            case 1: return XMaterial.POTTED_SPRUCE_SAPLING;
-                            case 2: return XMaterial.POTTED_BIRCH_SAPLING;
-                            case 3: return XMaterial.POTTED_JUNGLE_SAPLING;
-                            case 4: return XMaterial.POTTED_ACACIA_SAPLING;
-                            case 5: return XMaterial.POTTED_DARK_OAK_SAPLING;
-                            default: break;
-                        }
-                    case "LONG_GRASS":
-                        if (contentData == 2) {
-                            return XMaterial.POTTED_FERN;
-                        }
-                        break;
-                }
-                throw new AssertionError("Unknown potted flower type: " + pot + " | " + contentType + " | " + contentData);
+                return handleFlowerPot(block);
             case BANNER:
             case STANDING_BANNER: {
                 Banner banner = (Banner) block.getState();
@@ -619,85 +502,9 @@ public final class XBlock {
         boolean update = false;
 
         if (handling == LegacyMaterialGroup.Handling.COLORABLE) {
-            if (state instanceof Banner) {
-                Banner banner = (Banner) state;
-                String xName = material.name();
-                int colorIndex = xName.indexOf('_');
-                String color = xName.substring(0, colorIndex);
-                if (color.equals("LIGHT")) color = xName.substring(0, "LIGHT_".length() + 4);
-
-                banner.setBaseColor(DyeColor.valueOf(color));
-            } else state.setRawData(material.getData());
-            update = true;
+            update = handleColorable(state, material);
         } else if (handling == LegacyMaterialGroup.Handling.WOOD_SPECIES) {
-            // Wood doesn't exist in 1.8
-            // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/material/Wood.java?until=7d83cba0f2575112577ed7a091ed8a193bfc261a&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fmaterial%2FWood.java
-            // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/TreeSpecies.java
-
-            String name = material.name();
-            int firstIndicator = name.indexOf('_');
-            if (firstIndicator < 0) return false;
-            String woodType = name.substring(0, firstIndicator);
-
-            TreeSpecies species;
-            switch (woodType) {
-                case "OAK":
-                    species = TreeSpecies.GENERIC;
-                    break;
-                case "DARK":
-                    species = TreeSpecies.DARK_OAK;
-                    break;
-                case "SPRUCE":
-                    species = TreeSpecies.REDWOOD;
-                    break;
-                default: {
-                    try {
-                        species = TreeSpecies.valueOf(woodType);
-                    } catch (IllegalArgumentException ex) {
-                        throw new AssertionError("Unknown material " + legacyMaterial + " for wood species");
-                    }
-                }
-            }
-
-            // Doesn't handle stairs, slabs, fence and fence gates as they had their own separate materials.
-            boolean firstType = false;
-            switch (legacyMaterial) {
-                case WOOD:
-                case WOOD_DOUBLE_STEP:
-                    state.setRawData(species.getData());
-                    update = true;
-                    break;
-                case LOG:
-                case LEAVES:
-                    firstType = true;
-                    // fall through to next switch statement below
-                case LOG_2:
-                case LEAVES_2:
-                    switch (species) {
-                        case GENERIC:
-                        case REDWOOD:
-                        case BIRCH:
-                        case JUNGLE:
-                            if (!firstType)
-                                throw new AssertionError("Invalid tree species " + species + " for block type" + legacyMaterial + ", use block type 2 instead");
-                            break;
-                        case ACACIA:
-                        case DARK_OAK:
-                            if (firstType)
-                                throw new AssertionError("Invalid tree species " + species + " for block type 2 " + legacyMaterial + ", use block type instead");
-                            break;
-                    }
-                    state.setRawData((byte) ((state.getRawData() & 0xC) | (species.getData() & 0x3)));
-                    update = true;
-                    break;
-                case SAPLING:
-                case WOOD_STEP:
-                    state.setRawData((byte) ((state.getRawData() & 0x8) | species.getData()));
-                    update = true;
-                    break;
-                default:
-                    throw new AssertionError("Unknown block type " + legacyMaterial + " for tree species: " + species);
-            }
+            update = handleWoodSpecies(state, material, legacyMaterial);
         } else if (material.getData() != 0) {
             if (skullType != null) {
                 boolean isWallSkull = material.name().contains("WALL");
@@ -866,24 +673,39 @@ public final class XBlock {
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
-        XMaterial matched = XMaterial.matchXMaterial(block.getType());
 
         for (String comp : blocks) {
-            String checker = comp.toUpperCase(Locale.ENGLISH);
-            if (checker.startsWith("CONTAINS:")) {
-                comp = XMaterial.format(checker.substring(9));
-                if (name.contains(comp)) return true;
-                continue;
+            if (checkContains(name, comp) || checkRegex(name, comp) || checkDirectMatch(block, comp)) {
+                return true;
             }
-            if (checker.startsWith("REGEX:")) {
-                comp = comp.substring(6);
-                if (name.matches(comp)) return true;
-                continue;
-            }
+        }
+        return false;
+    }
 
+    private static boolean checkContains(String blockName, String comp) {
+        String checker = comp.toUpperCase(Locale.ENGLISH);
+        if (checker.startsWith("CONTAINS:")) {
+            comp = XMaterial.format(checker.substring(9));
+            return blockName.contains(comp);
+        }
+        return false;
+    }
+
+    private static boolean checkRegex(String blockName, String comp) {
+        String checker = comp.toUpperCase(Locale.ENGLISH);
+        if (checker.startsWith("REGEX:")) {
+            comp = comp.substring(6);
+            return blockName.matches(comp);
+        }
+        return false;
+    }
+
+    private static boolean checkDirectMatch(Block block, String comp) {
+        String checker = comp.toUpperCase(Locale.ENGLISH);
+        if (!checker.startsWith("CONTAINS:") && !checker.startsWith("REGEX:")) {
             // Direct Object Equals
             Optional<XMaterial> xMat = XMaterial.matchXMaterial(comp);
-            if (xMat.isPresent() && isSimilar(block, xMat.get())) return true;
+            return xMat.isPresent() && isSimilar(block, xMat.get());
         }
         return false;
     }
@@ -983,6 +805,10 @@ public final class XBlock {
         if (material.name().endsWith("_BED") && !XMaterial.supports(12))
             return mat == LegacyBlockMaterial.BED_BLOCK.material || mat == LegacyBlockMaterial.BED.material;
 
+        return checkMaterialSimilarity(material, mat);
+    }
+
+    private static boolean checkMaterialSimilarity(XMaterial material, Material mat) {
         switch (material) {
             case CAKE:
                 return isCake(mat);
@@ -1168,6 +994,231 @@ public final class XBlock {
         return false;
     }
 
+    private static XMaterial handleQuartzBlock(byte data) {
+        switch (data) {
+            case 0: return XMaterial.QUARTZ_BLOCK;
+            case 1: return XMaterial.CHISELED_QUARTZ_BLOCK;
+            case 2: // Vertical
+            case 3: // Horizontal X-axis
+            case 4: // Horizontal Z-axis
+                return XMaterial.QUARTZ_PILLAR;
+            default:
+                throw new AssertionError("Unknown QUARTZ_BLOCK type: " + data);
+        }
+    }
+
+    private static XMaterial handleDoubleStep(byte data) {
+        switch (data) {
+            case 0: return XMaterial.SMOOTH_STONE_SLAB; // SMOOTH_STONE was added in 1.13
+            case 1: return XMaterial.SANDSTONE;
+            case 2: return XMaterial.OAK_PLANKS; // Treated as stone-type in 1.12
+            case 3: return XMaterial.COBBLESTONE;
+            case 4: return XMaterial.BRICKS;
+            case 5: return XMaterial.STONE_BRICKS;
+            case 6: return XMaterial.NETHER_BRICKS;
+            case 7: return XMaterial.QUARTZ_BLOCK;
+            default: throw new AssertionError("Unknown STEP type: " + data);
+        }
+    }
+
+    private static XMaterial handleWoodDoubleStep(byte data) {
+        switch (data) {
+            case 0: return XMaterial.OAK_PLANKS;
+            case 1: return XMaterial.SPRUCE_PLANKS;
+            case 2: return XMaterial.BIRCH_PLANKS;
+            case 3: return XMaterial.JUNGLE_PLANKS;
+            case 4: return XMaterial.ACACIA_PLANKS;
+            case 5: return XMaterial.DARK_OAK_PLANKS;
+            default: throw new AssertionError("Unknown WOOD_DOUBLE_STEP type: " + data);
+        }
+    }
+
+    private static XMaterial handleSkull(Block block) {
+        // Raw data for skulls only store the rotation and wall data, they don't contain the actual skull type.
+        // data = (byte)(data & 0x7); // Mask lower 3 bits for skull type and ignore rotation
+
+        Skull skull = (Skull) block.getState();
+        switch (skull.getSkullType()) {
+            case SKELETON: return XMaterial.SKELETON_SKULL;
+            case WITHER:   return XMaterial.WITHER_SKELETON_SKULL;
+            case ZOMBIE:   return XMaterial.ZOMBIE_HEAD;
+            case PLAYER:   return XMaterial.PLAYER_HEAD;
+            case CREEPER:  return XMaterial.CREEPER_HEAD;
+            case DRAGON:   return XMaterial.DRAGON_HEAD;
+            default:       throw new AssertionError("Unknown SKULL type: " + skull);
+        }
+    }
+
+    private static XMaterial handleBed(Block block) {
+        // This doesn't work, the returned data value is incorrect.
+        // data = (byte) (data & 0x7); // Mask to ignore head/foot, facing, occupied bits
+
+        Bed bed = (Bed) block.getState();
+        DyeColor dyeColor = bed.getColor();
+
+        switch (dyeColor) {
+            case WHITE:      return XMaterial.WHITE_BED;
+            case ORANGE:     return XMaterial.ORANGE_BED;
+            case MAGENTA:    return XMaterial.MAGENTA_BED;
+            case LIGHT_BLUE: return XMaterial.LIGHT_BLUE_BED;
+            case YELLOW:     return XMaterial.YELLOW_BED;
+            case LIME:       return XMaterial.LIME_BED;
+            case PINK:       return XMaterial.PINK_BED;
+            case GRAY:       return XMaterial.GRAY_BED;
+            case LIGHT_GRAY: return XMaterial.LIGHT_GRAY_BED;
+            case CYAN:       return XMaterial.CYAN_BED;
+            case PURPLE:     return XMaterial.PURPLE_BED;
+            case BLUE:       return XMaterial.BLUE_BED;
+            case BROWN:      return XMaterial.BROWN_BED;
+            case GREEN:      return XMaterial.GREEN_BED;
+            case RED:        return XMaterial.RED_BED;
+            case BLACK:      return XMaterial.BLACK_BED;
+            default:         throw new AssertionError("Unknown BED type: " + dyeColor);
+        }
+    }
+
+    private static XMaterial handleFlowerPot(Block block) {
+        Material contentType;
+        byte contentData;
+
+        BlockState state = block.getState();
+        FlowerPot pot = (FlowerPot) state.getData();
+        MaterialData contents = pot.getContents();
+
+        // TODO There is a bug in 1.8-1.12 versions where this is always null.
+        //      The only solution would be to use NMS but using XReflection here is
+        //      very extra.
+        if (contents == null) {
+            return XMaterial.FLOWER_POT; // Empty flower pot
+        }
+
+        contentType = contents.getItemType();
+        contentData = contents.getData();
+
+        switch (contentType.name()) {
+            case "RED_ROSE":
+                switch (contentData) {
+                    case 0: return XMaterial.POTTED_POPPY;
+                    case 1: return XMaterial.POTTED_BLUE_ORCHID;
+                    case 2: return XMaterial.POTTED_ALLIUM;
+                    case 3: return XMaterial.POTTED_AZURE_BLUET;
+                    case 4: return XMaterial.POTTED_RED_TULIP;
+                    case 5: return XMaterial.POTTED_ORANGE_TULIP;
+                    case 6: return XMaterial.POTTED_WHITE_TULIP;
+                    case 7: return XMaterial.POTTED_PINK_TULIP;
+                    case 8: return XMaterial.POTTED_OXEYE_DAISY;
+                    default: throw new AssertionError("Unknown RED_ROSE type: " + contentData);
+                }
+            case "YELLOW_FLOWER":
+                return XMaterial.POTTED_DANDELION;
+            case "RED_MUSHROOM":
+                return XMaterial.POTTED_RED_MUSHROOM;
+            case "BROWN_MUSHROOM":
+                return XMaterial.POTTED_BROWN_MUSHROOM;
+            case "CACTUS":
+                return XMaterial.POTTED_CACTUS;
+            case "DEAD_BUSH":
+                return XMaterial.POTTED_DEAD_BUSH;
+            case "SAPLING":
+                switch (contentData) {
+                    case 0: return XMaterial.POTTED_OAK_SAPLING;
+                    case 1: return XMaterial.POTTED_SPRUCE_SAPLING;
+                    case 2: return XMaterial.POTTED_BIRCH_SAPLING;
+                    case 3: return XMaterial.POTTED_JUNGLE_SAPLING;
+                    case 4: return XMaterial.POTTED_ACACIA_SAPLING;
+                    case 5: return XMaterial.POTTED_DARK_OAK_SAPLING;
+                    default: throw new AssertionError("Unknown SAPLING type: " + contentData);
+                }
+            case "LONG_GRASS":
+                if (contentData == 2) {
+                    return XMaterial.POTTED_FERN;
+                }
+                break;
+        }
+        throw new AssertionError("Unknown potted flower type: " + pot + " | " + contentType + " | " + contentData);
+    }
+
+    private static boolean handleColorable(BlockState state, XMaterial material) {
+        if (state instanceof Banner) {
+            Banner banner = (Banner) state;
+            String xName = material.name();
+            int colorIndex = xName.indexOf('_');
+            String color = xName.substring(0, colorIndex);
+            if (color.equals("LIGHT")) color = xName.substring(0, "LIGHT_".length() + 4);
+
+            banner.setBaseColor(DyeColor.valueOf(color));
+        } else state.setRawData(material.getData());
+        return true;
+    }
+
+    private static boolean handleWoodSpecies(BlockState state, XMaterial material, LegacyMaterialGroup legacyMaterial) {
+        // Wood doesn't exist in 1.8
+        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/material/Wood.java?until=7d83cba0f2575112577ed7a091ed8a193bfc261a&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fmaterial%2FWood.java
+        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/TreeSpecies.java
+
+        String name = material.name();
+        int firstIndicator = name.indexOf('_');
+        if (firstIndicator < 0) return false;
+        String woodType = name.substring(0, firstIndicator);
+
+        TreeSpecies species;
+        switch (woodType) {
+            case "OAK":
+                species = TreeSpecies.GENERIC;
+                break;
+            case "DARK":
+                species = TreeSpecies.DARK_OAK;
+                break;
+            case "SPRUCE":
+                species = TreeSpecies.REDWOOD;
+                break;
+            default: {
+                try {
+                    species = TreeSpecies.valueOf(woodType);
+                } catch (IllegalArgumentException ex) {
+                    throw new AssertionError("Unknown material " + legacyMaterial + " for wood species");
+                }
+            }
+        }
+
+        // Doesn't handle stairs, slabs, fence and fence gates as they had their own separate materials.
+        boolean firstType = false;
+        switch (legacyMaterial) {
+            case WOOD:
+            case WOOD_DOUBLE_STEP:
+                state.setRawData(species.getData());
+                return true;
+            case LOG:
+            case LEAVES:
+                firstType = true;
+                // fall through to next switch statement below
+            case LOG_2:
+            case LEAVES_2:
+                switch (species) {
+                    case GENERIC:
+                    case REDWOOD:
+                    case BIRCH:
+                    case JUNGLE:
+                        if (!firstType)
+                            throw new AssertionError("Invalid tree species " + species + " for block type" + legacyMaterial + ", use block type 2 instead");
+                        break;
+                    case ACACIA:
+                    case DARK_OAK:
+                        if (firstType)
+                            throw new AssertionError("Invalid tree species " + species + " for block type 2 " + legacyMaterial + ", use block type instead");
+                        break;
+                }
+                state.setRawData((byte) ((state.getRawData() & 0xC) | (species.getData() & 0x3)));
+                return true;
+            case SAPLING:
+            case WOOD_STEP:
+                state.setRawData((byte) ((state.getRawData() & 0x8) | species.getData()));
+                return true;
+            default:
+                throw new AssertionError("Unknown block type " + legacyMaterial + " for tree species: " + species);
+        }
+    }
+
     private enum LegacyMaterialGroup {
         // Colorable
         STANDING_BANNER(Handling.COLORABLE), WALL_BANNER(Handling.COLORABLE), BANNER(Handling.COLORABLE),
@@ -1218,7 +1269,7 @@ public final class XBlock {
             /**
              * Instructs the handler to use {@link XMaterial#matchDefinedXMaterial(String, byte)}
              */
-            XMaterial,
+            XMATERIAL,
 
             COLORABLE,
             WOOD_SPECIES;
