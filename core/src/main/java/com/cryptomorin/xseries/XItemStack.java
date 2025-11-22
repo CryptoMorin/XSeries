@@ -489,28 +489,36 @@ public final class XItemStack {
             }
 
             if (SUPPORTS_CUSTOM_MODEL_DATA) {
-                if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA && meta.hasCustomModelDataComponent()) {
-                    CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
-                    List<String> strings = customModelData.getStrings();
-                    List<Float> floats = customModelData.getFloats();
-                    List<Boolean> flags = customModelData.getFlags();
-                    List<Color> colors = customModelData.getColors();
+                if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
+                    try {
+                        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+                        if (customModelData == null) return;
+                        List<String> strings = customModelData.getStrings();
+                        List<Float> floats = customModelData.getFloats();
+                        List<Boolean> flags = customModelData.getFlags();
+                        List<Color> colors = customModelData.getColors();
 
-                    int idCount = (int) Stream.of(strings, floats, flags, colors).filter(x -> !x.isEmpty()).count();
-                    if (idCount == 0) return;
-                    if (idCount == 1) {
-                        if (!strings.isEmpty()) config.set("custom-model-data", singleOrList(strings));
-                        if (!floats.isEmpty()) config.set("custom-model-data", singleOrList(floats));
-                        if (!flags.isEmpty()) config.set("custom-model-data", singleOrList(flags));
-                        if (!colors.isEmpty())
-                            config.set("custom-model-data", singleOrList(colors.stream().map(Serializer::colorString).collect(Collectors.toList())));
-                    } else {
-                        ConfigurationSection cfgCustomModelData = config.createSection("custom-model-data");
-                        if (!strings.isEmpty()) cfgCustomModelData.set("strings", strings);
-                        if (!floats.isEmpty()) cfgCustomModelData.set("floats", floats);
-                        if (!flags.isEmpty()) cfgCustomModelData.set("flags", flags);
-                        if (!colors.isEmpty())
-                            cfgCustomModelData.set("colors", colors.stream().map(Serializer::colorString).collect(Collectors.toList()));
+                        int idCount = (int) Stream.of(strings, floats, flags, colors).filter(x -> !x.isEmpty()).count();
+                        if (idCount == 0) return;
+                        if (idCount == 1) {
+                            if (!strings.isEmpty()) config.set("custom-model-data", singleOrList(strings));
+                            if (!floats.isEmpty()) config.set("custom-model-data", singleOrList(floats));
+                            if (!flags.isEmpty()) config.set("custom-model-data", singleOrList(flags));
+                            if (!colors.isEmpty())
+                                config.set("custom-model-data", singleOrList(colors.stream().map(Serializer::colorString).collect(Collectors.toList())));
+                        } else {
+                            ConfigurationSection cfgCustomModelData = config.createSection("custom-model-data");
+                            if (!strings.isEmpty()) cfgCustomModelData.set("strings", strings);
+                            if (!floats.isEmpty()) cfgCustomModelData.set("floats", floats);
+                            if (!flags.isEmpty()) cfgCustomModelData.set("flags", flags);
+                            if (!colors.isEmpty())
+                                cfgCustomModelData.set("colors", colors.stream().map(Serializer::colorString).collect(Collectors.toList()));
+                        }
+                    } catch (Exception ignored) {
+                        // Fall back to old custom model data if advanced component fails
+                        if (meta.hasCustomModelData()) {
+                            config.set("custom-model-data", meta.getCustomModelData());
+                        }
                     }
                 } else if (meta.hasCustomModelData()) {
                     config.set("custom-model-data", meta.getCustomModelData());
@@ -900,58 +908,80 @@ public final class XItemStack {
             }
 
             if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
-                CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
-
-                ConfigurationSection detailed = config.getConfigurationSection("custom-model-data");
-                if (detailed != null) {
-                    customModelData.setStrings(parseRawOrList("string", "strings", detailed, x -> x));
-                    customModelData.setFlags(parseRawOrList("flag", "flags", detailed, Boolean::parseBoolean));
-                    customModelData.setFloats(parseRawOrList("float", "floats", detailed, Float::parseFloat));
-                    customModelData.setColors(parseRawOrList("color", "colors", detailed, x ->
-                            XItemStack.parseColor(x).orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x))));
-                } else {
-                    List<String> listed = config.getStringList("custom-model-data");
-                    if (!listed.isEmpty()) {
-                        String modelData = listed.get(0);
-                        if (modelData != null && !modelData.isEmpty()) {
-                            if (tryNumber(modelData, Float::parseFloat) != null) {
-                                customModelData.setFloats(listed.stream().map(Float::parseFloat).collect(Collectors.toList()));
-                            } else {
-                                Optional<Color> color = parseColor(modelData);
-                                if (color.isPresent()) {
-                                    customModelData.setColors(listed.stream()
-                                            .map(XItemStack::parseColor)
-                                            .map(x -> x.orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x)))
-                                            .collect(Collectors.toList())
-                                    );
-                                } else {
-                                    customModelData.setStrings(listed);
-                                }
+                try {
+                    CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+                    if (customModelData == null) {
+                        // Fall back to old custom model data if component is null
+                        if (SUPPORTS_CUSTOM_MODEL_DATA) {
+                            String modelData = config.getString("custom-model-data");
+                            if (modelData != null && !modelData.isEmpty()) {
+                                Integer intId = tryNumber(modelData, Integer::parseInt);
+                                if (intId != null) meta.setCustomModelData(intId);
                             }
                         }
+                        return;
+                    }
+
+                    ConfigurationSection detailed = config.getConfigurationSection("custom-model-data");
+                    if (detailed != null) {
+                        customModelData.setStrings(parseRawOrList("string", "strings", detailed, x -> x));
+                        customModelData.setFlags(parseRawOrList("flag", "flags", detailed, Boolean::parseBoolean));
+                        customModelData.setFloats(parseRawOrList("float", "floats", detailed, Float::parseFloat));
+                        customModelData.setColors(parseRawOrList("color", "colors", detailed, x ->
+                                XItemStack.parseColor(x).orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x))));
                     } else {
-                        String modelData = config.getString("custom-model-data");
-                        if (modelData != null && !modelData.isEmpty()) {
-                            // Not different from setCustomModelData(int)
-                            Float floatId = tryNumber(modelData, Float::parseFloat);
-                            if (floatId != null) {
-                                customModelData.setFloats(Collections.singletonList(floatId));
-                            } else {
-                                Optional<Color> color = parseColor(modelData);
-                                if (color.isPresent()) {
-                                    customModelData.setColors(Collections.singletonList(color.get()));
+                        List<String> listed = config.getStringList("custom-model-data");
+                        if (!listed.isEmpty()) {
+                            String modelData = listed.get(0);
+                            if (modelData != null && !modelData.isEmpty()) {
+                                if (tryNumber(modelData, Float::parseFloat) != null) {
+                                    customModelData.setFloats(listed.stream().map(Float::parseFloat).collect(Collectors.toList()));
                                 } else {
-                                    customModelData.setStrings(Collections.singletonList(modelData));
+                                    Optional<Color> color = parseColor(modelData);
+                                    if (color.isPresent()) {
+                                        customModelData.setColors(listed.stream()
+                                                .map(XItemStack::parseColor)
+                                                .map(x -> x.orElseThrow(() -> new IllegalArgumentException("Unknown color for custom model data: " + x)))
+                                                .collect(Collectors.toList())
+                                        );
+                                    } else {
+                                        customModelData.setStrings(listed);
+                                    }
+                                }
+                            }
+                        } else {
+                            String modelData = config.getString("custom-model-data");
+                            if (modelData != null && !modelData.isEmpty()) {
+                                // Not different from setCustomModelData(int)
+                                Float floatId = tryNumber(modelData, Float::parseFloat);
+                                if (floatId != null) {
+                                    customModelData.setFloats(Collections.singletonList(floatId));
+                                } else {
+                                    Optional<Color> color = parseColor(modelData);
+                                    if (color.isPresent()) {
+                                        customModelData.setColors(Collections.singletonList(color.get()));
+                                    } else {
+                                        customModelData.setStrings(Collections.singletonList(modelData));
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // Setting an empty component will save it and change the internal meta which affects isSimilar()
-                if (!customModelData.getColors().isEmpty() || !customModelData.getStrings().isEmpty() ||
-                        !customModelData.getFlags().isEmpty() || !customModelData.getFloats().isEmpty()) {
-                    meta.setCustomModelDataComponent(customModelData);
+                    // Setting an empty component will save it and change the internal meta which affects isSimilar()
+                    if (!customModelData.getColors().isEmpty() || !customModelData.getStrings().isEmpty() ||
+                            !customModelData.getFlags().isEmpty() || !customModelData.getFloats().isEmpty()) {
+                        meta.setCustomModelDataComponent(customModelData);
+                    }
+                } catch (Exception ignored) {
+                    // Fall back to old custom model data if advanced component fails
+                    if (SUPPORTS_CUSTOM_MODEL_DATA) {
+                        String modelData = config.getString("custom-model-data");
+                        if (modelData != null && !modelData.isEmpty()) {
+                            Integer intId = tryNumber(modelData, Integer::parseInt);
+                            if (intId != null) meta.setCustomModelData(intId);
+                        }
+                    }
                 }
             } else if (SUPPORTS_CUSTOM_MODEL_DATA) {
                 String modelData = config.getString("custom-model-data");
