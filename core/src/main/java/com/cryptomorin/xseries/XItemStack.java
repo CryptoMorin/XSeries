@@ -514,7 +514,7 @@ public final class XItemStack {
                             if (!colors.isEmpty())
                                 cfgCustomModelData.set("colors", colors.stream().map(Serializer::colorString).collect(Collectors.toList()));
                         }
-                    } catch (Exception ignored) {
+                    } catch (NoSuchMethodError | NullPointerException ignored) {
                         // Fall back to old custom model data if advanced component fails
                         if (meta.hasCustomModelData()) {
                             config.set("custom-model-data", meta.getCustomModelData());
@@ -973,8 +973,10 @@ public final class XItemStack {
                             !customModelData.getFlags().isEmpty() || !customModelData.getFloats().isEmpty()) {
                         meta.setCustomModelDataComponent(customModelData);
                     }
-                } catch (Exception ignored) {
+                } catch (NoSuchMethodError | NullPointerException ignored) {
                     // Fall back to old custom model data if advanced component fails
+                    // NoSuchMethodError: Method doesn't exist in this version
+                    // NullPointerException: Component returned null
                     if (SUPPORTS_CUSTOM_MODEL_DATA) {
                         String modelData = config.getString("custom-model-data");
                         if (modelData != null && !modelData.isEmpty()) {
