@@ -121,9 +121,9 @@ public final class XItemStack {
         }
 
         try {
-            Class.forName("org.bukkit.inventory.meta.components.CustomModelDataComponent");
+            ItemMeta.class.getDeclaredMethod("getCustomModelDataComponent");
             supportsAdvancedCustomModelData = true;
-        } catch (ClassNotFoundException ignored) {
+        } catch (NoSuchMethodException ignored) {
         }
 
         try {
@@ -489,7 +489,7 @@ public final class XItemStack {
             }
 
             if (SUPPORTS_CUSTOM_MODEL_DATA) {
-                if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA && meta.hasCustomModelDataComponent()) {
+                if (SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA) {
                     CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
                     List<String> strings = customModelData.getStrings();
                     List<Float> floats = customModelData.getFloats();
