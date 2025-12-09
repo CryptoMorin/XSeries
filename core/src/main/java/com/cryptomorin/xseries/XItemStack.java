@@ -482,9 +482,8 @@ public final class XItemStack {
         @SuppressWarnings("UnstableApiUsage")
         private void customModelData() {
             if (SUPPORTS_ITEM_MODEL) {
-                String itemModel = config.getString("item-model");
-                if (itemModel != null && !itemModel.isEmpty()) {
-                    meta.setItemModel(NamespacedKey.fromString(itemModel));
+                if (meta.hasItemModel()) {
+                    config.set("item-model", meta.getItemModel().toString());
                 }
             }
 
@@ -894,8 +893,9 @@ public final class XItemStack {
         @SuppressWarnings("UnstableApiUsage")
         private void customModelData() {
             if (SUPPORTS_ITEM_MODEL) {
-                if (meta.hasItemModel()) {
-                    config.set("item-model", meta.getItemModel().toString());
+                String itemModel = config.getString("item-model");
+                if (itemModel != null && !itemModel.isEmpty()) {
+                    meta.setItemModel(NamespacedKey.fromString(itemModel));
                 }
             }
 
