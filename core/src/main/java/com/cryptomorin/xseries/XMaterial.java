@@ -1874,6 +1874,25 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     @XInfo(since = "1.21.9") WAXED_OXIDIZED_COPPER_GOLEM_STATUE,
     @XInfo(since = "1.21.9") COPPER_WALL_TORCH,
 
+
+    @XInfo(since = "1.21.11") NAUTILUS_SPAWN_EGG,
+    @XInfo(since = "1.21.11") CAMEL_HUSK_SPAWN_EGG,
+    @XInfo(since = "1.21.11") PARCHED_SPAWN_EGG,
+    @XInfo(since = "1.21.11") ZOMBIE_NAUTILUS_SPAWN_EGG,
+    @XInfo(since = "1.21.11") NETHERITE_HORSE_ARMOR,
+    @XInfo(since = "1.21.11") WOODEN_SPEAR,
+    @XInfo(since = "1.21.11") STONE_SPEAR,
+    @XInfo(since = "1.21.11") COPPER_SPEAR,
+    @XInfo(since = "1.21.11") IRON_SPEAR,
+    @XInfo(since = "1.21.11") GOLDEN_SPEAR,
+    @XInfo(since = "1.21.11") DIAMOND_SPEAR,
+    @XInfo(since = "1.21.11") NETHERITE_SPEAR,
+    @XInfo(since = "1.21.11") IRON_NAUTILUS_ARMOR,
+    @XInfo(since = "1.21.11") GOLDEN_NAUTILUS_ARMOR,
+    @XInfo(since = "1.21.11") DIAMOND_NAUTILUS_ARMOR,
+    @XInfo(since = "1.21.11") NETHERITE_NAUTILUS_ARMOR,
+    @XInfo(since = "1.21.11") COPPER_NAUTILUS_ARMOR,
+
     ;
 
 

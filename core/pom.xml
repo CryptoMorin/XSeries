@@ -59,6 +59,12 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>paper-util</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
 
         <!--        <dependency>-->
@@ -71,6 +77,12 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>${spigotVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-minimessage</artifactId>
+            <version>4.25.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -364,9 +364,9 @@ public final class XSeriesTests {
             assertPresent(INK_SAC);
 
             // noinspection OptionalGetWithoutIsPresent
-            Assertions.assertSame(BLACK_DYE.get(), XMaterial.BLACK_DYE);
+            Assertions.assertSame(XMaterial.BLACK_DYE, BLACK_DYE.get());
             // noinspection OptionalGetWithoutIsPresent
-            Assertions.assertSame(INK_SAC.get(), XMaterial.INK_SAC);
+            Assertions.assertSame(XMaterial.INK_SAC, INK_SAC.get());
 
             assertMaterial(XMaterial.INK_SAC, inkSack);
         } else {
@@ -429,7 +429,9 @@ public final class XSeriesTests {
                                 + dual.serialized + "\n\nDeserialized: " + dual.deserialized + '\n');
 
                 ConfigurationSection serializeRedeserialized = serializeConfig.getConfigurationSection(entry.getKey());
-                ItemStack redeserializedItem = XItemStack.deserialize(serializeRedeserialized);
+                ItemStack redeserializedItem = new XItemStack.Deserializer()
+                        .withConfig(serializeRedeserialized)
+                        .read();
 
                 assertTrue(dual.serialized.isSimilar(redeserializedItem),
                         () -> "Items for re-deserialized '" + entry.getKey() + "' are not similar:"
@@ -446,7 +448,9 @@ public final class XSeriesTests {
 
         for (String section : yaml.getKeys(false)) {
             ConfigurationSection itemSection = yaml.getConfigurationSection(section);
-            ItemStack item = XItemStack.deserialize(itemSection);
+            ItemStack item = new XItemStack.Deserializer()
+                    .withConfig(itemSection)
+                    .read();
 
             map.compute(section, (k, v) -> {
                 if (v == null) v = new ItemSerialDual();
@@ -537,7 +541,10 @@ public final class XSeriesTests {
             String sectionName = item.getKey();
             ConfigurationSection section = yaml.createSection(sectionName);
 
-            XItemStack.serialize(item.getValue(), section);
+            new XItemStack.Serializer()
+                    .withItem(item.getValue())
+                    .withConfig(section)
+                    .write();
             map.compute(sectionName, (k, v) -> {
                 if (v == null) v = new ItemSerialDual();
                 v.serialized = item.getValue();

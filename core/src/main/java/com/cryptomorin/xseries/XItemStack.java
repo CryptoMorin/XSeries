@@ -21,12 +21,14 @@
  */
 package com.cryptomorin.xseries;
 
+import com.cryptomorin.xseries.paper.AdventureAPIFactory;
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -51,7 +53,9 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.SpawnEgg;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.*;
 
@@ -244,15 +248,24 @@ public final class XItemStack {
     }
 
     private abstract static class SerialObject {
-        @NotNull protected final ItemStack item;
-        @NotNull protected final ConfigurationSection config;
-        @NotNull protected final Function<String, String> translator;
+        @Nullable protected ItemStack item;
+        @Nullable protected ConfigurationSection config;
+        @Nullable protected Function<String, String> translator = Function.identity();
         protected ItemMeta meta;
 
-        private SerialObject(ItemStack item, @NotNull ConfigurationSection config, @NotNull Function<String, String> translator) {
-            this.item = Objects.requireNonNull(item, "Cannot operate on null ItemStack, considering using an AIR ItemStack instead");
-            this.config = Objects.requireNonNull(config, "Cannot deserialize item to a null configuration section.");
-            this.translator = Objects.requireNonNull(translator, "Translator function cannot be null");
+        public SerialObject withItem(ItemStack item) {
+            this.item = item;
+            return this;
+        }
+
+        public SerialObject withConfig(ConfigurationSection config) {
+            this.config = config;
+            return this;
+        }
+
+        public SerialObject withTranslator(Function<String, String> translator) {
+            this.translator = translator;
+            return this;
         }
     }
 
@@ -285,7 +298,9 @@ public final class XItemStack {
     /**
      * @see #serialize(ItemStack, ConfigurationSection, Function)
      * @since 1.0.0
+     * @deprecated Use {@link Serializer} instead.
      */
+    @Deprecated
     public static void serialize(@NotNull ItemStack item, @NotNull ConfigurationSection config) {
         serialize(item, config, Function.identity());
     }
@@ -298,10 +313,17 @@ public final class XItemStack {
      * @param config     the config section to write this item to.
      * @param translator the function applied to item name and each lore lines.
      * @since 7.4.0
+     * @deprecated Use {@link Serializer} instead.
      */
-    public static void serialize(@NotNull ItemStack item, @NotNull ConfigurationSection config,
+    @Deprecated
+    public static void serialize(@NotNull ItemStack item,
+                                 @NotNull ConfigurationSection config,
                                  @NotNull Function<String, String> translator) {
-        new Serializer(item, config, translator).handle();
+        new Serializer()
+                .withItem(item)
+                .withConfig(config)
+                .withTranslator(translator)
+                .write();
     }
 
     /**
@@ -309,7 +331,9 @@ public final class XItemStack {
      *
      * @param item the ItemStack to serialize.
      * @return a Map containing the serialized ItemStack properties.
+     * @deprecated Use {@link Serializer} instead.
      */
+    @Deprecated
     public static Map<String, Object> serialize(@NotNull ItemStack item) {
         Objects.requireNonNull(item, "Cannot serialize a null item");
         ConfigurationSection config = new MemoryConfiguration();
@@ -323,8 +347,10 @@ public final class XItemStack {
      * @param config the config section to deserialize the ItemStack object from.
      * @return a deserialized ItemStack.
      * @since 1.0.0
+     * @deprecated Use {@link Deserializer} instead.
      */
     @NotNull
+    @Deprecated
     public static ItemStack deserialize(@NotNull ConfigurationSection config) {
         return edit(DEFAULT_MATERIAL.parseItem(), config, Function.identity(), null);
     }
@@ -335,14 +361,20 @@ public final class XItemStack {
      * @param serializedItem the map holding the item configurations to deserialize
      *                       the ItemStack object from.
      * @return a deserialized ItemStack.
+     * @deprecated Use {@link Deserializer} instead.
      */
     @NotNull
+    @Deprecated
     public static ItemStack deserialize(@NotNull Map<String, Object> serializedItem) {
         Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
         return deserialize(mapToConfigSection(serializedItem));
     }
 
+    /**
+     * @deprecated Use {@link Deserializer} instead.
+     */
     @NotNull
+    @Deprecated
     public static ItemStack deserialize(@NotNull ConfigurationSection config,
                                         @NotNull Function<String, String> translator) {
         return deserialize(config, translator, null);
@@ -354,8 +386,10 @@ public final class XItemStack {
      * @param config the config section to deserialize the ItemStack object from.
      * @return an edited ItemStack.
      * @since 7.2.0
+     * @deprecated Use {@link Deserializer} instead.
      */
     @NotNull
+    @Deprecated
     public static ItemStack deserialize(@NotNull ConfigurationSection config,
                                         @NotNull Function<String, String> translator,
                                         @Nullable Consumer<Exception> restart) {
@@ -370,8 +404,10 @@ public final class XItemStack {
      *                       the ItemStack object from.
      * @param translator     the translator to use for translating the item's name.
      * @return a deserialized ItemStack.
+     * @deprecated Use {@link Deserializer} instead.
      */
     @NotNull
+    @Deprecated
     public static ItemStack deserialize(@NotNull Map<String, Object> serializedItem, @NotNull Function<String, String> translator) {
         Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
         Objects.requireNonNull(translator, "translator cannot be null.");
@@ -443,14 +479,50 @@ public final class XItemStack {
         return list;
     }
 
-    private static final class Serializer extends SerialObject {
-        private Serializer(ItemStack item,
-                           @NotNull ConfigurationSection config,
-                           @NotNull Function<String, String> translator) {
-            super(item, config, translator);
+    public static final class Serializer extends SerialObject {
+        private Function<List<? extends Component>, List<String>> miniMessageHandler;
+
+        public Serializer withItem(ItemStack item) {
+            Objects.requireNonNull(item, "Cannot serialize null item");
+            super.withItem(item);
+            return this;
         }
 
-        public void handle() {
+        public Serializer withConfig(ConfigurationSection config) {
+            super.withConfig(config);
+            return this;
+        }
+
+        public Serializer withTranslator(Function<String, String> translator) {
+            super.withTranslator(translator);
+            return this;
+        }
+
+        @ApiStatus.Experimental
+        public Serializer withMiniMessage(Function<List<? extends Component>, List<String>> miniMessageHandler) {
+            this.miniMessageHandler = miniMessageHandler;
+            return this;
+        }
+
+        @NotNull
+        public Map<String, Object> writeToMap() {
+            if (config == null) config = new MemoryConfiguration();
+            write();
+            return configSectionToMap(config);
+        }
+
+        public Serializer copy() {
+            return new Serializer()
+                    .withItem(item)
+                    .withConfig(config)
+                    .withTranslator(translator)
+                    .withMiniMessage(miniMessageHandler);
+        }
+
+        public void write() {
+            Objects.requireNonNull(item, "Item not set");
+            Objects.requireNonNull(config, "Config not set");
+
             config.set("material", XMaterial.matchXMaterial(item).name());
             if (item.getAmount() > 1) config.set("amount", item.getAmount());
 
@@ -462,9 +534,20 @@ public final class XItemStack {
             handleDurability(meta);
 
             // Display Name & Lore
-            if (meta.hasDisplayName()) config.set("name", translator.apply(meta.getDisplayName()));
-            if (meta.hasLore())
-                config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
+            if (meta.hasDisplayName()) {
+                if (miniMessageHandler != null) {
+                    config.set("name", AdventureAPIFactory.displayName(meta, miniMessageHandler));
+                } else {
+                    config.set("name", translator.apply(meta.getDisplayName()));
+                }
+            }
+            if (meta.hasLore()) {
+                if (miniMessageHandler != null) {
+                    config.set("lore", AdventureAPIFactory.lore(meta, miniMessageHandler));
+                } else {
+                    config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
+                }
+            }
 
             customModelData();
             if (SUPPORTS_UNBREAKABLE) {
@@ -479,7 +562,7 @@ public final class XItemStack {
             recursiveMetaHandle(this, meta.getClass(), meta, SERIALIZE_META_HANDLERS, null);
         }
 
-        @SuppressWarnings("UnstableApiUsage")
+        @SuppressWarnings({"UnstableApiUsage", "deprecation"})
         private void customModelData() {
             if (SUPPORTS_ITEM_MODEL) {
                 if (meta.hasItemModel()) {
@@ -557,7 +640,10 @@ public final class XItemStack {
         private void handleCrossbowMeta(CrossbowMeta crossbow) {
             int i = 0;
             for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
-                serialize(projectiles, config.getConfigurationSection("projectiles." + i), translator);
+                this.copy()
+                        .withItem(projectiles)
+                        .withConfig(config.getConfigurationSection("projectiles." + i))
+                        .write();
                 i++;
             }
         }
@@ -666,27 +752,42 @@ public final class XItemStack {
             return color.getRed() + ", " + color.getGreen() + ", " + color.getBlue();
         }
 
+        private static final boolean SUPPORTS_PotionMeta_getBasePotionType =
+                XReflection.of(PotionMeta.class)
+                        .method("public org.bukkit.potion.PotionType getBasePotionType()")
+                        .exists();
+        private static final boolean SUPPORTS_PotionEffectType_getKey =
+                XReflection.of(PotionEffectType.class)
+                        .method("public org.bukkit.NamespacedKey getKey()")
+                        .exists();
+
         @SuppressWarnings({"deprecation", "StatementWithEmptyBody"})
         private void handlePotionMeta(PotionMeta meta) {
             if (supports(9)) {
-                List<PotionEffect> customEffects = meta.getCustomEffects();
-                List<String> effects = new ArrayList<>(customEffects.size());
-                for (PotionEffect effect : customEffects) {
-                    effects.add(effect.getType().getName() + ", " + effect.getDuration() + ", " + effect.getAmplifier());
+                if (SUPPORTS_PotionMeta_getBasePotionType) {
+                    PotionType basePotionType = meta.getBasePotionType();
+                    config.set("base-type", basePotionType.name());
+                } else {
+                    @SuppressWarnings("removal")
+                    PotionData potionData = meta.getBasePotionData();
+                    // noinspection removal
+                    config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
                 }
 
-                if (!effects.isEmpty()) config.set("effects", effects);
-                PotionType basePotionType = meta.getBasePotionType();
-                // PotionData potionData = potion.getBasePotionData();
-                // config.set("base-effect", potionData.getType().name() + ", " + potionData.isExtended() + ", " + potionData.isUpgraded());
+                List<PotionEffect> customEffects = meta.getCustomEffects();
+                if (!customEffects.isEmpty()) {
+                    config.set("effects", customEffects.stream().map(x -> {
+                        String typeStr;
+                        if (SUPPORTS_PotionEffectType_getKey) {
+                            NamespacedKey type = x.getType().getKey();
+                            typeStr = type.getNamespace() + ':' + type.getKey();
+                        } else {
+                            typeStr = x.getType().getName();
+                        }
 
-                config.set("base-type", basePotionType.name());
-
-                config.set("effects", meta.getCustomEffects().stream().map(x -> {
-                    NamespacedKey type = x.getType().getKey();
-                    String typeStr = type.getNamespace() + ':' + type.getKey();
-                    return typeStr + ", " + x.getDuration() + ", " + x.getAmplifier();
-                }).collect(Collectors.toList()));
+                        return typeStr + ", " + x.getDuration() + ", " + x.getAmplifier();
+                    }).collect(Collectors.toList()));
+                }
 
                 if (SUPPORTS_POTION_COLOR && meta.hasColor()) config.set("color", meta.getColor().asRGB());
             } else {
@@ -732,7 +833,12 @@ public final class XItemStack {
                 ConfigurationSection shulker = config.createSection("contents");
                 int i = 0;
                 for (ItemStack itemInBox : box.getInventory().getContents()) {
-                    if (itemInBox != null) serialize(itemInBox, shulker.createSection(Integer.toString(i)), translator);
+                    if (itemInBox != null) {
+                        this.copy()
+                                .withItem(itemInBox)
+                                .withConfig(shulker.createSection(Integer.toString(i)))
+                                .write();
+                    }
                     i++;
                 }
             } else if (state instanceof CreatureSpawner) {
@@ -789,18 +895,62 @@ public final class XItemStack {
         }
     }
 
-    private static final class Deserializer extends SerialObject {
-        @Nullable private final Consumer<Exception> restart;
+    public static final class Deserializer extends SerialObject {
+        private Consumer<Exception> restart;
+        private Function<List<String>, List<? extends Component>> miniMessageHandler;
 
-        private Deserializer(ItemStack item,
-                             @NotNull ConfigurationSection config,
-                             @NotNull Function<String, String> translator,
-                             @Nullable Consumer<Exception> restart) {
-            super(item, config, translator);
-            this.restart = restart;
+        public Deserializer() {
+            this.item = DEFAULT_MATERIAL.parseItem();
         }
 
-        public ItemStack parse() {
+        /**
+         * If an item is set, it'll modify this item instead of making a new one from the config.
+         */
+        public Deserializer withItem(ItemStack item) {
+            if (item == null) item = DEFAULT_MATERIAL.parseItem();
+            super.withItem(item);
+            return this;
+        }
+
+        public Deserializer withConfig(ConfigurationSection config) {
+            super.withConfig(config);
+            return this;
+        }
+
+        public Deserializer withTranslator(Function<String, String> translator) {
+            super.withTranslator(translator);
+            return this;
+        }
+
+        public Deserializer withRestart(Consumer<Exception> restart) {
+            this.restart = restart;
+            return this;
+        }
+
+        @ApiStatus.Experimental
+        public Deserializer withMiniMessage(Function<List<String>, List<? extends Component>> miniMessageHandler) {
+            this.miniMessageHandler = miniMessageHandler;
+            return this;
+        }
+
+        public Deserializer copy() {
+            return new Deserializer()
+                    .withItem(item)
+                    .withConfig(config)
+                    .withTranslator(translator)
+                    .withRestart(restart)
+                    .withMiniMessage(miniMessageHandler);
+        }
+
+        @NotNull
+        public Deserializer fromMap(Map<String, Object> serializedItem) {
+            Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+            return withConfig(mapToConfigSection(serializedItem));
+        }
+
+        public ItemStack read() {
+            Objects.requireNonNull(config, "Config not set");
+
             handleMaterial();
             handleDamage();
             getOrCreateMeta();
@@ -890,7 +1040,7 @@ public final class XItemStack {
                 meta.setUnbreakable(config.getBoolean("unbreakable"));
         }
 
-        @SuppressWarnings("UnstableApiUsage")
+        @SuppressWarnings({"UnstableApiUsage", "deprecation"})
         private void customModelData() {
             if (SUPPORTS_ITEM_MODEL) {
                 String itemModel = config.getString("item-model");
@@ -962,13 +1112,21 @@ public final class XItemStack {
             }
         }
 
+        @SuppressWarnings("ConstantValue")
         private void displayName() {
             String name = config.getString("name");
+
             if (!Strings.isNullOrEmpty(name)) {
+                if (miniMessageHandler != null) {
+                    AdventureAPIFactory.setDisplayName(meta, miniMessageHandler.apply(Collections.singletonList(name)).get(0));
+                    return;
+                }
+
                 String translated = translator.apply(name);
                 meta.setDisplayName(translated);
-            } else if (name != null && name.isEmpty())
+            } else if (name != null && name.isEmpty()) {
                 meta.setDisplayName(" "); // For GUI easy access configuration purposes
+            }
         }
 
         private void itemFlags() {
@@ -1027,6 +1185,11 @@ public final class XItemStack {
             List<String> translatedLore;
             List<String> lores = config.getStringList("lore");
             if (!lores.isEmpty()) {
+                if (miniMessageHandler != null) {
+                    AdventureAPIFactory.setLore(meta, miniMessageHandler.apply(lores));
+                    return;
+                }
+
                 translatedLore = new ArrayList<>(lores.size());
 
                 for (String lore : lores) {
@@ -1048,6 +1211,11 @@ public final class XItemStack {
                 translatedLore = new ArrayList<>(10);
 
                 if (!Strings.isNullOrEmpty(lore)) {
+                    if (miniMessageHandler != null) {
+                        AdventureAPIFactory.setLore(meta, miniMessageHandler.apply(Collections.singletonList(lore)));
+                        return;
+                    }
+
                     for (String singleLore : splitNewLine(lore)) {
                         if (SPACE_EMPTY_LORE_LINES && singleLore.isEmpty()) {
                             translatedLore.add(" ");
@@ -1084,7 +1252,10 @@ public final class XItemStack {
             ConfigurationSection projectiles = config.getConfigurationSection("projectiles");
             if (projectiles != null) {
                 for (String projectile : projectiles.getKeys(false)) {
-                    ItemStack projectileItem = deserialize(config.getConfigurationSection("projectiles." + projectile));
+                    ItemStack projectileItem = this.copy()
+                            .withItem(null)
+                            .withConfig(config.getConfigurationSection("projectiles." + projectile))
+                            .read();
                     crossbow.addChargedProjectile(projectileItem);
                 }
             }
@@ -1238,7 +1409,10 @@ public final class XItemStack {
                 if (shulkerSection != null) {
                     ShulkerBox box = (ShulkerBox) state;
                     for (String key : shulkerSection.getKeys(false)) {
-                        ItemStack boxItem = deserialize(shulkerSection.getConfigurationSection(key));
+                        ItemStack boxItem = this.copy()
+                                .withItem(null)
+                                .withConfig(shulkerSection.getConfigurationSection(key))
+                                .read();
                         int slot = toInt(key, 0);
                         box.getInventory().setItem(slot, boxItem);
                     }
@@ -1268,6 +1442,15 @@ public final class XItemStack {
             }
         }
 
+        private static final boolean SUPPORTS_PotionMeta_setBasePotionType =
+                XReflection.of(PotionMeta.class)
+                        .method("public void setBasePotionType(org.bukkit.potion.PotionType potionType)")
+                        .exists();
+        private static final boolean SUPPORTS_PotionEffectType_getKey =
+                XReflection.of(PotionEffectType.class)
+                        .method("public org.bukkit.NamespacedKey getKey()")
+                        .exists();
+
         @SuppressWarnings("StatementWithEmptyBody")
         private void handlePotionMeta(ItemMeta meta) {
             if (supports(9)) {
@@ -1280,14 +1463,66 @@ public final class XItemStack {
 
                 String baseType = config.getString("base-type");
                 if (!Strings.isNullOrEmpty(baseType)) {
-                    PotionType potionType;
-                    try {
-                        potionType = PotionType.valueOf(baseType);
-                    } catch (IllegalArgumentException ex) {
-                        potionType = PotionType.HEALING;
-                    }
+                    boolean isNewType = !baseType.contains(",");
 
-                    potion.setBasePotionType(potionType);
+                    if (SUPPORTS_PotionMeta_setBasePotionType) {
+                        if (isNewType) {
+                            PotionType potionType;
+                            try {
+                                potionType = PotionType.valueOf(baseType);
+                            } catch (IllegalArgumentException ex) {
+                                potionType = PotionType.AWKWARD;
+                            }
+
+                            potion.setBasePotionType(potionType);
+                        } else {
+                            // Format: Type, Extended, Upgraded
+                            String[] components = baseType.split(",");
+
+                            XPotion effect = XPotion.of(components[0]).orElse(XPotion.HEALTH_BOOST);
+                            boolean extended = Boolean.parseBoolean(components[1]);
+                            boolean upgraded = Boolean.parseBoolean(components[2]);
+
+                            String potionTypeStr = effect.getPotionType().name();
+                            if (extended) potionTypeStr = "STRONG_" + potionTypeStr;
+                            else if (upgraded) potionTypeStr = "LONG_" + potionTypeStr;
+
+                            PotionType potionType;
+                            try {
+                                potionType = PotionType.valueOf(potionTypeStr);
+                            } catch (IllegalArgumentException ex) {
+                                potionType = PotionType.AWKWARD;
+                            }
+
+                            potion.setBasePotionType(potionType);
+                        }
+                    } else {
+                        boolean extended = false;
+                        boolean upgraded = false;
+                        PotionType effect;
+
+                        if (isNewType) {
+                            if (baseType.startsWith("STRONG_")) {
+                                extended = true;
+                                baseType = baseType.substring(7);
+                            } else if (baseType.startsWith("LONG_")) {
+                                upgraded = true;
+                                baseType = baseType.substring(5);
+                            }
+
+                            effect = XPotion.of(baseType).orElse(XPotion.HEALTH_BOOST).getPotionType();
+                        } else {
+                            // Format: Type, Extended, Upgraded
+                            String[] components = baseType.split(",");
+
+                            effect = XPotion.of(components[0]).orElse(XPotion.HEALTH_BOOST).getPotionType();
+                            extended = Boolean.parseBoolean(components[1]);
+                            upgraded = Boolean.parseBoolean(components[2]);
+                        }
+
+                        // noinspection removal,deprecation
+                        potion.setBasePotionData(new PotionData(effect, extended, upgraded));
+                    }
                 }
 
                 if (SUPPORTS_POTION_COLOR && config.contains("color")) {
@@ -1423,13 +1658,20 @@ public final class XItemStack {
      * @param restart    the function called when an error occurs while deserializing one of the properties.
      * @return an edited ItemStack.
      * @since 1.0.0
+     * @deprecated Use {@link Deserializer} instead.
      */
     @NotNull
+    @Deprecated
     public static ItemStack edit(@NotNull ItemStack item,
                                  @NotNull final ConfigurationSection config,
                                  @NotNull final Function<String, String> translator,
                                  @Nullable final Consumer<Exception> restart) {
-        return new Deserializer(item, config, translator, restart).parse();
+        return new Deserializer()
+                .withItem(item)
+                .withConfig(config)
+                .withTranslator(translator)
+                .withRestart(restart)
+                .read();
     }
 
     /**

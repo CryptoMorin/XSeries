@@ -23,6 +23,7 @@ package com.cryptomorin.xseries;
 
 import com.cryptomorin.xseries.base.XBase;
 import com.cryptomorin.xseries.base.XRegistry;
+import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.google.common.base.Strings;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -117,7 +118,10 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
     WEAKNESS("WEAK"),
     WEAVING,
     WIND_CHARGED,
-    WITHER("DECAY");
+    WITHER("DECAY"),
+
+    @XInfo(since = "1.21.11") BREATH_OF_THE_NAUTILUS,
+    ;
 
     /**
      * Cached list of {@link XPotion#values()} to avoid allocating memory for

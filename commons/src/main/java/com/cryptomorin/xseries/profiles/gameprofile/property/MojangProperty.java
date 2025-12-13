@@ -24,8 +24,9 @@ package com.cryptomorin.xseries.profiles.gameprofile.property;
 
 import com.cryptomorin.xseries.AbstractReferencedClass;
 import com.mojang.authlib.properties.Property;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.NonNull;
+
+import javax.annotation.Nullable;
 
 public abstract class MojangProperty extends AbstractReferencedClass<Property> {
     protected final Property object;

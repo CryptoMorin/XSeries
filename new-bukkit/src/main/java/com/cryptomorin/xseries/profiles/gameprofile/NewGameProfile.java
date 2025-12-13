@@ -22,18 +22,13 @@
 
 package com.cryptomorin.xseries.profiles.gameprofile;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
+import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.Consumer;
 

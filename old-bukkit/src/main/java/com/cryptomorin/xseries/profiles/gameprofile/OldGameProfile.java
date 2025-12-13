@@ -22,9 +22,7 @@
 
 package com.cryptomorin.xseries.profiles.gameprofile;
 
-import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 
 import java.util.UUID;

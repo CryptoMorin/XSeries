@@ -143,6 +143,10 @@ public final class XEnchantment extends XModule<XEnchantment, Enchantment> {
     @XInfo(since = "1.11.1")
     public static final XEnchantment SWEEPING_EDGE = std("SWEEPING", "SWEEPING_EDGE", "SWEEP_EDGE");
 
+    @XInfo(since = "1.21.11")
+    public static final XEnchantment LUNGE = std("LUNGE");
+
+
     /**
      * Cached list of {@link XEnchantment#values()} to avoid allocating memory for
      *

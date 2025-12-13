@@ -24,12 +24,11 @@ package com.cryptomorin.xseries.profiles.gameprofile;
 
 import com.cryptomorin.xseries.AbstractReferencedClass;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.Consumer;
 

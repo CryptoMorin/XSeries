@@ -160,7 +160,7 @@ public final class ProfilesCore {
             Object services = null;
             if (usesServices) {
                 services = MinecraftServer.method("public Services services()")
-                        .map(MinecraftMapping.OBFUSCATED, "av")
+                        .map(MinecraftMapping.OBFUSCATED, v(21, 11, "ar").orElse("av"))
                         .reflect().invoke(minecraftServer);
 
                 minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.MinecraftSessionService sessionService()")

@@ -40,6 +40,7 @@
         <module>old-bukkit</module>
         <module>new-bukkit</module>
         <module>core</module>
+        <module>paper-util</module>
     </modules>
 
     <properties>
@@ -55,7 +56,7 @@
         <!-- Note: timestamped snapshots are used because a recent Maven Central policy update made it so that it's impossible to -->
         <!-- publish your artifact if it has SNAPSHOT depednencies without any prior notice. -->
         <!-- Error: Dependencies to SNAPSHOT versions not allowed for dependency: org.spigotmc:spigot -->
-        <spigotVersion>1.21.10-R0.1-20251007.210716-1</spigotVersion>
+        <spigotVersion>1.21.11-R0.1-20251210.073034-1</spigotVersion>
         <jopt>5.0.4</jopt>
         <testVer/>
         <testJavaPath/>

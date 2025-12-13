@@ -7,7 +7,6 @@ import com.mojang.authlib.properties.PropertyMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Map;
 import java.util.Objects;
 
 public class XProperty {

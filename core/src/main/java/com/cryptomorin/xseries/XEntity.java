@@ -96,13 +96,16 @@ public final class XEntity {
 
         try {
             delayedSpawn1_17 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, boolean.class, org.bukkit.util.Consumer.class));
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+        }
         try {
             delayedSpawn1_16_5 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, CreatureSpawnEvent.SpawnReason.class, org.bukkit.util.Consumer.class));
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+        }
         try {
             delayedSpawn1_11 = lookup.unreflect(World.class.getMethod("spawn", Location.class, Class.class, org.bukkit.util.Consumer.class));
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+        }
 
         SUPPORTS_DELAYED_SPAWN = supportsDelayedSpawn;
         DELAYED_SPAWN_1_17 = delayedSpawn1_17;
@@ -369,6 +372,12 @@ public final class XEntity {
         };
     }
 
+    private static ItemStack deserialize(ConfigurationSection config) {
+        return new XItemStack.Deserializer()
+                .withConfig(config)
+                .read();
+    }
+
     private static void map(Class<?> target, Entity entity, ConfigurationSection config) {
         if (target == Entity.class) return;
 
@@ -471,7 +480,7 @@ public final class XEntity {
 
                 ConfigurationSection helmet = equip.getConfigurationSection("helmet");
                 if (helmet != null) {
-                    equipment.setHelmet(XItemStack.deserialize(helmet.getConfigurationSection("item")));
+                    equipment.setHelmet(deserialize(helmet.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setHelmetDropChance(helmet.getInt("drop-chance"));
                     }
@@ -479,7 +488,7 @@ public final class XEntity {
 
                 ConfigurationSection chestplate = equip.getConfigurationSection("chestplate");
                 if (chestplate != null) {
-                    equipment.setChestplate(XItemStack.deserialize(chestplate.getConfigurationSection("item")));
+                    equipment.setChestplate(deserialize(chestplate.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setChestplateDropChance(chestplate.getInt("drop-chance"));
                     }
@@ -487,7 +496,7 @@ public final class XEntity {
 
                 ConfigurationSection leggings = equip.getConfigurationSection("leggings");
                 if (leggings != null) {
-                    equipment.setLeggings(XItemStack.deserialize(leggings.getConfigurationSection("item")));
+                    equipment.setLeggings(deserialize(leggings.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setLeggingsDropChance(leggings.getInt("drop-chance"));
                     }
@@ -495,7 +504,7 @@ public final class XEntity {
 
                 ConfigurationSection boots = equip.getConfigurationSection("boots");
                 if (boots != null) {
-                    equipment.setBoots(XItemStack.deserialize(boots.getConfigurationSection("item")));
+                    equipment.setBoots(deserialize(boots.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setBootsDropChance(boots.getInt("drop-chance"));
                     }
@@ -503,7 +512,7 @@ public final class XEntity {
 
                 ConfigurationSection mainHand = equip.getConfigurationSection("main-hand");
                 if (mainHand != null) {
-                    equipment.setItemInMainHand(XItemStack.deserialize(mainHand.getConfigurationSection("item")));
+                    equipment.setItemInMainHand(deserialize(mainHand.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setItemInMainHandDropChance(mainHand.getInt("drop-chance"));
                     }
@@ -511,7 +520,7 @@ public final class XEntity {
 
                 ConfigurationSection offHand = equip.getConfigurationSection("off-hand");
                 if (offHand != null) {
-                    equipment.setItemInOffHand(XItemStack.deserialize(offHand.getConfigurationSection("item")));
+                    equipment.setItemInOffHand(deserialize(offHand.getConfigurationSection("item")));
                     if (isMob) {
                         equipment.setItemInOffHandDropChance(offHand.getInt("drop-chance"));
                     }
@@ -565,7 +574,7 @@ public final class XEntity {
                         ConfigurationSection itemSec = items.getConfigurationSection(key);
                         int slot = itemSec.getInt("slot", -1);
                         if (slot != -1) {
-                            ItemStack item = XItemStack.deserialize(itemSec);
+                            ItemStack item = deserialize(itemSec);
                             if (item != null) inventory.setItem(slot, item);
                         }
                     }

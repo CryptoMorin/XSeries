@@ -163,7 +163,7 @@ public final class NMSExtras {
             getDataWatcher = XReflection.of(nmsEntity)
                     .method().returns(DataWatcherClass)
                     .map(MinecraftMapping.MOJANG, "getEntityData")
-                    .map(MinecraftMapping.OBFUSCATED, v(21, 9, "aC").v(21, 6, "au")
+                    .map(MinecraftMapping.OBFUSCATED, v(21, 11, "aD").v(21, 9, "aC").v(21, 6, "au")
                             .v(21, 5, "ar")
                             .v(21, 3, "au")
                             .v(21, "ar")

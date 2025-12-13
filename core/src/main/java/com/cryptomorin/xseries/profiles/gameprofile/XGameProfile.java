@@ -3,10 +3,8 @@ package com.cryptomorin.xseries.profiles.gameprofile;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class XGameProfile {

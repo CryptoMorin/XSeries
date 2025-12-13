@@ -45,6 +45,7 @@ mvn clean test -Ptester,latest -pl core -am
 ```
 
 If you want to test older versions, you could for example use:
+
 ```maven
 mvn clean exec:exec@compile exec:exec@test -DtestVer=21 --projects core -am
 ```

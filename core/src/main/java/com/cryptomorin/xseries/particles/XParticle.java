@@ -28,6 +28,9 @@ import com.cryptomorin.xseries.base.annotations.XChange;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import com.cryptomorin.xseries.base.annotations.XMerge;
 import org.bukkit.Particle;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -82,7 +85,10 @@ public enum XParticle implements XBase<XParticle, Particle> {
     CURRENT_DOWN,
     DAMAGE_INDICATOR,
     DOLPHIN,
-    DRAGON_BREATH,
+    /**
+     * Data controls the spread and speed of particles.
+     */
+    DRAGON_BREATH(ParticleDisplay.ConstantParticleData.class),
     DRIPPING_DRIPSTONE_LAVA,
     DRIPPING_DRIPSTONE_WATER,
     DRIPPING_HONEY,
@@ -294,13 +300,25 @@ public enum XParticle implements XBase<XParticle, Particle> {
     public static final XRegistry<XParticle, Particle> REGISTRY = Data.REGISTRY;
 
     private final Particle particle;
+    private final Class<? extends ParticleDisplay.ParticleData> dataType;
+
+    XParticle(@Nullable Class<? extends ParticleDisplay.ParticleData> dataType, @NotNull String... names) {
+        this.particle = Data.REGISTRY.stdEnum(this, names);
+        this.dataType = dataType;
+    }
 
     XParticle(String... names) {
-        this.particle = Data.REGISTRY.stdEnum(this, names);
+        this(null, names);
     }
 
     static {
         REGISTRY.discardMetadata();
+    }
+
+    @Nullable
+    @ApiStatus.Experimental
+    public Class<? extends ParticleDisplay.ParticleData> getDataType() {
+        return dataType;
     }
 
     @Override

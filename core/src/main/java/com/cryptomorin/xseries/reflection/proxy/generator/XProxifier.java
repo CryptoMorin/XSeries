@@ -65,7 +65,7 @@ public final class XProxifier {
     private final String proxifiedClassName;
     private final Class<?> clazz;
 
-    //// Settings //// TODO implement this
+    /// / Settings //// TODO implement this
     private final boolean generateIntelliJAnnotations = true;
     private final boolean generateInaccessibleMembers = true;
     private final boolean copyAnnotations = true;

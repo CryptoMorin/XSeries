@@ -837,6 +837,10 @@ public class ParticleDisplay {
         return this;
     }
 
+    public ParticleDisplay withRawData(Object data) {
+        return withData(new ConstantParticleData(data));
+    }
+
     @Override
     public String toString() {
         return "ParticleDisplay:[" +
@@ -2045,6 +2049,26 @@ public class ParticleDisplay {
         @Override
         public void serialize(ConfigurationSection section) {
             section.set("itemstack", item.getType());
+        }
+    }
+
+    public static final class ConstantParticleData implements ParticleData {
+        private final Object data;
+
+        /**
+         * @see ParticleDisplay#withRawData(Object)
+         */
+        private ConstantParticleData(Object data) {this.data = data;}
+
+        @Override
+        public Object data(ParticleDisplay display) {
+            return data;
+        }
+
+        @Override
+        public void serialize(ConfigurationSection section) {
+            // Currently with no proper deserialization.
+            section.set("data", data);
         }
     }
 }

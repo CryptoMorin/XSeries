@@ -26,7 +26,6 @@ import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.ProfilesCore;
 import com.cryptomorin.xseries.profiles.exceptions.InvalidProfileContainerException;
 import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
-import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;

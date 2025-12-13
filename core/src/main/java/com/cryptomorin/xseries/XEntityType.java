@@ -208,6 +208,11 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     @XInfo(since = "1.21.9") COPPER_GOLEM,
     @XInfo(since = "1.21.9") MANNEQUIN,
 
+    @XInfo(since = "1.21.11") CAMEL_HUSK,
+    @XInfo(since = "1.21.11") NAUTILUS,
+    @XInfo(since = "1.21.11") PARCHED,
+    @XInfo(since = "1.21.11") ZOMBIE_NAUTILUS,
+
     ;
 
     public static final XRegistry<XEntityType, EntityType> REGISTRY = Data.REGISTRY;

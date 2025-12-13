@@ -354,7 +354,12 @@ public final class XBlock {
                 }
             case BRICK:
                 return XMaterial.BRICKS;
+            case WOOD_STEP:
+                data = (byte)(data & 0x7);
+                break;
             case STEP:
+                // boolean isUpper = (rawData & 0x8) == 0x8;  // Bit 3: orientation
+                data = (byte)(data & 0x7);
                 if (data == 2) return XMaterial.OAK_SLAB; // Treated as stone-type in 1.12
                 break; // Others can be handled by XMaterial
             case DOUBLE_STEP:
@@ -367,7 +372,7 @@ public final class XBlock {
                     case 5: return XMaterial.STONE_BRICKS;
                     case 6: return XMaterial.NETHER_BRICKS;
                     case 7: return XMaterial.QUARTZ_BLOCK;
-                    default: throw new AssertionError("Unknown STEP type: " + data);
+                    default: throw new AssertionError("Unknown DOUBLE_STEP type: " + data);
                 }
             case WOOD_DOUBLE_STEP:
                 switch (data) {
