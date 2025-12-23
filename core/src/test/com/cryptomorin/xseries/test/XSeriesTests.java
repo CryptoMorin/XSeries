@@ -429,7 +429,7 @@ public final class XSeriesTests {
                                 + dual.serialized + "\n\nDeserialized: " + dual.deserialized + '\n');
 
                 ConfigurationSection serializeRedeserialized = serializeConfig.getConfigurationSection(entry.getKey());
-                ItemStack redeserializedItem = new XItemStack.Deserializer()
+                ItemStack redeserializedItem = XItemStack.deserializer()
                         .withConfig(serializeRedeserialized)
                         .read();
 
@@ -448,7 +448,7 @@ public final class XSeriesTests {
 
         for (String section : yaml.getKeys(false)) {
             ConfigurationSection itemSection = yaml.getConfigurationSection(section);
-            ItemStack item = new XItemStack.Deserializer()
+            ItemStack item = XItemStack.deserializer()
                     .withConfig(itemSection)
                     .read();
 
@@ -541,7 +541,7 @@ public final class XSeriesTests {
             String sectionName = item.getKey();
             ConfigurationSection section = yaml.createSection(sectionName);
 
-            new XItemStack.Serializer()
+            XItemStack.serializer()
                     .withItem(item.getValue())
                     .withConfig(section)
                     .write();

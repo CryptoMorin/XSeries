@@ -60,10 +60,7 @@ import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,7 +71,13 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * Using ConfigurationSection Example:
  * <pre>{@code
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
- *     ItemStack item = XItemStack.deserialize(section);
+ *     ItemStack item = XItemStack.deserializer().withConfig(section).read();
+ * }</pre>
+ * Serializing back:
+ * <pre>{@code
+ *     ItemStack item = ...;
+ *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
+ *     XItemStack.serializer().withConfig(section).withItem(item).write();
  * }</pre>
  * <p>
  * What's the point of this class when {@link org.bukkit.configuration.MemorySection#getItemStack(String)} exists?
@@ -82,7 +85,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * configurations to make the config cleaner and concise. Also, certain values will have unreadable formats.
  *
  * @author Crypto Morin
- * @version 8.0.0
+ * @version 9.0.0
  * @see XMaterial
  * @see XPotion
  * @see XSkull
@@ -93,7 +96,9 @@ import static com.cryptomorin.xseries.XMaterial.supports;
 public final class XItemStack {
     /**
      * Because {@link ItemMeta} cannot be applied to {@link Material#AIR}.
+     * @deprecated You should now use {@link Deserializer#read()} which handles {@link UnsetMaterialCondition}.
      */
+    @Deprecated
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
     private static final boolean
             SUPPORTS_UNBREAKABLE,
@@ -252,6 +257,11 @@ public final class XItemStack {
         @Nullable protected ConfigurationSection config;
         @Nullable protected Function<String, String> translator = Function.identity();
         protected ItemMeta meta;
+
+        /**
+         * Copies all properties of this handler.
+         */
+        public abstract SerialObject copy();
 
         public SerialObject withItem(ItemStack item) {
             this.item = item;
@@ -479,8 +489,24 @@ public final class XItemStack {
         return list;
     }
 
+    /**
+     * Get a new instance of {@link Serializer} used for serializing items
+     * into a configuration.
+     */
+    public static Serializer serializer() {
+        return new Serializer();
+    }
+
+    /**
+     * Use {@link XItemStack#serializer()} to use this class.
+     */
     public static final class Serializer extends SerialObject {
         private Function<List<? extends Component>, List<String>> miniMessageHandler;
+
+        /**
+         * Use {@link XItemStack#serializer()} instead.
+         */
+        private Serializer() {}
 
         public Serializer withItem(ItemStack item) {
             Objects.requireNonNull(item, "Cannot serialize null item");
@@ -511,6 +537,7 @@ public final class XItemStack {
             return configSectionToMap(config);
         }
 
+        @Override
         public Serializer copy() {
             return new Serializer()
                     .withItem(item)
@@ -895,44 +922,91 @@ public final class XItemStack {
         }
     }
 
+    /**
+     * Get a new instance of {@link Deserializer} used for deserializing items
+     * from a configuration.
+     */
+    public static Deserializer deserializer() {
+        return new Deserializer();
+    }
+
+    /**
+     * The deserializer only requires a config to be set. All other properties are optional.
+     * To use this class, you have to use {@link XItemStack#deserializer()}.
+     * This class is not thread-safe.
+     */
     public static final class Deserializer extends SerialObject {
         private Consumer<Exception> restart;
         private Function<List<String>, List<? extends Component>> miniMessageHandler;
 
-        public Deserializer() {
-            this.item = DEFAULT_MATERIAL.parseItem();
-        }
+        /**
+         * Use {@link XItemStack#deserializer()} instead.
+         */
+        private Deserializer() {}
 
         /**
          * If an item is set, it'll modify this item instead of making a new one from the config.
          */
         public Deserializer withItem(ItemStack item) {
-            if (item == null) item = DEFAULT_MATERIAL.parseItem();
             super.withItem(item);
             return this;
         }
 
+        /**
+         * The config which this item is going to be deserialized from.
+         * @see #withConfig(Map)
+         */
         public Deserializer withConfig(ConfigurationSection config) {
             super.withConfig(config);
             return this;
         }
 
+        /**
+         * If you use any other configuration system, you can provide a map instead,
+         * which automatically gets converted into a {@link ConfigurationSection}.
+         * @see #withConfig(ConfigurationSection)
+         */
+        @NotNull
+        public Deserializer withConfig(Map<String, Object> serializedItem) {
+            Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
+            return withConfig(mapToConfigSection(serializedItem));
+        }
+
+        /**
+         * Used for {@link ItemMeta#getDisplayName()} and {@link ItemMeta#getLore()} if your plugin handles
+         * them in a specific way. This utility class does not colorize any strings by default.
+         * You can also set a {@link #withMiniMessage(Function)} for Paper servers.
+         */
         public Deserializer withTranslator(Function<String, String> translator) {
             super.withTranslator(translator);
             return this;
         }
 
+        /**
+         * Restarts are a way to handle {@link Exception} without terminating the process
+         * in general by providing a solution on the fly. If you don't set a restart,
+         * the deserialization will fail entirely with the exception.
+         * <p>
+         * Currently the only properly handled exceptions that support restarts are {@link MaterialCondition}
+         * any other exception will not trigger a restart.
+         */
         public Deserializer withRestart(Consumer<Exception> restart) {
             this.restart = restart;
             return this;
         }
 
+        /**
+         * If this server implementation supports adventure API, {@link ItemMeta#getDisplayName()} and
+         * {@link ItemMeta#getLore()} will be set using their respective Paper adventure API.
+         * If the adventure API implementation is not available, {@link #withTranslator(Function)} is used instead.
+         */
         @ApiStatus.Experimental
         public Deserializer withMiniMessage(Function<List<String>, List<? extends Component>> miniMessageHandler) {
             this.miniMessageHandler = miniMessageHandler;
             return this;
         }
 
+        @Override
         public Deserializer copy() {
             return new Deserializer()
                     .withItem(item)
@@ -940,12 +1014,6 @@ public final class XItemStack {
                     .withTranslator(translator)
                     .withRestart(restart)
                     .withMiniMessage(miniMessageHandler);
-        }
-
-        @NotNull
-        public Deserializer fromMap(Map<String, Object> serializedItem) {
-            Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
-            return withConfig(mapToConfigSection(serializedItem));
         }
 
         public ItemStack read() {
@@ -1609,44 +1677,46 @@ public final class XItemStack {
             }
         }
 
+        @SuppressWarnings("OptionalIsPresent")
         private void handleMaterial() {
             String materialName = config.getString("material");
+            XMaterial material = null;
+
             if (!Strings.isNullOrEmpty(materialName)) {
                 Optional<XMaterial> materialOpt = XMaterial.matchXMaterial(materialName);
-                XMaterial material;
                 if (materialOpt.isPresent()) material = materialOpt.get();
                 else {
-                    UnknownMaterialCondition unknownMaterialCondition = new UnknownMaterialCondition(materialName);
-                    if (restart == null) throw unknownMaterialCondition;
-                    restart.accept(unknownMaterialCondition);
-
-                    if (unknownMaterialCondition.hasSolution()) material = unknownMaterialCondition.solution;
-                    else throw unknownMaterialCondition;
+                    material = solutionOrThrow(new UnknownMaterialCondition(materialName));
                 }
 
                 if (!material.isSupported()) {
-                    UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.UNSUPPORTED);
-                    if (restart == null) throw unsupportedMaterialCondition;
-                    restart.accept(unsupportedMaterialCondition);
-
-                    if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
-                    else throw unsupportedMaterialCondition;
+                    material = solutionOrThrow(new UnAcceptableMaterialCondition(material,
+                            UnAcceptableMaterialCondition.Reason.UNSUPPORTED));
                 }
                 if (XTag.INVENTORY_NOT_DISPLAYABLE.isTagged(material)) {
-                    UnAcceptableMaterialCondition unsupportedMaterialCondition = new UnAcceptableMaterialCondition(material, UnAcceptableMaterialCondition.Reason.NOT_DISPLAYABLE);
-                    if (restart == null) throw unsupportedMaterialCondition;
-                    restart.accept(unsupportedMaterialCondition);
-
-                    if (unsupportedMaterialCondition.hasSolution()) material = unsupportedMaterialCondition.solution;
-                    else throw unsupportedMaterialCondition;
+                    material = solutionOrThrow(new UnAcceptableMaterialCondition(material,
+                            UnAcceptableMaterialCondition.Reason.NOT_DISPLAYABLE));
                 }
-
-                material.setType(item);
             } else {
                 // Shortcut for more compact configs.
                 String skull = config.getString("skull");
-                if (skull != null) XMaterial.PLAYER_HEAD.setType(item);
+                if (skull != null) material = XMaterial.PLAYER_HEAD;
             }
+
+            if (material == null) {
+                material = solutionOrThrow(new UnsetMaterialCondition());
+            }
+
+            if (item == null) item = material.parseItem();
+            else material.setType(item);
+        }
+
+        private XMaterial solutionOrThrow(MaterialCondition condition) {
+            if (restart == null) throw condition;
+            restart.accept(condition);
+
+            if (condition.hasSolution()) return condition.solution;
+            else throw condition;
         }
     }
 
@@ -2152,5 +2222,11 @@ public final class XItemStack {
         }
 
         public enum Reason {UNSUPPORTED, NOT_DISPLAYABLE}
+    }
+
+    public static final class UnsetMaterialCondition extends MaterialCondition {
+        public UnsetMaterialCondition() {
+            super("No material is not set or could be derived");
+        }
     }
 }
