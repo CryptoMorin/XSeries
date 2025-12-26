@@ -1009,7 +1009,7 @@ public final class XItemStack {
         @Override
         public Deserializer copy() {
             return new Deserializer()
-                    .withItem(item)
+                    .withItem(item == null ? null : item.clone())
                     .withConfig(config)
                     .withTranslator(translator)
                     .withRestart(restart)
