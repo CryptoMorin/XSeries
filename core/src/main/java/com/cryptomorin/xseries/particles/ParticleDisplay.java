@@ -33,7 +33,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.awt.Color;
 import java.util.*;
 import java.util.List;
@@ -80,12 +79,29 @@ public class ParticleDisplay {
     private static final boolean ISFLAT;
 
     /**
+     * Checks if org.bukkit.Particle.DustTransition is available.
+     * This was added in 1.17
+     *
+     * @since 13.7.0
+     */
+    private static final boolean SUPPORTS_DUST_TRANSITION;
+
+    /**
      * Checks if org.bukkit.Color supports colors with an alpha value.
      * This was added in 1.19.4
      *
      * @since 11.0.0
      */
     private static final boolean SUPPORTS_ALPHA_COLORS;
+
+    /**
+     * Checks if org.bukkit.Particle.Spell is available.
+     * When available, EFFECT and INSTANT_EFFECT require it.
+     * This was added in 1.21.9
+     *
+     * @since 13.7.0
+     */
+    private static final boolean SUPPORTS_SPELL_DATA;
 
     static {
         boolean isFlat;
@@ -100,6 +116,15 @@ public class ParticleDisplay {
         }
         ISFLAT = isFlat;
 
+        boolean supportsDustTransition;
+        try {
+            Particle.DustTransition.class.getName();
+            supportsDustTransition = true;
+        } catch (NoClassDefFoundError e) {
+            supportsDustTransition = false;
+        }
+        SUPPORTS_DUST_TRANSITION = supportsDustTransition;
+
         boolean supportsAlphaColors;
         try {
             org.bukkit.Color.fromARGB(0);
@@ -108,6 +133,15 @@ public class ParticleDisplay {
             supportsAlphaColors = false;
         }
         SUPPORTS_ALPHA_COLORS = supportsAlphaColors;
+
+        boolean supportsSpellData;
+        try {
+            Particle.Spell.class.getName();
+            supportsSpellData = true;
+        } catch (NoClassDefFoundError e) {
+            supportsSpellData = false;
+        }
+        SUPPORTS_SPELL_DATA = supportsSpellData;
     }
 
     /**
@@ -375,6 +409,24 @@ public class ParticleDisplay {
         }
     }
 
+    private static Color toColor(List<String> parts) {
+        if (parts.size() == 1) {
+            try {
+                // 0xRRGGBB
+                return Color.decode(parts.get(0));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        } else if (parts.size() == 3) {
+            // RGB
+            return new Color(toInt(parts.get(0)), toInt(parts.get(1)), toInt(parts.get(2)));
+        } else if (parts.size() == 4) {
+            // RGBA
+            return new Color(toInt(parts.get(0)), toInt(parts.get(1)), toInt(parts.get(2)), toInt(parts.get(3)));
+        }
+        return null;
+    }
+
     private static java.util.List<String> split(@NotNull String str, @SuppressWarnings("SameParameterValue") char separatorChar) {
         List<String> list = new ArrayList<>(5);
         boolean match = false, lastMatch = false;
@@ -521,31 +573,29 @@ public class ParticleDisplay {
 
         if (color != null) {
             List<String> colors = split(color.replace(" ", ""), ',');
-            if (colors.size() <= 3 || colors.size() == 6) { // 1 or 3 : single color, 2 or 6 : two colors for DUST_TRANSITION
-                Color parsedColor1 = Color.white;
+            if (colors.size() <= 4 || colors.size() == 6) {
+                // 1: 0xRRGGBB
+                // 2: 0xRRGGBB,0xRRGGBB
+                // 3: R, G, B
+                // 4: R, G, B, A
+                // 6: R, G, B, R, G, B
+                // Dust transition doesn't use transparency so we don't parse R,G,B,A,R,G,B,A
+                Color parsedColor1;
                 Color parsedColor2 = null;
-                if (colors.size() <= 2) {
-                    try {
-                        parsedColor1 = Color.decode(colors.get(0));
-                        if (colors.size() == 2)
-                            parsedColor2 = Color.decode(colors.get(1));
-                    } catch (NumberFormatException ex) {
-                        /* I don't think it's worth it.
-                        try {
-                            parsedColor = (Color) Color.class.getField(colors[0].toUpperCase(Locale.ENGLISH)).get(null);
-                        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) { }
-                         */
-                    }
+                if (colors.size() == 2 || colors.size() == 6) {
+                    int halfway = colors.size() / 2;
+                    parsedColor1 = toColor(colors.subList(0, halfway));
+                    parsedColor2 = toColor(colors.subList(halfway, colors.size()));
                 } else {
-                    parsedColor1 = new Color(toInt(colors.get(0)), toInt(colors.get(1)), toInt(colors.get(2)));
-                    if (colors.size() == 6)
-                        parsedColor2 = new Color(toInt(colors.get(3)), toInt(colors.get(4)), toInt(colors.get(5)));
+                    parsedColor1 = toColor(colors);
                 }
 
-                if (parsedColor2 != null) {
-                    display.data = new DustTransitionParticleColor(parsedColor1, parsedColor2, size);
-                } else {
-                    display.data = new RGBParticleColor(parsedColor1);
+                if (parsedColor1 != null) {
+                    if (parsedColor2 != null) {
+                        display.data = new DustTransitionParticleColor(parsedColor1, parsedColor2, size);
+                    } else {
+                        display.data = new RGBParticleColor(parsedColor1);
+                    }
                 }
             }
         } else if (blockdata != null) {
@@ -902,9 +952,9 @@ public class ParticleDisplay {
     }
 
     /**
-     * Adds color properties to the particle settings.
+     * Adds color and size properties to the particle settings.
      * The particle must be {@link Particle#DUST}
-     * to get custom colors.
+     * to get custom sizes.
      *
      * @param color the RGB color of the particle.
      * @param size  the size of the particle.
@@ -914,12 +964,22 @@ public class ParticleDisplay {
      */
     @NotNull
     public ParticleDisplay withColor(@NotNull Color color, float size) {
-        return withColor(color.getRed(), color.getGreen(), color.getBlue(), size);
+        this.data = new RGBParticleColor(color);
+        this.extra = size;
+        return this;
     }
 
+    /**
+     * Adds color properties to the particle settings.
+     * The particle must support colors, e.g. {@link Particle#ENTITY_EFFECT}
+     *
+     * @param color the RGB color of the particle.
+     * @return the same particle display, but modified.
+     * @since 3.0.0
+     */
     @NotNull
     public ParticleDisplay withColor(@NotNull Color color) {
-        // TODO separate withColor() and withSize()
+        // When setting color via offset, we generally want the "extra" data to be 1 or the colors won't display right.
         return withColor(color, 1f);
     }
 
@@ -962,13 +1022,10 @@ public class ParticleDisplay {
      * @since 7.1.0
      * @deprecated use {@link #withColor(Color, float)}
      */
-    @SuppressWarnings("DeprecatedIsStillUsed")
     @NotNull
     @Deprecated
     public ParticleDisplay withColor(float red, float green, float blue, float size) {
-        this.data = new RGBParticleColor((int) red, (int) green, (int) blue);
-        this.extra = size;
-        return this;
+        return withColor(new Color((int)red, (int)green, (int)blue), size);
     }
 
     /**
@@ -1634,9 +1691,9 @@ public class ParticleDisplay {
             // When specifying an offset normally, bound of 1 gets you an 8 block range,
             // being +/- 4 blocks in each direction from the origin. Uses a Gaussian distribution.
             // Gaussian distribution uses a sqrt, so skip that if we can.
-            double dx = offsetx == 0 ? 0 : r.nextGaussian() * 4 * offsetx;
-            double dy = offsety == 0 ? 0 : r.nextGaussian() * 4 * offsety;
-            double dz = offsetz == 0 ? 0 : r.nextGaussian() * 4 * offsetz;
+            double dx = offsetx == 0 ? 0 : r.nextGaussian() * offsetx;
+            double dy = offsety == 0 ? 0 : r.nextGaussian() * offsety;
+            double dz = offsetz == 0 ? 0 : r.nextGaussian() * offsetz;
             Location offsetLoc = cloneLocation(loc).add(dx, dy, dz);
             spawnRaw(particle, offsetLoc, 0, offsetData, data);
         }
@@ -1656,6 +1713,20 @@ public class ParticleDisplay {
             // For note particles, the rendered color is dx * extra, so we just
             // always put the color in dx and set extra to 1.
             extra = 1;
+        }
+        if (ISFLAT && data == null && particle.getDataType() != Void.class) {
+            // Apply some defaults for compatibility with how it worked in older versions
+            if (particle.getDataType() == Float.class) {
+                data = 1f;
+            } else if (particle.getDataType() == org.bukkit.Color.class) {
+                if (particle == XParticle.DUST.get()) {
+                    data = org.bukkit.Color.RED;
+                } else {
+                    data = randomColor();
+                }
+            } else if (SUPPORTS_SPELL_DATA && particle.getDataType() == Particle.Spell.class) {
+                data = new Particle.Spell(randomColor(), 1);
+            }
         }
         if (players == null || players.isEmpty())
             if (ISFLAT)
@@ -1705,6 +1776,10 @@ public class ParticleDisplay {
         int g = c1.getGreen() - c2.getGreen();
         int b = c1.getBlue() - c2.getBlue();
         return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8);
+    }
+
+    private static org.bukkit.Color randomColor() {
+        return org.bukkit.Color.fromRGB(ThreadLocalRandom.current().nextInt(1 << 24));
     }
 
     /**
@@ -1888,25 +1963,38 @@ public class ParticleDisplay {
         }
 
         public Object data(ParticleDisplay display) {
-            float particleSize = display.extra == 0 ? 1f : (float) display.extra;
-            if (display.particle == XParticle.DUST) {
+            if (!ISFLAT || !display.particle.isSupported()) {
+                return null;
+            }
+            Class<?> dataType = display.particle.get().getDataType();
+            if (dataType == Void.class) {
+                return null;
+            }
+            float nonZeroExtra = display.extra == 0 ? 1f : (float) display.extra;
+            org.bukkit.Color color = org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue());
+            if (SUPPORTS_ALPHA_COLORS) {
+                color = color.setAlpha(this.color.getAlpha());
+            }
+            if (dataType == org.bukkit.Color.class) {
+                return color;
+            } else if (dataType == Particle.DustOptions.class) {
+                // Here, the extra is the particle size
                 return new Particle.DustOptions(
-                        org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()),
-                        particleSize
+                        color,
+                        nonZeroExtra
                 );
-            } else if (display.particle == XParticle.DUST_COLOR_TRANSITION) {
-                org.bukkit.Color color = org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue());
+            } else if (SUPPORTS_DUST_TRANSITION && dataType == Particle.DustTransition.class) {
+                // Here, the extra is the particle size
                 return new Particle.DustTransition(
                         color, color,
-                        particleSize
+                        nonZeroExtra
                 );
+            } else if (SUPPORTS_SPELL_DATA && dataType == Particle.Spell.class) {
+                // Here, the extra affects the X and Z velocity of the particle.
+                // 1 = default direction randomization, 0 = only vertical motion.
+                return new Particle.Spell(color, nonZeroExtra);
             }
-
-            if (SUPPORTS_ALPHA_COLORS) {
-                return org.bukkit.Color.fromARGB(color.getAlpha(), color.getRed(), color.getGreen(), color.getBlue());
-            } else {
-                return org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue());
-            }
+            return null;
         }
 
         @Override
@@ -1915,6 +2003,7 @@ public class ParticleDisplay {
             colorJoiner.add(Integer.toString(color.getRed()));
             colorJoiner.add(Integer.toString(color.getGreen()));
             colorJoiner.add(Integer.toString(color.getBlue()));
+            colorJoiner.add(Integer.toString(color.getAlpha()));
             section.set("color", colorJoiner.toString());
         }
 
