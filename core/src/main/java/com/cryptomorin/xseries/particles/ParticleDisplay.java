@@ -1719,11 +1719,9 @@ public class ParticleDisplay {
             if (particle.getDataType() == Float.class) {
                 data = 1f;
             } else if (particle.getDataType() == org.bukkit.Color.class) {
-                if (particle == XParticle.DUST.get()) {
-                    data = org.bukkit.Color.RED;
-                } else {
-                    data = randomColor();
-                }
+                data = randomColor();
+            } else if (particle.getDataType() == Particle.DustOptions.class) {
+                data = new Particle.DustOptions(org.bukkit.Color.RED, 1f);
             } else if (SUPPORTS_SPELL_DATA && particle.getDataType() == Particle.Spell.class) {
                 data = new Particle.Spell(randomColor(), 1);
             }
