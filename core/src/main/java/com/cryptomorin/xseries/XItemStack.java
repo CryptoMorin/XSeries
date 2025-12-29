@@ -71,13 +71,13 @@ import static com.cryptomorin.xseries.XMaterial.supports;
  * Using ConfigurationSection Example:
  * <pre>{@code
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
- *     ItemStack item = XItemStack.deserializer().withConfig(section).read();
+ *     ItemStack item = XItemStack.deserializer().fromConfig(section).deserialize();
  * }</pre>
  * Serializing back:
  * <pre>{@code
  *     ItemStack item = ...;
  *     ConfigurationSection section = plugin.getConfig().getConfigurationSection("staffs.dragon-staff");
- *     XItemStack.serializer().withConfig(section).withItem(item).write();
+ *     XItemStack.serializer().fromItem(item).toConfig(section).serialize();
  * }</pre>
  * <p>
  * What's the point of this class when {@link org.bukkit.configuration.MemorySection#getItemStack(String)} exists?

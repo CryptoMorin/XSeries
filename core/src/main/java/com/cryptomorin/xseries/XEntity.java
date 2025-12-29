@@ -373,8 +373,8 @@ public final class XEntity {
     }
 
     private static ItemStack deserialize(ConfigurationSection config) {
-        return new XItemStack.Deserializer()
-                .withConfig(config)
+        return XItemStack.deserializer()
+                .fromConfig(config)
                 .deserialize();
     }
 
