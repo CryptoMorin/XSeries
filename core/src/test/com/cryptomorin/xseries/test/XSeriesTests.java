@@ -430,8 +430,8 @@ public final class XSeriesTests {
 
                 ConfigurationSection serializeRedeserialized = serializeConfig.getConfigurationSection(entry.getKey());
                 ItemStack redeserializedItem = XItemStack.deserializer()
-                        .withConfig(serializeRedeserialized)
-                        .read();
+                        .fromConfig(serializeRedeserialized)
+                        .deserialize();
 
                 assertTrue(dual.serialized.isSimilar(redeserializedItem),
                         () -> "Items for re-deserialized '" + entry.getKey() + "' are not similar:"
@@ -449,8 +449,8 @@ public final class XSeriesTests {
         for (String section : yaml.getKeys(false)) {
             ConfigurationSection itemSection = yaml.getConfigurationSection(section);
             ItemStack item = XItemStack.deserializer()
-                    .withConfig(itemSection)
-                    .read();
+                    .fromConfig(itemSection)
+                    .deserialize();
 
             map.compute(section, (k, v) -> {
                 if (v == null) v = new ItemSerialDual();
@@ -542,9 +542,9 @@ public final class XSeriesTests {
             ConfigurationSection section = yaml.createSection(sectionName);
 
             XItemStack.serializer()
-                    .withItem(item.getValue())
-                    .withConfig(section)
-                    .write();
+                    .fromItem(item.getValue())
+                    .toConfig(section)
+                    .serialize();
             map.compute(sectionName, (k, v) -> {
                 if (v == null) v = new ItemSerialDual();
                 v.serialized = item.getValue();

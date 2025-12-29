@@ -96,7 +96,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
 public final class XItemStack {
     /**
      * Because {@link ItemMeta} cannot be applied to {@link Material#AIR}.
-     * @deprecated You should now use {@link Deserializer#read()} which handles {@link UnsetMaterialCondition}.
+     * @deprecated You should now use {@link Deserializer#deserialize()} which handles {@link UnsetMaterialCondition}.
      */
     @Deprecated
     private static final XMaterial DEFAULT_MATERIAL = XMaterial.BARRIER;
@@ -259,19 +259,14 @@ public final class XItemStack {
         protected ItemMeta meta;
 
         /**
-         * Copies all properties of this handler.
+         * Copies all properties of this handler, including the item.
          */
         public abstract SerialObject copy();
 
-        public SerialObject withItem(ItemStack item) {
-            this.item = item;
-            return this;
-        }
-
-        public SerialObject withConfig(ConfigurationSection config) {
-            this.config = config;
-            return this;
-        }
+        /**
+         * Copies all properties of this handler without the item.
+         */
+        public abstract SerialObject copySettings();
 
         public SerialObject withTranslator(Function<String, String> translator) {
             this.translator = translator;
@@ -330,10 +325,10 @@ public final class XItemStack {
                                  @NotNull ConfigurationSection config,
                                  @NotNull Function<String, String> translator) {
         new Serializer()
-                .withItem(item)
-                .withConfig(config)
+                .fromItem(item)
+                .toConfig(config)
                 .withTranslator(translator)
-                .write();
+                .serialize();
     }
 
     /**
@@ -508,14 +503,13 @@ public final class XItemStack {
          */
         private Serializer() {}
 
-        public Serializer withItem(ItemStack item) {
-            Objects.requireNonNull(item, "Cannot serialize null item");
-            super.withItem(item);
+        public Serializer fromItem(ItemStack item) {
+            this.item = Objects.requireNonNull(item, "Cannot serialize null item");
             return this;
         }
 
-        public Serializer withConfig(ConfigurationSection config) {
-            super.withConfig(config);
+        public Serializer toConfig(ConfigurationSection config) {
+            this.config = config;
             return this;
         }
 
@@ -533,20 +527,24 @@ public final class XItemStack {
         @NotNull
         public Map<String, Object> writeToMap() {
             if (config == null) config = new MemoryConfiguration();
-            write();
+            serialize();
             return configSectionToMap(config);
         }
 
         @Override
         public Serializer copy() {
+            return copySettings().fromItem(item == null ? null : item.clone());
+        }
+
+        @Override
+        public Serializer copySettings() {
             return new Serializer()
-                    .withItem(item)
-                    .withConfig(config)
+                    .toConfig(config)
                     .withTranslator(translator)
                     .withMiniMessage(miniMessageHandler);
         }
 
-        public void write() {
+        public void serialize() {
             Objects.requireNonNull(item, "Item not set");
             Objects.requireNonNull(config, "Config not set");
 
@@ -667,10 +665,10 @@ public final class XItemStack {
         private void handleCrossbowMeta(CrossbowMeta crossbow) {
             int i = 0;
             for (ItemStack projectiles : crossbow.getChargedProjectiles()) {
-                this.copy()
-                        .withItem(projectiles)
-                        .withConfig(config.getConfigurationSection("projectiles." + i))
-                        .write();
+                this.copySettings()
+                        .fromItem(projectiles)
+                        .toConfig(config.getConfigurationSection("projectiles." + i))
+                        .serialize();
                 i++;
             }
         }
@@ -861,10 +859,10 @@ public final class XItemStack {
                 int i = 0;
                 for (ItemStack itemInBox : box.getInventory().getContents()) {
                     if (itemInBox != null) {
-                        this.copy()
-                                .withItem(itemInBox)
-                                .withConfig(shulker.createSection(Integer.toString(i)))
-                                .write();
+                        this.copySettings()
+                                .fromItem(itemInBox)
+                                .toConfig(shulker.createSection(Integer.toString(i)))
+                                .serialize();
                     }
                     i++;
                 }
@@ -947,29 +945,29 @@ public final class XItemStack {
         /**
          * If an item is set, it'll modify this item instead of making a new one from the config.
          */
-        public Deserializer withItem(ItemStack item) {
-            super.withItem(item);
+        public Deserializer modifyItem(ItemStack item) {
+            this.item = item;
             return this;
         }
 
         /**
          * The config which this item is going to be deserialized from.
-         * @see #withConfig(Map)
+         * @see #fromConfig(Map)
          */
-        public Deserializer withConfig(ConfigurationSection config) {
-            super.withConfig(config);
+        public Deserializer fromConfig(ConfigurationSection config) {
+            this.config = config;
             return this;
         }
 
         /**
          * If you use any other configuration system, you can provide a map instead,
          * which automatically gets converted into a {@link ConfigurationSection}.
-         * @see #withConfig(ConfigurationSection)
+         * @see #fromConfig(ConfigurationSection)
          */
         @NotNull
-        public Deserializer withConfig(Map<String, Object> serializedItem) {
+        public Deserializer fromConfig(Map<String, Object> serializedItem) {
             Objects.requireNonNull(serializedItem, "serializedItem cannot be null.");
-            return withConfig(mapToConfigSection(serializedItem));
+            return fromConfig(mapToConfigSection(serializedItem));
         }
 
         /**
@@ -1008,15 +1006,19 @@ public final class XItemStack {
 
         @Override
         public Deserializer copy() {
+            return copySettings().modifyItem(item == null ? null : item.clone());
+        }
+
+        @Override
+        public Deserializer copySettings() {
             return new Deserializer()
-                    .withItem(item == null ? null : item.clone())
-                    .withConfig(config)
+                    .fromConfig(config)
                     .withTranslator(translator)
                     .withRestart(restart)
                     .withMiniMessage(miniMessageHandler);
         }
 
-        public ItemStack read() {
+        public ItemStack deserialize() {
             Objects.requireNonNull(config, "Config not set");
 
             handleMaterial();
@@ -1320,10 +1322,9 @@ public final class XItemStack {
             ConfigurationSection projectiles = config.getConfigurationSection("projectiles");
             if (projectiles != null) {
                 for (String projectile : projectiles.getKeys(false)) {
-                    ItemStack projectileItem = this.copy()
-                            .withItem(null)
-                            .withConfig(config.getConfigurationSection("projectiles." + projectile))
-                            .read();
+                    ItemStack projectileItem = this.copySettings()
+                            .fromConfig(config.getConfigurationSection("projectiles." + projectile))
+                            .deserialize();
                     crossbow.addChargedProjectile(projectileItem);
                 }
             }
@@ -1477,10 +1478,9 @@ public final class XItemStack {
                 if (shulkerSection != null) {
                     ShulkerBox box = (ShulkerBox) state;
                     for (String key : shulkerSection.getKeys(false)) {
-                        ItemStack boxItem = this.copy()
-                                .withItem(null)
-                                .withConfig(shulkerSection.getConfigurationSection(key))
-                                .read();
+                        ItemStack boxItem = this.copySettings()
+                                .fromConfig(shulkerSection.getConfigurationSection(key))
+                                .deserialize();
                         int slot = toInt(key, 0);
                         box.getInventory().setItem(slot, boxItem);
                     }
@@ -1737,11 +1737,11 @@ public final class XItemStack {
                                  @NotNull final Function<String, String> translator,
                                  @Nullable final Consumer<Exception> restart) {
         return new Deserializer()
-                .withItem(item)
-                .withConfig(config)
+                .modifyItem(item)
+                .fromConfig(config)
                 .withTranslator(translator)
                 .withRestart(restart)
-                .read();
+                .deserialize();
     }
 
     /**

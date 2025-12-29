@@ -12,7 +12,7 @@ Example of a good bug report: https://github.com/CryptoMorin/XSeries/issues/376
 
 A clear and concise description of what the bug is.
 
-**Note:** Issues caused by plugins such ProtocolSupport or ViaVersion
+**Note:** Issues caused by plugins such as ProtocolSupport or ViaVersion
 should be reported to the plugin developers, not here.
 
 ## Code
@@ -20,6 +20,7 @@ should be reported to the plugin developers, not here.
 * A minimal code to reproduce this issue.
 * It should not contain any code from your plugin's classes or external libraries.
 * You should write a code with pure Java + Bukkit API + XSeries.
+* If your code requires a specific raw Java value such as a string, UUID, etc. You need to provide it too.
 
 ```java
 // Code here (Kotlin, Scala or Groovy is fine too)
@@ -46,8 +47,8 @@ If you get any errors, put them in a spoiler tag below:
 
 ## Version
 
-* **Server:** Your server version information from `/ver` command. It must be using the latest version of that major
-  update.
+* **Server:** Your server version information from `/ver` command is preferred, but at least the version number and
+  server implementation (spigot, paper, etc.) is required. It must be using the latest version of that major update.
   E.g. 1.14, 1.14.1, 1.14.2 and 1.14.3 are not supported, only 1.14.4 is supported.
 * **XSeries:** Specify the version (or commit if you're using unreleased JitPack builds) Make sure you're using the
   latest utility/maven version.

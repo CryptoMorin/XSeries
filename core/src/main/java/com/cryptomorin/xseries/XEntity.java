@@ -375,7 +375,7 @@ public final class XEntity {
     private static ItemStack deserialize(ConfigurationSection config) {
         return new XItemStack.Deserializer()
                 .withConfig(config)
-                .read();
+                .deserialize();
     }
 
     private static void map(Class<?> target, Entity entity, ConfigurationSection config) {
