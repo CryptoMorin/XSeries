@@ -24,9 +24,13 @@ package com.cryptomorin.xseries;
 import com.cryptomorin.xseries.base.XBase;
 import com.cryptomorin.xseries.base.annotations.XInfo;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.World;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 
 public enum XGameRule implements XBase<XGameRule, String> {
@@ -139,13 +143,59 @@ public enum XGameRule implements XBase<XGameRule, String> {
     @XInfo(since = "?", removedSince = "1.21.11")
     DO_FIRE_TICK("doFireTick");
 
+    private static final boolean SUPPORTS_GAME_RULE_API;
+    private static final MethodHandle GET_BY_NAME;
+    private static final MethodHandle GET_GAME_RULE_VALUE;
+    private static final MethodHandle SET_GAME_RULE_VALUE;
+
+    static {
+        boolean supportsGameRuleAPI = true;
+        MethodHandle getByName = null;
+        MethodHandle getGameRuleValue = null;
+        MethodHandle setGameRuleValue = null;
+
+        MethodHandles.Lookup methodHandles = MethodHandles.lookup();
+        try {
+            getByName = methodHandles.unreflect(GameRule.class.getDeclaredMethod("getByName", String.class));
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoClassDefFoundError e) {
+            supportsGameRuleAPI = false;
+
+            try {
+                getGameRuleValue = methodHandles.unreflect(World.class.getDeclaredMethod("getGameRuleValue", String.class));
+                setGameRuleValue = methodHandles.unreflect(World.class.getDeclaredMethod("setGameRuleValue", String.class, String.class));
+            } catch (NoSuchMethodException | IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        SUPPORTS_GAME_RULE_API = supportsGameRuleAPI;
+        GET_BY_NAME = getByName;
+        GET_GAME_RULE_VALUE = getGameRuleValue;
+        SET_GAME_RULE_VALUE = setGameRuleValue;
+    }
+
     private final String[] names;
     private final String value;
+    private Object rule;
 
     XGameRule(String... names) {
         this.names = names;
         World world = Bukkit.getWorlds().get(0);
         this.value = Arrays.stream(names).filter(world::isGameRule).findAny().orElse(null);
+    }
+
+    // Can't access static fields from enum constructor
+    static {
+        if (SUPPORTS_GAME_RULE_API) {
+            try {
+                for (XGameRule xGameRule : XGameRule.values())
+                    if (xGameRule.value != null)
+                        xGameRule.rule = GET_BY_NAME.invoke(xGameRule.value);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
@@ -156,5 +206,45 @@ public enum XGameRule implements XBase<XGameRule, String> {
     @Override
     public @Nullable String get() {
         return this.value;
+    }
+
+    public @Nullable String getValue(@NotNull World world) {
+        if (SUPPORTS_GAME_RULE_API) {
+            if (this.rule == null)
+                throw new UnsupportedOperationException("Game rule not supported on this version!");
+
+            GameRule<?> rule = (GameRule<?>) this.rule;
+            Object value = world.getGameRuleValue(rule);
+            return value == null ? null : value.toString();
+        } else {
+            if (this.value == null)
+                throw new UnsupportedOperationException("Game rule not supported on this version!");
+
+            try {
+                return (String) GET_GAME_RULE_VALUE.invoke(world, this.value);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public <T> boolean setValue(@NotNull World world, @NotNull T value) {
+        if (SUPPORTS_GAME_RULE_API) {
+            if (this.rule == null)
+                throw new UnsupportedOperationException("Game rule not supported on this version!");
+
+            @SuppressWarnings("unchecked")
+            GameRule<T> rule = (GameRule<T>) this.rule;
+            return world.setGameRule(rule, value);
+        } else {
+            if (this.value == null)
+                throw new UnsupportedOperationException("Game rule not supported on this version!");
+
+            try {
+                return (boolean) SET_GAME_RULE_VALUE.invoke(world, this.value, value.toString());
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
