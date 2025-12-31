@@ -187,7 +187,7 @@ public final class XGameRule<T> implements XBase<XGameRule<T>, String> {
     private final String[] names;
     private final Class<?> type;
     private final String value;
-    private Object rule;
+    private final Object rule;
 
     private XGameRule(@NotNull Class<T> type, @NotNull String... names) {
         this.names = names;
@@ -196,12 +196,10 @@ public final class XGameRule<T> implements XBase<XGameRule<T>, String> {
         World world = Bukkit.getWorlds().get(0);
         this.value = Arrays.stream(names).filter(world::isGameRule).findAny().orElse(null);
 
-        if (SUPPORTS_GameRule && this.value != null) {
-            try {
-                this.rule = GameRule_getByName.invoke(this.value);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            this.rule = SUPPORTS_GameRule && this.value != null ? GameRule_getByName.invoke(this.value) : null;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 
