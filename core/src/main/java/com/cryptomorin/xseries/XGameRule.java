@@ -36,6 +36,38 @@ import java.util.Arrays;
 
 public final class XGameRule<T> implements XBase<XGameRule<T>, String> {
 
+    private static final boolean SUPPORTS_GameRule;
+    private static final MethodHandle GameRule_getByName;
+    private static final MethodHandle World_getGameRuleValue;
+    private static final MethodHandle World_setGameRuleValue;
+
+    static {
+        boolean supportsGameRuleAPI = true;
+        MethodHandle getByName = null;
+        MethodHandle getGameRuleValue = null;
+        MethodHandle setGameRuleValue = null;
+
+        MethodHandles.Lookup methodHandles = MethodHandles.lookup();
+        try {
+            getByName = methodHandles.findStatic(GameRule.class, "getByName", MethodType.methodType(GameRule.class, String.class));
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoClassDefFoundError e) {
+            supportsGameRuleAPI = false;
+
+            try {
+                getGameRuleValue = methodHandles.findVirtual(World.class, "getGameRuleValue", MethodType.methodType(String.class, String.class));
+                setGameRuleValue = methodHandles.findVirtual(World.class, "setGameRuleValue", MethodType.methodType(boolean.class, String.class, String.class));
+            } catch (NoSuchMethodException | IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        SUPPORTS_GameRule = supportsGameRuleAPI;
+        GameRule_getByName = getByName;
+        World_getGameRuleValue = getGameRuleValue;
+        World_setGameRuleValue = setGameRuleValue;
+    }
+
     public static XGameRule<Boolean> COMMAND_BLOCK_OUTPUT = new XGameRule<>(Boolean.class, /* v1.21.11+ */ "command_block_output", "commandBlockOutput"),
             ADVANCE_TIME = new XGameRule<>(Boolean.class, /* v1.21.11+ */ "advance_time", "doDaylightCycle"),
             ENTITY_DROPS = new XGameRule<>(Boolean.class, /* v1.21.11+ */ "entity_drops", "doEntityDrops"),
@@ -151,38 +183,6 @@ public final class XGameRule<T> implements XBase<XGameRule<T>, String> {
 
     @XInfo(since = "?", removedSince = "1.21.11")
     public static XGameRule<Boolean> DO_FIRE_TICK = new XGameRule<>(Boolean.class, "doFireTick");
-
-    private static final boolean SUPPORTS_GameRule;
-    private static final MethodHandle GameRule_getByName;
-    private static final MethodHandle World_getGameRuleValue;
-    private static final MethodHandle World_setGameRuleValue;
-
-    static {
-        boolean supportsGameRuleAPI = true;
-        MethodHandle getByName = null;
-        MethodHandle getGameRuleValue = null;
-        MethodHandle setGameRuleValue = null;
-
-        MethodHandles.Lookup methodHandles = MethodHandles.lookup();
-        try {
-            getByName = methodHandles.findStatic(GameRule.class, "getByName", MethodType.methodType(GameRule.class, String.class));
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (NoClassDefFoundError e) {
-            supportsGameRuleAPI = false;
-
-            try {
-                getGameRuleValue = methodHandles.findVirtual(World.class, "getGameRuleValue", MethodType.methodType(String.class, String.class));
-                setGameRuleValue = methodHandles.findVirtual(World.class, "setGameRuleValue", MethodType.methodType(boolean.class, String.class, String.class));
-            } catch (NoSuchMethodException | IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        SUPPORTS_GameRule = supportsGameRuleAPI;
-        GameRule_getByName = getByName;
-        World_getGameRuleValue = getGameRuleValue;
-        World_setGameRuleValue = setGameRuleValue;
-    }
 
     private final String[] names;
     private final Class<?> type;
