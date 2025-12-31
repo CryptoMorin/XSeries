@@ -144,10 +144,10 @@ public enum XGameRule implements XBase<XGameRule, String> {
     @XInfo(since = "?", removedSince = "1.21.11")
     DO_FIRE_TICK("doFireTick");
 
-    private static final boolean SUPPORTS_GAME_RULE_API;
-    private static final MethodHandle GET_BY_NAME;
-    private static final MethodHandle GET_GAME_RULE_VALUE;
-    private static final MethodHandle SET_GAME_RULE_VALUE;
+    private static final boolean SUPPORTS_GameRule;
+    private static final MethodHandle GameRule_getByName;
+    private static final MethodHandle World_getGameRuleValue;
+    private static final MethodHandle World_setGameRuleValue;
 
     static {
         boolean supportsGameRuleAPI = true;
@@ -170,10 +170,10 @@ public enum XGameRule implements XBase<XGameRule, String> {
                 throw new RuntimeException(ex);
             }
         }
-        SUPPORTS_GAME_RULE_API = supportsGameRuleAPI;
-        GET_BY_NAME = getByName;
-        GET_GAME_RULE_VALUE = getGameRuleValue;
-        SET_GAME_RULE_VALUE = setGameRuleValue;
+        SUPPORTS_GameRule = supportsGameRuleAPI;
+        GameRule_getByName = getByName;
+        World_getGameRuleValue = getGameRuleValue;
+        World_setGameRuleValue = setGameRuleValue;
     }
 
     private final String[] names;
@@ -188,11 +188,11 @@ public enum XGameRule implements XBase<XGameRule, String> {
 
     // Can't access static fields from enum constructor
     static {
-        if (SUPPORTS_GAME_RULE_API) {
+        if (SUPPORTS_GameRule) {
             try {
                 for (XGameRule xGameRule : XGameRule.values())
                     if (xGameRule.value != null)
-                        xGameRule.rule = GET_BY_NAME.invoke(xGameRule.value);
+                        xGameRule.rule = GameRule_getByName.invoke(xGameRule.value);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -211,20 +211,20 @@ public enum XGameRule implements XBase<XGameRule, String> {
 
     @Override
     public boolean isSupported() {
-        return XBase.super.isSupported() && (!SUPPORTS_GAME_RULE_API || this.rule != null);
+        return XBase.super.isSupported() && (!SUPPORTS_GameRule || this.rule != null);
     }
 
     public @Nullable String getValue(@NotNull World world) {
         if (!isSupported())
             throw new UnsupportedOperationException("Game rule not supported on this version!");
 
-        if (SUPPORTS_GAME_RULE_API) {
+        if (SUPPORTS_GameRule) {
             GameRule<?> rule = (GameRule<?>) this.rule;
             Object value = world.getGameRuleValue(rule);
             return value == null ? null : value.toString();
         } else {
             try {
-                return (String) GET_GAME_RULE_VALUE.invoke(world, this.value);
+                return (String) World_getGameRuleValue.invoke(world, this.value);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -235,13 +235,13 @@ public enum XGameRule implements XBase<XGameRule, String> {
         if (!isSupported())
             throw new UnsupportedOperationException("Game rule not supported on this version!");
 
-        if (SUPPORTS_GAME_RULE_API) {
+        if (SUPPORTS_GameRule) {
             @SuppressWarnings("unchecked")
             GameRule<T> rule = (GameRule<T>) this.rule;
             return world.setGameRule(rule, value);
         } else {
             try {
-                return (boolean) SET_GAME_RULE_VALUE.invoke(world, this.value, value.toString());
+                return (boolean) World_setGameRuleValue.invoke(world, this.value, value.toString());
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
