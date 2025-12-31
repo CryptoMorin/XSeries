@@ -231,6 +231,15 @@ public enum XGameRule implements XBase<XGameRule, String> {
         }
     }
 
+    /**
+     * Set a game rule's value
+     * 
+     * @param world The world in which this game rule should be updated
+     * @param value The new value
+     * @return {@code true} if successful
+     * @param <T> The type of this game rule's value
+     * @throws UnsupportedOperationException if {@link #isSupported()} is {@code false}
+     */
     public <T> boolean setValue(@NotNull World world, @NotNull T value) {
         if (!isSupported())
             throw new UnsupportedOperationException("Game rule not supported on this version!");
