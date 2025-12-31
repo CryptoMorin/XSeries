@@ -106,7 +106,8 @@ public final class XItemStack {
             SUPPORTS_Inventory_getStorageContents,
             SUPPORTS_CUSTOM_MODEL_DATA,
             SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA,
-            SUPPORTS_ITEM_MODEL;
+            SUPPORTS_ITEM_MODEL,
+	        SUPPORTS_ITEM_NAME;
 
     static {
         boolean supportsPotionColor = false,
@@ -114,7 +115,8 @@ public final class XItemStack {
                 supportsGetStorageContents = false,
                 supportSCustomModelData = false,
                 supportsAdvancedCustomModelData = false,
-                supportsItemModel = false;
+                supportsItemModel = false,
+			    supportsItemName = false;
 
 
         try {
@@ -140,7 +142,13 @@ public final class XItemStack {
             supportsItemModel = true;
         } catch (NoSuchMethodException ignored) {
         }
-
+		
+		try {
+			ItemMeta.class.getDeclaredMethod("setItemName", String.class);
+			supportsItemName = true;
+		} catch (NoSuchMethodException ignored) {
+		}
+		
         try {
             Class.forName("org.bukkit.inventory.meta.PotionMeta").getMethod("setColor", Color.class);
             supportsPotionColor = true;
@@ -159,6 +167,7 @@ public final class XItemStack {
         SUPPORTS_CUSTOM_MODEL_DATA = supportSCustomModelData;
         SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA = supportsAdvancedCustomModelData;
         SUPPORTS_ITEM_MODEL = supportsItemModel;
+		SUPPORTS_ITEM_NAME = supportsItemName;
     }
 
     private interface MetaHandler<M extends ItemMeta> {
@@ -573,6 +582,11 @@ public final class XItemStack {
                     config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
                 }
             }
+			
+			if (SUPPORTS_ITEM_NAME && meta.hasItemName()) {
+				String itemName = meta.getItemName();
+				config.set("item-name", translator.apply(itemName));
+			}
 
             customModelData();
             if (SUPPORTS_UNBREAKABLE) {
@@ -791,7 +805,8 @@ public final class XItemStack {
             if (supports(9)) {
                 if (SUPPORTS_PotionMeta_getBasePotionType) {
                     PotionType basePotionType = meta.getBasePotionType();
-                    config.set("base-type", basePotionType.name());
+					if (basePotionType != null)
+                        config.set("base-type", basePotionType.name());
                 } else {
                     @SuppressWarnings("removal")
                     PotionData potionData = meta.getBasePotionData();
@@ -810,7 +825,10 @@ public final class XItemStack {
                             typeStr = x.getType().getName();
                         }
 
-                        return typeStr + ", " + x.getDuration() + ", " + x.getAmplifier();
+						// we change this to match what the deserializer expects
+						int seconds = x.getDuration() / 20;
+						int level = x.getAmplifier() + 1;
+                        return typeStr + ", " + seconds + ", " + level;
                     }).collect(Collectors.toList()));
                 }
 
@@ -1026,6 +1044,7 @@ public final class XItemStack {
             getOrCreateMeta();
             handleDurability();
             displayName();
+			itemName();
             unbreakable();
             customModelData();
             lore();
@@ -1199,6 +1218,20 @@ public final class XItemStack {
             }
         }
 
+		@SuppressWarnings("ConstantValue")
+        private void itemName() {
+			if (!SUPPORTS_ITEM_NAME)
+				return;
+
+			String itemName = config.getString("item-name");
+			if (!Strings.isNullOrEmpty(itemName)) {
+				String translated = translator.apply(itemName);
+				meta.setItemName(translated);
+			} else if (itemName != null && itemName.isEmpty()) {
+				meta.setItemName(" ");
+			}
+		}
+		
         private void itemFlags() {
             List<String> flags = config.getStringList("flags");
             if (!flags.isEmpty()) {
