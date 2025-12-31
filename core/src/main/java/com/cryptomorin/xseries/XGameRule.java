@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Arrays;
 
 public enum XGameRule implements XBase<XGameRule, String> {
@@ -156,15 +157,15 @@ public enum XGameRule implements XBase<XGameRule, String> {
 
         MethodHandles.Lookup methodHandles = MethodHandles.lookup();
         try {
-            getByName = methodHandles.unreflect(GameRule.class.getDeclaredMethod("getByName", String.class));
+            getByName = methodHandles.findStatic(GameRule.class, "getByName", MethodType.methodType(GameRule.class, String.class));
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new RuntimeException(e);
         } catch (NoClassDefFoundError e) {
             supportsGameRuleAPI = false;
 
             try {
-                getGameRuleValue = methodHandles.unreflect(World.class.getDeclaredMethod("getGameRuleValue", String.class));
-                setGameRuleValue = methodHandles.unreflect(World.class.getDeclaredMethod("setGameRuleValue", String.class, String.class));
+                getGameRuleValue = methodHandles.findVirtual(World.class, "getGameRuleValue", MethodType.methodType(String.class, String.class));
+                setGameRuleValue = methodHandles.findVirtual(World.class, "setGameRuleValue", MethodType.methodType(boolean.class, String.class, String.class));
             } catch (NoSuchMethodException | IllegalAccessException ex) {
                 throw new RuntimeException(ex);
             }
