@@ -208,18 +208,20 @@ public enum XGameRule implements XBase<XGameRule, String> {
         return this.value;
     }
 
-    public @Nullable String getValue(@NotNull World world) {
-        if (SUPPORTS_GAME_RULE_API) {
-            if (this.rule == null)
-                throw new UnsupportedOperationException("Game rule not supported on this version!");
+    @Override
+    public boolean isSupported() {
+        return XBase.super.isSupported() && (!SUPPORTS_GAME_RULE_API || this.rule != null);
+    }
 
+    public @Nullable String getValue(@NotNull World world) {
+        if (!isSupported())
+            throw new UnsupportedOperationException("Game rule not supported on this version!");
+
+        if (SUPPORTS_GAME_RULE_API) {
             GameRule<?> rule = (GameRule<?>) this.rule;
             Object value = world.getGameRuleValue(rule);
             return value == null ? null : value.toString();
         } else {
-            if (this.value == null)
-                throw new UnsupportedOperationException("Game rule not supported on this version!");
-
             try {
                 return (String) GET_GAME_RULE_VALUE.invoke(world, this.value);
             } catch (Throwable e) {
@@ -229,17 +231,14 @@ public enum XGameRule implements XBase<XGameRule, String> {
     }
 
     public <T> boolean setValue(@NotNull World world, @NotNull T value) {
-        if (SUPPORTS_GAME_RULE_API) {
-            if (this.rule == null)
-                throw new UnsupportedOperationException("Game rule not supported on this version!");
+        if (!isSupported())
+            throw new UnsupportedOperationException("Game rule not supported on this version!");
 
+        if (SUPPORTS_GAME_RULE_API) {
             @SuppressWarnings("unchecked")
             GameRule<T> rule = (GameRule<T>) this.rule;
             return world.setGameRule(rule, value);
         } else {
-            if (this.value == null)
-                throw new UnsupportedOperationException("Game rule not supported on this version!");
-
             try {
                 return (boolean) SET_GAME_RULE_VALUE.invoke(world, this.value, value.toString());
             } catch (Throwable e) {
