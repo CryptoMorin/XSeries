@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2025 Crypto Morin
+ * Copyright (c) 2026 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -142,13 +142,13 @@ public final class XItemStack {
             supportsItemModel = true;
         } catch (NoSuchMethodException ignored) {
         }
-		
+
 		try {
 			ItemMeta.class.getDeclaredMethod("setItemName", String.class);
 			supportsItemName = true;
 		} catch (NoSuchMethodException ignored) {
 		}
-		
+
         try {
             Class.forName("org.bukkit.inventory.meta.PotionMeta").getMethod("setColor", Color.class);
             supportsPotionColor = true;
@@ -582,7 +582,7 @@ public final class XItemStack {
                     config.set("lore", meta.getLore().stream().map(translator).collect(Collectors.toList()));
                 }
             }
-			
+
 			if (SUPPORTS_ITEM_NAME && meta.hasItemName()) {
 				String itemName = meta.getItemName();
 				config.set("item-name", translator.apply(itemName));
@@ -1231,7 +1231,7 @@ public final class XItemStack {
 				meta.setItemName(" ");
 			}
 		}
-		
+
         private void itemFlags() {
             List<String> flags = config.getStringList("flags");
             if (!flags.isEmpty()) {

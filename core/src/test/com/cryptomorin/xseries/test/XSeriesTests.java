@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2025 Crypto Morin
+ * Copyright (c) 2026 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,6 +102,7 @@ public final class XSeriesTests {
         testRegistry();
         testXMaterial();
         testXSound();
+        testXGameRule();
         testXPotion();
         testXEnchantment();
         testXItemStack();
@@ -243,6 +244,22 @@ public final class XSeriesTests {
         assertPresent(XSound.of("RECORD_11"));
         commonRegistryTest(XSound.REGISTRY, Arrays.asList(values(Sound.class)));
     }
+
+    private static void testXGameRule() {
+        log("Testing XGameRule...");
+        assertPresent(XGameRule.of("block_drops"));
+        assertPresent(XGameRule.of("KEEP_INVENTORY"));
+
+        World world = Bukkit.getWorlds().get(0);
+        XGameRule.BLOCK_DROPS.setValue(world, false);
+        assertEquals(false, XGameRule.BLOCK_DROPS.getValue(world));
+
+        XGameRule.RESPAWN_RADIUS.setValue(world, 1456);
+        assertEquals(1456, XGameRule.RESPAWN_RADIUS.getValue(world));
+
+        // commonRegistryTest(XGameRule.REGISTRY, Arrays.asList(values(GameRule.class)));
+    }
+
 
     private static void testXPotion() {
         log("Testing XPotion...");

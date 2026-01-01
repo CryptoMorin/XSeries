@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2025 Crypto Morin
+ * Copyright (c) 2026 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -114,6 +114,10 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         ensureLoaded = true;
     }
 
+    private enum ClassType {
+        ENUM, ABSTRACTION;
+    }
+
     /**
      * Gets the registry associated to a {@link XBase} class.
      * Usually this method is used for serialization purposes
@@ -203,10 +207,6 @@ public final class XRegistry<XForm extends XBase<XForm, BukkitForm>, BukkitForm>
         }
 
         registerModule(this, xFormClass);
-    }
-
-    private enum ClassType {
-        ENUM, ABSTRACTION;
     }
 
     @ApiStatus.Internal

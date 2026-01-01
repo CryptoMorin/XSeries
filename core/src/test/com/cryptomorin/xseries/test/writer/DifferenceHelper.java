@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2025 Crypto Morin
+ * Copyright (c) 2026 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import com.cryptomorin.xseries.reflection.XReflection;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftPackage;
 import com.cryptomorin.xseries.test.Constants;
 import com.cryptomorin.xseries.test.util.XLogger;
+import org.bukkit.GameRule;
 import org.bukkit.Keyed;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -40,6 +41,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -67,6 +69,7 @@ public final class DifferenceHelper {
         XLogger.log("Server container: " + serverFolder.toAbsolutePath());
 
         Path materials = serverFolder.resolve("XMaterial.txt"),
+                gameRules = serverFolder.resolve("XGameRule.txt"),
                 sounds = serverFolder.resolve("XSound.txt"),
                 potion = serverFolder.resolve("XPotion.txt"),
                 enchantment = serverFolder.resolve("XEnchantment.txt"),
@@ -79,6 +82,7 @@ public final class DifferenceHelper {
 
         // TODO - Right now the difference writer doesn't properly consider the version that is being tested
         new DiffWriter(materials).ignore(mat -> mat.startsWith("LEGACY_")).writeDifference(org.bukkit.Material.class, XMaterial.class);
+        new DiffWriter(gameRules).writeDifference(getEnumLikeFields(GameRule.class), getEnumLikeFields(XGameRule.class));
         new DiffWriter(sounds).writeDifference(Sound.class, XSound.REGISTRY);
         new DiffWriter(biomes).writeDifference(Biome.class, XBiome.REGISTRY);
         new DiffWriter(entityType).writeDifference(getEnumLikeFields(EntityType.class), XEntityType.class);
@@ -295,15 +299,23 @@ public final class DifferenceHelper {
             writer.append(' ');
         }
 
+        public <E extends Enum<E>> void writeDifference(List<String> system, List<String> xForm) {
+            writeDifference(system, xForm, null);
+        }
+
         public <E extends Enum<E>> void writeDifference(List<String> system, Class<E> xForm) {
+            writeDifference(system, Arrays.stream(xForm.getEnumConstants()).map(Enum::name).collect(Collectors.toList()), xForm);
+        }
+
+        public <E extends Enum<E>> void writeDifference(List<String> system, List<String> xForm, @Nullable Class<E> xFormClass) {
             boolean hasEntries = false;
 
             for (String systemConst : system) {
                 if (ignore != null && ignore.test(systemConst)) continue;
 
                 boolean exists = true;
-                for (Enum<E> customConst : xForm.getEnumConstants()) {
-                    if (systemConst.equals(customConst.name())) {
+                for (String customConst : xForm) {
+                    if (systemConst.equals(customConst)) {
                         exists = false;
                         break;
                     }
@@ -320,16 +332,16 @@ public final class DifferenceHelper {
             }
 
             hasEntries = false;
-            for (Enum<E> customConst : xForm.getEnumConstants()) {
+            for (String customConst : xForm) {
                 try {
-                    if (xForm.getDeclaredField(customConst.name()).isAnnotationPresent(Deprecated.class)) continue;
+                    if (xFormClass != null && xFormClass.getDeclaredField(customConst).isAnnotationPresent(Deprecated.class)) continue;
                 } catch (NoSuchFieldException e) {
                     throw new RuntimeException(e);
                 }
 
                 boolean exists = false;
                 for (String systemConst : system) {
-                    if (systemConst.equals(customConst.name())) {
+                    if (systemConst.equals(customConst)) {
                         exists = true;
                         break;
                     }
@@ -339,7 +351,7 @@ public final class DifferenceHelper {
                         hasEntries = true;
                         writeRemoved();
                     }
-                    writer.append(customConst.name());
+                    writer.append(customConst);
                     newLine();
                 }
             }
