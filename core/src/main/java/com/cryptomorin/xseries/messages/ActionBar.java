@@ -118,7 +118,7 @@ public final class ActionBar {
 
                 // Game Info Message Type
                 Class<?> chatMessageTypeClass = Class.forName(
-                        NMS_PACKAGE + v(17, "network.chat").orElse("") + "ChatMessageType"
+                        NMS_PACKAGE + v(1, 17, "network.chat").orElse("") + "ChatMessageType"
                 );
 
                 // Packet Constructor

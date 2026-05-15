@@ -66,7 +66,7 @@ public final class MinecraftConnection {
             .field().getter()
             .returns(ServerGamePacketListenerImpl)
             .map(MinecraftMapping.MOJANG, "connection")
-            .map(MinecraftMapping.OBFUSCATED, v(21, 6, "g").v(21, 2, "f").v(20, "c").v(17, "b").orElse("playerConnection"))
+            .map(MinecraftMapping.OBFUSCATED, v(1, 21, 6, "g").v(1, 21, 2, "f").v(1, 20, "c").v(1, 17, "b").orElse("playerConnection"))
             .unreflect();
     /**
      * Responsible for getting the NMS handler {@code EntityPlayer} object for the player.
@@ -89,7 +89,7 @@ public final class MinecraftConnection {
             .returns(void.class)
             .parameters(Packet)
             .map(MinecraftMapping.MOJANG, "send")
-            .map(MinecraftMapping.OBFUSCATED, v(20, 2, "b").v(18, "a").orElse("sendPacket"))
+            .map(MinecraftMapping.OBFUSCATED, v(1, 20, 2, "b").v(1, 18, "a").orElse("sendPacket"))
             .unreflect();
 
     @NotNull

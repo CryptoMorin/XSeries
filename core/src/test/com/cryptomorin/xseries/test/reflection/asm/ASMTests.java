@@ -44,7 +44,7 @@ public final class ASMTests {
         ProxyTestProxified factoryInstance = asm.create();
         ProxyTests.normalProxyTest(factoryInstance);
 
-        if (XReflection.supports(20))
+        if (XReflection.supports(1, 20))
             ProxyTests.minecraftProxyTest((clazz) -> XReflectASM.proxify(clazz).create());
     }
 }

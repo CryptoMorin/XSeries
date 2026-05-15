@@ -91,10 +91,10 @@ public final class DifferenceHelper {
         new DiffWriter(enchantment).writeDifference(Enchantment.class, XEnchantment.REGISTRY);
         new DiffWriter(attributes).writeDifference(Attribute.class, XAttribute.REGISTRY);
 
-        if (XReflection.supports(9))
+        if (XReflection.supports(1, 9))
             new DiffWriter(particle).writeDifference(getEnumLikeFields(Particle.class), XParticle.class);
 
-        if (XReflection.supports(13))
+        if (XReflection.supports(1, 13))
             new DiffWriter(patternType).writeDifference(PatternType.class, XPatternType.REGISTRY);
 
         // printRegistryNames(Sound.class);

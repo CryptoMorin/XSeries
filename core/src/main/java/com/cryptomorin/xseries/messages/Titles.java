@@ -373,7 +373,7 @@ public final class Titles {
      */
     public static void clearTitle(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot clear title from null player");
-        if (XReflection.supports(11)) {
+        if (XReflection.supports(1, 11, 0)) {
             player.resetTitle();
             return;
         }
@@ -407,7 +407,7 @@ public final class Titles {
         Objects.requireNonNull(header, "Tab title header cannot be null");
         Objects.requireNonNull(footer, "Tab title footer cannot be null");
 
-        if (XReflection.supports(13)) {
+        if (XReflection.supports(1, 13, 0)) {
             // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/entity/Player.java?until=2975358a021fe25d52a8103f7d7aaeceb3abf245&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fentity%2FPlayer.java
             for (Player player : players) player.setPlayerListHeaderFooter(header, footer);
             return;

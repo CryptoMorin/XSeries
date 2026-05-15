@@ -42,7 +42,7 @@ public final class ProxyTests {
     public static void test() {
         XLogger.log("[Proxy] Testing ReflectiveProxy generation...");
         normalProxyTest(ReflectiveProxy.proxify(ProxyTestProxified.class).proxy());
-        if (XReflection.supports(20)) minecraftProxyTest((x) -> ReflectiveProxy.proxify(x).proxy());
+        if (XReflection.supports(1, 20)) minecraftProxyTest((x) -> ReflectiveProxy.proxify(x).proxy());
 
         new XProxifier(ProxyTestClass.class).writeTo(TestConstants.getTestPath());
         // new XProxifier(

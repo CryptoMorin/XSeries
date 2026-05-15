@@ -186,7 +186,7 @@ public final class XSeriesTests {
         ProxyTests.test();
         ASMTests.test();
         ReflectiveConstraintTests.test();
-        if (XReflection.supports(12)) initializeReflection();
+        if (XReflection.supports(1, 12)) initializeReflection();
 
         log("Testing XWorldBorder...");
         Iterator<World> worldIter = Bukkit.getWorlds().iterator();
@@ -209,7 +209,7 @@ public final class XSeriesTests {
     }
 
     private static void testXParticle() {
-        if (XReflection.supports(9)) {
+        if (XReflection.supports(1, 9)) {
             log("Testing particles...");
             ParticleDisplay.of(XParticle.CLOUD).
                     withLocation(new Location(null, 1, 1, 1))
@@ -230,7 +230,7 @@ public final class XSeriesTests {
     }
 
     private static void testXAttribute() {
-        if (XReflection.supports(9)) {
+        if (XReflection.supports(1, 9)) {
             log("Testing XAttribute...");
             log("Attribute " + XAttribute.ARMOR_TOUGHNESS + " is " + XAttribute.ARMOR_TOUGHNESS.get());
             assertPresent(XAttribute.of("MAX_HEALTH"));
@@ -306,7 +306,7 @@ public final class XSeriesTests {
         log("Testing XEnchantment...");
         assertPresent(XEnchantment.of("EFFICIENCY"));
         assertNotNull(XEnchantment.of(Enchantment.KNOCKBACK));
-        if (XReflection.supports(11)) assertNotNull(XEnchantment.of(Enchantment.SWEEPING_EDGE));
+        if (XReflection.supports(1, 11)) assertNotNull(XEnchantment.of(Enchantment.SWEEPING_EDGE));
         commonRegistryTest(XEnchantment.REGISTRY, Arrays.asList(values(Enchantment.class)));
     }
 

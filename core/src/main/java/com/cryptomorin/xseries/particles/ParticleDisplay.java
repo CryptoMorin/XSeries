@@ -21,6 +21,7 @@
  */
 package com.cryptomorin.xseries.particles;
 
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.awt.Color;
 import java.util.*;
 import java.util.List;
@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
  * <code>[r, g, b, size]</code>
  *
  * @author Crypto Morin, cricri211, datatags
- * @version 12.0.1
+ * @version 12.0.2
  * @see Particles
  */
 @SuppressWarnings("CallToSimpleGetterFromWithinClass")
@@ -79,7 +79,7 @@ public class ParticleDisplay {
      *
      * @since 1.0.0
      */
-    private static final boolean ISFLAT;
+    private static final boolean IS_FLAT;
 
     /**
      * Checks if org.bukkit.Particle.DustTransition is available.
@@ -117,10 +117,11 @@ public class ParticleDisplay {
         } catch (NoSuchMethodException e) {
             isFlat = false;
         }
-        ISFLAT = isFlat;
+        IS_FLAT = isFlat;
 
         boolean supportsDustTransition;
         try {
+            //noinspection ResultOfMethodCallIgnored
             Particle.DustTransition.class.getName();
             supportsDustTransition = true;
         } catch (NoClassDefFoundError e) {
@@ -139,6 +140,7 @@ public class ParticleDisplay {
 
         boolean supportsSpellData;
         try {
+            //noinspection UnstableApiUsage,ResultOfMethodCallIgnored
             Particle.Spell.class.getName();
             supportsSpellData = true;
         } catch (NoClassDefFoundError e) {
@@ -498,10 +500,10 @@ public class ParticleDisplay {
         if (offset != null) {
             List<String> offsets = split(offset.replace(" ", ""), ',');
             if (offsets.size() >= 3) {
-                double offsetx = toDouble(offsets.get(0));
-                double offsety = toDouble(offsets.get(1));
-                double offsetz = toDouble(offsets.get(2));
-                display.offset(offsetx, offsety, offsetz);
+                double offsetX = toDouble(offsets.get(0));
+                double offsetY = toDouble(offsets.get(1));
+                double offsetZ = toDouble(offsets.get(2));
+                display.offset(offsetX, offsetY, offsetZ);
             } else {
                 double masterOffset = toDouble(offsets.get(0));
                 display.offset(masterOffset);
@@ -512,10 +514,10 @@ public class ParticleDisplay {
         if (particleDirection != null) {
             List<String> directions = split(particleDirection.replace(" ", ""), ',');
             if (directions.size() >= 3) {
-                double directionx = toDouble(directions.get(0));
-                double directiony = toDouble(directions.get(1));
-                double directionz = toDouble(directions.get(2));
-                display.particleDirection(directionx, directiony, directionz);
+                double directionX = toDouble(directions.get(0));
+                double directionY = toDouble(directions.get(1));
+                double directionZ = toDouble(directions.get(2));
+                display.particleDirection(directionX, directionY, directionZ);
             }
         }
 
@@ -896,20 +898,20 @@ public class ParticleDisplay {
 
     @Override
     public String toString() {
-        return "ParticleDisplay:[" +
+        return "ParticleDisplay[" +
                 "Particle=" + particle + ", " +
                 "Count=" + count + ", " +
-                "Offset:{" + offset.getX() + ", " + offset.getY() + ", " + offset.getZ() + "}, " +
+                (!offset.equals(new Vector(0, 0, 0)) ? offset + ", " : "") +
 
-                (location != null ? (
-                        "Location:{" + location.getWorld().getName() + location.getX() + ", " + location.getY() + ", " + location.getZ() + "}, "
-                ) : "") +
+                (location != null ? location + ", " : "") +
 
-                "Rotation:" + this.rotations + ", " +
+                (!rotations.isEmpty() ? ("Rotation:" + rotations + ", ") : "") +
+                (!direction.equals(new Vector(0, 1, 0)) ? ("Direction:" + direction + ", ") : "") +
 
-                "Extra=" + extra + ", " +
-                "Force=" + force + ", " +
-                "Data=" + data;
+                (extra != 0 ? ("Extra=" + extra + ", ") : "") +
+                (force ? ("Force=true, ") : "") +
+                (data != null ? ("Data=" + data) : "")
+                + "]";
     }
 
     /**
@@ -1013,13 +1015,6 @@ public class ParticleDisplay {
     public ParticleDisplay withNoteColor(Note note) {
         return withNoteColor(note.getId());
     }
-
-    // public ParticleDisplay withSize(float size) {
-    //     if (data == null) {
-    //         this.data = new float[]{red, green, blue, size};
-    //     }
-    //     return this;
-    // }
 
     /**
      * @since 7.1.0
@@ -1308,7 +1303,7 @@ public class ParticleDisplay {
     /**
      * Taken from <a href="https://en.wikipedia.org/wiki/Aircraft_principal_axes">Aircraft principal axes.</a>
      *
-     * @return The vector representating how a point should be rotated to face these axes.
+     * @return The vector representing how a point should be rotated to face these axes.
      * @since 8.1.0
      */
     public static Vector getPrincipalAxesRotation(float pitch, float yaw, float roll) {
@@ -1647,6 +1642,14 @@ public class ParticleDisplay {
      */
     @Nullable
     public Location spawn(Location loc) {
+        try {
+            return spawn0(loc);
+        } catch (Throwable ex) {
+            throw new IllegalStateException("Failed to spawn particle: " + this, ex);
+        }
+    }
+
+    private Location spawn0(Location loc) {
         if (loc == null) return null;
         lastLocation = loc;
 
@@ -1688,7 +1691,7 @@ public class ParticleDisplay {
      * @param offsetData the data that needs to go in the offset fields.
      */
     private void spawnWithDataInOffset(Particle particle, Location loc, Vector offsetData, Object data) {
-        // If there is no offset and we only want a single particle, we don't actually need to do anything special.
+        // If there is no offset, and we only want a single particle, we don't actually need to do anything special.
         // Otherwise, we'll at least need to use a loop.
         if (isZero(offset) && count < 2) {
             spawnRaw(particle, loc, 0, offsetData, data);
@@ -1696,17 +1699,17 @@ public class ParticleDisplay {
         }
         // Particles with a specific direction must be flagged with count = 0,
         // so we have to spawn each particle manually.
-        double offsetx = offset.getX();
-        double offsety = offset.getY();
-        double offsetz = offset.getZ();
+        double offsetX = offset.getX();
+        double offsetY = offset.getY();
+        double offsetZ = offset.getZ();
         ThreadLocalRandom r = ThreadLocalRandom.current();
         for (int i = 0; i < count; i++) {
             // When specifying an offset normally, bound of 1 gets you an 8 block range,
             // being +/- 4 blocks in each direction from the origin. Uses a Gaussian distribution.
             // Gaussian distribution uses a sqrt, so skip that if we can.
-            double dx = offsetx == 0 ? 0 : r.nextGaussian() * offsetx;
-            double dy = offsety == 0 ? 0 : r.nextGaussian() * offsety;
-            double dz = offsetz == 0 ? 0 : r.nextGaussian() * offsetz;
+            double dx = offsetX == 0 ? 0 : r.nextGaussian() * offsetX;
+            double dy = offsetY == 0 ? 0 : r.nextGaussian() * offsetY;
+            double dz = offsetZ == 0 ? 0 : r.nextGaussian() * offsetZ;
             Location offsetLoc = cloneLocation(loc).add(dx, dy, dz);
             spawnRaw(particle, offsetLoc, 0, offsetData, data);
         }
@@ -1715,6 +1718,7 @@ public class ParticleDisplay {
     /**
      * Calls the appropriate spawnParticle method with the parameters given.
      */
+    @SuppressWarnings("UnstableApiUsage")
     private void spawnRaw(Particle particle, Location loc, int count, Vector offset, Object data) {
         double dx = offset.getX();
         double dy = offset.getY();
@@ -1727,20 +1731,12 @@ public class ParticleDisplay {
             // always put the color in dx and set extra to 1.
             extra = 1;
         }
-        if (ISFLAT && data == null && particle.getDataType() != Void.class) {
+        if (IS_FLAT && data == null && particle.getDataType() != Void.class) {
             // Apply some defaults for compatibility with how it worked in older versions
-            if (particle.getDataType() == Float.class) {
-                data = 1f;
-            } else if (particle.getDataType() == org.bukkit.Color.class) {
-                data = randomColor();
-            } else if (particle.getDataType() == Particle.DustOptions.class) {
-                data = new Particle.DustOptions(org.bukkit.Color.RED, 1f);
-            } else if (SUPPORTS_SPELL_DATA && particle.getDataType() == Particle.Spell.class) {
-                data = new Particle.Spell(randomColor(), 1);
-            }
+            data = defaultRequiredData(particle, loc);
         }
         if (players == null || players.isEmpty())
-            if (ISFLAT)
+            if (IS_FLAT)
                 loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
             else loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
         else {
@@ -1782,15 +1778,11 @@ public class ParticleDisplay {
     public static double colorDistanceSquared(Color c1, Color c2) {
         int red1 = c1.getRed();
         int red2 = c2.getRed();
-        int rmean = (red1 + red2) >> 1;
+        int redMean = (red1 + red2) >> 1;
         int r = red1 - red2;
         int g = c1.getGreen() - c2.getGreen();
         int b = c1.getBlue() - c2.getBlue();
-        return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8);
-    }
-
-    private static org.bukkit.Color randomColor() {
-        return org.bukkit.Color.fromRGB(ThreadLocalRandom.current().nextInt(1 << 24));
+        return (((512 + redMean) * r * r) >> 8) + 4 * g * g + (((767 - redMean) * b * b) >> 8);
     }
 
     /**
@@ -1928,6 +1920,31 @@ public class ParticleDisplay {
         }
     }
 
+    @SuppressWarnings("UnstableApiUsage")
+    public static Object defaultRequiredData(Particle particle, Location finalLocation) {
+        Class<?> dataType = particle.getDataType();
+
+        // @formatter:off
+        if (dataType == Float.class)                        return         1f;
+        else if (dataType == Double.class)                  return         1.0d;
+        else if (dataType == Long.class)                    return         1L;
+        else if (dataType == Integer.class)                 return         1;
+        else if (dataType == Short.class)                   return (short) 1;
+        else if (dataType == Byte.class)                    return (byte)  1;
+        else if (dataType == Boolean.class)                 return true;
+        else if (dataType == Color.class)                   return            Color.WHITE;
+        else if (dataType == org.bukkit.Color.class)        return org.bukkit.Color.WHITE;
+        else if (dataType == BlockData.class)               return Material.STONE.createBlockData();
+        else if (dataType == ItemStack.class)               return Material.STONE;
+        else if (dataType == Vibration.class)               return new Vibration(finalLocation, new Vibration.Destination.BlockDestination(finalLocation.clone().add(0, 2, 0)), 60);
+        else if (SUPPORTS_SPELL_DATA && dataType == Particle.Spell.class) return new Particle.Spell(org.bukkit.Color.WHITE, 1f);
+        else if (dataType == Particle.DustOptions.class)    return new Particle.DustOptions(org.bukkit.Color.WHITE, 1f);
+        else if (dataType == Particle.Trail.class)          return new Particle.Trail(finalLocation, org.bukkit.Color.WHITE, 60);
+        else if (SUPPORTS_DUST_TRANSITION && dataType == Particle.DustTransition.class) return new Particle.DustTransition(org.bukkit.Color.WHITE, org.bukkit.Color.BLACK, 1f);
+        else return null;
+        // @formatter:on
+    }
+
     public interface ParticleData {
 
         default Vector offsetValues(ParticleDisplay display) {
@@ -1964,7 +1981,7 @@ public class ParticleDisplay {
         public Vector offsetValues(ParticleDisplay display) {
             // All particles that supported color used offset fields for them before the flattening.
             // ENTITY_EFFECT particle uses the offset fields for color on 1.20.4 and below.
-            if (!ISFLAT || (display.particle == XParticle.ENTITY_EFFECT && display.particle.isSupported()
+            if (!IS_FLAT || (display.particle == XParticle.ENTITY_EFFECT && display.particle.isSupported()
                     && display.particle.get().getDataType() == Void.class)) {
                 // Dust particles on older versions would ignore the red channel if it's set to 0.
                 double red = (color.getRed() == 0) ? Float.MIN_VALUE : color.getRed() / 255d;
@@ -1973,8 +1990,9 @@ public class ParticleDisplay {
             return null;
         }
 
+        @SuppressWarnings("UnstableApiUsage")
         public Object data(ParticleDisplay display) {
-            if (!ISFLAT || !display.particle.isSupported()) {
+            if (!IS_FLAT || !display.particle.isSupported()) {
                 return null;
             }
             Class<?> dataType = display.particle.get().getDataType();
@@ -2158,7 +2176,9 @@ public class ParticleDisplay {
         /**
          * @see ParticleDisplay#withRawData(Object)
          */
-        private ConstantParticleData(Object data) {this.data = data;}
+        private ConstantParticleData(Object data) {
+            this.data = data;
+        }
 
         @Override
         public Object data(ParticleDisplay display) {

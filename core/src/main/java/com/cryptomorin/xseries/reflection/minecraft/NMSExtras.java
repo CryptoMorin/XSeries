@@ -163,15 +163,15 @@ public final class NMSExtras {
             getDataWatcher = XReflection.of(nmsEntity)
                     .method().returns(DataWatcherClass)
                     .map(MinecraftMapping.MOJANG, "getEntityData")
-                    .map(MinecraftMapping.OBFUSCATED, v(21, 11, "aD").v(21, 9, "aC").v(21, 6, "au")
-                            .v(21, 5, "ar")
-                            .v(21, 3, "au")
-                            .v(21, "ar")
-                            .v(20, 5, "ap")
-                            .v(20, 4, "an")
-                            .v(20, 2, "al")
-                            .v(19, "aj")
-                            .v(18, "ai")
+                    .map(MinecraftMapping.OBFUSCATED, v(1, 21, 11, "aD").v(1, 21, 9, "aC").v(1, 21, 6, "au")
+                            .v(1, 21, 5, "ar")
+                            .v(1, 21, 3, "au")
+                            .v(1, 21, "ar")
+                            .v(1, 20, 5, "ap")
+                            .v(1, 20, 4, "an")
+                            .v(1, 20, 2, "al")
+                            .v(1, 19, "aj")
+                            .v(1, 18, "ai")
                             .orElse("getDataWatcher")
                     ).unreflect();
 
@@ -182,7 +182,7 @@ public final class NMSExtras {
             dataWatcherGetItem = XReflection.of(DataWatcherClass).method()
                     .returns(Object.class).parameters(DataWatcherObject)
                     .map(MinecraftMapping.MOJANG, "get")
-                    .map(MinecraftMapping.SPIGOT, v(20, 5, "a").v(20, "b").v(18, "a").orElse("get"))
+                    .map(MinecraftMapping.SPIGOT, v(1, 20, 5, "a").v(1, 20, "b").v(1, 18, "a").orElse("get"))
                     .unreflect();
 
             /*
@@ -193,7 +193,7 @@ public final class NMSExtras {
             dataWatcherSetItem = XReflection.of(DataWatcherClass).method()
                     .returns(void.class).parameters(DataWatcherObject, Object.class)
                     .map(MinecraftMapping.MOJANG, "set")
-                    .map(MinecraftMapping.SPIGOT, v(20, 5, "a").v(18, "b").orElse("set"))
+                    .map(MinecraftMapping.SPIGOT, v(1, 20, 5, "a").v(1, 18, "b").orElse("set"))
                     .unreflect();
 
             getBukkitEntity = lookup.findVirtual(nmsEntity, "getBukkitEntity", MethodType.methodType(craftEntity));
@@ -207,7 +207,7 @@ public final class NMSExtras {
                     .unreflect(), MethodType.methodType(
                     void.class, float.class, int.class, int.class));
             // Lightning
-            if (!supports(16)) {
+            if (!supports(1, 16)) {
                 entityPacket = ofMinecraft().inPackage(MinecraftPackage.NMS)
                         .named("PacketPlayOutSpawnEntityWeather")
                         .constructor().parameters(nmsEntity).unreflect();
@@ -220,7 +220,7 @@ public final class NMSExtras {
                         double.class, double.class, double.class, float.class, float.class,
                         nmsEntityType, int.class, nmsVec3D)
                 );
-                if (XReflection.supports(19)) spawnTypes.add(double.class);
+                if (XReflection.supports(1, 19)) spawnTypes.add(double.class);
                 entityPacket = lookup.findConstructor(ofMinecraft().inPackage(MinecraftPackage.NMS, "network.protocol.game")
                                 .map(MinecraftMapping.MOJANG, "ClientboundAddEntityPacket")
                                 .map(MinecraftMapping.SPIGOT, "PacketPlayOutSpawnEntity")
@@ -236,7 +236,7 @@ public final class NMSExtras {
             MinecraftClassHandle entityLightning = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.entity")
                     .map(MinecraftMapping.MOJANG, "LightningBolt")
                     .map(MinecraftMapping.SPIGOT, "EntityLightning");
-            if (!supports(16)) {
+            if (!supports(1, 16)) {
                 lightning = lookup.findConstructor(entityLightning.unreflect(), MethodType.methodType(void.class,
                         // world, x, y, z, isEffect, isSilent
                         world, double.class, double.class, double.class, boolean.class, boolean.class));
@@ -275,7 +275,7 @@ public final class NMSExtras {
 //                setBlockData = lookup.unreflectSetter(blockDataField);
 
                 // noinspection StatementWithEmptyBody
-                if (supports(16)) {
+                if (supports(1, 16)) {
 //                    Class<?> sectionPosClass = getNMSClass("SectionPosition");
 //                    chunkWrapper = lookup.findConstructor(sectionPosClass, MethodType.methodType(int.class, int.class, int.class));
                 } else
@@ -289,9 +289,9 @@ public final class NMSExtras {
                     .map(MinecraftMapping.SPIGOT, "PacketPlayOutAnimation")
                     .unreflect();
             animationPacket = lookup.findConstructor(animation,
-                    supports(17) ? MethodType.methodType(void.class, nmsEntity, int.class) : MethodType.methodType(void.class));
+                    supports(1, 17) ? MethodType.methodType(void.class, nmsEntity, int.class) : MethodType.methodType(void.class));
 
-            if (!supports(17)) {
+            if (!supports(1, 17)) {
                 Field field = animation.getDeclaredField("a");
                 field.setAccessible(true);
                 animationEntityId = lookup.unreflectSetter(field);
@@ -309,15 +309,15 @@ public final class NMSExtras {
                     .unreflect();
 
             blockPosition = lookup.findConstructor(blockPos,
-                    v(19, MethodType.methodType(void.class, int.class, int.class, int.class)).orElse(
+                    v(1, 19, MethodType.methodType(void.class, int.class, int.class, int.class)).orElse(
                             MethodType.methodType(void.class, double.class, double.class, double.class)));
 
             // public IBlockData getBlockState(BlockPosition blockposition)
             getBlockType = XReflection.of(world).method().returns(BlockState).parameters(blockPos)
                     .map(MinecraftMapping.MOJANG, "getBlockState")
-                    .map(MinecraftMapping.SPIGOT, v(18, "a_").orElse("getType"))
+                    .map(MinecraftMapping.SPIGOT, v(1, 18, 0, "a_").orElse("getType"))
                     .unreflect();
-            if (supports(21)) {
+            if (supports(1, 21)) {
                 getBlock = XReflection.ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.state")
                         .map(MinecraftMapping.MOJANG, "BlockBehaviour")
                         .map(MinecraftMapping.SPIGOT, "BlockBase")
@@ -331,36 +331,45 @@ public final class NMSExtras {
             } else {
                 getBlock = XReflection.of(BlockState).method().returns(block)
                         .map(MinecraftMapping.MOJANG, "getBlock")
-                        .map(MinecraftMapping.SPIGOT, v(18, "b").orElse("getBlock"))
+                        .map(MinecraftMapping.SPIGOT, v(1, 18, 0, "b").orElse("getBlock"))
                         .unreflect();
             }
             playBlockAction = XReflection.of(world).method().returns(void.class).parameters(blockPos, block, int.class, int.class)
                     .map(MinecraftMapping.MOJANG, "blockEvent")
-                    .map(MinecraftMapping.SPIGOT, v(18, "a").orElse("playBlockAction"))
+                    .map(MinecraftMapping.SPIGOT, v(1, 18, 0, "a").orElse("playBlockAction"))
                     .unreflect();
 
             signEditorPacket = lookup.findConstructor(signOpenPacket,
-                    v(20, MethodType.methodType(void.class, blockPos, boolean.class))
+                    v(1, 20, MethodType.methodType(void.class, blockPos, boolean.class))
                             .orElse(MethodType.methodType(void.class, blockPos)));
-            if (supports(17)) {
+            if (supports(1, 17, 0)) {
                 packetPlayOutBlockChange = lookup.findConstructor(packetPlayOutBlockChangeClass, MethodType.methodType(void.class, blockPos, BlockState));
                 getIBlockData = lookup.findStatic(CraftMagicNumbers, "getBlock", MethodType.methodType(BlockState, Material.class, byte.class));
-                sanitizeLines = lookup.findStatic(CraftSign, v(17, "sanitizeLines").orElse("SANITIZE_LINES"),
+                sanitizeLines = lookup.findStatic(CraftSign, v(1, 17, "sanitizeLines").orElse("SANITIZE_LINES"),
                         MethodType.methodType(toArrayClass(IChatBaseComponent), String[].class));
 
                 tileEntitySign = lookup.findConstructor(TileEntitySign, MethodType.methodType(void.class, blockPos, BlockState));
                 tileEntitySign_getUpdatePacket = XReflection.of(TileEntitySign).method().returns(PacketPlayOutTileEntityData)
                         .map(MinecraftMapping.MOJANG, "getUpdatePacket")
-                        .map(MinecraftMapping.SPIGOT, v(21, 9, "l").v(21, 6, "u").v(21, 4, "s").v(21, 3, "t").v(20, 5, "l").v(20, 4, "m").v(20, "j").v(19, "f").v(18, "c").orElse("getUpdatePacket"))
+                        .map(MinecraftMapping.SPIGOT, v(1, 21, 9, "l")
+                                .v(1, 21, 6, "u")
+                                .v(1, 21, 4, "s")
+                                .v(1, 21, 3, "t")
+                                .v(1, 20, 5, "l")
+                                .v(1, 20, 4, "m")
+                                .v(1, 20, "j")
+                                .v(1, 19, 0, "f")
+                                .v(1, 18, 0, "c")
+                                .orElse("getUpdatePacket"))
                         .unreflect();
 
-                if (supports(20)) {
+                if (supports(1, 20, 0)) {
                     Class<?> SignText = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.level.block.entity")
                             .named("SignText").unreflect();
                     // public boolean a(SignText signtext, boolean flag) {
                     //        return flag ? this.c(signtext) : this.b(signtext);
                     // }
-                    if (!supports(20, 6)) { // It completely changed, needs a lot of work
+                    if (!supports(1, 20, 6)) { // It completely changed, needs a lot of work
                         tileEntitySign_setLine = lookup.findVirtual(TileEntitySign, "a",
                                 MethodType.methodType(boolean.class, SignText, boolean.class));
                     }
@@ -447,7 +456,7 @@ public final class NMSExtras {
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
 
-            if (!supports(16)) {
+            if (!supports(1, 16)) {
                 // I don't know what the isEffect and isSilent params are used for.
                 // It doesn't seem to visually change the lightning.
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(world, location.getX(), location.getY(), location.getZ(), false, false);
@@ -462,7 +471,7 @@ public final class NMSExtras {
                         .map(MinecraftMapping.MOJANG, "EntityType")
                         .map(MinecraftMapping.SPIGOT, "EntityTypes").unreflect();
 
-                Object lightningType = nmsEntityType.getField(supports(17) ? "U" : "LIGHTNING_BOLT").get(nmsEntityType);
+                Object lightningType = nmsEntityType.getField(supports(1, 17) ? "U" : "LIGHTNING_BOLT").get(nmsEntityType);
                 Object lightningBolt = LIGHTNING_ENTITY.invoke(lightningType, world);
                 Object lightningBoltID = lightningBolt.getClass().getMethod("getId").invoke(lightningBolt);
                 Object lightningBoltUUID = lightningBolt.getClass().getMethod("getUniqueID").invoke(lightningBolt);
@@ -560,7 +569,7 @@ public final class NMSExtras {
                         .map(MinecraftMapping.MOJANG, "Pose")
                         .map(MinecraftMapping.SPIGOT, "EntityPose")
                         .reflect();
-                enumValue = EntityPose.getDeclaredField(v(17, fieldName).orElse(name())).get(null);
+                enumValue = EntityPose.getDeclaredField(v(1, 17, fieldName).orElse(name())).get(null);
             } catch (Throwable e) {
                 supported = false;
             }
@@ -678,7 +687,7 @@ public final class NMSExtras {
         try {
             // https://wiki.vg/Protocol#Entity_Animation_.28clientbound.29
             Object packet;
-            if (supports(17)) packet = ANIMATION_PACKET.invoke(ENTITY_HANDLE.invoke(entity), animation.ordinal());
+            if (supports(1, 17)) packet = ANIMATION_PACKET.invoke(ENTITY_HANDLE.invoke(entity), animation.ordinal());
             else {
                 packet = ANIMATION_PACKET.invoke();
                 ANIMATION_TYPE.invoke(packet, animation.ordinal());
@@ -695,7 +704,7 @@ public final class NMSExtras {
         Location location = chest.getLocation();
         try {
             Object world = WORLD_HANDLE.invoke(location.getWorld());
-            Object position = v(19,
+            Object position = v(1, 19,
                     () ->
                     {
                         try {
@@ -723,11 +732,11 @@ public final class NMSExtras {
      * Not completed yet. I have no idea.
      */
     @Deprecated
-    protected static void sendBlockChange(Player player, Chunk chunk, Map<WorldlessBlockWrapper, Object> blocks) {
+    private static void sendBlockChange(Player player, Chunk chunk, Map<WorldlessBlockWrapper, Object> blocks) {
         try {
             Object packet = PLAY_OUT_MULTI_BLOCK_CHANGE_PACKET.invoke();
 
-            if (supports(16)) {
+            if (supports(1, 16)) {
                 Object wrapper = CHUNK_WRAPPER.invoke(chunk.getX(), chunk.getZ());
                 CHUNK_WRAPPER_SET.invoke(wrapper);
 
@@ -779,7 +788,7 @@ public final class NMSExtras {
 
             Object components = SANITIZE_LINES.invoke((Object[]) lines);
             Object tileSign = TILE_ENTITY_SIGN.invoke(position, signBlockData);
-            if (supports(20)) {
+            if (supports(1, 20)) {
                 // When can we use this without blocks... player.openSign();
                 Class<?> EnumColor = ofMinecraft().inPackage(MinecraftPackage.NMS, "world.item")
                         .map(MinecraftMapping.MOJANG, "DyeColor")
@@ -805,7 +814,7 @@ public final class NMSExtras {
             Object signLinesUpdatePacket = TILE_ENTITY_SIGN__GET_UPDATE_PACKET.invoke(tileSign);
 
             Object signPacket =
-                    v(20, PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position, true))
+                    v(1, 20, PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position, true))
                             .orElse(PACKET_PLAY_OUT_OPEN_SIGN_EDITOR.invoke(position));
 
             MinecraftConnection.sendPacket(player, blockChangePacket, signLinesUpdatePacket, signPacket);

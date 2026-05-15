@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  * <h2>Fallback</h2>
  * Some methods exist to choose between different values depending on the situation:
  * <ul>
- *     <li>{@link #v(int, Object)}: Basic Minecraft version-based value handler.</li>
+ *     <li>{@link #v(int, int int, Object)}: Basic Minecraft version-based value handler.</li>
  *     <li>{@link #any(ReflectiveHandle[])} and {@link #anyOf(Callable[])}: Advanced fallback-based support for all the reflection operations.</li>
  * </ul>
  *     <h2>Others</h2>
@@ -169,7 +169,7 @@ public final class XReflection {
      * to run forked processes (e.g. using JMH default forked mode for benchmarking.)
      * <p>
      * It's simply enough for the property to be present, but you can also specify a Minecraft version
-     * for the class to use for {@link #supports(int)} and other similar version checking methods.
+     * for the class to use for {@link #supports(int, int, int)} and other similar version checking methods.
      */
     @TestOnly
     public static final String DISABLE_MINECRAFT_CAPABILITIES_PROPERTY = "xseries.xreflection.disable.minecraft";
@@ -233,7 +233,7 @@ public final class XReflection {
      * The raw minor version number.
      * E.g. {@code v1_17_R1} to {@code 17}
      *
-     * @see #supports(int)
+     * @see #supports(int, int, int)
      * @since 4.0.0
      */
     public static final int MINOR_NUMBER;
@@ -282,7 +282,7 @@ public final class XReflection {
             System.out.println("[XSeries/XReflection] Testing with hardcoded server version: "
                     + (verProp.isEmpty() ? "Disabled Minecraft Capabilities" : verProp));
             if (verProp.isEmpty() || verProp.equals("true")) {
-                verProp = "1.21.4-R0.1-SNAPSHOT";
+                verProp = "1.21.11-R0.1-SNAPSHOT";
             }
         }
 
@@ -347,28 +347,29 @@ public final class XReflection {
         // https://minecraft.wiki/w/Java_Edition_version_history
         // There are many ways to do this, but this is more visually appealing.
         int[] patches = {
-                /* 1 */ 1,
-                /* 2 */ 5,
-                /* 3 */ 2,
-                /* 4 */ 7,
-                /* 5 */ 2,
-                /* 6 */ 4,
-                /* 7 */ 10,
-                /* 8 */ 8, // I don't think they released a server version for 1.8.9
-                /* 9 */ 4,
+                /* 1.1 */ 1,
+                /* 1.2 */ 5,
+                /* 1.3 */ 2,
+                /* 1.4 */ 7,
+                /* 1.5 */ 2,
+                /* 1.6 */ 4,
+                /* 1.7 */ 10,
+                /* 1.8 */ 8, // I don't think they released a server version for 1.8.9
+                /* 1.9 */ 4,
 
-                /* 10 */ 2,//          ,_  _  _,
-                /* 11 */ 2,//            \o-o/
-                /* 12 */ 2,//           ,(.-.),
-                /* 13 */ 2,//         _/ |) (| \_
-                /* 14 */ 4,//           /\=-=/\
-                /* 15 */ 2,//          ,| \=/ |,
-                /* 16 */ 5,//        _/ \  |  / \_
-                /* 17 */ 1,//            \_!_/
-                /* 18 */ 2,
-                /* 19 */ 4,
-                /* 20 */ 6,
-                /* 21 */ 8,
+                /* 1.10 */ 2,//          ,_  _  _,
+                /* 1.11 */ 2,//            \o-o/
+                /* 1.12 */ 2,//           ,(.-.),
+                /* 1.13 */ 2,//         _/ |) (| \_
+                /* 1.14 */ 4,//           /\=-=/\
+                /* 1.15 */ 2,//          ,| \=/ |,
+                /* 1.16 */ 5,//        _/ \  |  / \_
+                /* 1.17 */ 1,//            \_!_/
+                /* 1.18 */ 2,
+                /* 1.19 */ 4,
+                /* 1.20 */ 6,
+                /* 1.21 */ 11,
+                /* 26   */ 1,
         };
 
         if (minorVersion > patches.length) return null;
@@ -381,7 +382,7 @@ public final class XReflection {
     @ApiStatus.Internal
     public static final String
             CRAFTBUKKIT_PACKAGE = isMinecraftDisabled() != null ? null : Bukkit.getServer().getClass().getPackage().getName(),
-            NMS_PACKAGE = v(17, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
+            NMS_PACKAGE = v(1, 17, 0, "net.minecraft").orElse("net.minecraft.server." + NMS_VERSION);
 
     @ApiStatus.Internal
     @ApiStatus.Experimental
@@ -408,20 +409,16 @@ public final class XReflection {
         }
     }
 
-    private XReflection() {}
+    private XReflection() {
+    }
 
     /**
-     * Gives the {@code handle} object if the server version is equal or greater than the given version.
-     * This method is purely for readability and should be always used with {@link VersionHandle#orElse(Object)}.
-     *
-     * @see #v(int, int, Object)
-     * @see VersionHandle#orElse(Object)
-     * @since 5.0.0
+     * @since 9.5.0
      */
     @NotNull
-    @Contract(value = "_, _ -> new", pure = true)
-    public static <T> VersionHandle<T> v(int version, T handle) {
-        return new VersionHandle<>(version, handle);
+    @Contract(value = "_, _, _, _ -> new", pure = true)
+    public static <T> VersionHandle<T> v(int major, int minor, int patch, T handle) {
+        return new VersionHandle<>(major, minor, patch, handle);
     }
 
     /**
@@ -429,41 +426,40 @@ public final class XReflection {
      */
     @NotNull
     @Contract(value = "_, _, _ -> new", pure = true)
-    public static <T> VersionHandle<T> v(int version, int patch, T handle) {
-        return new VersionHandle<>(version, patch, handle);
-    }
-
-    @NotNull
-    @Contract(value = "_, _ -> new", pure = true)
-    public static <T> VersionHandle<T> v(int version, Callable<T> handle) {
-        return new VersionHandle<>(version, handle);
+    public static <T> VersionHandle<T> v(int major, int minor, T handle) {
+        return v(major, minor, 0, handle);
     }
 
     @NotNull
     @Contract(value = "_, _, _ -> new", pure = true)
-    public static <T> VersionHandle<T> v(int version, int patch, Callable<T> handle) {
-        return new VersionHandle<>(version, patch, handle);
+    public static <T> VersionHandle<T> v(int major, int minor, Callable<T> handle) {
+        return v(major, minor, 0, handle);
+    }
+
+    @NotNull
+    @Contract(value = "_, _, _, _ -> new", pure = true)
+    public static <T> VersionHandle<T> v(int major, int minor, int patch, Callable<T> handle) {
+        return new VersionHandle<>(major, minor, patch, handle);
     }
 
     /**
      * Checks whether the server version is equal or greater than the given version.
      * The major version number is always assumed to be 1.
      *
-     * @param minorNumber the version to compare the server version with.
      * @return true if the version is equal or newer, otherwise false.
      * @see #MINOR_NUMBER
-     * @since 4.0.0
-     */
-    @Contract(pure = true)
-    public static boolean supports(int minorNumber) {
-        return supports(1, minorNumber, 0);
-    }
-
-    /**
-     * A more friendly version of {@link #supports(int, int)} for people with OCD.
+     * @see #PATCH_NUMBER
+     * @since 7.1.0
      */
     @Contract(pure = true)
     public static boolean supports(int majorNumber, int minorNumber, int patchNumber) {
+        if (majorNumber != 1 && majorNumber < 26)
+            throw new IllegalArgumentException("Unexpected major version: " + majorNumber + "." + minorNumber + "." + patchNumber);
+        if (majorNumber == 1 && minorNumber > 21)
+            throw new IllegalArgumentException("Unexpected minor version: " + majorNumber + "." + minorNumber + "." + patchNumber);
+        if (majorNumber == 1 && patchNumber > 11)
+            throw new IllegalArgumentException("Unexpected patch version: " + majorNumber + "." + minorNumber + "." + patchNumber);
+
         return MAJOR_NUMBER == majorNumber ? MINOR_NUMBER == minorNumber ? PATCH_NUMBER >= patchNumber : MINOR_NUMBER > minorNumber : MAJOR_NUMBER > majorNumber;
     }
 
@@ -471,16 +467,14 @@ public final class XReflection {
      * Checks whether the server version is equal or greater than the given version.
      * The major version number is always assumed to be 1.
      *
-     * @param minorNumber the minor version to compare the server version with.
-     * @param patchNumber the patch number to compare the server version with.
      * @return true if the version is equal or newer, otherwise false.
      * @see #MINOR_NUMBER
      * @see #PATCH_NUMBER
      * @since 7.1.0
      */
     @Contract(pure = true)
-    public static boolean supports(int minorNumber, int patchNumber) {
-        return supports(1, minorNumber, patchNumber);
+    public static boolean supports(int major, int minor) {
+        return supports(major, minor, 0);
     }
 
     /**
@@ -490,7 +484,7 @@ public final class XReflection {
      * @return true if the version is equal or newer, otherwise false.
      * @see #PATCH_NUMBER
      * @since 7.0.0
-     * @deprecated use {@link #supports(int, int)}
+     * @deprecated use {@link #supports(int, int, int)}
      */
     @Deprecated
     @Contract(pure = true)
@@ -512,7 +506,7 @@ public final class XReflection {
     @NotNull
     @Deprecated
     public static Class<?> getNMSClass(@Nullable String packageName, @NotNull String name) {
-        if (packageName != null && supports(17)) name = packageName + '.' + name;
+        if (packageName != null && supports(1, 17, 0)) name = packageName + '.' + name;
 
         try {
             return Class.forName(NMS_PACKAGE + '.' + name);

@@ -2325,7 +2325,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
     }
 
     /**
-     * This is an internal API. Use {@link com.cryptomorin.xseries.reflection.XReflection#supports(int)} instead.
+     * This is an internal API. Use {@link com.cryptomorin.xseries.reflection.XReflection#supports(int, int, int)} instead.
      * Checks if the specified version is the same version or higher than the current server version.
      *
      * @param major the major version to be checked. E.g. 26 for 26.

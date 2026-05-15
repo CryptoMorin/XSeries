@@ -40,9 +40,9 @@ import java.util.*;
 
 /**
  * <b>XBlock</b> - MaterialData/BlockData Support<br>
- * BlockState (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html
- * BlockData (New): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
- * MaterialData (Old): https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html
+ * BlockState (Old): <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/BlockState.html">BlockState</a>
+ * BlockData (New): <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html">BlockData</a>
+ * MaterialData (Old): <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/material/MaterialData.html">MaterialData</a>
  * <p>
  * All the parameters are non-null except the ones marked as nullable.
  * This class doesn't and shouldn't support materials that are {@link Material#isLegacy()}.
@@ -79,7 +79,7 @@ public final class XBlock {
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
     ));
     public static final byte CAKE_SLICES = 6;
-    private static final boolean ISFLAT = XMaterial.supports(1, 13);
+    private static final boolean IS_FLAT = XMaterial.supports(1, 13);
     private static final Map<XMaterial, XMaterial> ITEM_TO_BLOCK = new EnumMap<>(XMaterial.class);
 
     static {
@@ -102,7 +102,7 @@ public final class XBlock {
     }
 
     public static boolean isLit(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Lightable)) return false;
             org.bukkit.block.data.Lightable lightable = (org.bukkit.block.data.Lightable) block.getBlockData();
             return lightable.isLit();
@@ -130,7 +130,7 @@ public final class XBlock {
      * @param lit   if it should be lit or not.
      */
     public static void setLit(Block block, boolean lit) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Lightable)) return;
             BlockData data = block.getBlockData();
             org.bukkit.block.data.Lightable lightable = (org.bukkit.block.data.Lightable) data;
@@ -173,7 +173,7 @@ public final class XBlock {
      * Wool and Dye. But Dye is not a block itself.
      */
     public static DyeColor getColor(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof Colorable)) return null;
             Colorable colorable = (Colorable) block.getBlockData();
             return colorable.getColor();
@@ -194,7 +194,7 @@ public final class XBlock {
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public static boolean isCake(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == LegacyBlockMaterial.CAKE_BLOCK.material;
         }
         return material == Material.CAKE;
@@ -205,7 +205,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isWheat(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == LegacyBlockMaterial.CROPS.material;
         }
         return material == Material.WHEAT;
@@ -216,7 +216,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isSugarCane(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == LegacyBlockMaterial.SUGAR_CANE_BLOCK.material;
         }
         return material == Material.SUGAR_CANE;
@@ -227,7 +227,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isBeetroot(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
             return material != null && material == LegacyBlockMaterial.BEETROOT_BLOCK.material;
         }
@@ -239,7 +239,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isNetherWart(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == LegacyBlockMaterial.NETHER_WARTS.material;
         }
         return material == Material.NETHER_WART;
@@ -250,7 +250,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isCarrot(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == Material.CARROT;
         }
         return material == Material.CARROTS;
@@ -261,7 +261,7 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isMelon(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == LegacyBlockMaterial.MELON_BLOCK.material;
         }
         return material == Material.MELON;
@@ -272,14 +272,14 @@ public final class XBlock {
      */
     @Deprecated
     public static boolean isPotato(@Nullable Material material) {
-        if (!ISFLAT) {
+        if (!IS_FLAT) {
             return material == Material.POTATO;
         }
         return material == Material.POTATOES;
     }
 
     public static BlockFace getDirection(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Directional)) return BlockFace.SELF;
             org.bukkit.block.data.Directional direction = (org.bukkit.block.data.Directional) block.getBlockData();
             return direction.getFacing();
@@ -293,7 +293,7 @@ public final class XBlock {
     }
 
     public static boolean setDirection(Block block, BlockFace facing) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Directional)) return false;
             BlockData data = block.getBlockData();
             org.bukkit.block.data.Directional direction = (org.bukkit.block.data.Directional) data;
@@ -320,7 +320,7 @@ public final class XBlock {
      */
     @ApiStatus.Experimental
     public static XMaterial getType(Block block) {
-        if (ISFLAT) return XMaterial.matchXMaterial(block.getType());
+        if (IS_FLAT) return XMaterial.matchXMaterial(block.getType());
 
         Material mat = block.getType();
         LegacyMaterialGroup legacyMaterial = LegacyMaterialGroup.getMaterial(mat.name());
@@ -431,7 +431,7 @@ public final class XBlock {
                     case GREEN:      return XMaterial.GREEN_BED;
                     case RED:        return XMaterial.RED_BED;
                     case BLACK:      return XMaterial.BLACK_BED;
-                    default:         throw new AssertionError("Unkonwn " + legacyMaterial + " type: " + dyeColor);
+                    default:         throw new AssertionError("Unknown " + legacyMaterial + " type: " + dyeColor);
                 }
             case DOUBLE_PLANT:
                 // Special bug in 1.8-1.12 which causes all top halves of DOUBLE_PLANT to return 10
@@ -556,11 +556,6 @@ public final class XBlock {
         }
         // @formatter:on
 
-        // if (legacyMaterial.handling != LegacyMaterialGroup.Handling.XMaterial) {
-        //     throw new AssertionError("Expected XMaterial handling, instead got: "
-        //             + state + " | " + data + " | " + mat + " | " + legacyMaterial);
-        // }
-
         byte finalData = data;
         return XMaterial.matchDefinedXMaterial(mat.name(), data).orElseThrow(() ->
                 new AssertionError("Unknown legacy block type: "
@@ -639,13 +634,13 @@ public final class XBlock {
 
         // SKULL_ITEM is for items and SKULL is for blocks.
         SkullType skullType = getSkullType(material);
-        if (!ISFLAT && (parsedName.equals("SKULL_ITEM") || skullType != null)) parsedMat = Material.valueOf("SKULL");
+        if (!IS_FLAT && (parsedName.equals("SKULL_ITEM") || skullType != null)) parsedMat = Material.valueOf("SKULL");
 
-        if (ISFLAT && !parsedMat.isBlock()) {
+        if (IS_FLAT && !parsedMat.isBlock()) {
             throw new BlockTypeChangeException(BlockTypeChangeException.Reason.NOT_A_BLOCK, material, parsedMat);
         }
         block.setType(parsedMat, applyPhysics);
-        if (ISFLAT) return;
+        if (IS_FLAT) return;
 
         LegacyBlockMaterial blockMaterial = null;
         switch (material) {
@@ -830,7 +825,7 @@ public final class XBlock {
     }
 
     public static int getAge(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Ageable)) return 0;
             org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) block.getBlockData();
             return ageable.getAge();
@@ -842,7 +837,7 @@ public final class XBlock {
     }
 
     public static void setAge(Block block, int age) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Ageable)) return;
             BlockData data = block.getBlockData();
             org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) data;
@@ -864,7 +859,7 @@ public final class XBlock {
      * @return true if the block can be colored, otherwise false.
      */
     public static boolean setColor(Block block, DyeColor color) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             String type = block.getType().name();
             int index = type.indexOf('_');
             if (index == -1) return false;
@@ -890,7 +885,7 @@ public final class XBlock {
      * @return true if this block can have a fluid level, otherwise false.
      */
     public static boolean setFluidLevel(Block block, int level) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled)) return false;
             BlockData data = block.getBlockData();
             org.bukkit.block.data.Levelled levelled = (org.bukkit.block.data.Levelled) data;
@@ -907,7 +902,7 @@ public final class XBlock {
     }
 
     public static int getFluidLevel(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled)) return -1;
             org.bukkit.block.data.Levelled levelled = (org.bukkit.block.data.Levelled) block.getBlockData();
             return levelled.getLevel();
@@ -919,7 +914,7 @@ public final class XBlock {
     }
 
     public static boolean isWaterStationary(Block block) {
-        return ISFLAT ? getFluidLevel(block) < 7 : block.getType() == LegacyBlockMaterial.STATIONARY_WATER.material;
+        return IS_FLAT ? getFluidLevel(block) < 7 : block.getType() == LegacyBlockMaterial.STATIONARY_WATER.material;
     }
 
     /**
@@ -945,7 +940,6 @@ public final class XBlock {
     public static boolean isOneOf(Block block, Collection<String> blocks) {
         if (blocks == null || blocks.isEmpty()) return false;
         String name = block.getType().name();
-        XMaterial matched = XMaterial.matchXMaterial(block.getType());
 
         for (String comp : blocks) {
             String checker = comp.toUpperCase(Locale.ENGLISH);
@@ -969,7 +963,7 @@ public final class XBlock {
 
     public static void setCakeSlices(Block block, int amount) {
         if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
-        if (ISFLAT) {
+        if (IS_FLAT) {
             BlockData data = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) data;
             int remaining = cake.getMaximumBites() - (cake.getBites() + amount);
@@ -995,7 +989,7 @@ public final class XBlock {
 
     public static int addCakeSlices(Block block, int slices) {
         if (!isCake(block.getType())) throw new IllegalArgumentException("Block is not a cake: " + block.getType());
-        if (ISFLAT) {
+        if (IS_FLAT) {
             BlockData data = block.getBlockData();
             org.bukkit.block.data.type.Cake cake = (org.bukkit.block.data.type.Cake) data;
             int bites = cake.getBites() - slices;
@@ -1027,7 +1021,7 @@ public final class XBlock {
 
     public static void setEnderPearlOnFrame(Block endPortalFrame, boolean eye) {
         BlockState state = endPortalFrame.getState();
-        if (ISFLAT) {
+        if (IS_FLAT) {
             org.bukkit.block.data.BlockData data = state.getBlockData();
             org.bukkit.block.data.type.EndPortalFrame frame = (org.bukkit.block.data.type.EndPortalFrame) data;
             frame.setEye(eye);
@@ -1040,7 +1034,7 @@ public final class XBlock {
 
     /**
      * <b>Universal Method</b>
-     * The difference between simply checkign the given material against {@link #getType(Block)} and
+     * The difference between simply checking the given material against {@link #getType(Block)} and
      * this is that this method is more lenient and will match materials even if their "state" are different.
      * This usually only happens in older versions where for example carrots and potatoes have two separate
      * materials for blocks and items. Or for example growth state of crops are ignored and all "air" materials
@@ -1067,34 +1061,34 @@ public final class XBlock {
                 return isCake(mat);
             case NETHER_WART:
             case NETHER_WART_BLOCK:
-                if (!ISFLAT) return mat == LegacyBlockMaterial.NETHER_WARTS.material;
+                if (!IS_FLAT) return mat == LegacyBlockMaterial.NETHER_WARTS.material;
                 return mat == Material.NETHER_WART;
             case MELON:
             case MELON_SLICE:
-                if (!ISFLAT) return mat == LegacyBlockMaterial.MELON_BLOCK.material;
+                if (!IS_FLAT) return mat == LegacyBlockMaterial.MELON_BLOCK.material;
                 return mat == Material.MELON;
             case CARROT:
             case CARROTS:
-                if (!ISFLAT) return mat == Material.CARROT;
+                if (!IS_FLAT) return mat == Material.CARROT;
                 return mat == Material.CARROTS;
             case POTATO:
             case POTATOES:
-                if (!ISFLAT) return mat == Material.POTATO;
+                if (!IS_FLAT) return mat == Material.POTATO;
                 return mat == Material.POTATOES;
             case WHEAT:
             case WHEAT_SEEDS:
-                if (!ISFLAT) return mat == LegacyBlockMaterial.CROPS.material;
+                if (!IS_FLAT) return mat == LegacyBlockMaterial.CROPS.material;
                 return mat == Material.WHEAT;
             case BEETROOT:
             case BEETROOT_SEEDS:
             case BEETROOTS:
-                if (!ISFLAT) {
+                if (!IS_FLAT) {
                     // Avoid false positive in 1.8, where BEETROOT_BLOCK doesn't exist.
                     return mat == LegacyBlockMaterial.BEETROOT_BLOCK.material;
                 }
                 return mat == Material.BEETROOTS;
             case SUGAR_CANE:
-                if (!ISFLAT) return mat == LegacyBlockMaterial.SUGAR_CANE_BLOCK.material;
+                if (!IS_FLAT) return mat == LegacyBlockMaterial.SUGAR_CANE_BLOCK.material;
                 return mat == Material.SUGAR_CANE;
             case WATER:
                 return mat == Material.WATER || mat == LegacyBlockMaterial.STATIONARY_WATER.material;
@@ -1110,7 +1104,7 @@ public final class XBlock {
     }
 
     public static boolean isAir(@Nullable Material material) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             // material.isAir() doesn't exist for 1.13
             switch (material) {
                 case AIR:
@@ -1125,7 +1119,7 @@ public final class XBlock {
     }
 
     public static boolean isPowered(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Powerable)) return false;
             org.bukkit.block.data.Powerable powerable = (org.bukkit.block.data.Powerable) block.getBlockData();
             return powerable.isPowered();
@@ -1138,7 +1132,7 @@ public final class XBlock {
     }
 
     public static void setPowered(Block block, boolean powered) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Powerable)) return;
             BlockData data = block.getBlockData();
             org.bukkit.block.data.Powerable powerable = (org.bukkit.block.data.Powerable) data;
@@ -1152,7 +1146,7 @@ public final class XBlock {
     }
 
     public static boolean isOpen(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Openable)) return false;
             org.bukkit.block.data.Openable openable = (org.bukkit.block.data.Openable) block.getBlockData();
             return openable.isOpen();
@@ -1165,7 +1159,7 @@ public final class XBlock {
     }
 
     public static void setOpened(Block block, boolean opened) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             if (!(block.getBlockData() instanceof org.bukkit.block.data.Openable)) return;
             // These useless "data" variables are used because JVM doesn't like upcasts/downcasts for
             // non-existing classes even if unused.
@@ -1185,7 +1179,7 @@ public final class XBlock {
     }
 
     public static BlockFace getRotation(Block block) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             BlockData blockData = block.getBlockData();
             if (blockData instanceof org.bukkit.block.data.Rotatable) {
                 return ((org.bukkit.block.data.Rotatable) blockData).getRotation();
@@ -1208,7 +1202,7 @@ public final class XBlock {
     }
 
     public static void setRotation(Block block, BlockFace facing) {
-        if (ISFLAT) {
+        if (IS_FLAT) {
             BlockData blockData = block.getBlockData();
             if (blockData instanceof org.bukkit.block.data.Rotatable) {
                 ((org.bukkit.block.data.Rotatable) blockData).setRotation(facing);
@@ -1300,7 +1294,7 @@ public final class XBlock {
             XMaterial,
 
             COLORABLE,
-            WOOD_SPECIES;
+            WOOD_SPECIES
         }
     }
 

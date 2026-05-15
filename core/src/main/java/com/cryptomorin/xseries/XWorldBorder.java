@@ -358,7 +358,7 @@ public abstract class XWorldBorder {
                 MinecraftClassHandle craftWorld = ofMinecraft().inPackage(MinecraftPackage.CB).named("CraftWorld");
 
                 try {
-                    if (!supports(17)) {
+                    if (!supports(1, 17, 0)) {
                         Class<?> wbType;
                         try {
                             wbType = Class.forName("EnumWorldBorderAction");
@@ -416,27 +416,27 @@ public abstract class XWorldBorder {
                 WORLDBORDER_WORLD = wb.field().setter().named("world").returns(worldServer).unreflect(); // name not obfuscated since it's added by craftbukkit
 
                 CENTER = wb.method() // last check: 1.21.5
-                        .map(MinecraftMapping.OBFUSCATED, v(21, 5, "d").v(18, "c").orElse("setCenter"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 21, 5, "d").v(1, 18, "c").orElse("setCenter"))
                         .map(MinecraftMapping.MOJANG, "setCenter")
                         .returns(void.class).parameters(double.class, double.class)
                         .unreflect();
                 SIZE = wb.method()
-                        .named(v(18, "a").orElse("setSize")) // last check: 1.21.5
+                        .named(v(1, 18, "a").orElse("setSize")) // last check: 1.21.5
                         .returns(void.class).parameters(double.class)
                         .unreflect();
                 WARNING_TIME = wb.method()
-                        .named(v(18, "b").orElse("setWarningTime")) // last check: 1.21.5
+                        .named(v(1, 18, "b").orElse("setWarningTime")) // last check: 1.21.5
                         .returns(void.class).parameters(int.class)
                         .unreflect();
                 WARNING_DISTANCE = wb.method() // or setWarningBlocks
-                        .map(MinecraftMapping.OBFUSCATED, v(20, "c").v(18, "b").orElse("setWarningDistance"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 20, "c").v(1, 18, "b").orElse("setWarningDistance"))
                         .map(MinecraftMapping.MOJANG, "setWarningBlocks")
                         .returns(void.class).parameters(int.class)
                         .unreflect();
                 // Renamed to lerpSizeBetween(double d0, double d1, long i)
                 WorldBorder_lerpSizeBetween = wb.method()
-                        .map(MinecraftMapping.OBFUSCATED, v(18, "a").orElse("transitionSizeBetween"))
-                        .map(MinecraftMapping.MOJANG, v(21, "lerpSizeBetween").orElse("transitionSizeBetween"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 18, "a").orElse("transitionSizeBetween"))
+                        .map(MinecraftMapping.MOJANG, v(1, 21, "lerpSizeBetween").orElse("transitionSizeBetween"))
                         .returns(void.class).parameters(double.class, double.class, long.class)
                         .unreflect();
             } else {
@@ -465,7 +465,7 @@ public abstract class XWorldBorder {
                         packets[i++] = component.createPacket(this);
                     }
                 } else {
-                    Object packet = supports(17) ?
+                    Object packet = supports(1, 17) ?
                             PACKET_INIT.invoke(handle) :
                             PACKET_INIT.invoke(handle, INITIALIZE);
 

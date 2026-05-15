@@ -164,7 +164,7 @@ public final class XEntity {
     }
 
     static {
-        if (XReflection.supports(19)) {
+        if (XReflection.supports(1, 19, 0)) {
             register(Frog.class, XEntity::frog);
         }
     }
@@ -192,16 +192,16 @@ public final class XEntity {
                 EntityType.WITHER_SKELETON, EntityType.ZOMBIE_HORSE
         );
 
-        if (XReflection.supports(10)) {
+        if (XReflection.supports(1, 10, 0)) {
             undead.add(EntityType.HUSK);
             undead.add(EntityType.STRAY);
-            if (XReflection.supports(11)) {
+            if (XReflection.supports(1, 11, 0)) {
                 // Added in v1.6.1 but wasn't available in the API until v1.11
                 undead.add(EntityType.SKELETON_HORSE);
-                if (XReflection.supports(13)) {
+                if (XReflection.supports(1, 13, 0)) {
                     undead.add(EntityType.DROWNED);
                     undead.add(EntityType.PHANTOM);
-                    if (XReflection.supports(16)) {
+                    if (XReflection.supports(1, 16, 0)) {
                         undead.add(EntityType.ZOGLIN);
                         undead.add(EntityType.PIGLIN);
                         undead.add(EntityType.ZOMBIFIED_PIGLIN);
@@ -209,7 +209,7 @@ public final class XEntity {
                 }
             }
         }
-        if (!XReflection.supports(16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
+        if (!XReflection.supports(1, 16)) undead.add(EntityType.valueOf("PIG_ZOMBIE"));
         UNDEAD = Collections.unmodifiableSet(undead);
     }
 
@@ -417,7 +417,7 @@ public final class XEntity {
         if (config.isSet("portal-cooldown")) entity.setPortalCooldown(config.getInt("portal-cooldown", -1));
         // We don't need damage cause.
 
-        if (XReflection.supports(13)) {
+        if (XReflection.supports(1, 13)) {
             // TODO Needs to be implemented.
             // This might not work properly as the loot table class needs to be
             // present every time the server starts or it won't work.
@@ -459,14 +459,14 @@ public final class XEntity {
                 living.setHealth(hp);
             }
 
-            if (XReflection.supports(14)) living.setAbsorptionAmount(config.getInt("absorption"));
+            if (XReflection.supports(1, 14)) living.setAbsorptionAmount(config.getInt("absorption"));
             if (config.isSet("AI")) living.setAI(config.getBoolean("AI"));
             if (config.isSet("can-pickup-items")) living.setCanPickupItems(config.getBoolean("can-pickup-items"));
             if (config.isSet("collidable")) living.setCollidable(config.getBoolean("collidable"));
             if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
             if (config.isSet("remove-when-far-away"))
                 living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (XReflection.supports(13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+            if (XReflection.supports(1, 13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));
@@ -623,24 +623,24 @@ public final class XEntity {
                 creeper.setExplosionRadius(config.getInt("explosion-radius"));
                 creeper.setMaxFuseTicks(config.getInt("max-fuse-ticks"));
                 creeper.setPowered(config.getBoolean("powered"));
-            } else if (XReflection.supports(10)) {
-                if (XReflection.supports(11)) {
+            } else if (XReflection.supports(1, 10)) {
+                if (XReflection.supports(1, 11)) {
                     if (living instanceof Llama) {
                         Llama llama = (Llama) living;
                         if (config.isSet("strength")) llama.setStrength(config.getInt("strength"));
                         com.google.common.base.Optional<Llama.Color> color = Enums.getIfPresent(Llama.Color.class, config.getString("color"));
                         if (color.isPresent()) llama.setColor(color.get());
-                    } else if (XReflection.supports(12)) {
+                    } else if (XReflection.supports(1, 12)) {
                         if (living instanceof Parrot) {
                             Parrot parrot = (Parrot) living;
                             parrot.setVariant(Enums.getIfPresent(Parrot.Variant.class, config.getString("color")).or(Parrot.Variant.RED));
                         }
 
-                        if (XReflection.supports(13)) thirteen(entity, config);
-                        if (XReflection.supports(14)) fourteen(entity, config);
-                        if (XReflection.supports(15)) fifteen(entity, config);
-                        if (XReflection.supports(16)) sixteen(entity, config);
-                        if (XReflection.supports(17)) seventeen(entity, config);
+                        if (XReflection.supports(1, 13)) thirteen(entity, config);
+                        if (XReflection.supports(1, 14)) fourteen(entity, config);
+                        if (XReflection.supports(1, 15)) fifteen(entity, config);
+                        if (XReflection.supports(1, 16)) sixteen(entity, config);
+                        if (XReflection.supports(1, 17)) seventeen(entity, config);
                     }
                 }
             }

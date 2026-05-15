@@ -35,25 +35,22 @@ import java.util.concurrent.Callable;
  * @param <T> the type of object to check.
  */
 public final class VersionHandle<T> {
-    private int version, patch;
+    private int major, minor, patch;
     private T handle;
     // private RuntimeException errors;
 
-    /**
-     * Use {@link XReflection#v(int, Object)} instead.
-     */
-    @ApiStatus.Internal
-    public VersionHandle(int version, T handle) {
-        this(version, 0, handle);
+    private String stringVersion() {
+        return major + "." + minor + "." + patch;
     }
 
     /**
      * Use {@link XReflection#v(int, int, Object)} instead.
      */
     @ApiStatus.Internal
-    public VersionHandle(int version, int patch, T handle) {
-        if (XReflection.supports(version, patch)) {
-            this.version = version;
+    public VersionHandle(int major, int minor, int patch, T handle) {
+        if (XReflection.supports(major, minor, patch)) {
+            this.major = major;
+            this.minor = minor;
             this.patch = patch;
             this.handle = handle;
         }
@@ -63,9 +60,10 @@ public final class VersionHandle<T> {
      * Use {@link XReflection#v(int, int, Callable)} instead.
      */
     @ApiStatus.Internal
-    public VersionHandle(int version, int patch, Callable<T> handle) {
-        if (XReflection.supports(version, patch)) {
-            this.version = version;
+    public VersionHandle(int major, int minor, int patch, Callable<T> handle) {
+        if (XReflection.supports(major, minor, patch)) {
+            this.major = major;
+            this.minor = minor;
             this.patch = patch;
 
             try {
@@ -75,41 +73,44 @@ public final class VersionHandle<T> {
         }
     }
 
-    @ApiStatus.Internal
-    public VersionHandle(int version, Callable<T> handle) {
-        this(version, 0, handle);
+    private boolean checkVersion(int major, int minor, int patch) {
+        if (major == this.major && minor == this.minor && patch == this.patch)
+            throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + stringVersion());
+
+        // We call supports() first to validate versioning system breaking change.
+        return XReflection.supports(major, minor, patch) && major > this.major && minor > this.minor && patch >= this.patch;
     }
 
-    public VersionHandle<T> v(int version, T handle) {
-        return v(version, 0, handle);
-    }
-
-    private boolean checkVersion(int version, int patch) {
-        if (version == this.version && patch == this.patch)
-            throw new IllegalArgumentException("Cannot have duplicate version handles for version: " + version + '.' + patch);
-        return version > this.version && patch >= this.patch && XReflection.supports(version, patch);
-    }
-
-    public VersionHandle<T> v(int version, int patch, Callable<T> handle) {
-        if (!checkVersion(version, patch)) return this;
+    public VersionHandle<T> v(int major, int minor, int patch, Callable<T> handle) {
+        if (!checkVersion(major, minor, patch)) return this;
 
         try {
             this.handle = handle.call();
         } catch (Exception ignored) {
         }
 
-        this.version = version;
+        this.major = major;
+        this.minor = minor;
         this.patch = patch;
         return this;
     }
 
-    public VersionHandle<T> v(int version, int patch, T handle) {
-        if (checkVersion(version, patch)) {
-            this.version = version;
+    public VersionHandle<T> v(int major, int minor, Callable<T> handle) {
+        return v(major, minor, 0, handle);
+    }
+
+    public VersionHandle<T> v(int major, int minor, int patch, T handle) {
+        if (checkVersion(major, minor, patch)) {
+            this.major = major;
+            this.minor = minor;
             this.patch = patch;
             this.handle = handle;
         }
         return this;
+    }
+
+    public VersionHandle<T> v(int major, int minor, T handle) {
+        return v(major, minor, 0, handle);
     }
 
     /**
@@ -118,7 +119,7 @@ public final class VersionHandle<T> {
      * @see #orElse(Callable)
      */
     public T orElse(T handle) {
-        return this.version == 0 ? handle : this.handle;
+        return this.major == 0 ? handle : this.handle;
     }
 
     /**
@@ -127,7 +128,7 @@ public final class VersionHandle<T> {
      * @see #orElse(Object)
      */
     public T orElse(Callable<T> handle) {
-        if (this.version == 0) {
+        if (this.major == 0) {
             try {
                 return handle.call();
             } catch (Exception e) {

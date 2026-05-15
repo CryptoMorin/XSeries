@@ -87,7 +87,7 @@ public final class ProfilesCore {
         MinecraftClassHandle CachedUserNameToIdResolver = ns.ofMinecraft(
                         "package nms.server.players; public class CachedUserNameToIdResolver"
                 )
-                .map(MinecraftMapping.MOJANG, v(21, 9, "CachedUserNameToIdResolver").orElse("GameProfileCache"))
+                .map(MinecraftMapping.MOJANG, v(1, 21, 9, "CachedUserNameToIdResolver").orElse("GameProfileCache"))
                 .map(MinecraftMapping.SPIGOT, "UserCache");
 
         SUPPORTS_BUKKIT_PlayerProfile = ns
@@ -97,7 +97,7 @@ public final class ProfilesCore {
 
         MinecraftClassHandle GameProfileInfo = CachedUserNameToIdResolver
                 .inner("private static class GameProfileInfo")
-                .map(MinecraftMapping.SPIGOT, v(21, 9, "a").orElse("UserCacheEntry"))
+                .map(MinecraftMapping.SPIGOT, v(1, 21, 9, "a").orElse("UserCacheEntry"))
                 .map(MinecraftMapping.OBFUSCATED, "bay$a");
 
         MinecraftClassHandle NameAndId = ns
@@ -123,8 +123,8 @@ public final class ProfilesCore {
                 ).reflect();
 
                 $ResolvableProfile_gameProfile = ResolvableProfile.method("public GameProfile partialProfile()")
-                        .map(MinecraftMapping.MOJANG, v(21, 9, "partialProfile").orElse("gameProfile"))
-                        .map(MinecraftMapping.OBFUSCATED, v(21, 9, "b").v(21, 6, "g").orElse("f"))
+                        .map(MinecraftMapping.MOJANG, v(1, 21, 9, "partialProfile").orElse("gameProfile"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 21, 9, "b").v(1, 21, 6, "g").orElse("f"))
                         .reflect();
 
                 bukkitUsesResolvableProfile = CraftMetaSkull.field("private ResolvableProfile profile").exists();
@@ -160,7 +160,7 @@ public final class ProfilesCore {
             Object services = null;
             if (usesServices) {
                 services = MinecraftServer.method("public Services services()")
-                        .map(MinecraftMapping.OBFUSCATED, v(21, 11, "ar").orElse("av"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 21, 11, "ar").orElse("av"))
                         .reflect().invoke(minecraftServer);
 
                 minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.MinecraftSessionService sessionService()")
@@ -211,7 +211,7 @@ public final class ProfilesCore {
 
             // noinspection MethodMayBeStatic
             UserCache_getNextOperation = CachedUserNameToIdResolver.method("private long getNextOperation()")
-                    .map(MinecraftMapping.OBFUSCATED, v(21, "e").v(16, "d").orElse("d")).reflectOrNull();
+                    .map(MinecraftMapping.OBFUSCATED, v(1, 21, "e").v(1, 16, "d").orElse("d")).reflectOrNull();
 
             MethodMemberHandle profileByName = CachedUserNameToIdResolver.method().named(/* v1.17.1 */ "getProfile", "a");
             MethodMemberHandle profileByUUID = CachedUserNameToIdResolver.method().named(/* v1.17.1 */ "getProfile", "a");
@@ -239,13 +239,13 @@ public final class ProfilesCore {
             try {
                 // Some versions don't have the public getProxy() method. It's very very inconsistent...
                 proxy = (Proxy) MinecraftServer.field("protected final java.net.Proxy proxy").getter()
-                        .map(MinecraftMapping.OBFUSCATED, v(21, 9, "i")
-                                .v(20, 5, "h").v(20, 3, "i")
-                                .v(19, "j")
-                                .v(18, 2, "n").v(18, "o")
-                                .v(17, "m")
-                                .v(14, "proxy") // v1.14 -> v1.16
-                                .v(13, "c").orElse(/* v1.8 and v1.9 */ "e"))
+                        .map(MinecraftMapping.OBFUSCATED, v(1, 21, 9, "i")
+                                .v(1, 20, 5, "h").v(1, 20, 3, "i")
+                                .v(1, 19, "j")
+                                .v(1, 18, 2, "n").v(1, 18, "o")
+                                .v(1, 17, "m")
+                                .v(1, 14, "proxy") // v1.14 -> v1.16
+                                .v(1, 13, "c").orElse(/* v1.8 and v1.9 */ "e"))
                         .reflect().invoke(minecraftServer);
             } catch (Throwable ex) {
                 ProfileLogger.LOGGER.error("Failed to initialize server proxy settings", ex);
@@ -314,11 +314,11 @@ public final class ProfilesCore {
         try {
             // private final Map<String, UserCache.UserCacheEntry> profilesByName = Maps.newConcurrentMap();
             UserCache_profilesByName = (Map<String, Object>) CachedUserNameToIdResolver.field("private final Map<String, UserCache.UserCacheEntry> profilesByName")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(17, "e").v(16, 2, "c").v(9, "d").orElse("c"))
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(1, 17, "e").v(1, 16, 2, "c").v(1, 9, "d").orElse("c"))
                     .reflect().invoke(userCache);
             // private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID = Maps.newConcurrentMap();
             UserCache_profilesByUUID = (Map<UUID, Object>) CachedUserNameToIdResolver.field("private final Map<UUID, UserCache.UserCacheEntry> profilesByUUID")
-                    .getter().map(MinecraftMapping.OBFUSCATED, v(17, "f").v(16, 2, "d").v(9, "e").orElse("d"))
+                    .getter().map(MinecraftMapping.OBFUSCATED, v(1, 17, "f").v(1, 16, 2, "d").v(1, 9, "e").orElse("d"))
                     .reflect().invoke(userCache);
 
             // private final Deque<GameProfile> f = new LinkedBlockingDeque(); Removed in v1.16

@@ -51,7 +51,7 @@ public enum MinecraftPackage implements PackageHandle {
     public String getPackage(@Pattern(PackageHandle.JAVA_PACKAGE_PATTERN) String packageName) {
         if (packageName.startsWith(".") || packageName.endsWith("."))
             throw new IllegalArgumentException("Package name must not start or end with a dot: " + packageName + " (" + this + ')');
-        if (!packageName.isEmpty() && (this != MinecraftPackage.NMS || XReflection.supports(17))) {
+        if (!packageName.isEmpty() && (this != MinecraftPackage.NMS || XReflection.supports(1, 17, 0))) {
             return packageId + '.' + packageName;
         }
         return packageId;
