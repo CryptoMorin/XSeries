@@ -21,7 +21,6 @@
  */
 package com.cryptomorin.xseries.particles;
 
-import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -121,7 +120,7 @@ public class ParticleDisplay {
 
         boolean supportsDustTransition;
         try {
-            //noinspection ResultOfMethodCallIgnored
+            // noinspection ResultOfMethodCallIgnored
             Particle.DustTransition.class.getName();
             supportsDustTransition = true;
         } catch (NoClassDefFoundError e) {
@@ -140,7 +139,7 @@ public class ParticleDisplay {
 
         boolean supportsSpellData;
         try {
-            //noinspection UnstableApiUsage,ResultOfMethodCallIgnored
+            // noinspection UnstableApiUsage,ResultOfMethodCallIgnored
             Particle.Spell.class.getName();
             supportsSpellData = true;
         } catch (NoClassDefFoundError e) {
@@ -1920,27 +1919,48 @@ public class ParticleDisplay {
         }
     }
 
+
+    private static final Class<?>
+            Vibration = getClass("org.bukkit.Vibration"),
+            Particle$Spell = getClass("org.bukkit.Particle$Spell"),
+            Particle$DustOptions = getClass("org.bukkit.Particle$DustOptions"),
+            Particle$Trail = getClass("org.bukkit.Particle$Trail"),
+            Particle$DustTransition = getClass("org.bukkit.Particle$DustTransition");
+
+    private static Class<?> getClass(String className) {
+        try {
+            // Prevent static initialization
+            return Class.forName(className, false, Bukkit.class.getClassLoader());
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+            return null;
+        } catch (Throwable e) {
+            // Not sure if this would happen, but some server software like silencing errors for some reason.
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     @SuppressWarnings("UnstableApiUsage")
     public static Object defaultRequiredData(Particle particle, Location finalLocation) {
         Class<?> dataType = particle.getDataType();
 
         // @formatter:off
-        if (dataType == Float.class)                        return         1f;
-        else if (dataType == Double.class)                  return         1.0d;
-        else if (dataType == Long.class)                    return         1L;
-        else if (dataType == Integer.class)                 return         1;
-        else if (dataType == Short.class)                   return (short) 1;
-        else if (dataType == Byte.class)                    return (byte)  1;
-        else if (dataType == Boolean.class)                 return true;
-        else if (dataType == Color.class)                   return            Color.WHITE;
-        else if (dataType == org.bukkit.Color.class)        return org.bukkit.Color.WHITE;
-        else if (dataType == BlockData.class)               return Material.STONE.createBlockData();
-        else if (dataType == ItemStack.class)               return Material.STONE;
-        else if (dataType == Vibration.class)               return new Vibration(finalLocation, new Vibration.Destination.BlockDestination(finalLocation.clone().add(0, 2, 0)), 60);
-        else if (SUPPORTS_SPELL_DATA && dataType == Particle.Spell.class) return new Particle.Spell(org.bukkit.Color.WHITE, 1f);
-        else if (dataType == Particle.DustOptions.class)    return new Particle.DustOptions(org.bukkit.Color.WHITE, 1f);
-        else if (dataType == Particle.Trail.class)          return new Particle.Trail(finalLocation, org.bukkit.Color.WHITE, 60);
-        else if (SUPPORTS_DUST_TRANSITION && dataType == Particle.DustTransition.class) return new Particle.DustTransition(org.bukkit.Color.WHITE, org.bukkit.Color.BLACK, 1f);
+             if (dataType == Float           .class)  return         1f;
+        else if (dataType == Double          .class)  return         1.0d;
+        else if (dataType == Long            .class)  return         1L;
+        else if (dataType == Integer         .class)  return         1;
+        else if (dataType == Short           .class)  return (short) 1;
+        else if (dataType == Byte            .class)  return (byte)  1;
+        else if (dataType == Boolean         .class)  return true;
+        else if (dataType == Color           .class)  return            Color.WHITE;
+        else if (dataType == org.bukkit.Color.class)  return org.bukkit.Color.WHITE;
+        else if (dataType == BlockData       .class)  return Material.STONE.createBlockData();
+        else if (dataType == ItemStack       .class)  return Material.STONE;
+        else if (dataType == Vibration)               return new Vibration(finalLocation, new Vibration.Destination.BlockDestination(finalLocation.clone().add(0, 2, 0)), 60);
+        else if (dataType == Particle$Spell)          return new Particle.Spell(org.bukkit.Color.WHITE, 1f);
+        else if (dataType == Particle$DustOptions)    return new Particle.DustOptions(org.bukkit.Color.WHITE, 1f);
+        else if (dataType == Particle$Trail)          return new Particle.Trail(finalLocation, org.bukkit.Color.WHITE, 60);
+        else if (dataType == Particle$DustTransition) return new Particle.DustTransition(org.bukkit.Color.WHITE, org.bukkit.Color.BLACK, 1f);
         else return null;
         // @formatter:on
     }
