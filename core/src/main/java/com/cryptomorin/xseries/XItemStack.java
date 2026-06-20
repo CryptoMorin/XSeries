@@ -41,6 +41,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
+import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish;
@@ -666,7 +667,12 @@ public final class XItemStack {
 
         @SuppressWarnings("deprecation")
         private void handleSpawnEggMeta(SpawnEggMeta spawnEgg) {
-            config.set("creature", spawnEgg.getSpawnedType().getName());
+            if (supports(1, 13)) {
+                final EntitySnapshot snapshot = spawnEgg.getSpawnedEntity();
+                if (snapshot != null) config.set("creature", snapshot.getEntityType().getName());
+            } else {
+                config.set("creature", spawnEgg.getSpawnedType().getName());
+            }
         }
 
         private void handleSuspiciousStewMeta(SuspiciousStewMeta stew) {
@@ -1347,7 +1353,20 @@ public final class XItemStack {
             String creatureName = config.getString("creature");
             if (!Strings.isNullOrEmpty(creatureName)) {
                 com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+                if (!creature.isPresent()) return;
+                final EntityType creatureType = creature.get();
+                if (supports(1, 21)) {
+                    final EntitySnapshot snapshot = spawnEgg.getSpawnedEntity();
+                    if (snapshot == null || snapshot.getEntityType() != creatureType) {
+                        final NamespacedKey key = creatureType.getKeyOrNull();
+                        if (key != null) spawnEgg.setSpawnedEntity(Bukkit.getEntityFactory().createEntitySnapshot("{id:\"" + key + "\"}"));
+                    }
+                } else if (supports(1, 13)) {
+                    final String eggName = creatureType.name() + "_SPAWN_EGG";
+                    XMaterial.matchXMaterial(eggName).ifPresent(xMat -> xMat.setType(item));
+                } else {
+                    spawnEgg.setSpawnedType(creatureType);
+                }
             }
         }
 
