@@ -936,6 +936,11 @@ public final class XTag<T extends XBase<?, ?>> {
     @NotNull
     public static final XTag<XMaterial> CHAINMAIL_ARMOR_PIECES;
     /**
+     * Tag representing all armor pieces made of copper
+     */
+    @NotNull
+    public static final XTag<XMaterial> COPPER_ARMOR_PIECES;
+    /**
      * Tag representing all armor pieces made of gold
      */
     @NotNull
@@ -971,10 +976,20 @@ public final class XTag<T extends XBase<?, ?>> {
     @NotNull
     public static final XTag<XMaterial> STONE_TOOLS;
     /**
+     * Tag representing all copper tools and swords
+     */
+    @NotNull
+    public static final XTag<XMaterial> COPPER_TOOLS;
+    /**
      * Tag representing all iron tools and swords
      */
     @NotNull
     public static final XTag<XMaterial> IRON_TOOLS;
+    /**
+     * Tag representing all golden tools and swords
+     */
+    @NotNull
+    public static final XTag<XMaterial> GOLDEN_TOOLS;
     /**
      * Tag representing all diamond tools and swords
      */
@@ -2117,6 +2132,10 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.CHAINMAIL_CHESTPLATE,
                 XMaterial.CHAINMAIL_LEGGINGS,
                 XMaterial.CHAINMAIL_BOOTS);
+        COPPER_ARMOR_PIECES = TagBuilder.simple(XMaterial.COPPER_HELMET,
+                XMaterial.COPPER_CHESTPLATE,
+                XMaterial.COPPER_LEGGINGS,
+                XMaterial.COPPER_BOOTS);
         GOLDEN_ARMOR_PIECES = TagBuilder.simple(XMaterial.GOLDEN_HELMET,
                 XMaterial.GOLDEN_CHESTPLATE,
                 XMaterial.GOLDEN_LEGGINGS,
@@ -2139,11 +2158,21 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.STONE_HOE,
                 XMaterial.STONE_SHOVEL,
                 XMaterial.STONE_SWORD);
+        COPPER_TOOLS = TagBuilder.simple(XMaterial.COPPER_PICKAXE,
+                XMaterial.COPPER_AXE,
+                XMaterial.COPPER_HOE,
+                XMaterial.COPPER_SHOVEL,
+                XMaterial.COPPER_SWORD);
         IRON_TOOLS = TagBuilder.simple(XMaterial.IRON_PICKAXE,
                 XMaterial.IRON_AXE,
                 XMaterial.IRON_HOE,
                 XMaterial.IRON_SHOVEL,
                 XMaterial.IRON_SWORD);
+        GOLDEN_TOOLS = TagBuilder.simple(XMaterial.GOLDEN_PICKAXE,
+                XMaterial.GOLDEN_AXE,
+                XMaterial.GOLDEN_HOE,
+                XMaterial.GOLDEN_SHOVEL,
+                XMaterial.GOLDEN_SWORD);
         DIAMOND_TOOLS = TagBuilder.simple(XMaterial.DIAMOND_PICKAXE,
                 XMaterial.DIAMOND_AXE,
                 XMaterial.DIAMOND_HOE,
@@ -2156,30 +2185,35 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.NETHERITE_SWORD);
         SWORDS = TagBuilder.simple(XMaterial.WOODEN_SWORD,
                 XMaterial.STONE_SWORD,
+                XMaterial.COPPER_SWORD,
                 XMaterial.IRON_SWORD,
                 XMaterial.GOLDEN_SWORD,
                 XMaterial.DIAMOND_SWORD,
                 XMaterial.NETHERITE_SWORD);
         PICKAXES = TagBuilder.simple(XMaterial.WOODEN_PICKAXE,
                 XMaterial.STONE_PICKAXE,
+                XMaterial.COPPER_PICKAXE,
                 XMaterial.IRON_PICKAXE,
                 XMaterial.GOLDEN_PICKAXE,
                 XMaterial.DIAMOND_PICKAXE,
                 XMaterial.NETHERITE_PICKAXE);
         AXES = TagBuilder.simple(XMaterial.WOODEN_AXE,
                 XMaterial.STONE_AXE,
+                XMaterial.COPPER_AXE,
                 XMaterial.IRON_AXE,
                 XMaterial.GOLDEN_AXE,
                 XMaterial.DIAMOND_AXE,
                 XMaterial.NETHERITE_AXE);
         SHOVELS = TagBuilder.simple(XMaterial.WOODEN_SHOVEL,
                 XMaterial.STONE_SHOVEL,
+                XMaterial.COPPER_SHOVEL,
                 XMaterial.IRON_SHOVEL,
                 XMaterial.GOLDEN_SHOVEL,
                 XMaterial.DIAMOND_SHOVEL,
                 XMaterial.NETHERITE_SHOVEL);
         HOES = TagBuilder.simple(XMaterial.WOODEN_HOE,
                 XMaterial.STONE_HOE,
+                XMaterial.COPPER_HOE,
                 XMaterial.IRON_HOE,
                 XMaterial.GOLDEN_HOE,
                 XMaterial.DIAMOND_HOE,
@@ -2189,6 +2223,7 @@ public final class XTag<T extends XBase<?, ?>> {
                 .inheritFrom(
                         LEATHER_ARMOR_PIECES,
                         CHAINMAIL_ARMOR_PIECES,
+                        COPPER_ARMOR_PIECES,
                         IRON_ARMOR_PIECES,
                         GOLDEN_ARMOR_PIECES,
                         DIAMOND_ARMOR_PIECES,
