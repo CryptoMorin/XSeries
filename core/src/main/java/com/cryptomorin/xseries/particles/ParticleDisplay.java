@@ -539,14 +539,19 @@ public class ParticleDisplay {
 
             for (String rotationGroupName : rotations.getKeys(false)) {
                 ConfigurationSection rotationGroup = rotations.getConfigurationSection(rotationGroupName);
+                assert rotationGroup != null;
 
                 List<Rotation> grouped = new ArrayList<>();
                 for (String rotationName : rotationGroup.getKeys(false)) {
                     ConfigurationSection rotation = rotationGroup.getConfigurationSection(rotationName);
+                    assert rotation != null;
+
                     double angle = rotation.getDouble("angle");
                     Vector axis;
 
-                    String axisStr = rotation.getString("vector").toUpperCase(Locale.ENGLISH).replace(" ", "");
+                    String axisStr = Objects.requireNonNull(rotation.getString("vector"), "Expected a vector for rotation with angle " + angle)
+                            .toUpperCase(Locale.ENGLISH).replace(" ", "");
+
                     if (axisStr.length() == 1) {
                         axis = Axis.valueOf(axisStr).vector;
                     } else {
@@ -830,16 +835,19 @@ public class ParticleDisplay {
      */
     public void advanceInDirection(double distance) {
         Objects.requireNonNull(direction, "Cannot advance with null direction");
+        Objects.requireNonNull(location, "Cannot advance with no location set");
+
         if (distance == 0) return;
+
         if (this.onAdvance != null) distance = onAdvance.apply(distance);
         this.location.add(this.direction.clone().multiply(distance));
     }
 
     /**
-     * @see #direction
      * @since 8.0.0
      */
-    public ParticleDisplay withDirection(@Nullable Vector direction) {
+    public ParticleDisplay withDirection(@NotNull Vector direction) {
+        Objects.requireNonNull(direction, "direction");
         this.direction = direction.clone().normalize();
         return this;
     }
@@ -1149,13 +1157,18 @@ public class ParticleDisplay {
      */
     @NotNull
     public ParticleDisplay withLocationCaller(@Nullable Callable<Location> locationCaller) {
-        this.preCalculation = (context) -> {
-            try {
-                context.location = locationCaller.call();
-            } catch (Exception e) {
-                throw new IllegalStateException("Failed to calculate location of particle: " + this, e);
-            }
-        };
+        if (locationCaller == null) {
+            this.preCalculation = null;
+        } else {
+            this.preCalculation = (context) -> {
+                try {
+                    context.location = locationCaller.call();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to calculate location of particle: " + this, e);
+                }
+            };
+        }
+
         return this;
     }
 
@@ -1261,8 +1274,10 @@ public class ParticleDisplay {
      */
     @NotNull
     public ParticleDisplay cloneWithLocation(double x, double y, double z) {
+        Objects.requireNonNull(location, "Cannot copy a relocated ParticleDisplay with no location set " + this);
         ParticleDisplay display = copy();
-        if (location == null) return display;
+
+        assert display.location != null;
         display.location.add(x, y, z);
         return display;
     }
@@ -1717,7 +1732,6 @@ public class ParticleDisplay {
     /**
      * Calls the appropriate spawnParticle method with the parameters given.
      */
-    @SuppressWarnings("UnstableApiUsage")
     private void spawnRaw(Particle particle, Location loc, int count, Vector offset, Object data) {
         double dx = offset.getX();
         double dy = offset.getY();
@@ -1731,14 +1745,15 @@ public class ParticleDisplay {
             extra = 1;
         }
         if (IS_FLAT && data == null && particle.getDataType() != Void.class) {
-            // Apply some defaults for compatibility with how it worked in older versions
+            // Apply some defaults. There is no reason to throw errors for simple particle spawning.
             data = defaultRequiredData(particle, loc);
         }
-        if (players == null || players.isEmpty())
-            if (IS_FLAT)
-                loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
-            else loc.getWorld().spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
-        else {
+        if (players == null || players.isEmpty()) {
+            World world = Objects.requireNonNull(loc.getWorld(), "Location world is null: " + loc + " for " + this);
+
+            if (IS_FLAT) world.spawnParticle(particle, loc, count, dx, dy, dz, extra, data, force);
+            else world.spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
+        } else {
             // We copy this to avoid concurrent modification.
             for (Player player : players.toArray(new Player[0]))
                 player.spawnParticle(particle, loc, count, dx, dy, dz, extra, data);
@@ -2002,7 +2017,7 @@ public class ParticleDisplay {
             // All particles that supported color used offset fields for them before the flattening.
             // ENTITY_EFFECT particle uses the offset fields for color on 1.20.4 and below.
             if (!IS_FLAT || (display.particle == XParticle.ENTITY_EFFECT && display.particle.isSupported()
-                    && display.particle.get().getDataType() == Void.class)) {
+                    && Objects.requireNonNull(display.particle.get()).getDataType() == Void.class)) {
                 // Dust particles on older versions would ignore the red channel if it's set to 0.
                 double red = (color.getRed() == 0) ? Float.MIN_VALUE : color.getRed() / 255d;
                 return new Vector(red, color.getGreen() / 255d, color.getBlue() / 255d);
@@ -2015,6 +2030,7 @@ public class ParticleDisplay {
             if (!IS_FLAT || !display.particle.isSupported()) {
                 return null;
             }
+            assert display.particle.get() != null;
             Class<?> dataType = display.particle.get().getDataType();
             if (dataType == Void.class) {
                 return null;

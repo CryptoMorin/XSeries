@@ -77,6 +77,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -155,6 +156,14 @@ public final class XSeriesTests {
         log("Art is: " + XArt.of(painting.getArt()));
     }
 
+    private static Location getRandomLocation() {
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        return new Location(
+                Bukkit.getWorlds().stream().findFirst().get(),
+                rand.nextInt(-10, 10), rand.nextInt(-10, 10), rand.nextInt(-10, 10)
+        );
+    }
+
     /**
      * Archived
      */
@@ -210,11 +219,15 @@ public final class XSeriesTests {
 
     private static void testXParticle() {
         if (XReflection.supports(1, 9)) {
-            log("Testing particles...");
-            ParticleDisplay.of(XParticle.CLOUD).
-                    withLocation(new Location(null, 1, 1, 1))
-                    .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true);
+            log("Testing XParticle...");
             commonRegistryTest(XParticle.REGISTRY, Arrays.asList(values(Particle.class)));
+
+            log("Testing ParticleDisplay...");
+            ParticleDisplay.of(XParticle.CLOUD)
+                    .withLocation(getRandomLocation())
+                    .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true)
+                            .spawn();
+            ParticleDisplay.of(XParticle.DRAGON_BREATH).withCount(10).spawn(getRandomLocation());
         }
     }
 

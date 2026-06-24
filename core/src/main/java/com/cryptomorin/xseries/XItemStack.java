@@ -275,6 +275,7 @@ public final class XItemStack {
         @Nullable protected ConfigurationSection config;
         @Nullable protected Function<String, String> translator = Function.identity();
         protected ItemMeta meta;
+        protected XMaterial xmaterial;
 
         /**
          * Copies all properties of this handler, including the item.
@@ -666,7 +667,8 @@ public final class XItemStack {
 
         @SuppressWarnings("deprecation")
         private void handleSpawnEggMeta(SpawnEggMeta spawnEgg) {
-            config.set("creature", spawnEgg.getSpawnedType().getName());
+            // Should be handled by XMaterial even for pre-1.13
+            // config.set("creature", spawnEgg.getSpawnedType().getName());
         }
 
         private void handleSuspiciousStewMeta(SuspiciousStewMeta stew) {
@@ -1344,10 +1346,18 @@ public final class XItemStack {
 
         @SuppressWarnings("deprecation")
         private void handleSpawnEggMeta(SpawnEggMeta spawnEgg) {
-            String creatureName = config.getString("creature");
-            if (!Strings.isNullOrEmpty(creatureName)) {
-                com.google.common.base.Optional<EntityType> creature = Enums.getIfPresent(EntityType.class, creatureName.toUpperCase(Locale.ENGLISH));
-                if (creature.isPresent()) spawnEgg.setSpawnedType(creature.get());
+            if (!supports(1, 13) && xmaterial != null) {
+                // Only a single SPAWN_EGG material existed back then.
+
+                String name = xmaterial.name();
+                if (name.endsWith("_SPAWN_EGG")) {
+                    String baseEggType = name.substring(0, name.length() - "_SPAWN_EGG".length());
+                    Optional<XEntityType> creature = XEntityType.of(baseEggType);
+
+                    if (creature.isPresent() && creature.get().isSupported()) {
+                        spawnEgg.setSpawnedType(creature.get().get());
+                    }
+                }
             }
         }
 
@@ -1756,6 +1766,8 @@ public final class XItemStack {
                 if (item == null) item = material.parseItem();
                 else material.setType(item);
             }
+
+            this.xmaterial = material;
         }
 
         private XMaterial solutionOrThrow(MaterialCondition condition) {

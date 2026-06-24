@@ -77,6 +77,15 @@ public final class XAttribute extends XModule<XAttribute, Attribute> {
             SWEEPING_DAMAGE_RATIO = std(/* v1.20.3+ */ "sweeping_damage_ratio", "player.sweeping_damage_ratio"),
             SPAWN_REINFORCEMENTS = std(/* v1.20.3+ */ "spawn_reinforcements", "zombie.spawn_reinforcements");
 
+    @XInfo(since = "26.2.0")
+    public static final XAttribute
+            AIR_DRAG_MODIFIER = std("air_drag_modifier"),
+            BELOW_NAME_DISTANCE = std("below_name_distance"),
+            BOUNCINESS = std("bounciness"),
+            FRICTION_MODIFIER = std("friction_modifier"),
+            NAME_TAG_DISTANCE = std("name_tag_distance");
+
+
     @XInfo(since = "1.21.6")
     public static final XAttribute
             CAMERA_DISTANCE = std("camera_distance"),
