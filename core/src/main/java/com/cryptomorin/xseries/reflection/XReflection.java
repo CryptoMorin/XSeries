@@ -256,7 +256,61 @@ public final class XReflection {
      */
     public static final int PATCH_NUMBER;
 
+    /**
+     * Mainly used for {@link #getLatestPatchNumberOf(int, int)}
+     */
+    @Unmodifiable
+    public static final Map<Integer, Map<Integer, Integer>> LATEST_VERSION_MAPPING;
+
     static {
+        // https://minecraft.wiki/w/Java_Edition_version_history
+        // There are many ways to do this, but this is more visually appealing.
+        String[] patches = {
+                "1.1.1",
+                "1.2.5",
+                "1.3.2",
+                "1.4.7",
+                "1.5.2",
+                "1.6.4",
+                "1.7.10",
+                "1.8.8", // I don't think they released a server version for 1.8.9
+                "1.9.4",
+                "1.10.2",//          ,_  _  _,
+                "1.11.2",//            \o-o/
+                "1.12.2",//           ,(.-.),
+                "1.13.2",//         _/ |) (| \_
+                "1.14.4",//           /\=-=/\
+                "1.15.2",//          ,| \=/ |,
+                "1.16.5",//        _/ \  |  / \_
+                "1.17.1",//            \_!_/
+                "1.18.2",
+                "1.19.4",
+                "1.20.6",
+                "1.21.11",
+
+                // Year versioning era
+                "26.1.2",
+                "26.2.0"
+        };
+        Map<Integer, Map<Integer, Integer>> patchMap = new HashMap<>();
+
+        for (String version : patches) {
+            String[] parts = version.split("\\.");
+
+            int major = Integer.parseInt(parts[0]);
+            int minor = Integer.parseInt(parts[1]);
+            int patch = Integer.parseInt(parts[2]);
+
+            patchMap
+                    .computeIfAbsent(major, k -> new HashMap<>())
+                    .put(minor, patch);
+        }
+        LATEST_VERSION_MAPPING = Collections.unmodifiableMap(patchMap);
+
+        //----------------------------------------------------------------------//
+        //----------------------------------------------------------------------//
+        //----------------------------------------------------------------------//
+
         /* Old way of doing this.
         String[] split = NMS_VERSION.substring(1).split("_");
         if (split.length < 1) {
@@ -332,7 +386,7 @@ public final class XReflection {
 
     /**
      * Gets the latest known patch number of the given minor version.
-     * For example: 1.14 -> 4, 1.17 -> 10
+     * For example: 1.14 -> 4 (1.14.4), 1.17 -> 10 (1.17.10), 26.1 -> 2 (26.1.2)
      * The latest version is expected to get newer patches, so make sure to account for unexpected results.
      *
      * @param minorVersion the minor version to get the patch number of.
@@ -341,39 +395,13 @@ public final class XReflection {
      */
     @Nullable
     @Contract(pure = true)
-    public static Integer getLatestPatchNumberOf(int minorVersion) {
+    public static Integer getLatestPatchNumberOf(int majorVersion, int minorVersion) {
+        if (majorVersion <= 0) throw new IllegalArgumentException("Major version must be positive: " + majorVersion);
         if (minorVersion <= 0) throw new IllegalArgumentException("Minor version must be positive: " + minorVersion);
 
-        // https://minecraft.wiki/w/Java_Edition_version_history
-        // There are many ways to do this, but this is more visually appealing.
-        int[] patches = {
-                /* 1.1 */ 1,
-                /* 1.2 */ 5,
-                /* 1.3 */ 2,
-                /* 1.4 */ 7,
-                /* 1.5 */ 2,
-                /* 1.6 */ 4,
-                /* 1.7 */ 10,
-                /* 1.8 */ 8, // I don't think they released a server version for 1.8.9
-                /* 1.9 */ 4,
-
-                /* 1.10 */ 2,//          ,_  _  _,
-                /* 1.11 */ 2,//            \o-o/
-                /* 1.12 */ 2,//           ,(.-.),
-                /* 1.13 */ 2,//         _/ |) (| \_
-                /* 1.14 */ 4,//           /\=-=/\
-                /* 1.15 */ 2,//          ,| \=/ |,
-                /* 1.16 */ 5,//        _/ \  |  / \_
-                /* 1.17 */ 1,//            \_!_/
-                /* 1.18 */ 2,
-                /* 1.19 */ 4,
-                /* 1.20 */ 6,
-                /* 1.21 */ 11,
-                /* 26   */ 1,
-        };
-
-        if (minorVersion > patches.length) return null;
-        return patches[minorVersion - 1];
+        Map<Integer, Integer> minor = LATEST_VERSION_MAPPING.get(majorVersion);
+        if (minor == null) return null;
+        return minor.get(minorVersion);
     }
 
     /**
@@ -409,8 +437,7 @@ public final class XReflection {
         }
     }
 
-    private XReflection() {
-    }
+    private XReflection() {}
 
     /**
      * @since 9.5.0
