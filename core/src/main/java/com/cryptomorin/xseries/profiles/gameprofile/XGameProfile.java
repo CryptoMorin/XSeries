@@ -3,8 +3,8 @@ package com.cryptomorin.xseries.profiles.gameprofile;
 import com.cryptomorin.xseries.reflection.XReflection;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class XGameProfile {
@@ -25,6 +25,8 @@ public class XGameProfile {
         } else {
             GameProfile gameProfile = new GameProfile(id, name);
             MojangGameProfile converted = of(gameProfile);
+            assert converted != null;
+
             converted.properties().putAll(properties);
             return converted;
         }

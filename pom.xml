@@ -122,6 +122,15 @@
         </repository>
     </repositories>
 
+    <dependencies>
+        <dependency>
+            <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>26.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <!-- We use pluginManagement tag because: -->

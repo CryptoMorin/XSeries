@@ -22,7 +22,7 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
@@ -33,7 +33,7 @@ final class ReflectedObjectConstructor extends AbstractMemberReflectedObject {
     ReflectedObjectConstructor(Constructor<?> delegate) {this.delegate = delegate;}
 
     @Override
-    public @NonNull Type type() {
+    public @NotNull Type type() {
         return Type.CONSTRUCTOR;
     }
 
@@ -41,12 +41,12 @@ final class ReflectedObjectConstructor extends AbstractMemberReflectedObject {
      * By default, {@link Constructor#getName()} returns the class name.
      */
     @Override
-    public @NonNull String name() {
+    public @NotNull String name() {
         return "<init>";
     }
 
     @Override
-    public @NonNull Constructor<?> unreflect() {
+    public @NotNull Constructor<?> unreflect() {
         return delegate;
     }
 

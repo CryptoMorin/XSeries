@@ -1,5 +1,5 @@
 name: "XSeries"
 main: "com.github.cryptomorin.test.XSeriesPlugin"
-version: '1.0.0'
+version: '${project.version}'
 api-version: '1.13'
 author: 'Crypto Morin'

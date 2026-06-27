@@ -228,7 +228,7 @@ public interface Profileable {
     @ApiStatus.Experimental
     static <C extends Collection<Profileable>> CompletableFuture<C> prepare(
             @NotNull C profileables, @Nullable ProfileRequestConfiguration config,
-            @Nullable Function<Throwable, Boolean> errorHandler) {
+            @Nullable Function<@NotNull Throwable, @NotNull Boolean> errorHandler) {
         Objects.requireNonNull(profileables, "Profile list is null");
         if (profileables.isEmpty()) return CompletableFuture.completedFuture(profileables);
 
@@ -321,7 +321,11 @@ public interface Profileable {
     @NotNull
     @Contract(pure = true)
     static Profileable of(@NotNull GameProfile profile, boolean fetchTexturesIfNeeded) {
-        return of(XGameProfile.of(profile), fetchTexturesIfNeeded);
+        Objects.requireNonNull(profile, "profile");
+        MojangGameProfile mojangProfile = XGameProfile.of(profile);
+
+        assert mojangProfile != null;
+        return of(mojangProfile, fetchTexturesIfNeeded);
     }
 
     /**
@@ -444,7 +448,7 @@ public interface Profileable {
         }
 
         @Override
-        protected MojangGameProfile cacheProfile() {
+        protected @NotNull MojangGameProfile cacheProfile() {
             if (valid == null) {
                 valid = ProfileInputType.USERNAME.pattern.matcher(username).matches();
             }
@@ -455,8 +459,14 @@ public interface Profileable {
                 throw new UnknownPlayerException(username, "Cannot find player named '" + username + '\'');
 
             MojangGameProfile profile = XGameProfile.of(profileOpt.get());
+            assert profile != null;
+
             if (PlayerProfiles.hasTextures(profile)) return profile;
-            return XGameProfile.of(MojangAPI.getOrFetchProfile(profile));
+            GameProfile resolved = MojangAPI.getOrFetchProfile(profile);
+
+            MojangGameProfile mojangGameProfile = XGameProfile.of(resolved);
+            assert mojangGameProfile != null;
+            return mojangGameProfile;
         }
     }
 
@@ -474,7 +484,10 @@ public interface Profileable {
         @Override
         protected MojangGameProfile cacheProfile() {
             MojangGameProfile profile = XGameProfile.of(MojangAPI.getCachedProfileByUUID(id));
+            assert profile != null;
+
             if (PlayerProfiles.hasTextures(profile)) return profile;
+
             return XGameProfile.of(MojangAPI.getOrFetchProfile(profile));
         }
     }
@@ -580,8 +593,10 @@ public interface Profileable {
     @ApiStatus.Internal
     final class PlayerProfileable extends TimedCacheableProfileable {
         // Only save these to let the GC do its job for the OfflinePlayer instance.
-        @Nullable private final String username;
-        @NotNull private final UUID id;
+        @Nullable
+        private final String username;
+        @NotNull
+        private final UUID id;
 
         public PlayerProfileable(OfflinePlayer player) {
             Objects.requireNonNull(player);
@@ -609,8 +624,10 @@ public interface Profileable {
     @ApiStatus.Internal
     final class PlayerProfileProfileable extends TimedCacheableProfileable {
         // Only save these to let the GC do its job for the OfflinePlayer instance.
-        @NotNull private final PlayerProfile profile;
-        @Nullable private PlayerProfile updated;
+        @NotNull
+        private final PlayerProfile profile;
+        @Nullable
+        private PlayerProfile updated;
 
         private static final MethodHandle CraftPlayerProfile_buildGameProfile = XReflection.ofMinecraft()
                 .inPackage(MinecraftPackage.CB, "profile").named("CraftPlayerProfile")
@@ -647,7 +664,8 @@ public interface Profileable {
     @ApiStatus.Internal
     final class StringProfileable extends TimedCacheableProfileable {
         private final String string;
-        @Nullable private ProfileInputType type;
+        @Nullable
+        private ProfileInputType type;
 
         public StringProfileable(String string, @Nullable ProfileInputType type) {
             this.string = Objects.requireNonNull(string, "Input string is null");

@@ -82,6 +82,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class XSkull {
     /**
+     * This class only provides static methods.
+     */
+    private XSkull() {}
+
+    /**
      * Creates a {@link ProfileInstruction} for an {@link ItemStack}.
      * This method initializes a new player head.
      *
@@ -151,7 +156,7 @@ public final class XSkull {
     @NotNull
     @Contract(value = "_ -> new", pure = true)
     @ApiStatus.Experimental
-    static ProfileInstruction<Player> of(@NotNull Player player) {
+    private static ProfileInstruction<Player> of(@NotNull Player player) {
         return new ProfileInstruction<>(new ProfileContainer.PlayerContainer(player));
     }
 

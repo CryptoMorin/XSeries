@@ -22,47 +22,48 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
 abstract class AbstractReflectedObject implements ReflectedObject {
     @Override
-    public abstract @NonNull AnnotatedElement unreflect();
+    @NotNull
+    public abstract AnnotatedElement unreflect();
 
     @Override
-    public final <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+    public final <A extends Annotation> A getAnnotation(@NotNull Class<A> annotationClass) {
         return unreflect().getAnnotation(annotationClass);
     }
 
     @Override
-    public final boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+    public final boolean isAnnotationPresent(@NotNull Class<? extends Annotation> annotationClass) {
         return unreflect().isAnnotationPresent(annotationClass);
     }
 
     @Override
-    public final <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
+    public final <A extends Annotation> A @NotNull [] getAnnotationsByType(@NotNull Class<A> annotationClass) {
         return unreflect().getAnnotationsByType(annotationClass);
     }
 
     @Override
-    public final Annotation[] getAnnotations() {
+    public final Annotation @NotNull [] getAnnotations() {
         return unreflect().getAnnotations();
     }
 
     @Override
-    public final <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
+    public final <A extends Annotation> A getDeclaredAnnotation(@NotNull Class<A> annotationClass) {
         return unreflect().getDeclaredAnnotation(annotationClass);
     }
 
     @Override
-    public final <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
+    public final <A extends Annotation> A @NotNull [] getDeclaredAnnotationsByType(@NotNull Class<A> annotationClass) {
         return unreflect().getDeclaredAnnotationsByType(annotationClass);
     }
 
     @Override
-    public final Annotation[] getDeclaredAnnotations() {
+    public final Annotation @NotNull [] getDeclaredAnnotations() {
         return unreflect().getDeclaredAnnotations();
     }
 

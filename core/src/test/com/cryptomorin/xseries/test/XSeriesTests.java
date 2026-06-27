@@ -71,6 +71,7 @@ import org.opentest4j.AssertionFailedError;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -87,8 +88,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings("CallToPrintStackTrace")
 public final class XSeriesTests {
     // @Test
-    public void enumToRegistry() throws URISyntaxException {
-        URL resource = XSeriesTests.class.getResource("XEnchantment.java");
+    public void enumToRegistry(String clazz) throws URISyntaxException {
+        clazz = clazz + ".java";
+        URL resource = XSeriesTests.class.getResource(clazz);
+        Objects.requireNonNull(resource, "Unknown class: " + clazz);
+
         Path path = Paths.get(resource.toURI());
         ClassConverter.enumToRegistry(path, TestConstants.getTestPath());
     }
@@ -137,8 +141,10 @@ public final class XSeriesTests {
     }
 
     private static Location getCenterOfChunk(Chunk c) {
-        Location center = new Location(c.getWorld(), c.getX() << 4, 64, c.getZ() << 4).add(8, 0, 8);
-        center.setY(center.getWorld().getHighestBlockYAt(center) + 1);
+        World world = c.getWorld();
+        Location center = new Location(world, c.getX() << 4, 64, c.getZ() << 4).add(8, 0, 8);
+
+        center.setY(world.getHighestBlockYAt(center) + 1);
         return center;
     }
 
@@ -158,8 +164,11 @@ public final class XSeriesTests {
 
     private static Location getRandomLocation() {
         ThreadLocalRandom rand = ThreadLocalRandom.current();
+        Optional<World> someWorld = Bukkit.getWorlds().stream().findFirst();
+        if (!someWorld.isPresent()) throw new IllegalStateException("No worlds found!");
+
         return new Location(
-                Bukkit.getWorlds().stream().findFirst().get(),
+                someWorld.get(),
                 rand.nextInt(-10, 10), rand.nextInt(-10, 10), rand.nextInt(-10, 10)
         );
     }
@@ -188,9 +197,34 @@ public final class XSeriesTests {
         }
     }
 
+    private static String getMavenProjectVersion() {
+        Properties props = new Properties();
+        try (InputStream in = XSeriesTests.class.getResourceAsStream("/xseries.properties")) {
+            props.load(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return props.getProperty("project.version");
+    }
+
     private static void testReflection() {
-        log("Testing reflection...");
+        log("Testing XReflection...");
         log("Version pack: " + XReflection.getVersionInformation());
+
+        log("XSeries project version mismatch checkup...");
+        String expectedXSeriesVer = XReflection.XSERIES_VERSION;
+        String actualXSeriesVer = getMavenProjectVersion();
+        assertEquals(expectedXSeriesVer, actualXSeriesVer, "XSeries version mismatch.");
+
+        log("Latest patch number check");
+        Integer latestPatch = XReflection.getLatestPatchNumberOf(XReflection.MAJOR_NUMBER, XReflection.MINOR_NUMBER);
+        String patchDesc = "Latest patch number of " + XReflection.MAJOR_NUMBER + "." + XReflection.MINOR_NUMBER + "." + XReflection.PATCH_NUMBER + " -> " + latestPatch;
+        assertNotNull(latestPatch, patchDesc);
+        assertTrue(XReflection.PATCH_NUMBER <= latestPatch, "Current patch > latest expected patch. " + patchDesc);
+        log(patchDesc);
+
+        log("Testing XReflection reflection capabilities...");
         ReflectionTests.test();
         ProxyTests.test();
         ASMTests.test();
@@ -418,7 +452,7 @@ public final class XSeriesTests {
         Assertions.assertSame(parsed.get(), expect);
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "DataFlowIssue"})
     private static void assertMaterial(XMaterial original, Material expect) {
         Optional<XMaterial> selfNameMapped = XMaterial.matchXMaterial(original.name());
 
@@ -481,7 +515,10 @@ public final class XSeriesTests {
 
         for (String section : yaml.getKeys(false)) {
             ConfigurationSection itemSection = yaml.getConfigurationSection(section);
-            if (!TestConstants.TEST_MOJANG_API && itemSection.isSet("skull")) continue;
+            if (!TestConstants.TEST_MOJANG_API) {
+                assert itemSection != null;
+                if (itemSection.isSet("skull")) continue;
+            }
 
             ItemStack item = XItemStack.deserializer()
                     .fromConfig(itemSection)
@@ -496,9 +533,11 @@ public final class XSeriesTests {
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private static ItemStack createItem(XMaterial material, Consumer<ItemMeta> metaConsumer) {
         ItemStack item = material.parseItem();
         ItemMeta meta = item.getItemMeta();
+
         metaConsumer.accept(meta);
         item.setItemMeta(meta);
         return item;
@@ -513,7 +552,7 @@ public final class XSeriesTests {
         }
     }
 
-    @SuppressWarnings({"CodeBlock2Expr", "UnstableApiUsage", "SpellCheckingInspection"})
+    @SuppressWarnings({"CodeBlock2Expr", "UnstableApiUsage", "SpellCheckingInspection", "ResultOfMethodCallIgnored"})
     private static YamlConfiguration serializeItemStack(Map<String, ItemSerialDual> map) throws IOException {
         File file = new File(Bukkit.getWorldContainer(), "serialized.yml");
         if (!file.exists()) {
@@ -601,6 +640,7 @@ public final class XSeriesTests {
         {
             log("Testing skulls, no duplicated properties...");
             MojangGameProfile profile = Profileable.username("Notch").getProfile();
+            assert profile != null;
             PropertyMap properties = profile.properties();
             for (Map.Entry<String, Collection<Property>> propertyList : properties.asMap().entrySet()) {
                 assertEquals(1, propertyList.getValue().size(), () -> "GameProfile of skull has duplicated properties for '"
@@ -677,6 +717,9 @@ public final class XSeriesTests {
     private static void compareProfiles(Profileable firstProfile, Profileable secondProfile) {
         MojangGameProfile first = firstProfile.getProfile();
         MojangGameProfile second = secondProfile.getProfile();
+
+        assert first != null;
+        assert second != null;
 
         Optional<Property> firstTextures = PlayerProfiles.getTextureProperty(first);
         Optional<Property> secondTextures = PlayerProfiles.getTextureProperty(second);

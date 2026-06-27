@@ -22,7 +22,7 @@
 
 package com.cryptomorin.xseries.reflection.jvm.objects;
 
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -33,12 +33,14 @@ final class ReflectedObjectMethod extends AbstractMemberReflectedObject {
     ReflectedObjectMethod(Method delegate) {this.delegate = delegate;}
 
     @Override
-    public @NonNull Type type() {
+    @NotNull
+    public Type type() {
         return Type.METHOD;
     }
 
     @Override
-    public @NonNull Method unreflect() {
+    @NotNull
+    public Method unreflect() {
         return delegate;
     }
 

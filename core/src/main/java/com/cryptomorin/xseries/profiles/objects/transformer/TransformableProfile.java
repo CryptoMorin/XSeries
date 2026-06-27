@@ -25,6 +25,7 @@ package com.cryptomorin.xseries.profiles.objects.transformer;
 import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ public final class TransformableProfile implements Profileable {
     }
 
     @Override
+    @NotNull
     public Profileable transform(ProfileTransformer... transformers) {
         // Return a new instance because we promised not to affect the current instance for transform() method.
         List<ProfileTransformer> transformersList = new ArrayList<>(this.transformers.transformers.length + transformers.length);
