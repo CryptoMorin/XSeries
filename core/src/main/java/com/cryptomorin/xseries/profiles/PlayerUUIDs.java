@@ -124,12 +124,12 @@ public final class PlayerUUIDs {
         if (detected != null) return detected;
 
         String override = System.getProperty(PROXY_ONLINE_MODE_PROPERTY);
-        if (override != null) return REAL_UUIDS = Boolean.parseBoolean(override);
+        if (override != null) return rememberDetection(Boolean.parseBoolean(override));
 
-        if (Bukkit.getOnlineMode()) return REAL_UUIDS = true;
+        if (Bukkit.getOnlineMode()) return rememberDetection(true);
 
         Boolean paper = getPaperProxyOnlineMode();
-        if (paper != null) return REAL_UUIDS = paper;
+        if (paper != null) return rememberDetection(paper);
 
         if (isBungeeCordEnabled()) {
             boolean sampled = false;
@@ -137,18 +137,23 @@ public final class PlayerUUIDs {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     sampled = true;
                     if (player.getUniqueId().equals(getOfflineUUID(player.getName()))) {
-                        return REAL_UUIDS = false;
+                        return rememberDetection(false);
                     }
                 }
-            } catch (Throwable ignored) {
+            } catch (Exception ignored) {
                 // This can be called from the profile fetcher thread; be defensive
                 // about iterating the online player list.
             }
-            if (sampled) return REAL_UUIDS = true;
+            if (sampled) return rememberDetection(true);
             return false; // Nothing to sample yet; don't cache the assumption.
         }
 
-        return REAL_UUIDS = false;
+        return rememberDetection(false);
+    }
+
+    private static boolean rememberDetection(boolean realUUIDs) {
+        REAL_UUIDS = realUUIDs;
+        return realUUIDs;
     }
 
     /**
@@ -165,13 +170,15 @@ public final class PlayerUUIDs {
             Object config = globalConfig.getMethod("get").invoke(null);
             Object proxies = globalConfig.getField("proxies").get(config);
             return (Boolean) proxies.getClass().getMethod("isProxyOnlineMode").invoke(proxies);
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
+            // Not this Paper config layout; try the legacy one.
         }
         try {
             // Paper 1.12-1.18.2
             Class<?> paperConfig = Class.forName("com.destroystokyo.paper.PaperConfig");
             return (Boolean) paperConfig.getMethod("isProxyOnlineMode").invoke(null);
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
+            // Not a Paper-based server (or an unknown fork); fall back to the next signal.
         }
         return null;
     }
@@ -179,7 +186,7 @@ public final class PlayerUUIDs {
     private static boolean isBungeeCordEnabled() {
         try {
             return Class.forName("org.spigotmc.SpigotConfig").getField("bungee").getBoolean(null);
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
             return false;
         }
     }
