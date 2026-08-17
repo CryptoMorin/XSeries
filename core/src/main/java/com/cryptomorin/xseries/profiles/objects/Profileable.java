@@ -235,7 +235,7 @@ public interface Profileable {
         CompletableFuture<Map<UUID, String>> initial = CompletableFuture.completedFuture(new HashMap<>());
         List<String> usernameRequests = new ArrayList<>();
 
-        if (!PlayerUUIDs.isOnlineMode()) {
+        if (!PlayerUUIDs.usesRealUUIDs()) {
             for (Profileable profileable : profileables) {
                 String username = null;
                 if (profileable instanceof UsernameProfileable) {
@@ -504,7 +504,7 @@ public interface Profileable {
                 return profile;
             }
 
-            return (PlayerUUIDs.isOnlineMode()
+            return (PlayerUUIDs.usesRealUUIDs()
                     ? new UUIDProfileable(profile.id())
                     : new UsernameProfileable(profile.name())
             ).getProfile();

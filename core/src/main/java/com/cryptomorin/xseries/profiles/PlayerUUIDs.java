@@ -27,6 +27,7 @@ import com.cryptomorin.xseries.profiles.lock.MojangRequestQueue;
 import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.google.common.base.Strings;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +83,107 @@ public final class PlayerUUIDs {
         return Bukkit.getOnlineMode();
     }
 
+    /**
+     * System property that overrides {@link #usesRealUUIDs()} when set to {@code true} or {@code false}.
+     * Useful for setups that the automatic detection cannot figure out (e.g. Spigot behind an
+     * offline-mode BungeeCord before any player has joined).
+     */
+    public static final String PROXY_ONLINE_MODE_PROPERTY = "xseries.profiles.proxyOnlineMode";
+
+    /**
+     * Caches the detected mode. Only set once the answer is definitive
+     * (the server's mode cannot change without a restart).
+     */
+    private static volatile Boolean REAL_UUIDS;
+
+    /**
+     * Whether player identity on this server is based on real, Mojang-authenticated UUIDs.
+     * <p>
+     * This is what code should use instead of {@link #isOnlineMode()} when deciding which UUID
+     * belongs in the server's own records (e.g. the {@code usercache.json} user cache).
+     * {@link Bukkit#getOnlineMode()} is {@code false} on every proxied backend, but backends behind
+     * an online-mode BungeeCord/Velocity proxy still receive and store real UUIDs. Treating those
+     * servers as offline corrupts their user cache with computed offline UUIDs, which breaks
+     * name-based lookups (whitelist, bans, other plugins) for the affected players.
+     * <p>
+     * Detection order:
+     * <ol>
+     *     <li>The {@value #PROXY_ONLINE_MODE_PROPERTY} system property, if set.</li>
+     *     <li>{@link Bukkit#getOnlineMode()} being {@code true}.</li>
+     *     <li>Paper's {@code proxies} config ({@code isProxyOnlineMode()}), which covers both
+     *         Velocity and BungeeCord forwarding, on any Paper-based server.</li>
+     *     <li>On Spigot behind BungeeCord ({@code settings.bungeecord}), the UUID of a currently
+     *         online player: proxies compute offline UUIDs with the same formula as vanilla, so a
+     *         player whose UUID doesn't match {@link #getOfflineUUID(String)} proves the proxy
+     *         runs in online mode. With no player online the result is assumed offline but not
+     *         cached, so it's re-evaluated on the next call.</li>
+     * </ol>
+     */
+    public static boolean usesRealUUIDs() {
+        Boolean detected = REAL_UUIDS;
+        if (detected != null) return detected;
+
+        String override = System.getProperty(PROXY_ONLINE_MODE_PROPERTY);
+        if (override != null) return REAL_UUIDS = Boolean.parseBoolean(override);
+
+        if (Bukkit.getOnlineMode()) return REAL_UUIDS = true;
+
+        Boolean paper = getPaperProxyOnlineMode();
+        if (paper != null) return REAL_UUIDS = paper;
+
+        if (isBungeeCordEnabled()) {
+            boolean sampled = false;
+            try {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    sampled = true;
+                    if (player.getUniqueId().equals(getOfflineUUID(player.getName()))) {
+                        return REAL_UUIDS = false;
+                    }
+                }
+            } catch (Throwable ignored) {
+                // This can be called from the profile fetcher thread; be defensive
+                // about iterating the online player list.
+            }
+            if (sampled) return REAL_UUIDS = true;
+            return false; // Nothing to sample yet; don't cache the assumption.
+        }
+
+        return REAL_UUIDS = false;
+    }
+
+    /**
+     * Paper knows the proxy's online mode from its {@code proxies} config section and uses it for
+     * its own name-based profile lookups; matching it keeps us consistent with the server.
+     *
+     * @return null if this isn't a Paper-based server (or its config layout is unknown).
+     */
+    @Nullable
+    private static Boolean getPaperProxyOnlineMode() {
+        try {
+            // Paper 1.19+
+            Class<?> globalConfig = Class.forName("io.papermc.paper.configuration.GlobalConfiguration");
+            Object config = globalConfig.getMethod("get").invoke(null);
+            Object proxies = globalConfig.getField("proxies").get(config);
+            return (Boolean) proxies.getClass().getMethod("isProxyOnlineMode").invoke(proxies);
+        } catch (Throwable ignored) {
+        }
+        try {
+            // Paper 1.12-1.18.2
+            Class<?> paperConfig = Class.forName("com.destroystokyo.paper.PaperConfig");
+            return (Boolean) paperConfig.getMethod("isProxyOnlineMode").invoke(null);
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static boolean isBungeeCordEnabled() {
+        try {
+            return Class.forName("org.spigotmc.SpigotConfig").getField("bungee").getBoolean(null);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     @Nullable
     public static UUID getRealUUIDOfPlayer(@NotNull String username) {
         if (Strings.isNullOrEmpty(username))
@@ -130,7 +232,10 @@ public final class PlayerUUIDs {
         if (Strings.isNullOrEmpty(username))
             throw new IllegalArgumentException("Username is null or empty: " + username);
 
-        if (PlayerUUIDs.isOnlineMode()) return uuid;
+        // On servers that deal in real UUIDs (true online mode or behind an online-mode proxy)
+        // the given UUID can be trusted directly, unless it's the computed offline UUID
+        // (e.g. a caller hardcoded it), in which case we still have to look the real one up.
+        if (usesRealUUIDs() && !uuid.equals(getOfflineUUID(username))) return uuid;
 
         // OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
         // if (!player.hasPlayedBefore()) throw new IllegalStateException("Player with UUID " + uuid + " doesn't exist.");
