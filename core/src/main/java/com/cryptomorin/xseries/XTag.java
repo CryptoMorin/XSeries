@@ -1624,7 +1624,7 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.ORANGE_POPLAR_LEAVES,
                 XMaterial.RED_POPLAR_LEAVES,
                 XMaterial.YELLOW_POPLAR_LEAVES);
-        NON_WOODEN_STAIRS = TagBuilder.simple(
+        NON_WOODEN_STAIRS = TagBuilder.of(
     			XMaterial.STONE_BRICK_STAIRS,
                 XMaterial.STONE_STAIRS,
                 XMaterial.POLISHED_BLACKSTONE_BRICK_STAIRS,
@@ -1665,11 +1665,12 @@ public final class XTag<T extends XBase<?, ?>> {
                 XMaterial.WAXED_OXIDIZED_CUT_COPPER_STAIRS,
                 XMaterial.SMOOTH_SANDSTONE_STAIRS,
                 XMaterial.BLACKSTONE_STAIRS
-        		);
-        NON_WOODEN_STAIRS.values.addAll(Arrays.asList(findAllColors("CONCRETE_STAIRS")));
-        NON_WOODEN_STAIRS.values.addAll(Arrays.asList(findAllColors("WOOL_STAIRS")));
+        		)
+        		.inheritFrom(TagBuilder.simple(findAllColors("CONCRETE_STAIRS")))
+        		.inheritFrom(TagBuilder.simple(findAllColors("WOOL_STAIRS")))
+        		.build();
         STAIRS = TagBuilder.simple(NON_WOODEN_STAIRS, WOODEN_STAIRS);
-        NON_WOODEN_SLABS = TagBuilder.simple(
+        NON_WOODEN_SLABS = TagBuilder.of(
 	    		XMaterial.MOSSY_COBBLESTONE_SLAB,
 	            XMaterial.EXPOSED_CUT_COPPER_SLAB,
 	            XMaterial.SMOOTH_QUARTZ_SLAB,
@@ -1714,9 +1715,10 @@ public final class XTag<T extends XBase<?, ?>> {
 	            XMaterial.WAXED_WEATHERED_CUT_COPPER_SLAB,
 	            XMaterial.BRICK_SLAB,
 	            XMaterial.POLISHED_GRANITE_SLAB
-	    		);
-        NON_WOODEN_SLABS.values.addAll(Arrays.asList(findAllColors("CONCRETE_SLAB")));
-        NON_WOODEN_SLABS.values.addAll(Arrays.asList(findAllColors("WOOL_SLAB")));
+	    		)
+        		.inheritFrom(TagBuilder.simple(findAllColors("CONCRETE_SLAB")))
+        		.inheritFrom(TagBuilder.simple(findAllColors("WOOL_SLAB")))
+        		.build();
         POTTERY_SHERDS = TagBuilder.simple(XMaterial.ANGLER_POTTERY_SHERD,
                 XMaterial.ARCHER_POTTERY_SHERD,
                 XMaterial.ARMS_UP_POTTERY_SHERD,
