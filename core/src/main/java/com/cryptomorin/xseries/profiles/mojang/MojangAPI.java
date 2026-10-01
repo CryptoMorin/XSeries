@@ -188,7 +188,7 @@ public final class MojangAPI {
             UUID realUUID = PlayerUUIDs.getRealUUIDOfPlayer(username);
             if (realUUID == null) return Optional.empty();
             GameProfile profile = PlayerProfiles.createGameProfile(
-                    PlayerUUIDs.isOnlineMode() ? realUUID : PlayerUUIDs.getOfflineUUID(username),
+                    PlayerUUIDs.usesRealUUIDs() ? realUUID : PlayerUUIDs.getOfflineUUID(username),
                     username
             ).object();
             optional = Optional.of(profile);
@@ -248,7 +248,7 @@ public final class MojangAPI {
             }
 
             if (pendingUsernames.isEmpty()) return mapped;
-            boolean onlineMode = PlayerUUIDs.isOnlineMode();
+            boolean realUUIDs = PlayerUUIDs.usesRealUUIDs();
 
             // For some reason, the YggdrasilGameProfileRepository partitions names in pairs instead of 10s.
             // It also "normalizes" names with lowercase and sends the request.
@@ -275,8 +275,9 @@ public final class MojangAPI {
                     PlayerUUIDs.USERNAME_TO_ONLINE.put(name, realId);
                     PlayerUUIDs.ONLINE_TO_OFFLINE.put(realId, offlineId);
                     PlayerUUIDs.OFFLINE_TO_ONLINE.put(offlineId, realId);
-                    if (!ProfilesCore.UserCache_profilesByName.containsKey(name)) {
-                        cacheProfile(PlayerProfiles.createGameProfile(onlineMode ? realId : offlineId, name).object());
+                    // The user cache keys its name map by lowercased names.
+                    if (!ProfilesCore.UserCache_profilesByName.containsKey(name.toLowerCase(Locale.ENGLISH))) {
+                        cacheProfile(PlayerProfiles.createGameProfile(realUUIDs ? realId : offlineId, name).object());
                     }
 
                     String prev = mapped.put(realId, name);
@@ -302,7 +303,7 @@ public final class MojangAPI {
      */
     @NotNull
     public static GameProfile getCachedProfileByUUID(UUID uuid) {
-        uuid = PlayerUUIDs.isOnlineMode() ? uuid : PlayerUUIDs.ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
+        uuid = PlayerUUIDs.usesRealUUIDs() ? uuid : PlayerUUIDs.ONLINE_TO_OFFLINE.getOrDefault(uuid, uuid);
         try {
             @Nullable Object profile = ProfilesCore.GameProfileCache_get$profileByUUID$.invoke(ProfilesCore.USER_CACHE, uuid);
             if (profile instanceof Optional) profile = ((Optional<?>) profile).orElse(null);

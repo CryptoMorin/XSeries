@@ -34,7 +34,6 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -197,7 +196,7 @@ public final class PlayerProfiles {
     }
 
     /**
-     * Uses the online/offline UUID depending on {@link Bukkit#getOnlineMode()}.
+     * Uses the online/offline UUID depending on {@link PlayerUUIDs#usesRealUUIDs()}.
      *
      * @param gameProfile must have complete name and UUID
      * @return may return the same or a new profile.
@@ -209,8 +208,12 @@ public final class PlayerProfiles {
         // is instant in most cases, but are sometimes a few minutes? (or hours?) behind
         // because of Mojang server's cache.
 
-        // The stored cache UUID must be according to online/offline servers.
-        if (PlayerUUIDs.isOnlineMode()) return gameProfile;
+        // The stored cache UUID must match the UUIDs the server actually deals in. Note that
+        // this cannot be based on Bukkit.getOnlineMode() alone: backends behind an online-mode
+        // BungeeCord/Velocity proxy run with online-mode=false but still use real UUIDs, and
+        // swapping in offline UUIDs here would end up corrupting their usercache.json
+        // (via MojangAPI.cacheProfile) with entries the server itself would never create.
+        if (PlayerUUIDs.usesRealUUIDs()) return gameProfile;
 
         MojangGameProfile profile = XGameProfile.of(gameProfile);
         UUID offlineId = PlayerUUIDs.getOfflineUUID(profile.name());
