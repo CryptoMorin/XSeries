@@ -58,6 +58,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.*;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -117,6 +121,14 @@ public final class XItemStack {
             SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA,
             SUPPORTS_ITEM_MODEL,
             SUPPORTS_ITEM_NAME;
+    private static final boolean SUPPORTS_LEGACY_POTION;
+    private static final MethodHandle Potion_fromItemStack;
+    private static final MethodHandle Potion_getType;
+    private static final MethodHandle Potion_getLevel;
+    private static final MethodHandle Potion_hasExtendedDuration;
+    private static final MethodHandle Potion_isSplash;
+    private static final MethodHandle Potion_new;
+    private static final MethodHandle Potion_toItemStack;
 
     static {
         boolean supportsPotionColor = false,
@@ -127,6 +139,24 @@ public final class XItemStack {
                 supportsItemModel = false,
                 supportsItemName = false;
 
+        boolean legacyPotionAvailable = false;
+        MethodHandle fromItemStack = null, getType = null, getLevel = null;
+        MethodHandle hasExtendedDuration = null, isSplash = null, toItemStack = null;
+        MethodHandle potionCtor = null;
+
+        try {
+            Class<?> potionClass = Class.forName("org.bukkit.potion.Potion");
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            fromItemStack = lookup.findStatic(potionClass, "fromItemStack", MethodType.methodType(potionClass, ItemStack.class));
+            getType = lookup.findVirtual(potionClass, "getType", MethodType.methodType(PotionType.class));
+            getLevel = lookup.findVirtual(potionClass, "getLevel", MethodType.methodType(int.class));
+            hasExtendedDuration = lookup.findVirtual(potionClass, "hasExtendedDuration", MethodType.methodType(boolean.class));
+            isSplash = lookup.findVirtual(potionClass, "isSplash", MethodType.methodType(boolean.class));
+            potionCtor = lookup.findConstructor(potionClass, MethodType.methodType(void.class, PotionType.class, int.class, boolean.class, boolean.class));
+            toItemStack = lookup.findVirtual(potionClass, "toItemStack", MethodType.methodType(ItemStack.class, int.class));
+            legacyPotionAvailable = true;
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException ignored) {
+        }
 
         try {
             ItemMeta.class.getDeclaredMethod("setUnbreakable", boolean.class);
@@ -177,6 +207,14 @@ public final class XItemStack {
         SUPPORTS_ADVANCED_CUSTOM_MODEL_DATA = supportsAdvancedCustomModelData;
         SUPPORTS_ITEM_MODEL = supportsItemModel;
         SUPPORTS_ITEM_NAME = supportsItemName;
+        SUPPORTS_LEGACY_POTION = legacyPotionAvailable;
+        Potion_fromItemStack = fromItemStack;
+        Potion_getType = getType;
+        Potion_getLevel = getLevel;
+        Potion_hasExtendedDuration = hasExtendedDuration;
+        Potion_isSplash = isSplash;
+        Potion_new = potionCtor;
+        Potion_toItemStack = toItemStack;
     }
 
     private interface MetaHandler<M extends ItemMeta> {
@@ -571,11 +609,15 @@ public final class XItemStack {
             config.set("material", XMaterial.matchXMaterial(item).name());
             if (item.getAmount() > 1) config.set("amount", item.getAmount());
 
+            // Pre-1.13: durability encodes potion data, spawn egg type, etc.
+            // Save before early return incase pre-1.9 potions have no PotionMeta.
+            if (!supports(1, 13)) config.set("damage", item.getDurability());
+
             if (!item.hasItemMeta()) return;
             meta = item.getItemMeta();
             if (meta == null) return;
 
-            // Durability - Damage
+            // Durability - Damage (1.13+)
             handleDurability(meta);
 
             // Display Name & Lore
@@ -812,7 +854,7 @@ public final class XItemStack {
                         .method("public org.bukkit.NamespacedKey getKey()")
                         .exists();
 
-        @SuppressWarnings({"deprecation", "StatementWithEmptyBody"})
+        @SuppressWarnings({"deprecation"})
         private void handlePotionMeta(PotionMeta meta) {
             if (supports(1, 9)) {
                 if (SUPPORTS_PotionMeta_getBasePotionType) {
@@ -845,14 +887,18 @@ public final class XItemStack {
                 }
 
                 if (SUPPORTS_POTION_COLOR && meta.hasColor()) config.set("color", meta.getColor().asRGB());
-            } else {
-                // Check for water bottles in 1.8
-                // Potion class is now removed...
-                // if (item.getDurability() != 0) {
-                //     Potion potion = Potion.fromItemStack(item);
-                //     config.set("level", potion.getLevel());
-                //     config.set("base-effect", potion.getType().name() + ", " + potion.hasExtendedDuration() + ", " + potion.isSplash());
-                // }
+            } else if (SUPPORTS_LEGACY_POTION) {
+                try {
+                    Object potion = Potion_fromItemStack.invoke(item);
+                    PotionType type = (PotionType) Potion_getType.invoke(potion);
+                    int level = (int) Potion_getLevel.invoke(potion);
+                    boolean extended = (boolean) Potion_hasExtendedDuration.invoke(potion);
+                    boolean splash = (boolean) Potion_isSplash.invoke(potion);
+
+                    config.set("level", level);
+                    config.set("base-effect", type.name() + ", " + extended + ", " + splash);
+                } catch (Throwable ignored) {
+                }
             }
         }
 
@@ -1268,7 +1314,10 @@ public final class XItemStack {
             if (enchantment != null) {
                 for (String enchantName : enchantment.getKeys(false)) {
                     Optional<XEnchantment> enchant = XEnchantment.of(enchantName);
-                    enchant.ifPresent(xEnchantment -> meta.addStoredEnchant(xEnchantment.get(), enchantment.getInt(enchantName), true));
+                    enchant.ifPresent(xEnchantment -> {
+                        Enchantment actual = xEnchantment.get();
+                        if (actual != null) meta.addStoredEnchant(actual, enchantment.getInt(enchantName), true);
+                    });
                 }
             }
         }
@@ -1278,7 +1327,10 @@ public final class XItemStack {
             if (enchants != null) {
                 for (String enchantName : enchants.getKeys(false)) {
                     Optional<XEnchantment> enchant = XEnchantment.of(enchantName);
-                    enchant.ifPresent(xEnchantment -> meta.addEnchant(xEnchantment.get(), enchants.getInt(enchantName), true));
+                    enchant.ifPresent(xEnchantment -> {
+                        Enchantment actual = xEnchantment.get();
+                        if (actual != null) meta.addEnchant(actual, enchants.getInt(enchantName), true);
+                    });
                 }
             } else if (config.getBoolean("glow")) {
                 meta.addEnchant(XEnchantment.UNBREAKING.get(), 1, false);
@@ -1572,7 +1624,6 @@ public final class XItemStack {
                         .method("public org.bukkit.NamespacedKey getKey()")
                         .exists();
 
-        @SuppressWarnings("StatementWithEmptyBody")
         private void handlePotionMeta(ItemMeta meta) {
             if (supports(1, 9)) {
                 PotionMeta potion = (PotionMeta) meta;
@@ -1651,24 +1702,22 @@ public final class XItemStack {
                 if (SUPPORTS_POTION_COLOR && config.contains("color")) {
                     potion.setColor(Color.fromRGB(config.getInt("color")));
                 }
-            } else {
-                // What do we do for 1.8?
-                // if (config.contains("level")) {
-                //     int level = config.getInt("level");
-                //     String baseEffect = config.getString("base-effect");
-                //     if (!Strings.isNullOrEmpty(baseEffect)) {
-                //         List<String> split = split(baseEffect, ',');
-                //         PotionType type = Enums.getIfPresent(PotionType.class, split.get(0).trim().toUpperCase(Locale.ENGLISH)).or(PotionType.SLOWNESS);
-                //         boolean extended = split.size() != 1 && Boolean.parseBoolean(split.get(1).trim());
-                //         boolean splash = split.size() > 2 && Boolean.parseBoolean(split.get(2).trim());
-                //
-                //         item = (splash ? XMaterial.SPLASH_POTION : XMaterial.POTION).parseItem();
-                //         PotionMeta potion = (PotionMeta) item.getItemMeta();
-                //         // potion.addCustomEffect(XPotion.matchXPotion(type).buildPotionEffect(extended ? 3 : 1, level), true);
-                //         item.setItemMeta(potion);
-                //         item = (new Potion(type, level, splash, extended)).toItemStack(1);
-                //     }
-                // }
+            } else if (SUPPORTS_LEGACY_POTION) {
+                String baseEffect = config.getString("base-effect");
+                if (!Strings.isNullOrEmpty(baseEffect)) {
+                    try {
+                        List<String> split = split(baseEffect, ',');
+                        PotionType type = Enum.valueOf(PotionType.class, split.get(0).trim());
+                        boolean extended = split.size() > 1 && Boolean.parseBoolean(split.get(1).trim());
+                        boolean splash = split.size() > 2 && Boolean.parseBoolean(split.get(2).trim());
+
+                        Object potion = Potion_new.invoke(type, config.getInt("level", 1), splash, extended);
+                        ItemStack result = (ItemStack) Potion_toItemStack.invoke(potion, item.getAmount());
+                        this.item = result;
+                        this.meta = result.getItemMeta();
+                    } catch (Throwable ignored) {
+                    }
+                }
             }
         }
 
