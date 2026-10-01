@@ -2268,7 +2268,7 @@ public enum XMaterial implements XBase<XMaterial, Material> {
      * @see #matchXMaterial(String)
      * @since 3.0.0
      */
-    @Nullable
+    @NotNull
     private static Optional<XMaterial> matchXMaterialWithData(@NotNull String name) {
         int index = name.indexOf(':');
         if (index != -1) {
