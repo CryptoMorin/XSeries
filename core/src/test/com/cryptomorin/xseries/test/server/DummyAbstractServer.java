@@ -173,7 +173,7 @@ public abstract class DummyAbstractServer {
 
                 log("Implementing dummy server...");
                 // A proxy because we don't want to pollute this class with a bunch of methods we can't implement.
-//                Server instance = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, implementer);
+                //                Server instance = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, implementer);
 
                 log("Starting org.bukkit.craftbukkit.Main...");
                 String[] startupArgs = { // https://www.spigotmc.org/wiki/start-up-parameters/
@@ -201,7 +201,7 @@ public abstract class DummyAbstractServer {
                 }
                 // Main.main(startupArgs);
 
-//                log("Initializing server...");
+                //                log("Initializing server...");
                 // Bukkit.setServer(instance);
 
                 log("Done!");
@@ -369,13 +369,13 @@ public abstract class DummyAbstractServer {
         // Bukkit.getServer().getPluginManager().enablePlugin(new XSeriesPlugin());
     }
 
-// protected OptionSet parseOptions(String[] args) {
-//     try {
-//         return OPTION_PARSER.parse(args);
-//     } catch (Exception e) {
-//         throw new RuntimeException(e);
-//     }
-// }
+    // protected OptionSet parseOptions(String[] args) {
+    //     try {
+    //         return OPTION_PARSER.parse(args);
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
     protected abstract InvocationHandler main();
 }

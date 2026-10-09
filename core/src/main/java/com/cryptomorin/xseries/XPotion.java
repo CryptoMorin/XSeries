@@ -481,7 +481,7 @@ public enum XPotion implements XBase<XPotion, PotionEffectType> {
 
         meta.setColor(color);
         meta.setDisplayName(type == Material.POTION ? "Potion" : type == Material.SPLASH_POTION ? "Splash Potion" :
-                type == Material.TIPPED_ARROW ? "Tipped Arrow" : "Lingering Potion");
+                                                                 type == Material.TIPPED_ARROW ? "Tipped Arrow" : "Lingering Potion");
         if (effects != null) for (PotionEffect effect : effects) meta.addCustomEffect(effect, true);
         item.setItemMeta(meta);
         return item;

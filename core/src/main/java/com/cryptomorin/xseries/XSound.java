@@ -2093,6 +2093,32 @@ public final class XSound extends XModule<XSound, Sound> {
             MUSIC_DISC_BOUNCE = std("music_disc.bounce"),
             MUSIC_OVERWORLD_SULFUR_CAVES = std("music.overworld.sulfur_caves");
 
+    @XInfo(since = "26.3.0")
+    public static final XSound
+            BLOCK_POPLAR_LEAVES_AMBIENT = std("block.poplar_leaves.ambient"),
+            BLOCK_POPLAR_LEAVES_BREAK = std("block.poplar_leaves.break"),
+            BLOCK_POPLAR_LEAVES_FALL = std("block.poplar_leaves.fall"),
+            BLOCK_POPLAR_LEAVES_HIT = std("block.poplar_leaves.hit"),
+            BLOCK_POPLAR_LEAVES_PLACE = std("block.poplar_leaves.place"),
+            BLOCK_POPLAR_LEAVES_STEP = std("block.poplar_leaves.step"),
+            BLOCK_RED_SHRUB_BREAK = std("block.red_shrub.break"),
+            BLOCK_RED_SHRUB_PLACE = std("block.red_shrub.place"),
+            BLOCK_SHELF_MUSHROOM_BOUNCE = std("block.shelf_mushroom.bounce"),
+            BLOCK_SHELF_MUSHROOM_BREAK = std("block.shelf_mushroom.break"),
+            BLOCK_SHELF_MUSHROOM_FALL = std("block.shelf_mushroom.fall"),
+            BLOCK_SHELF_MUSHROOM_PLACE = std("block.shelf_mushroom.place"),
+            BLOCK_SHELF_MUSHROOM_STEP = std("block.shelf_mushroom.step"),
+            BLOCK_STRAW_BED_BREAK = std("block.straw_bed.break"),
+            BLOCK_STRAW_BED_BREAK_LEAVE = std("block.straw_bed.break_leave"),
+            BLOCK_STRAW_BED_FALL = std("block.straw_bed.fall"),
+            BLOCK_STRAW_BED_HIT = std("block.straw_bed.hit"),
+            BLOCK_STRAW_BED_PLACE = std("block.straw_bed.place"),
+            BLOCK_STRAW_BED_STEP = std("block.straw_bed.step"),
+            ENTITY_CUSHION_BREAK = std("entity.cushion.break"),
+            ENTITY_CUSHION_GET_UP = std("entity.cushion.get_up"),
+            ENTITY_CUSHION_PLACE = std("entity.cushion.place"),
+            ENTITY_CUSHION_SIT = std("entity.cushion.sit");
+
     static {
         REGISTRY.discardMetadata();
     }

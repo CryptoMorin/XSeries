@@ -330,7 +330,8 @@ public final class DifferenceHelper {
             hasEntries = false;
             for (String customConst : xForm) {
                 try {
-                    if (xFormClass != null && xFormClass.getDeclaredField(customConst).isAnnotationPresent(Deprecated.class)) continue;
+                    if (xFormClass != null && xFormClass.getDeclaredField(customConst).isAnnotationPresent(Deprecated.class))
+                        continue;
                 } catch (NoSuchFieldException e) {
                     throw new RuntimeException(e);
                 }

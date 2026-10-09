@@ -30,7 +30,6 @@ import com.cryptomorin.xseries.reflection.minecraft.MinecraftClassHandle;
 import com.cryptomorin.xseries.reflection.minecraft.MinecraftMapping;
 import com.google.common.cache.LoadingCache;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -82,7 +81,7 @@ public final class ProfilesCore {
         boolean bukkitUsesResolvableProfile = false;
 
         ReflectiveNamespace ns = XReflection.namespaced()
-                .imports(GameProfile.class, MinecraftSessionService.class, LoadingCache.class);
+                .imports(GameProfile.class, LoadingCache.class);
 
         MinecraftClassHandle CachedUserNameToIdResolver = ns.ofMinecraft(
                         "package nms.server.players; public class CachedUserNameToIdResolver"
@@ -163,9 +162,15 @@ public final class ProfilesCore {
                         .map(MinecraftMapping.OBFUSCATED, v(1, 21, 11, "ar").orElse("av"))
                         .reflect().invoke(minecraftServer);
 
-                minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.MinecraftSessionService sessionService()")
-                        .map(MinecraftMapping.OBFUSCATED, "c")
-                        .reflect().invoke(services);
+                if (XReflection.supports(26, 3)) {
+                    // Record entry
+                    minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.SessionService sessionService()")
+                            .reflect().invoke(services);
+                } else {
+                    minecraftSessionService = Services.method("public com.mojang.authlib.minecraft.MinecraftSessionService sessionService()")
+                            .map(MinecraftMapping.OBFUSCATED, "c")
+                            .reflect().invoke(services);
+                }
             } else {
                 minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService()")
                         .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
@@ -173,8 +178,14 @@ public final class ProfilesCore {
             }
 
             {
-                MinecraftClassHandle yggdrasilService = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
-                        "public class YggdrasilMinecraftSessionService implements MinecraftSessionService");
+                MinecraftClassHandle yggdrasilService;
+                if (XReflection.supports(26, 3)) {
+                    yggdrasilService = ns.ofMinecraft("package com.mojang.authlib.services;" +
+                            "public class MinecraftServicesSessionService implements SessionService");
+                } else {
+                    yggdrasilService = ns.ofMinecraft("package com.mojang.authlib.yggdrasil;" +
+                            "public class YggdrasilMinecraftSessionService implements MinecraftSessionService");
+                }
 
                 FieldMemberHandle yggdrasilField = yggdrasilService.field().getter();
 
@@ -204,7 +215,7 @@ public final class ProfilesCore {
             }
 
             if (!NULLABILITY_RECORD_UPDATE) {
-                fillProfileProperties = ns.of(MinecraftSessionService.class).method(
+                fillProfileProperties = XReflection.of(minecraftSessionService.getClass()).method(
                         "public GameProfile fillProfileProperties(GameProfile profile, boolean flag)"
                 ).reflect();
             }

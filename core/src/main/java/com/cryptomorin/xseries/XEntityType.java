@@ -214,6 +214,10 @@ public enum XEntityType implements XBase<XEntityType, EntityType> {
     @XInfo(since = "1.21.11") ZOMBIE_NAUTILUS,
 
     @XInfo(since = "26.2.0") SULFUR_CUBE,
+
+    @XInfo(since = "26.3.0") POPLAR_BOAT,
+    @XInfo(since = "26.3.0") POPLAR_CHEST_BOAT,
+    @XInfo(since = "26.3.0") CUSHION,
     ;
 
     public static final XRegistry<XEntityType, EntityType> REGISTRY = Data.REGISTRY;

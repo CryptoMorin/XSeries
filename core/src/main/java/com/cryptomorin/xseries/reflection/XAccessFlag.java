@@ -184,6 +184,7 @@ public enum XAccessFlag {
      * The {@code ACC_STRICT} access flag is defined for class file
      * major versions 46 through 60, inclusive (JVM Section 4.6),
      * corresponding to Java SE 1.2 through 16.
+     *
      * @since Java 1.2
      */
     STRICT(Modifier.STRICT, true),

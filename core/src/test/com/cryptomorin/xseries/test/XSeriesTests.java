@@ -38,6 +38,9 @@ import com.cryptomorin.xseries.profiles.mojang.MojangAPI;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.cryptomorin.xseries.profiles.objects.transformer.ProfileTransformer;
 import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.minecraft.capabilities.MinecraftBlockCapability;
+import com.cryptomorin.xseries.reflection.minecraft.capabilities.MinecraftCapabilities;
+import com.cryptomorin.xseries.reflection.minecraft.capabilities.MinecraftEntityCapability;
 import com.cryptomorin.xseries.test.reflection.ReflectionTests;
 import com.cryptomorin.xseries.test.reflection.ReflectiveConstraintTests;
 import com.cryptomorin.xseries.test.reflection.asm.ASMTests;
@@ -260,7 +263,7 @@ public final class XSeriesTests {
             ParticleDisplay.of(XParticle.CLOUD)
                     .withLocation(getRandomLocation())
                     .rotate(90, 90, 90).withCount(-1).offset(5, 5, 5).withExtra(1).forceSpawn(true)
-                            .spawn();
+                    .spawn();
             ParticleDisplay.of(XParticle.DRAGON_BREATH).withCount(10).spawn(getRandomLocation());
         }
     }
@@ -763,9 +766,17 @@ public final class XSeriesTests {
             Class.forName("com.cryptomorin.xseries.messages.ActionBar");
             Class.forName("com.cryptomorin.xseries.messages.Titles");
             Class.forName("com.cryptomorin.xseries.profiles.builder.XSkull");
-            Class.forName("com.cryptomorin.xseries.reflection.minecraft.NMSExtras");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to load essential NMS classes", e);
+        }
+
+        try {
+            MinecraftCapabilities.getCapability(MinecraftBlockCapability.class);
+            MinecraftCapabilities.getCapability(MinecraftEntityCapability.class);
+            MinecraftCapabilities.getCapability(MinecraftBlockCapability.class).SHORTS_OR_INFO
+            // MinecraftCapabilities.getCapability(MinecraftSignCapability.class); Outdated since 26.3.0, needs updating
+        } catch (Throwable nmsFailure) {
+            throw new RuntimeException("Failed to load minecraft capabilities", nmsFailure);
         }
     }
 

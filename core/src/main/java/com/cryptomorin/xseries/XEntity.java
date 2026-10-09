@@ -466,7 +466,8 @@ public final class XEntity {
             if (config.isSet("gliding")) living.setGliding(config.getBoolean("gliding"));
             if (config.isSet("remove-when-far-away"))
                 living.setRemoveWhenFarAway(config.getBoolean("remove-when-far-away"));
-            if (XReflection.supports(1, 13) && config.isSet("swimming")) living.setSwimming(config.getBoolean("swimming"));
+            if (XReflection.supports(1, 13) && config.isSet("swimming"))
+                living.setSwimming(config.getBoolean("swimming"));
 
             if (config.isSet("max-air")) living.setMaximumAir(config.getInt("max-air"));
             if (config.isSet("no-damage-ticks")) living.setNoDamageTicks(config.getInt("no-damage-ticks"));

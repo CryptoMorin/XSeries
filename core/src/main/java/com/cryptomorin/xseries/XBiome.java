@@ -171,7 +171,10 @@ public final class XBiome extends XModule<XBiome, Biome> {
             DRIPSTONE_CAVES = std("DRIPSTONE_CAVES"),
             LUSH_CAVES = std("LUSH_CAVES");
 
-    @XInfo(since = "26.2.0") public static final XBiome SULFUR_CAVES = std("sulfur_caves");
+    @XInfo(since = "26.2.0")
+    public static final XBiome SULFUR_CAVES = std("sulfur_caves");
+    @XInfo(since = "26.3.0")
+    public static final XBiome DAPPLED_FOREST = std("dappled_forest");
 
     private static final boolean World_getMaxHeight$SUPPORTED, World_getMinHeight$SUPPORTED;
 

@@ -161,7 +161,7 @@ public final class XReflection {
      * The current version of XSeries. Mostly used for the {@link com.cryptomorin.xseries.profiles.builder.XSkull} API.
      */
     @ApiStatus.Internal
-    public static final String XSERIES_VERSION = "13.7.1";
+    public static final String XSERIES_VERSION = "14.0.0";
 
     /**
      * System property ({@link System#getProperty(String)}) used to disable Minecraft capabilities
@@ -290,7 +290,8 @@ public final class XReflection {
 
                 // Year versioning era
                 "26.1.2",
-                "26.2.0"
+                "26.2.0",
+                "26.3.0"
         };
         Map<Integer, Map<Integer, Integer>> patchMap = new HashMap<>();
 

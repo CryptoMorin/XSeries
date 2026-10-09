@@ -210,8 +210,11 @@ public enum XItemFlag implements XBase<XItemFlag, ItemFlag> {
     HIDE_BLOCKS_ATTACKS,
     @XInfo(since = "1.21.5")
     HIDE_DYED_COLOR,
-    @XInfo(since = "1.21.5")
+
+    @XInfo(since = "1.21.5", removedSince = "26.3.0")
+    @Deprecated
     HIDE_MAP_COLOR,
+
     @XInfo(since = "1.21.5")
     HIDE_MAP_ID,
     @XInfo(since = "1.21.5")

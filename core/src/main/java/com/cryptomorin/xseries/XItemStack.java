@@ -109,6 +109,7 @@ import static com.cryptomorin.xseries.XMaterial.supports;
 public final class XItemStack {
     /**
      * Because {@link ItemMeta} cannot be applied to {@link Material#AIR}.
+     *
      * @deprecated You should now use {@link Deserializer#deserialize()} which handles {@link UnsetMaterialCondition}.
      */
     @Deprecated
@@ -309,9 +310,12 @@ public final class XItemStack {
     }
 
     private abstract static class SerialObject {
-        @Nullable protected ItemStack item;
-        @Nullable protected ConfigurationSection config;
-        @Nullable protected Function<String, String> translator = Function.identity();
+        @Nullable
+        protected ItemStack item;
+        @Nullable
+        protected ConfigurationSection config;
+        @Nullable
+        protected Function<String, String> translator = Function.identity();
         protected ItemMeta meta;
         protected XMaterial xmaterial;
 
@@ -1028,6 +1032,7 @@ public final class XItemStack {
 
         /**
          * The config which this item is going to be deserialized from.
+         *
          * @see #fromConfig(Map)
          */
         public Deserializer fromConfig(ConfigurationSection config) {
@@ -1038,6 +1043,7 @@ public final class XItemStack {
         /**
          * If you use any other configuration system, you can provide a map instead,
          * which automatically gets converted into a {@link ConfigurationSection}.
+         *
          * @see #fromConfig(ConfigurationSection)
          */
         @NotNull
@@ -1694,7 +1700,7 @@ public final class XItemStack {
 
                         @SuppressWarnings("removal")
                         org.bukkit.potion.PotionData data = new org.bukkit.potion.PotionData(effect, extended, upgraded);
-                        //noinspection deprecation
+                        // noinspection deprecation
                         potion.setBasePotionData(data);
                     }
                 }

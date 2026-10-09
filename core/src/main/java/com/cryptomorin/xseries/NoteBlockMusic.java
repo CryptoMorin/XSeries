@@ -407,7 +407,8 @@ public final class NoteBlockMusic {
 
     @SuppressWarnings("StringBufferField")
     private static final class InstructionBuilder {
-        @NotNull final CharSequence script;
+        @NotNull
+        final CharSequence script;
         final int len;
         final StringBuilder
                 instrumentBuilder = new StringBuilder(10),
@@ -495,7 +496,7 @@ public final class NoteBlockMusic {
                 }
             }
 
-//            if (!isBuilding) buildAndAddInstruction();
+            //            if (!isBuilding) buildAndAddInstruction();
             buildAndAddInstruction();
             sequence = getRoot();
         }
@@ -556,7 +557,7 @@ public final class NoteBlockMusic {
         }
 
         private void buildAndAddInstruction() {
-//            Sequence previous = sequence.parent == null ? sequence : sequence.parent;
+            //            Sequence previous = sequence.parent == null ? sequence : sequence.parent;
             sequence.addInstruction(buildInstruction());
         }
 

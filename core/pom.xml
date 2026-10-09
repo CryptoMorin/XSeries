@@ -66,13 +66,14 @@
             <scope>compile</scope>
         </dependency>
 
-
-        <!--        <dependency>-->
-        <!--            <groupId>com.mojang</groupId>-->
-        <!--            <artifactId>authlib</artifactId>-->
-        <!--            <version>6.0.55</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
+        <!-- You can find the exact AuthLib version from here: -->
+        <!-- https://piston-meta.mojang.com/mc/game/version_manifest_v2.json -->
+<!--        <dependency>-->
+<!--            <groupId>com.mojang</groupId>-->
+<!--            <artifactId>authlib</artifactId>-->
+<!--            <version>9.0.75</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>

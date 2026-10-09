@@ -40,10 +40,10 @@ import java.util.*;
  * of this class instead of interacting with {@link GameRule} object directly or the methods
  * provided in {@link World} as they've been changed.
  *
- * @see GameRule
  * @param <T> The type of the value that this game rule requires.
  *            Usually only {@link Integer} or {@link Boolean} (rarely {@link String})
  * @author Almighty-Satan
+ * @see GameRule
  */
 @SuppressWarnings("JavaLangInvokeHandleSignature")
 public final class XGameRule<T> extends XModule<XGameRule<T>, String> {
@@ -469,8 +469,10 @@ public final class XGameRule<T> extends XModule<XGameRule<T>, String> {
     @Deprecated
     public static final XGameRule<Boolean> DO_FIRE_TICK = std(Boolean.class, "doFireTick");
 
-    @NotNull private final Class<?> type;
-    @Nullable private final Object gamerule;
+    @NotNull
+    private final Class<?> type;
+    @Nullable
+    private final Object gamerule;
 
     private XGameRule(@NotNull Class<T> type, String usableName, Object bukkitObject, @NotNull String... names) {
         super(usableName, names);
@@ -624,7 +626,7 @@ public final class XGameRule<T> extends XModule<XGameRule<T>, String> {
      * @param world The world in which this game rule should be updated
      * @param value The new value
      * @throws UnsupportedOperationException If {@link #isSupported()} is {@code false}
-     * @throws IllegalArgumentException If {@code value} parameter is not an instance of {@link #getType()}
+     * @throws IllegalArgumentException      If {@code value} parameter is not an instance of {@link #getType()}
      */
     @Contract(mutates = "param1")
     public void setValue(@NotNull World world, @NotNull T value) {

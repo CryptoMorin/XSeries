@@ -304,7 +304,6 @@ public enum XParticle implements XBase<XParticle, Particle> {
     @XInfo(since = "26.1") RESET_MOB_GROWTH,
 
 
-
     @XInfo(since = "26.2.0") SULFUR_BUBBLES,
     @XInfo(since = "26.2.0") NOXIOUS_GAS,
     @XInfo(since = "26.2.0") NOXIOUS_GAS_CLOUD,
@@ -313,6 +312,11 @@ public enum XParticle implements XBase<XParticle, Particle> {
     @XInfo(since = "26.2.0") GEYSER_POOF,
     @XInfo(since = "26.2.0") GEYSER_PLUME,
     @XInfo(since = "26.2.0") SULFUR_CUBE_GOO,
+
+
+    @XInfo(since = "26.3.0") RED_POPLAR_LEAVES,
+    @XInfo(since = "26.3.0") ORANGE_POPLAR_LEAVES,
+    @XInfo(since = "26.3.0") YELLOW_POPLAR_LEAVES,
     ;
 
     public static final XRegistry<XParticle, Particle> REGISTRY = Data.REGISTRY;

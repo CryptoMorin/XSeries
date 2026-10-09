@@ -339,7 +339,8 @@ public final class ReflectiveAnnotationProcessor {
                 if (versionControl == null) {
                     if (semVer.length == 1) versionControl = XReflection.v(semVer[0], 0, name.value());
                     if (semVer.length == 2) versionControl = XReflection.v(semVer[0], semVer[1], name.value());
-                    if (semVer.length == 3) versionControl = XReflection.v(semVer[0], semVer[1], semVer[2], name.value());
+                    if (semVer.length == 3)
+                        versionControl = XReflection.v(semVer[0], semVer[1], semVer[2], name.value());
                 } else {
                     if (semVer.length == 1) versionControl.v(semVer[0], 0, name.value());
                     if (semVer.length == 2) versionControl.v(semVer[0], semVer[1], name.value());

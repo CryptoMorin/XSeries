@@ -501,12 +501,12 @@ public final class Particles {
 
                     display.spawn(x2, y2, 0);
 
-//                locs.forEach((v, v2) -> {
-//                    ParticleDisplay dis = display.clone();
-//                    dis.rotation = v2;
-//                    dis.spawn(v.getX(), v.getY(), v.getZ());
-//                });
-//                locs.put(new Vector(x2, y2, 0), display.rotation.clone());
+                    //                locs.forEach((v, v2) -> {
+                    //                    ParticleDisplay dis = display.clone();
+                    //                    dis.rotation = v2;
+                    //                    dis.spawn(v.getX(), v.getY(), v.getZ());
+                    //                });
+                    //                locs.put(new Vector(x2, y2, 0), display.rotation.clone());
                 }
             }
         };
@@ -2118,27 +2118,27 @@ public final class Particles {
                 {1, 1, 1, -1}, {-1, 1, 1, -1},
         };
 
-//        BiFunction<Double, Double, Double> reverseMatrix = (a, b) -> {
-//            if (a < 0) a -= b;
-//            else a += b;
-//            return -a;
-//        };
-//
-//        List<double[]> original = new ArrayList<>(Arrays.asList(positions));
-//        List<double[]> points = new ArrayList<>(original);
-//        List<double[]> rev = new ArrayList<>(original);
+        //        BiFunction<Double, Double, Double> reverseMatrix = (a, b) -> {
+        //            if (a < 0) a -= b;
+        //            else a += b;
+        //            return -a;
+        //        };
+        //
+        //        List<double[]> original = new ArrayList<>(Arrays.asList(positions));
+        //        List<double[]> points = new ArrayList<>(original);
+        //        List<double[]> rev = new ArrayList<>(original);
         List<int[]> connections = new ArrayList<>();
-//
-//        double dist = 0;
-//        Collections.reverse(rev);
-//        List<double[]> reversed = new ArrayList<>();
-//        for (int i = 0; i < 4; i += 2) {
-//            reversed.add(rev.get(i + 1));
-//            reversed.add(rev.get(i));
-//        }
-//        reversed.forEach(x -> points.add(new double[]{
-//                reverseMatrix.apply(x[0], dist), reverseMatrix.apply(x[1], dist),
-//                reverseMatrix.apply(x[2], dist), reverseMatrix.apply(x[3], dist)}));
+        //
+        //        double dist = 0;
+        //        Collections.reverse(rev);
+        //        List<double[]> reversed = new ArrayList<>();
+        //        for (int i = 0; i < 4; i += 2) {
+        //            reversed.add(rev.get(i + 1));
+        //            reversed.add(rev.get(i));
+        //        }
+        //        reversed.forEach(x -> points.add(new double[]{
+        //                reverseMatrix.apply(x[0], dist), reverseMatrix.apply(x[1], dist),
+        //                reverseMatrix.apply(x[2], dist), reverseMatrix.apply(x[3], dist)}));
 
         // Connect the generated 4D points together.
         // This can later be modified to support multi-dimension hypercubes.

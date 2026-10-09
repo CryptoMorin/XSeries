@@ -107,8 +107,8 @@ public final class ReflectiveProxy<T extends ReflectiveProxyObject> implements I
                         overload.rType.isDifferent() ? proxify((Class<? extends ReflectiveProxyObject>) overload.rType.synthetic) : null,
                         Arrays.stream(overload.pTypes).anyMatch(MappedType::isDifferent) ?
                                 Arrays.stream(overload.pTypes)
-                                        .map(x -> x.isDifferent() ? proxify((Class<? extends ReflectiveProxyObject>) x.synthetic) : null)
-                                        .toArray(ReflectiveProxy[]::new) :
+                                .map(x -> x.isDifferent() ? proxify((Class<? extends ReflectiveProxyObject>) x.synthetic) : null)
+                                .toArray(ReflectiveProxy[]::new) :
                                 null);
 
                 // It appears that the Method object inside invoke that comes from the interface is not

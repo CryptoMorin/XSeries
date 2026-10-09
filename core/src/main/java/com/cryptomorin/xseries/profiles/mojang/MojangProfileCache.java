@@ -25,17 +25,17 @@ package com.cryptomorin.xseries.profiles.mojang;
 import com.cryptomorin.xseries.profiles.PlayerProfiles;
 import com.cryptomorin.xseries.profiles.gameprofile.MojangGameProfile;
 import com.cryptomorin.xseries.profiles.gameprofile.XGameProfile;
+import com.cryptomorin.xseries.reflection.ReflectiveNamespace;
+import com.cryptomorin.xseries.reflection.XReflection;
+import com.cryptomorin.xseries.reflection.jvm.classes.DynamicClassHandle;
 import com.google.common.base.Strings;
 import com.google.common.cache.LoadingCache;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.yggdrasil.ProfileActionType;
-import com.mojang.authlib.yggdrasil.ProfileResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.invoke.MethodHandle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,24 +53,50 @@ abstract class MojangProfileCache {
     abstract Optional<GameProfile> get(UUID realId, GameProfile gameProfile);
 
     protected static final class ProfileResultCache extends MojangProfileCache {
-        private final LoadingCache<UUID, Optional<ProfileResult>> insecureProfiles;
+        private static final MethodHandle ProfileResult_ctor;
+        private static final MethodHandle ProfileResult_profile;
+        private static final Map<String, Object /* ProfileActionType */> ProfileActionTypes = new HashMap<>();
+
+        static {
+            ReflectiveNamespace ns = XReflection.namespaced();
+            ns.imports(GameProfile.class);
+
+            DynamicClassHandle ProfileResult = ns.ofMinecraft()
+                    .inPackage("com.mojang.authlib.services")
+                    .named("ProfileResult");
+
+            ProfileResult_ctor = ProfileResult.constructor("public ProfileResult(GameProfile profile, Set<ProfileActionType> actions)").unreflect();
+            ProfileResult_profile = ProfileResult.method("public GameProfile profile()").unreflect();
+
+            DynamicClassHandle ProfileActionType = ns.ofMinecraft()
+                    .inPackage("com.mojang.authlib.services")
+                    .named("ProfileActionType");
+            for (Object actionType : ProfileActionType.unreflect().getEnumConstants()) {
+                Enum<?> enumConstant = (Enum<?>) actionType;
+                ProfileActionTypes.put(enumConstant.name(), actionType);
+            }
+        }
+
+        private final LoadingCache<UUID, Optional<Object /* ProfileResult */>> insecureProfiles;
 
         @SuppressWarnings("unchecked")
         ProfileResultCache(LoadingCache<?, ?> insecureProfiles) {
-            this.insecureProfiles = (LoadingCache<UUID, Optional<ProfileResult>>) insecureProfiles;
+            this.insecureProfiles = (LoadingCache<UUID, Optional<Object /* ProfileResult */>>) insecureProfiles;
         }
 
         @Override
         void cache(PlayerProfile playerProfile) {
             if (playerProfile.exists()) {
-                ProfileResult profileResult = new ProfileResult(playerProfile.fetchedGameProfile,
-                        playerProfile.profileActions.stream().map(x -> {
-                            try {
-                                return ProfileActionType.valueOf(x);
-                            } catch (IllegalArgumentException ex) {
-                                return null;
-                            }
-                        }).filter(Objects::nonNull).collect(Collectors.toSet()));
+                Object profileResult;
+                try {
+                    Set<Object> actions = playerProfile.profileActions.stream()
+                            .map(ProfileActionTypes::get)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+                    profileResult = ProfileResult_ctor.invoke(playerProfile.fetchedGameProfile, actions);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
                 insecureProfiles.put(playerProfile.realUUID, Optional.of(profileResult));
             } else {
                 insecureProfiles.put(playerProfile.realUUID, Optional.empty());
@@ -80,8 +106,14 @@ abstract class MojangProfileCache {
         @SuppressWarnings("OptionalAssignedToNull")
         @Override
         Optional<GameProfile> get(UUID realId, GameProfile gameProfile) {
-            Optional<ProfileResult> cache = insecureProfiles.getIfPresent(realId);
-            return cache == null ? null : cache.map(ProfileResult::profile);
+            Optional<Object /* ProfileResult */> cache = insecureProfiles.getIfPresent(realId);
+            return cache == null ? null : cache.map(x -> {
+                try {
+                    return (GameProfile) ProfileResult_profile.invoke(x);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 
