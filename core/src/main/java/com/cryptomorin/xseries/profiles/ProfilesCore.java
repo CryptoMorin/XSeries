@@ -172,7 +172,7 @@ public final class ProfilesCore {
                             .reflect().invoke(services);
                 }
             } else {
-                minecraftSessionService = MinecraftServer.method("public MinecraftSessionService getSessionService()")
+                minecraftSessionService = MinecraftServer.method("public com.mojang.authlib.minecraft.MinecraftSessionService getSessionService()")
                         .named(/* 1.21.3 */ "aq", /* 1.19.4 */ "ay", /* 1.17.1 */ "getMinecraftSessionService", "az", "ao", "am", /* 1.20.4 */ "aD", /* 1.20.6 */ "ar", /* 1.13 */ "ap")
                         .reflect().invoke(minecraftServer);
             }
@@ -215,7 +215,7 @@ public final class ProfilesCore {
             }
 
             if (!NULLABILITY_RECORD_UPDATE) {
-                fillProfileProperties = XReflection.of(minecraftSessionService.getClass()).method(
+                fillProfileProperties = ns.of(minecraftSessionService.getClass()).method(
                         "public GameProfile fillProfileProperties(GameProfile profile, boolean flag)"
                 ).reflect();
             }
